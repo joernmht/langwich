@@ -370,6 +370,27 @@ langwich/
 
 ---
 
+## Contributing
+
+### Note for AI assistants
+
+> **When adding a new exercise type or a new vocabulary source, you must update the UML diagrams.**
+>
+> Specifically:
+>
+> - **New exercise** (subclass of `Exercise` in `src/langwich/exercises/`): add the class node and the `Exercise <|-- YourExercise` inheritance arrow to the class diagram; add the new `ExerciseType` value to the `EXERCISE_REGISTRY` entry in the process diagram if it affects the generation flow.
+> - **New source** (subclass of `Source` in `src/langwich/mining/sources/`): add the class node and the `Source <|-- YourSource` inheritance arrow to the class diagram; add the source to the `Source Discovery` step label in the process diagram.
+>
+> The diagrams live in two places — keep both in sync:
+>
+> | File | Content |
+> |------|---------|
+> | `README.md` (this file) — "Architecture" section | Embedded Mermaid blocks |
+> | `docs/class_diagram.mermaid` | Standalone class diagram |
+> | `docs/process_diagram.mermaid` | Standalone process diagram |
+
+---
+
 ## License
 
 MIT
