@@ -1,0 +1,173 @@
+flowchart TB
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    %% MINING PIPELINE FLOW
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    subgraph MINING["Mining Pipeline"]
+        direction TB
+
+        M_START([User provides domain + languages])
+        M_START --> M_SOURCES
+
+        subgraph M_SOURCES["Stage 1: Source Discovery"]
+            direction LR
+            M_QUERY[Build search query<br/>from domain name]
+            M_WIKI[(Wikipedia)]
+            M_ARXIV[(arXiv)]
+            M_OALEX[(OpenAlex)]
+            M_YT[(YouTube<br/>CC-licensed)]
+            M_QUERY --> M_WIKI & M_ARXIV & M_OALEX & M_YT
+        end
+
+        M_SOURCES --> M_EXTRACT
+
+        subgraph M_EXTRACT["Stage 2: Text Extraction"]
+            direction LR
+            M_FETCH[Fetch full text<br/>via source API]
+            M_CLEAN[Strip markup,<br/>normalize whitespace]
+            M_LICENSE{License<br/>is open?}
+            M_FETCH --> M_CLEAN --> M_LICENSE
+            M_LICENSE -- Yes --> M_KEEP[Keep document]
+            M_LICENSE -- No --> M_SKIP[Skip document]
+        end
+
+        M_EXTRACT --> M_NLP
+
+        subgraph M_NLP["Stage 3: NLP Processing"]
+            direction LR
+            M_TOK[SpaCy tokenisation]
+            M_LEM[Lemmatisation]
+            M_POS[POS tagging]
+            M_SENT[Sentence boundary<br/>detection]
+            M_TOK --> M_LEM --> M_POS --> M_SENT
+        end
+
+        M_NLP --> M_VOCAB
+
+        subgraph M_VOCAB["Stage 4: Vocabulary Extraction"]
+            direction LR
+            M_UNIQUE[Collect unique<br/>lemmas]
+            M_FREQ[Calculate<br/>frequency scores]
+            M_FILTER[Filter stopwords<br/>and noise]
+            M_UNIQUE --> M_FREQ --> M_FILTER
+        end
+
+        M_VOCAB --> M_PHRASES
+        M_VOCAB --> M_CEFR
+
+        subgraph M_PHRASES["Stage 4b: Phrase Extraction"]
+            direction LR
+            M_PSENT[Select well-formed<br/>sentences]
+            M_PQUAL[Quality filter:<br/>length, no citations,<br/>no all-caps]
+            M_PLINK[Link phrases to<br/>vocabulary entries]
+            M_PSENT --> M_PQUAL --> M_PLINK
+        end
+
+        subgraph M_CEFR["Stage 5: CEFR Classification"]
+            direction TB
+            M_LOOKUP[Look up lemma in<br/>frequency lists]
+            M_FOUND{Found in<br/>Oxford 5000 /<br/>English Profile /<br/>Kelly list?}
+            M_LOOKUP --> M_FOUND
+            M_FOUND -- Yes --> M_RULE_LEVEL[Assign CEFR level<br/>method: FREQUENCY_LIST]
+            M_FOUND -- No --> M_LLM[Call scads.ai API<br/>with classification prompt]
+            M_LLM --> M_LLM_PARSE{Valid JSON<br/>response?}
+            M_LLM_PARSE -- Yes --> M_LLM_LEVEL[Assign CEFR level<br/>method: LLM_FALLBACK]
+            M_LLM_PARSE -- No --> M_UNKNOWN[Assign UNKNOWN<br/>for manual review]
+        end
+
+        M_CEFR --> M_DOMAIN
+        M_PHRASES --> M_DOMAIN
+
+        subgraph M_DOMAIN["Stage 6: Domain Tagging"]
+            direction TB
+            M_SCORE[Score domain relevance<br/>keyword + TF-IDF]
+            M_THRESH{Score ≥<br/>threshold?}
+            M_SCORE --> M_THRESH
+            M_THRESH -- Yes --> M_ACCEPT[Accept term<br/>as domain-relevant]
+            M_THRESH -- No --> M_REJECT[Discard term]
+        end
+
+        M_DOMAIN --> M_STORE
+
+        subgraph M_STORE["Stage 7: DB Storage"]
+            direction LR
+            M_UPSERT[Upsert vocabulary<br/>entries]
+            M_PHRASEDB[Store phrase<br/>entries + links]
+            M_META[Update domain<br/>metadata timestamps]
+            M_UPSERT --> M_META
+            M_PHRASEDB --> M_META
+        end
+
+        M_STORE --> M_DB[(Per-domain<br/>SQLite DB)]
+    end
+
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    %% WORKSHEET GENERATION FLOW
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    subgraph GENERATION["Worksheet Generation"]
+        direction TB
+
+        G_START([User selects<br/>domain + path + level])
+        G_START --> G_LOAD
+
+        subgraph G_LOAD["Load Data"]
+            direction LR
+            G_OPENDB[Open per-domain<br/>SQLite database]
+            G_QUERYVOCAB[Query vocabulary<br/>by CEFR level]
+            G_QUERYPHR[Query phrases<br/>by CEFR level]
+            G_OPENDB --> G_QUERYVOCAB & G_QUERYPHR
+        end
+
+        G_LOAD --> G_HASVOCAB{Vocabulary<br/>found for<br/>level?}
+        G_HASVOCAB -- Yes --> G_PATH
+        G_HASVOCAB -- No --> G_FALLBACK[Load all levels<br/>as fallback]
+        G_FALLBACK --> G_PATH
+
+        subgraph G_PATH["Select Exercises"]
+            direction TB
+            G_LOADPATH[Load LearningPath<br/>template]
+            G_ENSUREVOCAB[Ensure VocabMatching<br/>is first step]
+            G_ITERATE[Iterate PathSteps<br/>in order]
+            G_LOADPATH --> G_ENSUREVOCAB --> G_ITERATE
+        end
+
+        G_PATH --> G_EXERCISES
+
+        subgraph G_EXERCISES["Generate Content"]
+            direction TB
+            G_REGISTRY[Look up Exercise class<br/>from EXERCISE_REGISTRY]
+            G_INSTANTIATE[Instantiate with<br/>step config]
+            G_GENERATE[Call exercise.generate<br/>vocabulary, phrases, level]
+            G_CONTENT[ExerciseContent<br/>items + solutions + metadata]
+            G_REGISTRY --> G_INSTANTIATE --> G_GENERATE --> G_CONTENT
+        end
+
+        G_EXERCISES --> G_RENDER
+
+        subgraph G_RENDER["Render PDF"]
+            direction TB
+            G_FLOWABLES[Call exercise.render<br/>→ ReportLab Flowables]
+            G_ASSEMBLE[Assemble story:<br/>title + sections + dividers]
+            G_HEADER[Add header:<br/>brand · domain · level · date]
+            G_FOOTER[Add footer:<br/>page numbers · branding]
+            G_BUILD[Build PDF document<br/>BaseDocTemplate + A4]
+            G_FLOWABLES --> G_ASSEMBLE --> G_HEADER --> G_FOOTER --> G_BUILD
+        end
+
+        G_RENDER --> G_OUTPUT[/Worksheet PDF/]
+    end
+
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    %% CONNECTION BETWEEN FLOWS
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    M_DB -.->|vocabulary + phrases| G_LOAD
+
+    style MINING fill:#f0f7ff,stroke:#0071E3,stroke-width:2px
+    style GENERATION fill:#f0fff0,stroke:#34a853,stroke-width:2px
+    style M_CEFR fill:#fff8e1,stroke:#f9a825,stroke-width:1px
+    style M_DOMAIN fill:#fce4ec,stroke:#e91e63,stroke-width:1px
+    style G_RENDER fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
+    style M_DB fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style G_OUTPUT fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
