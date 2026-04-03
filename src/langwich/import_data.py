@@ -130,6 +130,12 @@ def import_json(
         )
         phrase_count += 1
 
+    # Grammar section (optional)
+    grammar = data.get("grammar")
+    if grammar:
+        db.grammar_topic = grammar.get("topic", "")
+        db.grammar_content = grammar.get("content", "")
+
     logger.info(
         "Imported %d vocabulary + %d phrases into %s",
         vocab_count, phrase_count, db.db_path,

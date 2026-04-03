@@ -66,7 +66,45 @@ Ask the user for their current level in the target language. Explain the scale b
 
 Accept free-form descriptions ("I'm a total beginner", "intermediate") and map them to the closest CEFR level.
 
-## Step 5 — Confirm and generate
+## Step 5 — Grammar focus (optional)
+
+Suggest 2–4 grammar topics appropriate for the user's CEFR level and target language. For example:
+
+| Level | Suggested topics |
+|-------|-----------------|
+| A1 | Basic word order, articles/determiners, personal pronouns, present tense |
+| A2 | Past tense, prepositions of place/time, possessive pronouns, negation |
+| B1 | Subjunctive/conditional, relative clauses, passive voice, comparison |
+| B2 | Complex sentence structure, reported speech, advanced tenses, modal verbs |
+| C1 | Stylistic register, idiomatic expressions, nuanced connectors |
+| C2 | Rhetorical devices, archaic/literary forms, subtle mood distinctions |
+
+Ask: "Would you like a grammar reference page? Here are some topics for your level — or suggest your own. Say 'skip' to leave it out."
+
+Be flexible — accept any grammar topic the user suggests, even if not in the table. If the user picks a topic, note it for the JSON generation step. If they say "skip", pass `--no-grammar-page` to the CLI.
+
+## Step 6 — Exercise selection
+
+Present the available exercise types and let the user choose which ones to include and how many items each. Show a numbered list like this:
+
+| # | Exercise | Description | Default items |
+|---|----------|-------------|---------------|
+| 1 | Vocabulary Matching | Match terms to translations | 10 |
+| 2 | Fill in the Blanks | Complete sentences with missing words | 8 |
+| 3 | Synonyms & Antonyms | Write synonyms and antonyms for terms | 8 |
+| 4 | Translation | Translate phrases between languages | 8 |
+| 5 | Reading Comprehension | Read a passage and answer questions | 4 questions |
+| 6 | Creative Writing | Write freely using vocabulary | 10 lines |
+| 7 | Text Summary | Summarise a passage | 5 lines |
+| 8 | Drawing Task | Draw a scene using vocabulary | — |
+
+Ask: "Which exercises would you like? You can pick by number (e.g. 1, 2, 5) and optionally adjust the number of items (e.g. '1: 15, 5: 6'). Or just say 'all' for the full set."
+
+If the user says "all" or doesn't have a preference, use the **balanced** path. Otherwise, build a custom `LearningPath` from their selections. Always include Vocabulary Matching as the first exercise.
+
+When building a custom path, map the user's choices to a `--custom-exercises` CLI argument as a comma-separated list of `type:count` pairs. For example: `--custom-exercises vocab_matching:15,reading_comprehension:4,fill_blanks:10`
+
+## Step 7 — Confirm and generate
 
 Show a clear summary of what you collected:
 
@@ -75,6 +113,8 @@ Mother tongue  : <source_lang>
 Target language: <target_lang>
 Topics         : <domain1>, <domain2>, ...
 CEFR level     : <level>
+Grammar focus  : <topic or "none">
+Exercises      : <exercise1> (<count>), <exercise2> (<count>), ...
 ```
 
 Ask the user to confirm ("Does this look right? Type yes to generate, or tell me what to change.").
@@ -106,7 +146,11 @@ For each domain, create a JSON file at `./data/<domain>_<source>_<target>.json` 
       "translation": "Der Zug faehrt von Gleis 3 ab.",
       "cefr": "A2"
     }
-  ]
+  ],
+  "grammar": {
+    "topic": "Present Tense",
+    "content": "Rules, conjugation tables, and examples for the grammar focus topic. Write clear explanations with 3-5 example sentences showing the rule in action. Use the target language for examples and the source language for explanations."
+  }
 }
 ```
 
@@ -119,6 +163,13 @@ Guidelines for generating vocabulary:
 - Set `frequency` between 0.0 and 1.0 (higher = more common in the domain).
 - Terms and phrases should be genuinely useful for the domain, not generic filler.
 
+Guidelines for the grammar section:
+- Only include the `grammar` section if the user chose a grammar topic (didn't say "skip").
+- Write the `content` field as a clear, concise grammar explanation appropriate for the CEFR level.
+- Include conjugation/declension tables where relevant (as plain text).
+- Provide 3-5 example sentences in the target language with translations.
+- Keep explanations in the learner's native language (source_lang).
+
 ### Build the worksheet
 
 After writing the JSON, run:
@@ -128,6 +179,11 @@ langwich --from-json ./data/<domain>_<source>_<target>.json \
          --level <CEFR> \
          --path balanced
 ```
+
+Add these flags as needed:
+- `--no-vocab-page` — if the user opted out of the vocabulary reference page
+- `--no-grammar-page` — if the user skipped the grammar topic
+- `--custom-exercises vocab_matching:15,reading_comprehension:4,...` — if the user selected specific exercises
 
 Report the path of every generated PDF to the user and suggest they open it with any PDF viewer.
 

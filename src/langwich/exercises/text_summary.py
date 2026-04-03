@@ -28,7 +28,7 @@ class TextSummaryExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
-        max_sentences = self.config.get("max_passage_sentences", 6)
+        max_sentences = self.config.get("max_passage_sentences", 12)
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
         passage = " ".join(p.text for p in passage_phrases)
 
@@ -53,7 +53,7 @@ class TextSummaryExercise(Exercise):
         flowables.append(Spacer(1, 0.3 * cm))
 
         passage = content.metadata.get("passage", "")
-        flowables.extend(info_box(passage))
+        flowables.extend(info_box(passage, min_height=350))
         flowables.append(Spacer(1, 0.3 * cm))
 
         line_count = content.metadata.get("summary_lines", 5)
