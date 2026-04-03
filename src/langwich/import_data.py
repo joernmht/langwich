@@ -136,6 +136,12 @@ def import_json(
         db.grammar_topic = grammar.get("topic", "")
         db.grammar_content = grammar.get("content", "")
 
+    # Reading comprehension section (optional)
+    reading = data.get("reading")
+    if reading:
+        db.reading_passage = reading.get("passage", "")
+        db.reading_questions = reading.get("questions", [])
+
     logger.info(
         "Imported %d vocabulary + %d phrases into %s",
         vocab_count, phrase_count, db.db_path,

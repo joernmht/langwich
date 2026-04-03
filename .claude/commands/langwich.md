@@ -120,7 +120,7 @@ Present the available exercise types and let the user choose which ones to inclu
 | 2 | Fill in the Blanks | Complete sentences with missing words | 8 |
 | 3 | Synonyms & Antonyms | Write synonyms and antonyms for terms | 8 |
 | 4 | Translation | Translate phrases between languages | 8 |
-| 5 | Reading Comprehension | Read a passage and answer questions | 4 questions |
+| 5 | Reading Comprehension | Read a passage and answer questions | 5 questions |
 | 6 | Creative Writing | Write freely using vocabulary | 10 lines |
 | 7 | Text Summary | Summarise a passage | 5 lines |
 | 8 | Drawing Task | Draw a scene using vocabulary | — |
@@ -177,6 +177,16 @@ For each domain, create a JSON file at `./data/<domain>_<source>_<target>.json` 
   "grammar": {
     "topic": "Present Tense",
     "content": "Rules, conjugation tables, and examples for the grammar focus topic. Write clear explanations with 3-5 example sentences showing the rule in action. Use the target language for examples and the source language for explanations."
+  },
+  "reading": {
+    "passage": "A coherent, multi-paragraph reading text (see guidelines below).",
+    "questions": [
+      "Deep comprehension question 1",
+      "Deep comprehension question 2",
+      "Deep comprehension question 3",
+      "Deep comprehension question 4",
+      "Deep comprehension question 5"
+    ]
   }
 }
 ```
@@ -197,6 +207,31 @@ Guidelines for the grammar section:
 - Include conjugation/declension tables where relevant (as plain text).
 - Provide 3-5 example sentences in the target language with translations.
 - Keep explanations in the learner's native language (source_lang).
+
+Guidelines for the reading section:
+- Always include the `reading` section when the user's exercises include Reading Comprehension.
+- The `passage` must be a **proper, coherent, multi-paragraph text** — an article, report, essay, or narrative — NOT a collection of disconnected sentences.
+- Write the passage in the **target language** at the appropriate CEFR level.
+- Length guidance by CEFR level:
+  - A1: 120–180 words (3 short paragraphs)
+  - A2: 180–250 words (3–4 paragraphs)
+  - B1: 250–350 words (4–5 paragraphs)
+  - B2: 350–500 words (4–5 paragraphs)
+  - C1: 450–600 words (5–6 paragraphs)
+  - C2: 500–700 words (5–6 paragraphs)
+- The passage should be **informative and engaging**, grounded in the chosen domain, and naturally incorporate vocabulary from the vocabulary list.
+- Use clear paragraph structure with transitions and logical flow.
+- The `questions` list must contain **5 deep comprehension questions** that require genuine understanding of the passage — not generic questions.
+- Question types to include (mix across the 5 questions):
+  - **Inference**: What can be inferred from a specific detail in the text?
+  - **Vocabulary in context**: What does a specific word or phrase mean as used in the passage?
+  - **Author's purpose**: Why does the text mention or emphasise a particular point?
+  - **Cause and effect**: What relationship between events or ideas is described?
+  - **Critical thinking**: Ask the student to evaluate, compare, or form a supported opinion about something in the text.
+  - **Synthesis**: How do different parts of the text connect to each other?
+- Each question should require 2–3 sentences to answer properly.
+- Write questions in the **source language** (the learner's native language) so they understand what is being asked.
+- Do NOT use generic questions like "What is the main topic?" — every question must reference specific content from the passage.
 
 ### Build the worksheet
 
