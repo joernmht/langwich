@@ -2,18 +2,96 @@
 
 **Automated language learning worksheet generator for e-paper devices and print.**
 
-langwich generates professional PDF worksheets for language learning. It uses a domain-specific vocabulary database, configurable learning paths, and a mining pipeline that builds vocabulary from open-access scientific and educational sources.
+langwich generates professional PDF worksheets for language learning. It supports domain-specific vocabulary, configurable learning paths, and 9 different exercise types — all rendered in a clean Cupertino-style design optimised for e-paper and print.
+
+---
+
+## Quick Start
+
+```bash
+pip install -e .
+```
+
+That's it. The core needs only Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydantic-settings. No SpaCy, no API keys, no `.env` file.
+
+### Using with Claude Code (recommended)
+
+Run the `/langwich` slash command. Claude walks you through picking your languages, topics, and level, then generates the vocabulary and worksheets for you automatically. Nothing else to install.
+
+### Using from the command line
+
+Provide vocabulary as a JSON file and generate a worksheet:
+
+```bash
+langwich --from-json vocab.json --level B1 --path balanced
+```
+
+The JSON format is simple — see [JSON Format](#json-format) below.
+
+---
+
+## Two Modes
+
+### 1. LLM Mode (default) — zero extra dependencies
+
+The AI assistant generates vocabulary, translations, CEFR levels, and example phrases directly, writes them as JSON, and feeds them to `langwich --from-json`. This is the fastest path from zero to worksheet.
+
+### 2. Mining Mode (optional) — automated corpus extraction
+
+Uses SpaCy + web sources (Wikipedia, arXiv, OpenAlex, YouTube) to mine domain-specific vocabulary automatically.
+
+```bash
+# Install mining extras
+pip install -e ".[mining]"
+python -m spacy download en_core_web_sm
+
+# Mine and generate
+langwich --domain railway-operations --source-lang en --target-lang de --level B1 --path balanced
+```
 
 ---
 
 ## Features
 
-- **Domain-specific vocabulary**: Separate SQLite databases per domain+language combo (railway operations, medicine, space exploration, etc.)
-- **Open-access mining**: Pulls vocabulary from Wikipedia, arXiv, OpenAlex, YouTube transcripts, and more
-- **CEFR classification**: Rule-based level tagging (A1–C2) with LLM fallback via scads.ai
-- **Configurable learning paths**: Define exercise sequences — Vocabulary Focus, Reading First, Balanced, Production, Multimedia
+- **Domain-specific vocabulary**: Separate SQLite databases per domain+language combo
 - **9 exercise types**: Vocab matching, fill-in-the-blanks, synonyms, translation, reading comprehension, creative writing, text summary, YouTube tasks, drawing tasks
-- **Cupertino-style PDFs**: Clean, modern design optimised for e-paper legibility and print
+- **5 learning paths**: Vocabulary Focus, Reading First, Balanced, Production, Multimedia
+- **CEFR levels**: A1 through C2, with level-appropriate content selection
+- **Cupertino-style PDFs**: Clean Helvetica typography, high contrast, e-paper optimised
+- **Optional mining pipeline**: SpaCy NLP + open-access sources for automated vocabulary extraction
+
+---
+
+## JSON Format
+
+The `--from-json` input uses this structure:
+
+```json
+{
+  "domain": "railway-operations",
+  "source_lang": "en",
+  "target_lang": "de",
+  "vocabulary": [
+    {
+      "term": "platform",
+      "lemma": "platform",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["Bahnsteig", "Gleis"],
+      "frequency": 0.85
+    }
+  ],
+  "phrases": [
+    {
+      "text": "The train departs from platform 3.",
+      "translation": "Der Zug faehrt von Gleis 3 ab.",
+      "cefr": "A2"
+    }
+  ]
+}
+```
+
+Fields: `term` (required), `lemma` (defaults to lowercase term), `pos` (NOUN/VERB/ADJ/ADV/OTHER), `cefr` (A1-C2), `translations` (list of strings), `frequency` (0.0-1.0).
 
 ---
 
@@ -144,7 +222,15 @@ classDiagram
 
 ```mermaid
 flowchart TB
-    subgraph MINING["Mining Pipeline"]
+    subgraph LLM_MODE["LLM Mode (default)"]
+        direction TB
+        L1([AI generates vocabulary + phrases])
+        L2[Write JSON file]
+        L3[(Import into SQLite DB)]
+        L1 --> L2 --> L3
+    end
+
+    subgraph MINING["Mining Mode (optional)"]
         direction TB
         M1([User provides domain + languages])
         M2[Source Discovery<br/>Wikipedia, arXiv, OpenAlex, YouTube]
@@ -170,7 +256,7 @@ flowchart TB
 
     subgraph GENERATION["Worksheet Generation"]
         direction TB
-        G1([User selects domain + path + level])
+        G1([Select path + level])
         G2[Load vocabulary + phrases<br/>from SQLite by CEFR level]
         G3[Iterate LearningPath steps]
         G4[Instantiate Exercise class<br/>from registry]
@@ -182,132 +268,34 @@ flowchart TB
         G1 --> G2 --> G3 --> G4 --> G5 --> G6 --> G7 --> G8
     end
 
+    L3 -.->|vocabulary + phrases| G2
     M13 -.->|vocabulary + phrases| G2
 
+    style LLM_MODE fill:#f0fff0,stroke:#34a853,stroke-width:2px
     style MINING fill:#f0f7ff,stroke:#0071E3,stroke-width:2px
-    style GENERATION fill:#f0fff0,stroke:#34a853,stroke-width:2px
+    style GENERATION fill:#fff8f0,stroke:#ea8600,stroke-width:2px
 ```
 
 ---
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Language | Python 3.11+ |
-| Database | SQLite via SQLAlchemy 2.0 |
-| NLP | SpaCy 3.7 |
-| PDF Rendering | ReportLab 4.1 |
-| LLM Fallback | scads.ai (OpenAI-compatible API) |
-| HTTP Client | httpx |
-| Configuration | Pydantic Settings |
-| YouTube | youtube-transcript-api |
-| Parsing | BeautifulSoup4, lxml, feedparser |
+| Component | Package | Required |
+|-----------|---------|----------|
+| PDF Rendering | ReportLab 4.1 | Core |
+| Database | SQLAlchemy 2.0 (SQLite) | Core |
+| Configuration | Pydantic Settings | Core |
+| NLP | SpaCy 3.7 | Mining extra |
+| LLM Fallback | scads.ai (OpenAI-compatible) | Mining extra |
+| HTTP Client | httpx | Mining extra |
+| YouTube | youtube-transcript-api | Mining extra |
+| Parsing | BeautifulSoup4, lxml, feedparser | Mining extra |
 
 ---
 
-## Setup
+## Configuration
 
-### Prerequisites
-
-- Python 3.11 or later
-- A SpaCy language model (downloaded automatically on first run)
-- (Optional) A scads.ai API key for LLM-based CEFR classification fallback
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/langwich.git
-cd langwich
-
-# Create a virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -e .
-
-# Or install from requirements.txt
-pip install -r requirements.txt
-
-# Download SpaCy model
-python -m spacy download en_core_web_sm
-
-# Copy and configure environment variables
-cp .env.example .env
-# Edit .env with your scads.ai API key
-```
-
----
-
-## Usage
-
-### 1. Mine vocabulary for a domain
-
-```python
-import asyncio
-from langwich.db.manager import DomainDatabase
-from langwich.mining.pipeline import MiningPipeline
-from langwich.mining.sources import WikipediaSource, ArxivSource
-
-# Create a domain database
-db = DomainDatabase(domain="railway-operations", source_lang="en", target_lang="de")
-db.initialize()
-
-# Set up sources and run the mining pipeline
-sources = [WikipediaSource(), ArxivSource()]
-pipeline = MiningPipeline(db=db, sources=sources)
-result = asyncio.run(pipeline.run())
-
-print(f"Mined {result.terms_added} terms and {result.phrases_added} phrases")
-```
-
-### 2. Generate a worksheet
-
-```python
-from langwich.db.manager import DomainDatabase
-from langwich.db.models import CEFRLevel
-from langwich.generator import WorksheetGenerator
-from langwich.paths.defaults import BUILTIN_PATHS
-
-# Open an existing domain database
-db = DomainDatabase(domain="railway-operations", source_lang="en", target_lang="de")
-db.initialize()
-
-# Generate a worksheet
-generator = WorksheetGenerator(
-    db=db,
-    path=BUILTIN_PATHS["balanced"],
-    level=CEFRLevel.B1,
-)
-pdf_path = generator.generate()
-print(f"Worksheet saved to: {pdf_path}")
-```
-
-### 3. CLI usage
-
-```bash
-# Generate a worksheet from the command line
-langwich --domain railway-operations --source-lang en --target-lang de --level B1 --path balanced
-```
-
-### 4. Custom learning path
-
-```python
-from langwich.paths.template import LearningPath, PathStep, ExerciseType
-
-custom_path = LearningPath(
-    name="My Custom Path",
-    description="Vocab + Reading + Writing",
-    steps=[
-        PathStep(ExerciseType.VOCAB_MATCHING, "Key Terms", required=True),
-        PathStep(ExerciseType.READING_COMPREHENSION, "Read & Understand"),
-        PathStep(ExerciseType.CREATIVE_WRITING, "Express Yourself",
-                 config={"num_vocab_to_use": 8, "line_count": 12}),
-    ],
-)
-```
+Copy `.env.example` to `.env` if you need to change defaults. For the core LLM mode, no configuration is required.
 
 ---
 
@@ -317,7 +305,7 @@ custom_path = LearningPath(
 langwich/
 ├── README.md
 ├── pyproject.toml
-├── requirements.txt
+├── requirements.txt              # Core deps only
 ├── .env.example
 ├── docs/
 │   ├── architecture.md
@@ -327,15 +315,16 @@ langwich/
 │   └── langwich/
 │       ├── __init__.py
 │       ├── config.py
-│       ├── generator.py
+│       ├── generator.py          # CLI entry point + WorksheetGenerator
+│       ├── import_data.py        # JSON vocabulary import (LLM mode)
 │       ├── db/
-│       │   ├── models.py          # SQLAlchemy ORM models
-│       │   └── manager.py         # Per-domain DB manager
-│       ├── mining/
-│       │   ├── pipeline.py        # 7-stage mining orchestrator
+│       │   ├── models.py         # SQLAlchemy ORM models
+│       │   └── manager.py        # Per-domain DB manager
+│       ├── mining/               # Optional — pip install langwich[mining]
+│       │   ├── pipeline.py
 │       │   ├── domain_tagger.py
 │       │   ├── sources/
-│       │   │   ├── base.py        # Abstract Source class
+│       │   │   ├── base.py
 │       │   │   ├── wikipedia.py
 │       │   │   ├── arxiv.py
 │       │   │   ├── openalex.py
@@ -345,10 +334,10 @@ langwich/
 │       │       ├── phrase_extractor.py
 │       │       └── cefr_classifier.py
 │       ├── paths/
-│       │   ├── template.py        # LearningPath, PathStep
-│       │   └── defaults.py        # 5 built-in path templates
+│       │   ├── template.py       # LearningPath, PathStep
+│       │   └── defaults.py       # 5 built-in path templates
 │       ├── exercises/
-│       │   ├── base.py            # Abstract Exercise class
+│       │   ├── base.py           # Abstract Exercise class
 │       │   ├── vocab_matching.py
 │       │   ├── fill_blanks.py
 │       │   ├── synonyms.py
@@ -359,9 +348,9 @@ langwich/
 │       │   ├── youtube_task.py
 │       │   └── drawing_task.py
 │       └── rendering/
-│           ├── pdf_renderer.py    # Cupertino-style PDF engine
-│           ├── styles.py          # Typography + colours
-│           └── components.py      # Reusable PDF components
+│           ├── pdf_renderer.py   # Cupertino-style PDF engine
+│           ├── styles.py         # Typography + colours
+│           └── components.py     # Reusable PDF components
 ├── scripts/
 │   └── render_diagrams.py
 └── tests/
