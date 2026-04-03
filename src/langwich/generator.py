@@ -10,6 +10,7 @@ This is the primary entry point for generating worksheets. It:
 from __future__ import annotations
 
 import logging
+import random
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -152,6 +153,26 @@ class WorksheetGenerator:
             all_flowables.append(grammar_flowables)
             all_sizes.append(None)
 
+        # Partition phrases so text-consuming exercises get disjoint sets.
+        # This prevents the reading passage and fill-in-the-blanks from
+        # showing the same sentences.
+        TEXT_PASSAGE_TYPES = {
+            ExerciseType.READING_COMPREHENSION,
+            ExerciseType.FILL_BLANKS,
+            ExerciseType.TEXT_SUMMARY,
+        }
+        text_steps = [s for s in self.path.steps if s.exercise_type in TEXT_PASSAGE_TYPES]
+
+        phrase_pools: dict[int, list] = {}
+        if text_steps and phrases:
+            shuffled = list(phrases)
+            random.shuffle(shuffled)
+            pool_size = max(1, len(shuffled) // len(text_steps))
+            for i, step in enumerate(text_steps):
+                start = i * pool_size
+                end = start + pool_size if i < len(text_steps) - 1 else len(shuffled)
+                phrase_pools[id(step)] = shuffled[start:end]
+
         # Generate content for each exercise step
         for step in self.path.steps:
             exercise_cls = EXERCISE_REGISTRY.get(step.exercise_type)
@@ -159,9 +180,12 @@ class WorksheetGenerator:
                 logger.warning("Unknown exercise type: %s", step.exercise_type)
                 continue
 
+            # Use the partitioned phrase pool for text exercises, full set otherwise
+            step_phrases = phrase_pools.get(id(step), phrases)
+
             exercise = exercise_cls(config=step.config)
             try:
-                content = exercise.generate(vocabulary, phrases, self.level)
+                content = exercise.generate(vocabulary, step_phrases, self.level)
                 flowables = exercise.render(content)
                 all_flowables.append(flowables)
                 all_sizes.append(step.resolved_size)

@@ -187,26 +187,41 @@ class PDFRenderer:
         Half-page tasks are consumed in pairs and placed on the same page
         separated by a divider.  Full and double tasks each start on a
         fresh page.
+
+        Free-flow (None-sized) sections flow naturally.  A ``CondPageBreak``
+        is used instead of a hard ``PageBreak`` so that transitions from
+        short free-flow sections (e.g. a grammar reference) into sized
+        exercises do not leave blank pages.
         """
         half_height = target_height_for_size(TaskSize.HALF.value)
+        full_height = target_height_for_size(TaskSize.FULL.value)
         idx = 0
         is_first_exercise = True
+        had_sized_section = False
 
         while idx < len(sections):
             size = sizes[idx]
             flowables = sections[idx]
 
             if size is None:
-                # Legacy / unsized section — free-flow with dividers
-                if not is_first_exercise:
+                # Free-flow section (grammar page, vocab reference, AI tip).
+                if had_sized_section:
+                    # After a sized exercise finished, start a new page.
+                    story.append(PageBreak())
+                    had_sized_section = False
+                elif not is_first_exercise:
                     story.extend(section_divider())
                 story.extend(flowables)
                 idx += 1
 
             elif size == TaskSize.HALF:
-                # Consume the next section as the pair partner
-                if not is_first_exercise:
+                # Consume the next section as the pair partner.
+                if had_sized_section:
                     story.append(PageBreak())
+                elif not is_first_exercise:
+                    # After free-flow content, only break if there isn't
+                    # enough room for the full half-pair.
+                    story.append(CondPageBreak(half_height * 2))
                 partner_flowables = sections[idx + 1] if idx + 1 < len(sections) else []
 
                 # First half
@@ -221,13 +236,17 @@ class PDFRenderer:
                         PageFillerFlowable(list(partner_flowables), half_height)
                     )
                 idx += 2
+                had_sized_section = True
 
             elif size == TaskSize.FULL:
-                if not is_first_exercise:
+                if had_sized_section:
                     story.append(PageBreak())
-                target_h = target_height_for_size(TaskSize.FULL.value)
+                elif not is_first_exercise:
+                    story.append(CondPageBreak(full_height))
+                target_h = full_height
                 story.append(PageFillerFlowable(list(flowables), target_h))
                 idx += 1
+                had_sized_section = True
 
             elif size == TaskSize.DOUBLE:
                 if not is_first_exercise:
@@ -235,10 +254,14 @@ class PDFRenderer:
                 target_h = target_height_for_size(TaskSize.DOUBLE.value)
                 story.append(PageFillerFlowable(list(flowables), target_h))
                 idx += 1
+                had_sized_section = True
 
             else:
                 # Unknown size — fall through to free-flow
-                if not is_first_exercise:
+                if had_sized_section:
+                    story.append(PageBreak())
+                    had_sized_section = False
+                elif not is_first_exercise:
                     story.extend(section_divider())
                 story.extend(flowables)
                 idx += 1

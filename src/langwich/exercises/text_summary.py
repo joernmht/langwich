@@ -15,7 +15,7 @@ from langwich.exercises.base import Exercise, ExerciseContent
 class TextSummaryExercise(Exercise):
     """Ask students to summarise a passage in a target word count.
 
-    Config: max_passage_sentences (default 6), summary_lines (default 5)
+    Config: max_passage_sentences (default 10), summary_lines (default 5)
     """
 
     @property
@@ -28,7 +28,7 @@ class TextSummaryExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
-        max_sentences = self.config.get("max_passage_sentences", 12)
+        max_sentences = self.config.get("max_passage_sentences", 10)
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
         passage = " ".join(p.text for p in passage_phrases)
 
