@@ -184,12 +184,19 @@ def vocab_reference_page(
     vocabulary: list[Any],
     source_lang: str = "",
     target_lang: str = "",
+    max_entries: int = 30,
 ) -> list[Flowable]:
     """Render a full vocabulary reference table with terms and translations.
 
-    This is a dedicated vocabulary page placed at the beginning of the
-    worksheet, listing all terms with their translations grouped by
-    part of speech.
+    This is a dedicated vocabulary page placed at the beginning or end of
+    the worksheet, listing terms with their translations grouped by part
+    of speech.
+
+    Parameters
+    ----------
+    max_entries : int
+        Maximum number of vocabulary rows to display.  Keeps the table
+        on a single page even when followed by info boxes.
     """
     import json
 
@@ -218,7 +225,7 @@ def vocab_reference_page(
         pos_label = entry.part_of_speech.value if hasattr(entry.part_of_speech, "value") else str(entry.part_of_speech)
         by_pos[pos_label].append((entry.term, trans_str))
 
-    # Build table rows
+    # Build table rows, respecting the max_entries limit
     from langwich.rendering.styles import BRAND_ACCENT, BRAND_GREY
 
     table_data = []
@@ -227,12 +234,18 @@ def vocab_reference_page(
     trans_label = source_lang.upper() if source_lang else "Translation"
     table_data.append([term_label, "", trans_label])
 
+    entry_count = 0
     for pos, pairs in sorted(by_pos.items()):
+        if entry_count >= max_entries:
+            break
         # POS header row
         pos_display = pos.replace("_", " ").title() if pos else "Other"
         table_data.append([Paragraph(f"<b>{pos_display}</b>", body_style()), "", ""])
         for term, trans in sorted(pairs):
+            if entry_count >= max_entries:
+                break
             table_data.append([term, "→", trans])
+            entry_count += 1
 
     if len(table_data) <= 1:
         return flowables

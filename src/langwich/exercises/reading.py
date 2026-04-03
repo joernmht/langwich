@@ -16,7 +16,7 @@ class ReadingComprehensionExercise(Exercise):
     """Present a text passage and comprehension questions.
 
     The passage is assembled from example phrases in the database.
-    Config: num_questions (default 4), max_passage_sentences (default 15)
+    Config: num_questions (default 4), max_passage_sentences (default 20)
     """
 
     @property
@@ -29,25 +29,61 @@ class ReadingComprehensionExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
-        max_sentences = self.config.get("max_passage_sentences", 15)
+        max_sentences = self.config.get("max_passage_sentences", 20)
         num_questions = self.config.get("num_questions", 4)
 
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
         passage = " ".join(p.text for p in passage_phrases)
 
-        # Generate comprehension questions with a scientific-thinking angle
-        question_templates = [
-            "What is the main topic of this passage?",
-            "Explain the meaning of a key term from the text.",
-            "Summarise the passage in your own words.",
-            "What did you learn from this text?",
-            "Which vocabulary words were new to you?",
-            "What evidence or facts does the passage present?",
-            "What questions would a scientist ask after reading this?",
-            "How could you verify the claims made in this passage?",
-        ]
-        questions = random.sample(question_templates, min(num_questions, len(question_templates)))
+        # Build questions that reference the actual passage content.
+        # Pick a few concrete terms from the text so questions feel relevant.
+        all_words = [w for p in passage_phrases for w in p.text.split() if len(w) > 4 and w.isalpha()]
+        sample_terms = random.sample(all_words, min(3, len(all_words))) if all_words else []
 
+        questions: list[str] = []
+
+        # First question always asks about the topic
+        questions.append("What is the main topic of this text? Write 1–2 sentences.")
+
+        # Term-specific question using a word from the passage
+        if len(sample_terms) >= 1:
+            questions.append(
+                f"The word \u201c{sample_terms[0]}\u201d appears in the text. "
+                f"Explain what it means in this context."
+            )
+
+        # Factual question
+        questions.append(
+            "Name two facts or details mentioned in the text."
+        )
+
+        # Comprehension / inference question
+        if len(sample_terms) >= 2:
+            questions.append(
+                f"How does the text connect \u201c{sample_terms[1]}\u201d "
+                f"to the overall topic?"
+            )
+
+        # Personal response
+        questions.append(
+            "What is the most important thing you learned from this text? Why?"
+        )
+
+        # Extra pool for variety
+        extra = [
+            "Summarise the text in 2\u20133 sentences using your own words.",
+            "Which sentence in the text do you find most interesting? Explain why.",
+            "Write one question you would like to ask the author of this text.",
+        ]
+        random.shuffle(extra)
+
+        # Fill up to num_questions
+        for q in extra:
+            if len(questions) >= num_questions:
+                break
+            questions.append(q)
+
+        questions = questions[:num_questions]
         items = [{"number": i, "question": q} for i, q in enumerate(questions, 1)]
 
         return ExerciseContent(
