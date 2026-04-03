@@ -1,5 +1,13 @@
-"""Mining pipeline — discover, extract, and classify vocabulary from open-access sources."""
+"""Mining pipeline — discover, extract, and classify vocabulary from open-access sources.
 
-from langwich.mining.pipeline import MiningPipeline
+Requires the ``mining`` extra:  pip install langwich[mining]
+"""
 
-__all__ = ["MiningPipeline"]
+try:
+    from langwich.mining.pipeline import MiningPipeline
+
+    __all__ = ["MiningPipeline"]
+except ImportError:
+    # Mining extras (spacy, httpx, etc.) not installed — that's fine.
+    # The core worksheet generator works without them via JSON import.
+    __all__: list[str] = []

@@ -61,12 +61,24 @@ class AppConfig(BaseSettings):
         extra="ignore",
     )
 
-    spacy_model: str = Field(default="en_core_web_sm")
+    spacy_model: str = Field(
+        default="en_core_web_sm",
+        description="SpaCy model name (only needed with pip install langwich[mining])",
+    )
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     scads: ScadsConfig = Field(default_factory=ScadsConfig)
     mining: MiningConfig = Field(default_factory=MiningConfig)
     pdf: PDFConfig = Field(default_factory=PDFConfig)
+
+    @staticmethod
+    def has_mining_extras() -> bool:
+        """Check whether the optional mining dependencies are installed."""
+        try:
+            import spacy  # noqa: F401
+            return True
+        except ImportError:
+            return False
 
 
 # Module-level singleton — import and use directly.

@@ -22,10 +22,14 @@ classifiers = [
 dependencies = [
     "reportlab>=4.1",
     "sqlalchemy>=2.0",
-    "spacy>=3.7",
-    "httpx>=0.27",
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
+]
+
+[project.optional-dependencies]
+mining = [
+    "spacy>=3.7",
+    "httpx>=0.27",
     "openai>=1.12",
     "youtube-transcript-api>=0.6",
     "beautifulsoup4>=4.12",
@@ -33,8 +37,7 @@ dependencies = [
     "feedparser>=6.0",
     "nltk>=3.8",
 ]
-
-[project.optional-dependencies]
+all = ["langwich[mining]"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",

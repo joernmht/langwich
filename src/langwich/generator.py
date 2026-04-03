@@ -143,26 +143,67 @@ class WorksheetGenerator:
 
 
 def main() -> None:
-    """CLI entry point for quick worksheet generation."""
+    """CLI entry point for worksheet generation.
+
+    Supports two modes:
+      1. ``--from-json <file>`` — import LLM-generated vocabulary from JSON, then render.
+      2. ``--domain <name>``   — use an existing database (requires prior mining or import).
+    """
     import argparse
 
     from langwich.paths.defaults import BUILTIN_PATHS
 
-    parser = argparse.ArgumentParser(description="Generate a language learning worksheet")
-    parser.add_argument("--domain", required=True, help="Knowledge domain (e.g. railway-operations)")
-    parser.add_argument("--source-lang", default="en", help="Source language code")
-    parser.add_argument("--target-lang", default="de", help="Target language code")
-    parser.add_argument("--level", default="B1", choices=["A1", "A2", "B1", "B2", "C1", "C2"])
-    parser.add_argument("--path", default="balanced", choices=list(BUILTIN_PATHS.keys()))
-    parser.add_argument("--output", help="Output PDF path")
+    parser = argparse.ArgumentParser(
+        description="Generate a language learning worksheet",
+        epilog=(
+            "Quick start:  langwich --from-json vocab.json\n"
+            "With mining:  pip install langwich[mining]  then use --domain"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # ── Input mode ──────────────────────────────────────────────────
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        "--from-json",
+        metavar="FILE",
+        help="Path to a JSON file with vocabulary and phrases (LLM-generated)",
+    )
+    input_group.add_argument(
+        "--domain",
+        help="Knowledge domain slug (uses existing database in ./data/)",
+    )
+
+    # ── Common options ──────────────────────────────────────────────
+    parser.add_argument("--source-lang", default="en", help="Source language ISO code (default: en)")
+    parser.add_argument("--target-lang", default="de", help="Target language ISO code (default: de)")
+    parser.add_argument(
+        "--level", default="B1",
+        choices=["A1", "A2", "B1", "B2", "C1", "C2"],
+        help="CEFR proficiency level (default: B1)",
+    )
+    parser.add_argument(
+        "--path", default="balanced",
+        choices=list(BUILTIN_PATHS.keys()),
+        help="Learning path template (default: balanced)",
+    )
+    parser.add_argument("--output", help="Output PDF path (auto-generated if omitted)")
+
     args = parser.parse_args()
 
-    db = DomainDatabase(
-        domain=args.domain,
-        source_lang=args.source_lang,
-        target_lang=args.target_lang,
-    )
-    db.initialize()
+    # ── Resolve database ────────────────────────────────────────────
+    if args.from_json:
+        from langwich.import_data import import_json_file
+
+        db = import_json_file(args.from_json)
+        print(f"Imported vocabulary from {args.from_json}")
+    else:
+        db = DomainDatabase(
+            domain=args.domain,
+            source_lang=args.source_lang,
+            target_lang=args.target_lang,
+        )
+        db.initialize()
 
     learning_path = BUILTIN_PATHS[args.path]
     level = CEFRLevel(args.level)
