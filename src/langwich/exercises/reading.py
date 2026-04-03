@@ -35,14 +35,16 @@ class ReadingComprehensionExercise(Exercise):
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
         passage = " ".join(p.text for p in passage_phrases)
 
-        # Generate simple comprehension question stubs
+        # Generate comprehension questions with a scientific-thinking angle
         question_templates = [
             "What is the main topic of this passage?",
             "Explain the meaning of a key term from the text.",
             "Summarise the passage in your own words.",
             "What did you learn from this text?",
             "Which vocabulary words were new to you?",
-            "How does this topic relate to your experience?",
+            "What evidence or facts does the passage present?",
+            "What questions would a scientist ask after reading this?",
+            "How could you verify the claims made in this passage?",
         ]
         questions = random.sample(question_templates, min(num_questions, len(question_templates)))
 
