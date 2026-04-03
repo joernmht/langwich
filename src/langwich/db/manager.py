@@ -66,6 +66,10 @@ class DomainDatabase:
         self._session_factory: sessionmaker[Session] | None = None
         self._meta: DomainMeta | None = None
 
+        # Optional grammar content (populated from JSON import)
+        self.grammar_topic: str | None = None
+        self.grammar_content: str | None = None
+
     # ── Lifecycle ────────────────────────────────────────────────────
 
     def initialize(self) -> None:

@@ -16,7 +16,7 @@ class ReadingComprehensionExercise(Exercise):
     """Present a text passage and comprehension questions.
 
     The passage is assembled from example phrases in the database.
-    Config: num_questions (default 4), max_passage_sentences (default 8)
+    Config: num_questions (default 4), max_passage_sentences (default 15)
     """
 
     @property
@@ -29,7 +29,7 @@ class ReadingComprehensionExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
-        max_sentences = self.config.get("max_passage_sentences", 8)
+        max_sentences = self.config.get("max_passage_sentences", 15)
         num_questions = self.config.get("num_questions", 4)
 
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
@@ -64,9 +64,9 @@ class ReadingComprehensionExercise(Exercise):
         flowables.append(Paragraph(content.instructions, instruction_style()))
         flowables.append(Spacer(1, 0.3 * cm))
 
-        # Passage in an info box
+        # Passage in an info box — min half page height (~350pt on A4)
         passage = content.metadata.get("passage", "")
-        flowables.extend(info_box(passage))
+        flowables.extend(info_box(passage, min_height=350))
         flowables.append(Spacer(1, 0.4 * cm))
 
         for item in content.items:

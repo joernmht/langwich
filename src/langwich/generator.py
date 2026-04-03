@@ -28,6 +28,7 @@ from langwich.exercises.text_summary import TextSummaryExercise
 from langwich.exercises.youtube_task import YouTubeTaskExercise
 from langwich.exercises.drawing_task import DrawingTaskExercise
 from langwich.paths.template import ExerciseType, LearningPath
+from langwich.rendering.components import grammar_reference_page, vocab_reference_page
 from langwich.rendering.pdf_renderer import PDFRenderer
 
 logger = logging.getLogger(__name__)
@@ -68,11 +69,17 @@ class WorksheetGenerator:
         path: LearningPath,
         level: CEFRLevel = CEFRLevel.B1,
         config: AppConfig | None = None,
+        include_vocab_page: bool = True,
+        include_grammar_page: bool = True,
+        grammar_topic: str | None = None,
     ) -> None:
         self.db = db
         self.path = path
         self.level = level
         self.cfg = config or settings
+        self.include_vocab_page = include_vocab_page
+        self.include_grammar_page = include_grammar_page
+        self.grammar_topic = grammar_topic
         self.renderer = PDFRenderer(config=self.cfg.pdf)
 
     def generate(
@@ -108,8 +115,29 @@ class WorksheetGenerator:
             vocabulary = self.db.query_vocabulary(limit=100)
             phrases = self.db.query_phrases(limit=50)
 
-        # Generate content for each exercise step
+        # Vocabulary reference page (opt-out with include_vocab_page=False)
         all_flowables: list[list[Any]] = []
+        if self.include_vocab_page and vocabulary:
+            vocab_flowables = vocab_reference_page(
+                vocabulary,
+                source_lang=self.db.source_lang,
+                target_lang=self.db.target_lang,
+            )
+            all_flowables.append(vocab_flowables)
+
+        # Grammar reference page (opt-out with include_grammar_page=False)
+        if self.include_grammar_page:
+            topic = self.grammar_topic or getattr(self.db, "grammar_topic", None)
+            content = getattr(self.db, "grammar_content", None)
+            grammar_flowables = grammar_reference_page(
+                level=self.level,
+                target_lang=self.db.target_lang,
+                topic=topic,
+                content=content,
+            )
+            all_flowables.append(grammar_flowables)
+
+        # Generate content for each exercise step
         for step in self.path.steps:
             exercise_cls = EXERCISE_REGISTRY.get(step.exercise_type)
             if exercise_cls is None:
@@ -188,6 +216,27 @@ def main() -> None:
         help="Learning path template (default: balanced)",
     )
     parser.add_argument("--output", help="Output PDF path (auto-generated if omitted)")
+    parser.add_argument(
+        "--no-vocab-page",
+        action="store_true",
+        help="Skip the vocabulary reference page at the beginning",
+    )
+    parser.add_argument(
+        "--no-grammar-page",
+        action="store_true",
+        help="Skip the grammar reference page",
+    )
+    parser.add_argument(
+        "--grammar-topic",
+        help="Grammar focus topic (e.g. 'present tense', 'articles')",
+    )
+    parser.add_argument(
+        "--custom-exercises",
+        help=(
+            "Comma-separated exercise selections as type:count pairs. "
+            "E.g. 'vocab_matching:15,reading_comprehension:4,fill_blanks:10'"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -205,10 +254,39 @@ def main() -> None:
         )
         db.initialize()
 
-    learning_path = BUILTIN_PATHS[args.path]
     level = CEFRLevel(args.level)
 
-    generator = WorksheetGenerator(db=db, path=learning_path, level=level)
+    # Build learning path — custom exercises override the named path
+    if args.custom_exercises:
+        from langwich.paths.template import PathStep
+
+        steps: list[PathStep] = []
+        for part in args.custom_exercises.split(","):
+            part = part.strip()
+            if ":" in part:
+                ex_type_str, count_str = part.split(":", 1)
+                config = {"num_items": int(count_str)}
+            else:
+                ex_type_str = part
+                config = {}
+            ex_type = ExerciseType(ex_type_str.strip())
+            steps.append(PathStep(exercise_type=ex_type, config=config))
+        learning_path = LearningPath(
+            name="Custom",
+            description="User-selected exercises",
+            steps=steps,
+        )
+    else:
+        learning_path = BUILTIN_PATHS[args.path]
+
+    generator = WorksheetGenerator(
+        db=db,
+        path=learning_path,
+        level=level,
+        include_vocab_page=not args.no_vocab_page,
+        include_grammar_page=not args.no_grammar_page,
+        grammar_topic=args.grammar_topic,
+    )
     result = generator.generate(output_path=args.output)
     print(f"Worksheet generated: {result}")
 
