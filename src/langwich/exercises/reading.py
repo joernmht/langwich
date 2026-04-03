@@ -103,15 +103,15 @@ class ReadingComprehensionExercise(Exercise):
 
     def render(self, content: ExerciseContent) -> list[Flowable]:
         from langwich.rendering.styles import body_style, instruction_style
-        from langwich.rendering.components import info_box, writing_lines
+        from langwich.rendering.components import A4_USABLE_HEIGHT, info_box, writing_lines
 
         flowables: list[Flowable] = []
         flowables.append(Paragraph(content.instructions, instruction_style()))
         flowables.append(Spacer(1, 0.3 * cm))
 
-        # Passage in an info box — min half page height (~350pt on A4)
+        # Passage in an info box — exactly half the usable page height.
         passage = content.metadata.get("passage", "")
-        flowables.extend(info_box(passage, min_height=350))
+        flowables.extend(info_box(passage, min_height=A4_USABLE_HEIGHT / 2))
         flowables.append(Spacer(1, 0.4 * cm))
 
         for item in content.items:
