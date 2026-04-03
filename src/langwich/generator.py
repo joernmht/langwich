@@ -229,6 +229,28 @@ class WorksheetGenerator:
         )
 
 
+def _prompt_learning_path(builtin_paths: dict[str, LearningPath]) -> str:
+    """Show a numbered menu of learning paths and return the user's choice."""
+    keys = list(builtin_paths.keys())
+    print("\nChoose a learning path:\n")
+    for i, key in enumerate(keys, 1):
+        path = builtin_paths[key]
+        print(f"  {i}) {path.name}")
+        print(f"     {path.description}")
+    print()
+    while True:
+        try:
+            choice = input(f"Enter number [1-{len(keys)}]: ").strip()
+            idx = int(choice) - 1
+            if 0 <= idx < len(keys):
+                selected = keys[idx]
+                print(f"→ Selected: {builtin_paths[selected].name}\n")
+                return selected
+        except (ValueError, EOFError):
+            pass
+        print(f"  Please enter a number between 1 and {len(keys)}.")
+
+
 def main() -> None:
     """CLI entry point for worksheet generation.
 
@@ -270,9 +292,9 @@ def main() -> None:
         help="CEFR proficiency level (default: B1)",
     )
     parser.add_argument(
-        "--path", default="balanced",
+        "--path", default=None,
         choices=list(BUILTIN_PATHS.keys()),
-        help="Learning path template (default: balanced)",
+        help="Learning path template (prompts interactively if omitted)",
     )
     parser.add_argument("--output", help="Output PDF path (auto-generated if omitted)")
     parser.add_argument(
@@ -327,6 +349,10 @@ def main() -> None:
     level = CEFRLevel(args.level)
 
     # Build learning path — custom exercises override the named path
+    # Interactive path selection when --path is not provided
+    if not args.custom_exercises and args.path is None:
+        args.path = _prompt_learning_path(BUILTIN_PATHS)
+
     if args.custom_exercises:
         from langwich.paths.template import PathStep
 

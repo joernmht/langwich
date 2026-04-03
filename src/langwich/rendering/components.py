@@ -226,45 +226,70 @@ def vocab_reference_page(
         pos_label = entry.part_of_speech.value if hasattr(entry.part_of_speech, "value") else str(entry.part_of_speech)
         by_pos[pos_label].append((entry.term, trans_str))
 
-    # Build table rows, respecting the max_entries limit
+    # Flatten all entries (with POS labels) respecting the max_entries limit.
     from langwich.rendering.styles import BRAND_ACCENT, BRAND_GREY
 
-    table_data = []
-    # Header row
-    term_label = target_lang.upper() if target_lang else "Term"
-    trans_label = source_lang.upper() if source_lang else "Translation"
-    table_data.append([term_label, "", trans_label])
-
+    flat_entries: list[tuple[str, str, str]] = []  # (term, translation, pos)
     entry_count = 0
     for pos, pairs in sorted(by_pos.items()):
         if entry_count >= max_entries:
             break
-        # POS header row
-        pos_display = pos.replace("_", " ").title() if pos else "Other"
-        table_data.append([Paragraph(f"<b>{pos_display}</b>", body_style()), "", ""])
         for term, trans in sorted(pairs):
             if entry_count >= max_entries:
                 break
-            table_data.append([term, "→", trans])
+            pos_display = pos.replace("_", " ").title() if pos else "Other"
+            flat_entries.append((term, trans, pos_display))
             entry_count += 1
 
-    if len(table_data) <= 1:
+    if not flat_entries:
         return flowables
 
-    table = Table(table_data, colWidths=[7 * cm, 1 * cm, 8 * cm])
+    # Build a two-column table: left pair | right pair
+    term_label = target_lang.upper() if target_lang else "Term"
+    trans_label = source_lang.upper() if source_lang else "Translation"
+    table_data = [[term_label, "", trans_label, "", term_label, "", trans_label]]
 
-    # Style: header row + POS group headers + data rows
+    half = (len(flat_entries) + 1) // 2
+    left_col = flat_entries[:half]
+    right_col = flat_entries[half:]
+
+    for i in range(half):
+        lt, ltr, _lp = left_col[i]
+        if i < len(right_col):
+            rt, rtr, _rp = right_col[i]
+            row = [lt, "→", ltr, "", rt, "→", rtr]
+        else:
+            row = [lt, "→", ltr, "", "", "", ""]
+        table_data.append(row)
+
+    col_w = 3.3 * cm
+    arrow_w = 0.7 * cm
+    gap_w = 0.6 * cm
+    table = Table(
+        table_data,
+        colWidths=[col_w, arrow_w, col_w, gap_w, col_w, arrow_w, col_w],
+    )
+
+    # Style: header row + data rows, applied to both column pairs
     style_commands = [
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("LEADING", (0, 0), (-1, -1), 14),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("LEADING", (0, 0), (-1, -1), 13),
         ("TEXTCOLOR", (0, 0), (-1, 0), BRAND_GREY),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("LINEBELOW", (0, 0), (-1, 0), 1, BORDER_GREY),
+        # Header underlines for both column pairs
+        ("LINEBELOW", (0, 0), (2, 0), 1, BORDER_GREY),
+        ("LINEBELOW", (4, 0), (6, 0), 1, BORDER_GREY),
+        # Row separators
         ("LINEBELOW", (0, 1), (-1, -1), 0.25, BORDER_GREY),
+        # Arrow columns centered and grey
         ("ALIGN", (1, 0), (1, -1), "CENTER"),
         ("TEXTCOLOR", (1, 0), (1, -1), BRAND_GREY),
+        ("ALIGN", (5, 0), (5, -1), "CENTER"),
+        ("TEXTCOLOR", (5, 0), (5, -1), BRAND_GREY),
+        # Gap column has no content — just spacing
+        ("TEXTCOLOR", (3, 0), (3, -1), colors.white),
     ]
     table.setStyle(TableStyle(style_commands))
     flowables.append(table)
