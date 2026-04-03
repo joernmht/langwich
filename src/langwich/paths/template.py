@@ -12,6 +12,20 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+class TaskSize(str, enum.Enum):
+    """How much vertical space an exercise should occupy on the worksheet.
+
+    - ``HALF``   — half a page (~350 pt usable height on A4).  Must be paired
+      with another HALF task so the two together fill one page.
+    - ``FULL``   — exactly one page.
+    - ``DOUBLE`` — exactly two pages.
+    """
+
+    HALF = "half"
+    FULL = "full"
+    DOUBLE = "double"
+
+
 class ExerciseType(str, enum.Enum):
     """Registry of all supported exercise types."""
 
@@ -24,6 +38,21 @@ class ExerciseType(str, enum.Enum):
     TEXT_SUMMARY = "text_summary"
     YOUTUBE_TASK = "youtube_task"
     DRAWING_TASK = "drawing_task"
+
+
+#: Default size for each exercise type.  Individual ``PathStep`` instances can
+#: override this via their ``size`` attribute.
+DEFAULT_TASK_SIZES: dict[ExerciseType, TaskSize] = {
+    ExerciseType.VOCAB_MATCHING: TaskSize.FULL,
+    ExerciseType.FILL_BLANKS: TaskSize.HALF,
+    ExerciseType.SYNONYMS: TaskSize.HALF,
+    ExerciseType.TRANSLATION: TaskSize.HALF,
+    ExerciseType.READING_COMPREHENSION: TaskSize.DOUBLE,
+    ExerciseType.CREATIVE_WRITING: TaskSize.FULL,
+    ExerciseType.TEXT_SUMMARY: TaskSize.DOUBLE,
+    ExerciseType.YOUTUBE_TASK: TaskSize.FULL,
+    ExerciseType.DRAWING_TASK: TaskSize.HALF,
+}
 
 
 @dataclass
@@ -40,16 +69,27 @@ class PathStep:
         Exercise-specific configuration (e.g. ``{"num_items": 10}``).
     required : bool
         Whether this step must be included even if vocabulary is scarce.
+    size : TaskSize | None
+        Explicit size override.  When *None* the default from
+        ``DEFAULT_TASK_SIZES`` is used.
     """
 
     exercise_type: ExerciseType
     title: str = ""
     config: dict[str, Any] = field(default_factory=dict)
     required: bool = False
+    size: TaskSize | None = None
 
     def __post_init__(self) -> None:
         if not self.title:
             self.title = self.exercise_type.value.replace("_", " ").title()
+
+    @property
+    def resolved_size(self) -> TaskSize:
+        """Return the effective task size (explicit override or default)."""
+        if self.size is not None:
+            return self.size
+        return DEFAULT_TASK_SIZES.get(self.exercise_type, TaskSize.FULL)
 
 
 @dataclass
@@ -85,6 +125,34 @@ class LearningPath:
             )
             self.steps.insert(0, vocab_step)
 
+    def validate_half_pairing(self) -> None:
+        """Check that HALF-page tasks appear in consecutive pairs.
+
+        Raises ``ValueError`` if an unpaired HALF task is found.
+        """
+        pending_half: PathStep | None = None
+        for step in self.steps:
+            if step.resolved_size == TaskSize.HALF:
+                if pending_half is None:
+                    pending_half = step
+                else:
+                    # Pair completed
+                    pending_half = None
+            else:
+                if pending_half is not None:
+                    raise ValueError(
+                        f"Half-page task '{pending_half.title}' "
+                        f"({pending_half.exercise_type.value}) is not paired "
+                        f"with another half-page task.  Half tasks must appear "
+                        f"in consecutive pairs."
+                    )
+        if pending_half is not None:
+            raise ValueError(
+                f"Half-page task '{pending_half.title}' "
+                f"({pending_half.exercise_type.value}) has no partner — "
+                f"half tasks must appear in consecutive pairs."
+            )
+
     def exercise_types(self) -> list[ExerciseType]:
         """Return the ordered list of exercise types in this path."""
         return [step.exercise_type for step in self.steps]
@@ -101,6 +169,7 @@ class LearningPath:
                     "title": step.title,
                     "config": step.config,
                     "required": step.required,
+                    "size": step.size.value if step.size else None,
                 }
                 for step in self.steps
             ],
@@ -115,6 +184,7 @@ class LearningPath:
                 title=s.get("title", ""),
                 config=s.get("config", {}),
                 required=s.get("required", False),
+                size=TaskSize(s["size"]) if s.get("size") else None,
             )
             for s in data.get("steps", [])
         ]

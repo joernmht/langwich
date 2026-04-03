@@ -7,16 +7,17 @@ Each path defines a different pedagogical approach:
 - **Production**: Emphasises writing and creative output
 """
 
-from langwich.paths.template import ExerciseType, LearningPath, PathStep
+from langwich.paths.template import ExerciseType, LearningPath, PathStep, TaskSize
 
 VOCABULARY_FOCUS = LearningPath(
     name="Vocabulary Focus",
     description="Term-heavy path: matching, synonyms, fill-in-the-blanks, translation.",
     steps=[
         PathStep(ExerciseType.VOCAB_MATCHING, "Key Vocabulary", required=True),
-        PathStep(ExerciseType.SYNONYMS, "Synonyms & Antonyms"),
-        PathStep(ExerciseType.FILL_BLANKS, "Fill in the Blanks"),
-        PathStep(ExerciseType.TRANSLATION, "Translation Practice"),
+        PathStep(ExerciseType.SYNONYMS, "Synonyms & Antonyms"),       # half
+        PathStep(ExerciseType.FILL_BLANKS, "Fill in the Blanks"),      # half (pair)
+        PathStep(ExerciseType.TRANSLATION, "Translation Practice"),    # half
+        PathStep(ExerciseType.DRAWING_TASK, "Visual Vocabulary"),      # half (pair)
     ],
 )
 
@@ -26,8 +27,8 @@ READING_FIRST = LearningPath(
     steps=[
         PathStep(ExerciseType.VOCAB_MATCHING, "Key Vocabulary", required=True),
         PathStep(ExerciseType.READING_COMPREHENSION, "Reading Passage"),
-        PathStep(ExerciseType.FILL_BLANKS, "Vocabulary in Context"),
-        PathStep(ExerciseType.TEXT_SUMMARY, "Summarise the Text"),
+        PathStep(ExerciseType.FILL_BLANKS, "Vocabulary in Context"),   # half
+        PathStep(ExerciseType.TRANSLATION, "Translation Practice"),    # half (pair)
     ],
 )
 
@@ -37,8 +38,8 @@ BALANCED = LearningPath(
     steps=[
         PathStep(ExerciseType.VOCAB_MATCHING, "Key Vocabulary", required=True),
         PathStep(ExerciseType.READING_COMPREHENSION, "Reading Passage"),
-        PathStep(ExerciseType.FILL_BLANKS, "Fill in the Blanks"),
-        PathStep(ExerciseType.SYNONYMS, "Word Relationships"),
+        PathStep(ExerciseType.FILL_BLANKS, "Fill in the Blanks"),      # half
+        PathStep(ExerciseType.SYNONYMS, "Word Relationships"),         # half (pair)
         PathStep(ExerciseType.CREATIVE_WRITING, "Free Writing"),
     ],
 )
@@ -50,7 +51,8 @@ PRODUCTION = LearningPath(
         PathStep(ExerciseType.VOCAB_MATCHING, "Key Vocabulary", required=True),
         PathStep(ExerciseType.CREATIVE_WRITING, "Creative Writing"),
         PathStep(ExerciseType.TEXT_SUMMARY, "Text Summary"),
-        PathStep(ExerciseType.DRAWING_TASK, "Visual Response"),
+        PathStep(ExerciseType.DRAWING_TASK, "Visual Response"),        # half
+        PathStep(ExerciseType.TRANSLATION, "Translation Practice"),    # half (pair)
     ],
 )
 
@@ -60,7 +62,8 @@ MULTIMEDIA = LearningPath(
     steps=[
         PathStep(ExerciseType.VOCAB_MATCHING, "Key Vocabulary", required=True),
         PathStep(ExerciseType.YOUTUBE_TASK, "Video Comprehension"),
-        PathStep(ExerciseType.FILL_BLANKS, "Key Terms"),
+        PathStep(ExerciseType.FILL_BLANKS, "Key Terms"),               # half
+        PathStep(ExerciseType.DRAWING_TASK, "Visual Response"),        # half (pair)
         PathStep(ExerciseType.CREATIVE_WRITING, "Reflection"),
     ],
 )
