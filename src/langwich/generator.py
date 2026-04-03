@@ -27,7 +27,7 @@ from langwich.exercises.creative_writing import CreativeWritingExercise
 from langwich.exercises.text_summary import TextSummaryExercise
 from langwich.exercises.youtube_task import YouTubeTaskExercise
 from langwich.exercises.drawing_task import DrawingTaskExercise
-from langwich.paths.template import ExerciseType, LearningPath
+from langwich.paths.template import ExerciseType, LearningPath, TaskSize
 from langwich.rendering.components import grammar_reference_page, vocab_reference_page
 from langwich.rendering.pdf_renderer import PDFRenderer
 
@@ -105,6 +105,7 @@ class WorksheetGenerator:
             Path to the generated PDF file.
         """
         self.path.ensure_vocab_first()
+        self.path.validate_half_pairing()
 
         # Load vocabulary and phrases from the database
         vocabulary = self.db.query_vocabulary(level=self.level, limit=100)
@@ -117,6 +118,8 @@ class WorksheetGenerator:
 
         # Vocabulary reference page (opt-out with include_vocab_page=False)
         all_flowables: list[list[Any]] = []
+        all_sizes: list[TaskSize | None] = []
+
         if self.include_vocab_page and vocabulary:
             vocab_flowables = vocab_reference_page(
                 vocabulary,
@@ -124,6 +127,7 @@ class WorksheetGenerator:
                 target_lang=self.db.target_lang,
             )
             all_flowables.append(vocab_flowables)
+            all_sizes.append(None)  # reference pages use free-flow layout
 
         # Grammar reference page (opt-out with include_grammar_page=False)
         if self.include_grammar_page:
@@ -136,6 +140,7 @@ class WorksheetGenerator:
                 content=content,
             )
             all_flowables.append(grammar_flowables)
+            all_sizes.append(None)
 
         # Generate content for each exercise step
         for step in self.path.steps:
@@ -149,6 +154,7 @@ class WorksheetGenerator:
                 content = exercise.generate(vocabulary, phrases, self.level)
                 flowables = exercise.render(content)
                 all_flowables.append(flowables)
+                all_sizes.append(step.resolved_size)
             except Exception as exc:
                 logger.error("Exercise %s failed: %s", step.exercise_type, exc)
 
@@ -167,6 +173,7 @@ class WorksheetGenerator:
             domain=self.db.domain,
             level=self.level,
             worksheet_date=worksheet_date,
+            exercise_sizes=all_sizes,
         )
 
 

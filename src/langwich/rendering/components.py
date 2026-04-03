@@ -28,6 +28,14 @@ from langwich.rendering.styles import (
     body_style,
 )
 
+# ── Page geometry constants ─────────────────────────────────────────
+# A4 usable height after margins (48 pt each) + header/footer (20 pt each).
+# Total vertical margin = 2 × (48 + 20) = 136 pt.
+# A4 height = 841.89 pt → usable ≈ 705.89 pt.
+from reportlab.lib.pagesizes import A4
+
+A4_USABLE_HEIGHT = A4[1] - 2 * (48 + 20)  # ~705.89 pt
+
 
 class MinHeightFlowable(Flowable):
     """Wrapper that enforces a minimum height on a contained flowable."""
@@ -255,3 +263,56 @@ def section_divider() -> list[Flowable]:
         Spacer(1, SPACE_SM),
         HRFlowable(width="100%", thickness=1, color=BORDER_GREY, spaceAfter=SPACE_SM),
     ]
+
+
+# ── Size-aware layout helpers ───────────────────────────────────────
+
+class PageFillerFlowable(Flowable):
+    """Invisible spacer that pads content to fill a target height exactly.
+
+    Used to ensure an exercise occupies precisely half / full / double page.
+    Wraps a list of child flowables, measures them, then adds blank space so
+    that the total height equals ``target_height``.
+    """
+
+    def __init__(self, children: list[Flowable], target_height: float) -> None:
+        super().__init__()
+        self._children = children
+        self._target_height = target_height
+
+    def wrap(self, availWidth: float, availHeight: float) -> tuple[float, float]:
+        self._avail_width = availWidth
+        content_h = 0.0
+        for child in self._children:
+            w, h = child.wrap(availWidth, availHeight)
+            content_h += h
+        self.width = availWidth
+        self.height = max(content_h, self._target_height)
+        return self.width, self.height
+
+    def split(self, availWidth: float, availHeight: float) -> list[Flowable]:
+        # Allow ReportLab to page-break within the children normally.
+        return self._children
+
+    def draw(self) -> None:
+        y = self.height
+        for child in self._children:
+            w, h = child.wrap(self._avail_width, self.height)
+            y -= h
+            child.drawOn(self.canv, 0, y)
+
+
+def target_height_for_size(size: str, usable_height: float | None = None) -> float:
+    """Return the target height in points for a ``TaskSize`` value.
+
+    Parameters
+    ----------
+    size : str
+        One of ``"half"``, ``"full"``, ``"double"``.
+    usable_height : float | None
+        Override for the usable page height (defaults to A4 with standard
+        langwich margins).
+    """
+    h = usable_height or A4_USABLE_HEIGHT
+    multipliers = {"half": 0.5, "full": 1.0, "double": 2.0}
+    return h * multipliers.get(size, 1.0)

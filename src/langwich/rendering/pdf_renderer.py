@@ -15,7 +15,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.platypus import (
     BaseDocTemplate,
+    CondPageBreak,
     Frame,
+    PageBreak,
     PageTemplate,
     Paragraph,
     Spacer,
@@ -24,7 +26,13 @@ from reportlab.platypus import (
 
 from langwich.config import PDFConfig, settings
 from langwich.db.models import CEFRLevel
-from langwich.rendering.components import section_divider
+from langwich.paths.template import TaskSize
+from langwich.rendering.components import (
+    A4_USABLE_HEIGHT,
+    PageFillerFlowable,
+    section_divider,
+    target_height_for_size,
+)
 from langwich.rendering.styles import (
     BRAND_DARK,
     BRAND_GREY,
@@ -59,6 +67,7 @@ class PDFRenderer:
         domain: str = "",
         level: CEFRLevel = CEFRLevel.B1,
         worksheet_date: date | None = None,
+        exercise_sizes: list[TaskSize | None] | None = None,
     ) -> Path:
         """Build and save the PDF worksheet.
 
@@ -76,6 +85,13 @@ class PDFRenderer:
             Target CEFR level for the header badge.
         worksheet_date : date | None
             Date to print; defaults to today.
+        exercise_sizes : list[TaskSize | None] | None
+            Parallel list of sizes for each exercise section.  Entries
+            that are *None* (or if the whole list is *None*) get the old
+            free-flow behaviour.  When sizes are given the renderer pads
+            each exercise to the target height and inserts page breaks so
+            that half-page pairs share a page, full tasks get one page,
+            and double tasks get two pages.
 
         Returns
         -------
@@ -147,11 +163,84 @@ class PDFRenderer:
         story.append(Paragraph(title, title_style()))
         story.append(Spacer(1, SPACE_LG))
 
-        for i, section_flowables in enumerate(exercise_flowables):
-            if i > 0:
-                story.extend(section_divider())
-            story.extend(section_flowables)
+        # Normalise the sizes list so it is always parallel with flowables.
+        sizes: list[TaskSize | None] = list(exercise_sizes) if exercise_sizes else []
+        while len(sizes) < len(exercise_flowables):
+            sizes.append(None)
+
+        self._build_sized_story(story, exercise_flowables, sizes)
 
         doc.build(story)
         logger.info("PDF written to %s", output_path)
         return output_path
+
+    # ── Internal helpers ────────────────────────────────────────────
+
+    @staticmethod
+    def _build_sized_story(
+        story: list[Flowable],
+        sections: list[list[Flowable]],
+        sizes: list[TaskSize | None],
+    ) -> None:
+        """Append exercise sections to *story* respecting size constraints.
+
+        Half-page tasks are consumed in pairs and placed on the same page
+        separated by a divider.  Full and double tasks each start on a
+        fresh page.
+        """
+        half_height = target_height_for_size(TaskSize.HALF.value)
+        idx = 0
+        is_first_exercise = True
+
+        while idx < len(sections):
+            size = sizes[idx]
+            flowables = sections[idx]
+
+            if size is None:
+                # Legacy / unsized section — free-flow with dividers
+                if not is_first_exercise:
+                    story.extend(section_divider())
+                story.extend(flowables)
+                idx += 1
+
+            elif size == TaskSize.HALF:
+                # Consume the next section as the pair partner
+                if not is_first_exercise:
+                    story.append(PageBreak())
+                partner_flowables = sections[idx + 1] if idx + 1 < len(sections) else []
+
+                # First half
+                story.append(
+                    PageFillerFlowable(list(flowables), half_height)
+                )
+                # Divider between the two halves
+                story.extend(section_divider())
+                # Second half
+                if partner_flowables:
+                    story.append(
+                        PageFillerFlowable(list(partner_flowables), half_height)
+                    )
+                idx += 2
+
+            elif size == TaskSize.FULL:
+                if not is_first_exercise:
+                    story.append(PageBreak())
+                target_h = target_height_for_size(TaskSize.FULL.value)
+                story.append(PageFillerFlowable(list(flowables), target_h))
+                idx += 1
+
+            elif size == TaskSize.DOUBLE:
+                if not is_first_exercise:
+                    story.append(PageBreak())
+                target_h = target_height_for_size(TaskSize.DOUBLE.value)
+                story.append(PageFillerFlowable(list(flowables), target_h))
+                idx += 1
+
+            else:
+                # Unknown size — fall through to free-flow
+                if not is_first_exercise:
+                    story.extend(section_divider())
+                story.extend(flowables)
+                idx += 1
+
+            is_first_exercise = False
