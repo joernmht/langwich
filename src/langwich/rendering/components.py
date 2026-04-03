@@ -257,6 +257,45 @@ def vocab_reference_page(
     return flowables
 
 
+def ai_upload_recommendation() -> list[Flowable]:
+    """Render a styled recommendation box encouraging AI-assisted feedback.
+
+    Placed at the end of the worksheet to remind students they can upload
+    their completed work to an AI assistant for instant correction.
+    """
+    from langwich.rendering.styles import subtitle_style
+
+    flowables: list[Flowable] = []
+    flowables.append(Spacer(1, 0.5 * cm))
+    flowables.extend(
+        info_box(
+            "<b>Done?</b> Upload your completed worksheet to an AI assistant "
+            "(e.g. ChatGPT, Claude, Gemini) to get instant feedback on your "
+            "answers! Take a photo or scan your worksheet and ask the AI to "
+            "check your work, explain any mistakes, and suggest improvements.",
+        )
+    )
+    return flowables
+
+
+def vocab_recommendation_box() -> list[Flowable]:
+    """Render a tip box recommending use of vocabulary and grammar.
+
+    Placed on the vocabulary reference page when it appears at the end
+    of the worksheet.
+    """
+    flowables: list[Flowable] = []
+    flowables.extend(
+        info_box(
+            "<b>Tip:</b> Use the vocabulary from this list in your exercises. "
+            "Also apply the grammar rules from the grammar reference page! "
+            "Try to incorporate as many new words as possible in your written "
+            "answers.",
+        )
+    )
+    return flowables
+
+
 def section_divider() -> list[Flowable]:
     """A thin horizontal rule to separate exercise sections."""
     return [
