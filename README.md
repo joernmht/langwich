@@ -2,7 +2,7 @@
 
 **Automated language learning worksheet generator for e-paper devices and print.**
 
-langwich generates professional PDF worksheets for language learning. It supports domain-specific vocabulary, configurable learning paths, and 9 different exercise types — all rendered in a clean Cupertino-style design optimised for e-paper and print.
+langwich generates professional PDF worksheets for language learning. It supports domain-specific vocabulary, configurable learning paths, and 35 different exercise types — all rendered in a clean Cupertino-style design optimised for e-paper and print.
 
 ---
 
@@ -24,6 +24,12 @@ Provide vocabulary as a JSON file and generate a worksheet:
 
 ```bash
 langwich --from-json vocab.json --level B1 --path balanced
+
+# Vocabulary at the start instead of the end
+langwich --from-json vocab.json --level B1 --vocab-position start
+
+# Skip the AI upload recommendation
+langwich --from-json vocab.json --level B1 --no-ai-recommendation
 ```
 
 The JSON format is simple — see [JSON Format](#json-format) below.
@@ -54,11 +60,87 @@ langwich --domain railway-operations --source-lang en --target-lang de --level B
 ## Features
 
 - **Domain-specific vocabulary**: Separate SQLite databases per domain+language combo
-- **9 exercise types**: Vocab matching, fill-in-the-blanks, synonyms, translation, reading comprehension, creative writing, text summary, YouTube tasks, drawing tasks
-- **5 learning paths**: Vocabulary Focus, Reading First, Balanced, Production, Multimedia
+- **35 exercise types** across 9 categories (see below)
+- **5+ learning paths**: Vocabulary Focus, Reading First, Balanced, Production, Multimedia, and more
 - **CEFR levels**: A1 through C2, with level-appropriate content selection
 - **Cupertino-style PDFs**: Clean Helvetica typography, high contrast, e-paper optimised
+- **Vocabulary reference at the end**: Word list placed after exercises with a recommendation to use the words and grammar rules (position configurable via `--vocab-position`)
+- **AI feedback recommendation**: Every worksheet ends with a tip to upload completed work to an AI assistant for instant correction
 - **Optional mining pipeline**: SpaCy NLP + open-access sources for automated vocabulary extraction
+
+---
+
+## Exercise Types (35)
+
+### Core Vocabulary & Grammar
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `vocab_matching` | Half | A1+ | Match terms to translations |
+| `fill_blanks` | Half | A1+ | Complete sentences with missing words from word bank |
+| `synonyms` | Half | A1+ | Write synonyms and antonyms for terms |
+| `opposites` | Half | A1+ | Write antonyms / match opposites |
+| `translation` | Half | A1+ | Translate sentences between languages |
+| `word_stems` | Half | A2+ | Conjugation and declination tables |
+
+### Reading & Text Analysis
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `reading_comprehension` | Double | A2+ | Read a passage, answer comprehension questions |
+| `text_summary` | Full | A2+ | Summarise a passage in 2–3 sentences |
+| `word_marking` | Half | A2+ | Mark specific word categories (attributive, localization, temporal, modal) in a text |
+| `cloze_text` | Full | B1+ | Classic cloze test — every nth word removed |
+
+### Text Production (Genres)
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `creative_writing` | Full | A2+ | Open-ended writing prompts using target vocabulary |
+| `poetry_writing` | Full | A2+ | Write a poem (acrostic, haiku, limerick, free verse) |
+| `news_headline` | Full | A2+ | Write newspaper headlines and lead paragraphs (or academic abstracts) |
+| `press_release` | Full | B1+ | Write a press release with structured template |
+| `job_application` | Full | B1+ | Write a formal cover letter responding to a job ad |
+| `blog_post` | Full | A2+ | Write an informal blog post with personal opinion |
+| `movie_review` | Full | A2+ | Write a review (movie, book, restaurant, product) with rating |
+| `text_transformation` | Full | B1+ | Rewrite a text changing register, tense, person, or voice |
+
+### Conversation & Dialogue
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `conversation` | Full | A1+ | Complete or write a dialogue (gap-fill, free, or role-play modes) |
+
+### Puzzles & Games
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `word_search` | Half | A1+ | Find vocabulary words hidden in a letter grid |
+| `crossword` | Full | A1+ | Crossword puzzle — clues are translations or definitions |
+| `odd_one_out` | Half | A1+ | Identify which word doesn't belong in a group |
+| `sentence_reorder` | Half | A1+ | Arrange scrambled words into correct sentence order |
+
+### Numbers, Time & Calculation
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `time_and_date` | Half | A1+ | Tell time, read schedules, write dates |
+| `number_tasks` | Half | A1+ | Telephone numbers, years, prices, technology specs |
+| `calculation` | Half | A1+ | Math word problems in the target language |
+| `statistics` | Full | B1+ | Read charts, calculate percentages, interpret data |
+
+### Real-World Texts
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `recipe` | Full | A2+ | Read, write, or reorder recipe steps |
+| `walkthrough` | Full | A2+ | Write step-by-step instructions / how-to guide |
+
+### Listening & Media
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `youtube_task` | Full | A2+ | Video comprehension with URL/QR code and questions |
+| `listening_steps` | Full | A2+ | Segmented YouTube listening with timestamps and step-by-step questions |
+
+### Visual & Preparation
+| Type | Size | CEFR | Description |
+|------|------|------|-------------|
+| `drawing_task` | Half | A1+ | Visual sketch or diagram in response to a prompt |
+| `dictation_prep` | Half | A1+ | Practice writing words before a dictation |
+| `error_correction` | Half | A2+ | Find and correct deliberate mistakes in sentences |
 
 ---
 
@@ -179,6 +261,31 @@ classDiagram
     class TextSummaryExercise
     class YouTubeTaskExercise
     class DrawingTaskExercise
+    class PoetryWritingExercise
+    class NewsHeadlineExercise
+    class PressReleaseExercise
+    class JobApplicationExercise
+    class BlogPostExercise
+    class MovieReviewExercise
+    class ConversationExercise
+    class WordSearchExercise
+    class CrosswordExercise
+    class WordStemsExercise
+    class OppositesExercise
+    class TimeAndDateExercise
+    class NumberTasksExercise
+    class CalculationExercise
+    class StatisticsExercise
+    class WordMarkingExercise
+    class RecipeExercise
+    class WalkthroughExercise
+    class ListeningStepsExercise
+    class ErrorCorrectionExercise
+    class SentenceReorderExercise
+    class OddOneOutExercise
+    class ClozeTextExercise
+    class DictationPrepExercise
+    class TextTransformationExercise
 
     class WorksheetGenerator {
         +DomainDatabase db
@@ -205,6 +312,31 @@ classDiagram
     Exercise <|-- TextSummaryExercise
     Exercise <|-- YouTubeTaskExercise
     Exercise <|-- DrawingTaskExercise
+    Exercise <|-- PoetryWritingExercise
+    Exercise <|-- NewsHeadlineExercise
+    Exercise <|-- PressReleaseExercise
+    Exercise <|-- JobApplicationExercise
+    Exercise <|-- BlogPostExercise
+    Exercise <|-- MovieReviewExercise
+    Exercise <|-- ConversationExercise
+    Exercise <|-- WordSearchExercise
+    Exercise <|-- CrosswordExercise
+    Exercise <|-- WordStemsExercise
+    Exercise <|-- OppositesExercise
+    Exercise <|-- TimeAndDateExercise
+    Exercise <|-- NumberTasksExercise
+    Exercise <|-- CalculationExercise
+    Exercise <|-- StatisticsExercise
+    Exercise <|-- WordMarkingExercise
+    Exercise <|-- RecipeExercise
+    Exercise <|-- WalkthroughExercise
+    Exercise <|-- ListeningStepsExercise
+    Exercise <|-- ErrorCorrectionExercise
+    Exercise <|-- SentenceReorderExercise
+    Exercise <|-- OddOneOutExercise
+    Exercise <|-- ClozeTextExercise
+    Exercise <|-- DictationPrepExercise
+    Exercise <|-- TextTransformationExercise
 
     MiningPipeline --> DomainDatabase : writes to
     MiningPipeline --> Source : queries
