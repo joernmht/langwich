@@ -28,7 +28,12 @@ from langwich.exercises.text_summary import TextSummaryExercise
 from langwich.exercises.youtube_task import YouTubeTaskExercise
 from langwich.exercises.drawing_task import DrawingTaskExercise
 from langwich.paths.template import ExerciseType, LearningPath, TaskSize
-from langwich.rendering.components import grammar_reference_page, vocab_reference_page
+from langwich.rendering.components import (
+    ai_upload_recommendation,
+    grammar_reference_page,
+    vocab_recommendation_box,
+    vocab_reference_page,
+)
 from langwich.rendering.pdf_renderer import PDFRenderer
 
 logger = logging.getLogger(__name__)
@@ -72,6 +77,8 @@ class WorksheetGenerator:
         include_vocab_page: bool = True,
         include_grammar_page: bool = True,
         grammar_topic: str | None = None,
+        vocab_position: str = "end",
+        include_ai_recommendation: bool = True,
     ) -> None:
         self.db = db
         self.path = path
@@ -80,6 +87,8 @@ class WorksheetGenerator:
         self.include_vocab_page = include_vocab_page
         self.include_grammar_page = include_grammar_page
         self.grammar_topic = grammar_topic
+        self.vocab_position = vocab_position
+        self.include_ai_recommendation = include_ai_recommendation
         self.renderer = PDFRenderer(config=self.cfg.pdf)
 
     def generate(
@@ -120,7 +129,8 @@ class WorksheetGenerator:
         all_flowables: list[list[Any]] = []
         all_sizes: list[TaskSize | None] = []
 
-        if self.include_vocab_page and vocabulary:
+        # Vocab at the start (legacy behaviour) if requested
+        if self.include_vocab_page and vocabulary and self.vocab_position == "start":
             vocab_flowables = vocab_reference_page(
                 vocabulary,
                 source_lang=self.db.source_lang,
@@ -157,6 +167,22 @@ class WorksheetGenerator:
                 all_sizes.append(step.resolved_size)
             except Exception as exc:
                 logger.error("Exercise %s failed: %s", step.exercise_type, exc)
+
+        # Vocabulary reference page at the end (new default behaviour)
+        if self.include_vocab_page and vocabulary and self.vocab_position == "end":
+            vocab_flowables = vocab_reference_page(
+                vocabulary,
+                source_lang=self.db.source_lang,
+                target_lang=self.db.target_lang,
+            )
+            vocab_flowables.extend(vocab_recommendation_box())
+            all_flowables.append(vocab_flowables)
+            all_sizes.append(None)
+
+        # AI upload recommendation at the very end
+        if self.include_ai_recommendation:
+            all_flowables.append(ai_upload_recommendation())
+            all_sizes.append(None)
 
         # Determine output path
         if output_path is None:
@@ -238,6 +264,17 @@ def main() -> None:
         help="Grammar focus topic (e.g. 'present tense', 'articles')",
     )
     parser.add_argument(
+        "--vocab-position",
+        choices=["start", "end"],
+        default="end",
+        help="Position of the vocabulary reference page (default: end)",
+    )
+    parser.add_argument(
+        "--no-ai-recommendation",
+        action="store_true",
+        help="Skip the AI upload recommendation at the end",
+    )
+    parser.add_argument(
         "--custom-exercises",
         help=(
             "Comma-separated exercise selections as type:count pairs. "
@@ -293,6 +330,8 @@ def main() -> None:
         include_vocab_page=not args.no_vocab_page,
         include_grammar_page=not args.no_grammar_page,
         grammar_topic=args.grammar_topic,
+        vocab_position=args.vocab_position,
+        include_ai_recommendation=not args.no_ai_recommendation,
     )
     result = generator.generate(output_path=args.output)
     print(f"Worksheet generated: {result}")

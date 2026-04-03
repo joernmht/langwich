@@ -29,6 +29,7 @@ class TaskSize(str, enum.Enum):
 class ExerciseType(str, enum.Enum):
     """Registry of all supported exercise types."""
 
+    # ── Original types ─────────────────────────────────────────────
     VOCAB_MATCHING = "vocab_matching"
     FILL_BLANKS = "fill_blanks"
     SYNONYMS = "synonyms"
@@ -39,10 +40,54 @@ class ExerciseType(str, enum.Enum):
     YOUTUBE_TASK = "youtube_task"
     DRAWING_TASK = "drawing_task"
 
+    # ── Text production genres ─────────────────────────────────────
+    POETRY_WRITING = "poetry_writing"
+    NEWS_HEADLINE = "news_headline"
+    PRESS_RELEASE = "press_release"
+    JOB_APPLICATION = "job_application"
+    BLOG_POST = "blog_post"
+    MOVIE_REVIEW = "movie_review"
+
+    # ── Conversation & dialogue ────────────────────────────────────
+    CONVERSATION = "conversation"
+
+    # ── Puzzles & games ────────────────────────────────────────────
+    WORD_SEARCH = "word_search"
+    CROSSWORD = "crossword"
+    WORD_STEMS = "word_stems"
+
+    # ── Word relationships ─────────────────────────────────────────
+    OPPOSITES = "opposites"
+
+    # ── Numbers, time & date ───────────────────────────────────────
+    TIME_AND_DATE = "time_and_date"
+    NUMBER_TASKS = "number_tasks"
+    CALCULATION = "calculation"
+    STATISTICS = "statistics"
+
+    # ── Text analysis ──────────────────────────────────────────────
+    WORD_MARKING = "word_marking"
+
+    # ── Real-world texts ───────────────────────────────────────────
+    RECIPE = "recipe"
+    WALKTHROUGH = "walkthrough"
+
+    # ── Listening subtypes ─────────────────────────────────────────
+    LISTENING_STEPS = "listening_steps"
+
+    # ── Bonus types ────────────────────────────────────────────────
+    ERROR_CORRECTION = "error_correction"
+    SENTENCE_REORDER = "sentence_reorder"
+    ODD_ONE_OUT = "odd_one_out"
+    CLOZE_TEXT = "cloze_text"
+    DICTATION_PREP = "dictation_prep"
+    TEXT_TRANSFORMATION = "text_transformation"
+
 
 #: Default size for each exercise type.  Individual ``PathStep`` instances can
 #: override this via their ``size`` attribute.
 DEFAULT_TASK_SIZES: dict[ExerciseType, TaskSize] = {
+    # Original
     ExerciseType.VOCAB_MATCHING: TaskSize.HALF,
     ExerciseType.FILL_BLANKS: TaskSize.HALF,
     ExerciseType.SYNONYMS: TaskSize.HALF,
@@ -52,6 +97,40 @@ DEFAULT_TASK_SIZES: dict[ExerciseType, TaskSize] = {
     ExerciseType.TEXT_SUMMARY: TaskSize.FULL,
     ExerciseType.YOUTUBE_TASK: TaskSize.FULL,
     ExerciseType.DRAWING_TASK: TaskSize.HALF,
+    # Text production
+    ExerciseType.POETRY_WRITING: TaskSize.FULL,
+    ExerciseType.NEWS_HEADLINE: TaskSize.FULL,
+    ExerciseType.PRESS_RELEASE: TaskSize.FULL,
+    ExerciseType.JOB_APPLICATION: TaskSize.FULL,
+    ExerciseType.BLOG_POST: TaskSize.FULL,
+    ExerciseType.MOVIE_REVIEW: TaskSize.FULL,
+    # Conversation
+    ExerciseType.CONVERSATION: TaskSize.FULL,
+    # Puzzles & games
+    ExerciseType.WORD_SEARCH: TaskSize.HALF,
+    ExerciseType.CROSSWORD: TaskSize.FULL,
+    ExerciseType.WORD_STEMS: TaskSize.HALF,
+    # Word relationships
+    ExerciseType.OPPOSITES: TaskSize.HALF,
+    # Numbers & time
+    ExerciseType.TIME_AND_DATE: TaskSize.HALF,
+    ExerciseType.NUMBER_TASKS: TaskSize.HALF,
+    ExerciseType.CALCULATION: TaskSize.HALF,
+    ExerciseType.STATISTICS: TaskSize.FULL,
+    # Text analysis
+    ExerciseType.WORD_MARKING: TaskSize.HALF,
+    # Real-world texts
+    ExerciseType.RECIPE: TaskSize.FULL,
+    ExerciseType.WALKTHROUGH: TaskSize.FULL,
+    # Listening
+    ExerciseType.LISTENING_STEPS: TaskSize.FULL,
+    # Bonus
+    ExerciseType.ERROR_CORRECTION: TaskSize.HALF,
+    ExerciseType.SENTENCE_REORDER: TaskSize.HALF,
+    ExerciseType.ODD_ONE_OUT: TaskSize.HALF,
+    ExerciseType.CLOZE_TEXT: TaskSize.FULL,
+    ExerciseType.DICTATION_PREP: TaskSize.HALF,
+    ExerciseType.TEXT_TRANSFORMATION: TaskSize.FULL,
 }
 
 
