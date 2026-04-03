@@ -34,7 +34,7 @@ class TextSummaryExercise(Exercise):
 
         return ExerciseContent(
             title="Text Summary",
-            instructions="Read the text below and write a summary in 2–3 sentences.",
+            instructions="Read the text below and write a summary in 2\u20133 sentences. Focus on the key facts and any evidence presented.",
             items=[],
             solution=[],
             metadata={

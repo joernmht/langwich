@@ -33,9 +33,11 @@ class CreativeWritingExercise(Exercise):
         word_list = [v.term for v in target_words]
 
         prompts = [
-            f"Write a short paragraph using these words: {', '.join(word_list)}.",
-            f"Imagine you are explaining the topic to a friend. Use at least {num_vocab} new words.",
-            f"Write a diary entry about today using: {', '.join(word_list)}.",
+            f"Write a short paragraph using these words: {', '.join(word_list)}. Try to include a real-world fact or scientific detail.",
+            f"Imagine you are a science journalist explaining this topic to a curious reader. Use at least {num_vocab} new words.",
+            f"Write a short report about a recent discovery or finding using: {', '.join(word_list)}.",
+            f"Describe how the words {', '.join(word_list)} connect to a real-world phenomenon or scientific concept.",
+            f"Write a diary entry about visiting a research lab or museum, using: {', '.join(word_list)}.",
         ]
 
         return ExerciseContent(

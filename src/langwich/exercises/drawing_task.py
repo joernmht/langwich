@@ -34,6 +34,8 @@ class DrawingTaskExercise(Exercise):
             f"Draw a scene that includes: {', '.join(terms)}.",
             f"Illustrate the meaning of the word '{terms[0]}' if you can.",
             f"Create a mind map connecting these words: {', '.join(terms)}.",
+            f"Draw a diagram showing how these concepts relate: {', '.join(terms)}.",
+            f"Sketch a process or experiment involving: {', '.join(terms)}.",
         ]
 
         return ExerciseContent(

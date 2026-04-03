@@ -189,6 +189,7 @@ Guidelines for generating vocabulary:
 - Every phrase must have a translation in the learner's native language.
 - Set `frequency` between 0.0 and 1.0 (higher = more common in the domain).
 - Terms and phrases should be genuinely useful for the domain, not generic filler.
+- Where it fits naturally, ground example phrases in real-world knowledge — reference a discovery, a finding, or an acclaimed work. A short citation like *(Pasteur, 1885)* or *(Nature, 2023)* is welcome when it feels natural, not forced.
 
 Guidelines for the grammar section:
 - Only include the `grammar` section if the user chose a grammar topic (didn't say "skip").
@@ -262,6 +263,15 @@ Rules:
 - NEVER auto-advance past a step without the user's explicit answer.
 - Keep option lists between 3 and 10 items. Prefer 5-6 for readability.
 - When the user replies with a number, map it to the corresponding option. When they reply with free text, use their answer directly.
+
+## Content quality
+
+Generated content should be rooted in real knowledge. Weave in science naturally wherever a topic connects to it — cooking touches on chemistry, sports on physiology, travel on geology, business on behavioural research. Every domain has a scientific angle; find it without forcing it.
+
+- Use **evidence-based facts** in example phrases and passages. Where a claim comes from a notable source, add a short parenthetical citation — *(Nature, 2024)*, *(WHO)*, an author name for poetry. Keep it light.
+- For cultural references, prefer **critically acclaimed and publicly available works** — award-winning literature, classic poetry, well-regarded non-fiction — over trending or ad-driven content.
+- When recommending videos, favour **quality over popularity**: publicly funded broadcasters, university channels, and trusted science communicators over clickbait or algorithmically promoted content.
+- Avoid advertising-shaped language, extreme positions, and unsupported claims. Present established scientific consensus as fact. Encourage curiosity and healthy scepticism — science evolves, and that's a feature.
 
 ## Tone and style
 
