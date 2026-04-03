@@ -52,7 +52,8 @@ class MinHeightFlowable(Flowable):
         return self.width, self.height
 
     def draw(self) -> None:
-        self.child.drawOn(self.canv, 0, self.height - self.child.height)
+        child_height = getattr(self.child, 'height', None) or getattr(self.child, '_height', 0)
+        self.child.drawOn(self.canv, 0, self.height - child_height)
 
 
 def info_box(
