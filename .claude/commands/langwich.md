@@ -11,13 +11,29 @@ Default to LLM mode. Only suggest mining mode if the user explicitly asks for au
 
 ## Step 1 — Mother tongue
 
-Ask the user what their native language is. Accept any language name or ISO code (e.g. "English", "en", "Deutsch", "de"). Confirm what you understood before moving on.
+Present the most common native languages as a numbered list and invite free text. Example:
+
+```
+What is your native language?
+
+1. English
+2. Spanish
+3. German
+4. French
+5. Portuguese
+6. Chinese
+
+Or type your own.
+```
+
+Accept any language name or ISO code. Confirm what you understood before moving on.
 
 ## Step 2 — Target language
 
-Ask which language they want to learn or practise. After they answer, confirm.
+Always present the following numbered list. Do NOT ask an open-ended question without it:
 
-If they seem unsure or ask for suggestions, offer these popular choices (formatted as a short numbered list):
+```
+Which language would you like to learn?
 
 1. Spanish — widely spoken, rich cultural content
 2. French — great academic and diplomatic literature
@@ -30,41 +46,52 @@ If they seem unsure or ask for suggestions, offer these popular choices (formatt
 9. Russian — literature, aerospace, and geopolitics
 10. Korean — K-pop, tech industry, and rapid globalisation
 
+Or type your own.
+```
+
+After they answer, confirm.
+
 ## Step 3 — Areas of interest
 
-Ask the user to name one or more topics they care about (e.g. their job, hobby, or study area). Multiple topics are welcome — they will each become a vocabulary domain.
+Always present the following numbered list. Do NOT ask an open-ended question without it:
 
-If they need inspiration, suggest these popular domains:
+```
+What topics interest you? Pick one or more numbers, or type your own.
 
-| Domain slug | What it covers |
-|---|---|
-| `technology` | Software, hardware, AI, and the internet |
-| `medicine` | Healthcare, anatomy, clinical vocabulary |
-| `business-finance` | Economics, accounting, corporate language |
-| `science` | Physics, chemistry, biology, research papers |
-| `travel-tourism` | Transport, accommodation, navigation |
-| `cooking` | Cuisine, ingredients, recipes, gastronomy |
-| `environment` | Climate, ecology, sustainability |
-| `sports` | Athletics, team sports, fitness |
-| `history-culture` | Art, archaeology, social history |
-| `law` | Legal systems, contracts, court language |
+1. Technology — software, hardware, AI, and the internet
+2. Medicine — healthcare, anatomy, clinical vocabulary
+3. Business & Finance — economics, accounting, corporate language
+4. Science — physics, chemistry, biology, research papers
+5. Travel & Tourism — transport, accommodation, navigation
+6. Cooking — cuisine, ingredients, recipes, gastronomy
+7. Environment — climate, ecology, sustainability
+8. Sports — athletics, team sports, fitness
+9. History & Culture — art, archaeology, social history
+10. Law — legal systems, contracts, court language
 
-Accept free-form topic descriptions and convert them to a short lowercase hyphenated slug (e.g. "machine learning" → `machine-learning`).
+Or type your own topics (e.g. "machine learning, photography").
+```
+
+Multiple topics are welcome — they will each become a vocabulary domain. Accept free-form topic descriptions and convert them to a short lowercase hyphenated slug (e.g. "machine learning" → `machine-learning`).
 
 ## Step 4 — CEFR level
 
-Ask the user for their current level in the target language. Explain the scale briefly if needed:
+Always present the following numbered list. Do NOT ask an open-ended question without it:
 
-| Level | Label | What it means |
-|---|---|---|
-| A1 | Beginner | First words and phrases |
-| A2 | Elementary | Everyday survival situations |
-| B1 | Intermediate | Can handle most familiar topics |
-| B2 | Upper-Intermediate | Comfortable with complex texts |
-| C1 | Advanced | Fluent, nuanced expression |
-| C2 | Proficiency | Near-native mastery |
+```
+What is your current level in the target language?
 
-Accept free-form descriptions ("I'm a total beginner", "intermediate") and map them to the closest CEFR level.
+1. A1 — Beginner: first words and phrases
+2. A2 — Elementary: everyday survival situations
+3. B1 — Intermediate: can handle most familiar topics
+4. B2 — Upper-Intermediate: comfortable with complex texts
+5. C1 — Advanced: fluent, nuanced expression
+6. C2 — Proficiency: near-native mastery
+
+Or describe your level in your own words (e.g. "I'm a total beginner").
+```
+
+Accept free-form descriptions and map them to the closest CEFR level.
 
 ## Step 5 — Grammar focus (optional)
 
@@ -206,11 +233,41 @@ python -m spacy download en_core_web_sm
 
 Then use `langwich --domain <slug> --source-lang <code> --target-lang <code> --level <CEFR> --path balanced` instead of `--from-json`.
 
+## Interaction format — STRICT
+
+Every step MUST follow this exact pattern:
+
+1. **Present a numbered list of options** — always show concrete choices the user can pick from.
+2. **End with a free-text escape hatch** — the last line must always invite the user to type their own answer if none of the options fit.
+3. **Wait for the user to respond** — do NOT skip ahead, combine steps, or auto-select.
+
+Example format (follow this structure literally):
+
+```
+Which language would you like to learn?
+
+1. Spanish
+2. French
+3. German
+4. Japanese
+5. Mandarin Chinese
+
+Or type your own choice.
+```
+
+Rules:
+- NEVER ask an open-ended question without also providing numbered options.
+- NEVER skip the free-text option line.
+- NEVER combine multiple steps into one message.
+- NEVER auto-advance past a step without the user's explicit answer.
+- Keep option lists between 3 and 10 items. Prefer 5-6 for readability.
+- When the user replies with a number, map it to the corresponding option. When they reply with free text, use their answer directly.
+
 ## Tone and style
 
 - Be warm and encouraging — language learning is personal.
 - Keep questions short and direct; don't overwhelm the user.
-- One question per message unless naturally grouping two very short ones.
+- One question per message. Never combine two steps.
 - If the user skips a step or provides all info upfront in `$ARGUMENTS`, extract what you can, confirm, and fill in any gaps interactively.
 
 $ARGUMENTS
