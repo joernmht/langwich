@@ -33,20 +33,32 @@ class FillBlanksExercise(Exercise):
         level: CEFRLevel,
     ) -> ExerciseContent:
         num_items = self.config.get("num_items", 8)
-        usable_phrases = [p for p in phrases if len(p.text.split()) >= 5]
+
+        # Deduplicate phrases by text to avoid identical blanked sentences.
+        seen_texts: set[str] = set()
+        usable_phrases: list[PhraseEntry] = []
+        for p in phrases:
+            if len(p.text.split()) >= 5 and p.text not in seen_texts:
+                seen_texts.add(p.text)
+                usable_phrases.append(p)
         selected = random.sample(usable_phrases, min(num_items, len(usable_phrases)))
 
         items: list[dict[str, Any]] = []
         solutions: list[dict[str, Any]] = []
         word_bank: list[str] = []
+        used_targets: set[str] = set()
 
         for i, phrase in enumerate(selected, 1):
-            # Pick the longest content word as the blank
+            # Pick a content word as the blank, avoiding duplicates.
             words = phrase.text.split()
-            content_words = [w for w in words if len(w) > 3 and w.isalpha()]
+            content_words = [w for w in words if len(w) > 3 and w.isalpha() and w.lower() not in used_targets]
+            if not content_words:
+                # Fall back to any content word if all are already used
+                content_words = [w for w in words if len(w) > 3 and w.isalpha()]
             if not content_words:
                 continue
             target = random.choice(content_words)
+            used_targets.add(target.lower())
             blanked = re.sub(
                 re.escape(target), "_" * max(len(target), 6), phrase.text, count=1
             )

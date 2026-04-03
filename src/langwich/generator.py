@@ -183,7 +183,9 @@ class WorksheetGenerator:
             # Use the partitioned phrase pool for text exercises, full set otherwise
             step_phrases = phrase_pools.get(id(step), phrases)
 
-            exercise = exercise_cls(config=step.config)
+            # Inject domain context into exercise config so prompts can reference it.
+            exercise_config = {**step.config, "domain": self.db.domain}
+            exercise = exercise_cls(config=exercise_config)
             try:
                 content = exercise.generate(vocabulary, step_phrases, self.level)
                 flowables = exercise.render(content)

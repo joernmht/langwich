@@ -32,7 +32,14 @@ class ReadingComprehensionExercise(Exercise):
         max_sentences = self.config.get("max_passage_sentences", 20)
         num_questions = self.config.get("num_questions", 4)
 
-        passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
+        # Deduplicate phrases by text to avoid repeated sentences in the passage.
+        seen_texts: set[str] = set()
+        unique_phrases: list[PhraseEntry] = []
+        for p in phrases:
+            if p.text not in seen_texts:
+                seen_texts.add(p.text)
+                unique_phrases.append(p)
+        passage_phrases = random.sample(unique_phrases, min(max_sentences, len(unique_phrases)))
         passage = " ".join(p.text for p in passage_phrases)
 
         # Build questions that reference the actual passage content.
