@@ -70,6 +70,10 @@ class DomainDatabase:
         self.grammar_topic: str | None = None
         self.grammar_content: str | None = None
 
+        # Optional reading comprehension content (populated from JSON import)
+        self.reading_passage: str | None = None
+        self.reading_questions: list[str] | None = None
+
     # ── Lifecycle ────────────────────────────────────────────────────
 
     def initialize(self) -> None:
