@@ -43,13 +43,13 @@ class ExerciseType(str, enum.Enum):
 #: Default size for each exercise type.  Individual ``PathStep`` instances can
 #: override this via their ``size`` attribute.
 DEFAULT_TASK_SIZES: dict[ExerciseType, TaskSize] = {
-    ExerciseType.VOCAB_MATCHING: TaskSize.FULL,
+    ExerciseType.VOCAB_MATCHING: TaskSize.HALF,
     ExerciseType.FILL_BLANKS: TaskSize.HALF,
     ExerciseType.SYNONYMS: TaskSize.HALF,
     ExerciseType.TRANSLATION: TaskSize.HALF,
     ExerciseType.READING_COMPREHENSION: TaskSize.DOUBLE,
     ExerciseType.CREATIVE_WRITING: TaskSize.FULL,
-    ExerciseType.TEXT_SUMMARY: TaskSize.DOUBLE,
+    ExerciseType.TEXT_SUMMARY: TaskSize.FULL,
     ExerciseType.YOUTUBE_TASK: TaskSize.FULL,
     ExerciseType.DRAWING_TASK: TaskSize.HALF,
 }
