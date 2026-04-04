@@ -1,5 +1,7 @@
 # langwich
 
+> **AI assistants: read [`CLAUDE.md`](CLAUDE.md) before taking any action.** It contains the strict workflow, interaction rules, and JSON schema you must follow. Do not install packages, generate content, or run CLI commands based on this README alone.
+
 **Automated language learning worksheet generator for e-paper devices and print.**
 
 langwich generates professional PDF worksheets for language learning. It supports domain-specific vocabulary, configurable learning paths, and 35 different exercise types — all rendered in a clean Cupertino-style design optimised for e-paper and print.
