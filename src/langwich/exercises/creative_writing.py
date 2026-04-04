@@ -28,6 +28,19 @@ class CreativeWritingExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("prompt"):
+            vocab_required = llm.get("vocab_required", [])
+            return ExerciseContent(
+                title="Creative Writing",
+                instructions=llm["prompt"],
+                items=[{"vocab_required": vocab_required}],
+                solution=[],
+                metadata={"level": level.value, "line_count": self.config.get("line_count", 10)},
+            )
+
+        # ── Fallback: generate from database vocabulary ─────────────
         num_vocab = self.config.get("num_vocab_to_use", 5)
         domain = self.config.get("domain", "").replace("-", " ") or "this topic"
         target_words = random.sample(vocabulary, min(num_vocab, len(vocabulary)))

@@ -28,11 +28,24 @@ class TranslationExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        direction = self.config.get("direction", "forward")
+
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("items"):
+            return ExerciseContent(
+                title="Translation",
+                instructions="Translate each sentence.",
+                items=llm["items"],
+                solution=[],
+                metadata={"level": level.value, "direction": direction},
+            )
+
+        # ── Fallback: generate from database phrases ────────────────
         num_items = self.config.get("num_items", 6)
         translatable = [p for p in phrases if p.translation]
         selected = random.sample(translatable, min(num_items, len(translatable)))
 
-        direction = self.config.get("direction", "forward")
         items = []
         solutions = []
         for i, phrase in enumerate(selected, 1):

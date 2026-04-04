@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.engine import Engine
@@ -73,6 +73,9 @@ class DomainDatabase:
         # Optional reading comprehension content (populated from JSON import)
         self.reading_passage: str | None = None
         self.reading_questions: list[str] | None = None
+
+        # Pre-generated exercise content from LLM (populated from JSON import)
+        self.exercises: dict[str, Any] | None = None
 
     # ── Lifecycle ────────────────────────────────────────────────────
 

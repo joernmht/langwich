@@ -140,32 +140,51 @@ class VocabMatchingExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("items"):
+            items = llm["items"]
+            solutions = [{"number": it["number"], "term": it["term"], "answer": it["translation"]} for it in items]
+            # Shuffle translations for the student version
+            translation_list = [it["translation"] for it in items]
+            random.shuffle(translation_list)
+            for i, item in enumerate(items):
+                item["shuffled_translation"] = translation_list[i]
+            return ExerciseContent(
+                title="Vocabulary Matching",
+                instructions="Draw a line from each term on the left to its translation on the right.",
+                items=items,
+                solution=solutions,
+                metadata={"level": level.value},
+            )
+
+        # ── Fallback: generate from database vocabulary ─────────────
         num_items = self.config.get("num_items", 10)
         selected = random.sample(vocabulary, min(num_items, len(vocabulary)))
 
-        items: list[dict[str, Any]] = []
-        solutions: list[dict[str, Any]] = []
+        items_fb: list[dict[str, Any]] = []
+        solutions_fb: list[dict[str, Any]] = []
         for i, entry in enumerate(selected, 1):
             translations = json.loads(entry.translations_json) if entry.translations_json else ["—"]
-            items.append({
+            items_fb.append({
                 "number": i,
                 "term": entry.term,
                 "translation": translations[0] if translations else "—",
             })
-            solutions.append({"number": i, "term": entry.term, "answer": translations[0]})
+            solutions_fb.append({"number": i, "term": entry.term, "answer": translations[0]})
 
         # Shuffle translations for the student version
         if self.config.get("shuffle_translations", True):
-            translation_list = [it["translation"] for it in items]
+            translation_list = [it["translation"] for it in items_fb]
             random.shuffle(translation_list)
-            for i, item in enumerate(items):
+            for i, item in enumerate(items_fb):
                 item["shuffled_translation"] = translation_list[i]
 
         return ExerciseContent(
             title="Vocabulary Matching",
             instructions="Draw a line from each term on the left to its translation on the right.",
-            items=items,
-            solution=solutions,
+            items=items_fb,
+            solution=solutions_fb,
             metadata={"level": level.value},
         )
 

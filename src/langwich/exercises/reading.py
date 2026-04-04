@@ -46,8 +46,9 @@ class ReadingComprehensionExercise(Exercise):
         num_questions = self.config.get("num_questions", 5)
 
         # ── Prefer LLM-generated content from the JSON ───────────────
-        passage = self.config.get("reading_passage") or ""
-        questions: list[str] = self.config.get("reading_questions") or []
+        llm = self.config.get("llm_content")
+        passage = (llm or {}).get("passage") or self.config.get("reading_passage") or ""
+        questions: list[str] = (llm or {}).get("questions") or self.config.get("reading_questions") or []
 
         # ── Fallback: assemble passage from phrases ──────────────────
         if not passage:

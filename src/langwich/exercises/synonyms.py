@@ -28,15 +28,6 @@ class SynonymsExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
-        num_items = self.config.get("num_items", 6)
-        selected = random.sample(vocabulary, min(num_items, len(vocabulary)))
-
-        items = [
-            {"number": i, "term": v.term, "pos": v.part_of_speech.value}
-            for i, v in enumerate(selected, 1)
-        ]
-
-        # Adapt task complexity to CEFR level.
         is_beginner = level in (CEFRLevel.A1, CEFRLevel.A2)
 
         if is_beginner:
@@ -49,6 +40,26 @@ class SynonymsExercise(Exercise):
         else:
             title = "Synonyms & Antonyms"
             instructions = "Write one synonym and one antonym for each word."
+
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("items"):
+            return ExerciseContent(
+                title=title,
+                instructions=instructions,
+                items=llm["items"],
+                solution=[],
+                metadata={"level": level.value, "is_beginner": is_beginner},
+            )
+
+        # ── Fallback: generate from database vocabulary ─────────────
+        num_items = self.config.get("num_items", 6)
+        selected = random.sample(vocabulary, min(num_items, len(vocabulary)))
+
+        items = [
+            {"number": i, "term": v.term, "pos": v.part_of_speech.value}
+            for i, v in enumerate(selected, 1)
+        ]
 
         return ExerciseContent(
             title=title,

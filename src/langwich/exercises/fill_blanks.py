@@ -32,6 +32,22 @@ class FillBlanksExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("items"):
+            items = llm["items"]
+            word_bank = llm.get("word_bank", [t["target"] for t in items])
+            random.shuffle(word_bank)
+            solutions = [{"number": it["number"], "answer": it["target"]} for it in items]
+            return ExerciseContent(
+                title="Fill in the Blanks",
+                instructions="Complete each sentence with the correct word from the word bank.",
+                items=items,
+                solution=solutions,
+                metadata={"level": level.value, "word_bank": word_bank},
+            )
+
+        # ── Fallback: generate from database phrases ────────────────
         num_items = self.config.get("num_items", 8)
 
         # Deduplicate phrases by text to avoid identical blanked sentences.
@@ -43,9 +59,9 @@ class FillBlanksExercise(Exercise):
                 usable_phrases.append(p)
         selected = random.sample(usable_phrases, min(num_items, len(usable_phrases)))
 
-        items: list[dict[str, Any]] = []
-        solutions: list[dict[str, Any]] = []
-        word_bank: list[str] = []
+        items_fb: list[dict[str, Any]] = []
+        solutions_fb: list[dict[str, Any]] = []
+        word_bank_fb: list[str] = []
         used_targets: set[str] = set()
 
         for i, phrase in enumerate(selected, 1):
@@ -62,18 +78,18 @@ class FillBlanksExercise(Exercise):
             blanked = re.sub(
                 re.escape(target), "_" * max(len(target), 6), phrase.text, count=1
             )
-            items.append({"number": i, "sentence": blanked, "target": target})
-            solutions.append({"number": i, "answer": target})
-            word_bank.append(target)
+            items_fb.append({"number": i, "sentence": blanked, "target": target})
+            solutions_fb.append({"number": i, "answer": target})
+            word_bank_fb.append(target)
 
-        random.shuffle(word_bank)
+        random.shuffle(word_bank_fb)
 
         return ExerciseContent(
             title="Fill in the Blanks",
             instructions="Complete each sentence with the correct word from the word bank.",
-            items=items,
-            solution=solutions,
-            metadata={"level": level.value, "word_bank": word_bank},
+            items=items_fb,
+            solution=solutions_fb,
+            metadata={"level": level.value, "word_bank": word_bank_fb},
         )
 
     def render(self, content: ExerciseContent) -> list[Flowable]:
