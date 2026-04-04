@@ -392,6 +392,28 @@ Add these flags as needed:
 
 Report the path of every generated PDF to the user and suggest they open it with any PDF viewer.
 
+## Step 9 — Offer to save as a skill
+
+After the PDF has been generated successfully, ask the user if they would like to save their preferences as a reusable Claude Code skill. Present it like this:
+
+```
+Your worksheet is ready!
+
+Would you like to save these settings as a personal skill so you can generate worksheets faster next time?
+
+1. Yes — save as a skill (I can regenerate with `/my-langwich` anytime)
+2. No thanks — just this once
+```
+
+If the user says yes:
+
+1. Create a new command file at `.claude/commands/my-langwich.md` (or let the user pick a name).
+2. The skill file should be a simplified version of `/langwich` that **pre-fills** all the choices the user just made (native language, target language, topics, CEFR level, learning path, grammar preference, and exercise selection) and skips straight to generating fresh vocabulary and a new worksheet with those same settings.
+3. The generated skill file should still allow `$ARGUMENTS` to override any setting (e.g. `/my-langwich level B2` to bump the level).
+4. Tell the user how to run it: "Next time, just run `/my-langwich` and I'll generate a new worksheet with your saved preferences."
+
+This way the user builds a personal, one-command shortcut for their learning routine.
+
 ## Setup assistance
 
 If `langwich` is not installed yet, help the user set it up:

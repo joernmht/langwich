@@ -14,7 +14,7 @@ Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydant
 
 ## Slash commands
 
-- `/langwich` — Interactive worksheet generator. Walks the user through picking languages, topics, CEFR level, and exercises, then generates vocabulary JSON and renders a PDF worksheet. This is the primary way to use the project with Claude Code.
+- `/langwich` — Interactive worksheet generator. Walks the user through picking languages, topics, CEFR level, and exercises, then generates vocabulary JSON and renders a PDF worksheet. After generating, it offers to save the user's preferences as a personal skill for one-command reuse. This is the primary way to use the project with Claude Code.
 
 ## How it works
 
