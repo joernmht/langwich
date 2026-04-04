@@ -1,5 +1,7 @@
 # langwich
 
+**When the user asks to generate a worksheet or runs `/langwich`, you MUST read and follow `.claude/commands/langwich.md` before doing anything else. That file defines a strict step-by-step interactive workflow. Do NOT skip steps, do NOT auto-generate content, and do NOT run CLI commands until the workflow tells you to.**
+
 Automated language learning worksheet generator for e-paper devices and print.
 
 ## Getting started
@@ -14,7 +16,7 @@ Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydant
 
 ## Slash commands
 
-- `/langwich` — Interactive worksheet generator. Walks the user through picking languages, topics, CEFR level, and exercises, then generates vocabulary JSON and renders a PDF worksheet. After generating, it offers to save the user's preferences as a personal skill for one-command reuse. This is the primary way to use the project with Claude Code.
+- `/langwich` (defined in `.claude/commands/langwich.md`) — Interactive worksheet generator. Walks the user through picking languages, topics, CEFR level, and exercises, then generates vocabulary JSON and renders a PDF worksheet. After generating, it offers to save the user's preferences as a personal skill for one-command reuse. This is the primary way to use the project with Claude Code. **Always follow the step-by-step workflow in the command file.**
 
 ## How it works
 
