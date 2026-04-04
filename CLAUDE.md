@@ -2,17 +2,50 @@
 
 **When the user asks to generate a worksheet or runs `/langwich`, you MUST read and follow `.claude/commands/langwich.md` before doing anything else. That file defines a strict step-by-step interactive workflow. Do NOT skip steps, do NOT auto-generate content, and do NOT run CLI commands until the workflow tells you to.**
 
-Automated language learning worksheet generator for e-paper devices and print.
+## Strict rules
 
-## Getting started
+1. Do NOT install packages, generate JSON, or run CLI commands until the user has confirmed their choices in all setup steps.
+2. Do NOT auto-select languages, topics, CEFR levels, or exercises. Always ask the user.
+3. Ask ONE question per message. Wait for the user's answer before proceeding.
+4. If the user provides partial info (e.g. "make me a German worksheet"), extract what you can, then ask about the missing pieces one at a time.
 
-Install the project in development mode:
+## Interaction contract
 
-```bash
-pip install -e .
-```
+When guiding a user through worksheet creation:
 
-Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydantic-settings.
+- Present numbered options at every step. Never ask open-ended questions without also showing concrete choices.
+- End every option list with "Or type your own."
+- ONE question per message. Never combine steps.
+- Never auto-advance without the user's explicit answer.
+- Show a summary of all choices before generating anything. Ask for confirmation.
+
+## Workflow (follow in strict order)
+
+### Phase 1 — Interactive setup (MUST complete before Phase 2)
+
+Steps 1–8 from `.claude/commands/langwich.md`. Walk the user through: native language, target language, topics, CEFR level, learning path, grammar focus, exercise selection, and confirmation. Do not proceed until the user confirms the summary.
+
+### Phase 2 — JSON generation (MUST complete before Phase 3)
+
+Generate a JSON file at `./data/<domain>_<source>_<target>.json` with all vocabulary, grammar, reading, and exercise content. The JSON must contain at least 20 vocabulary items. See `data/example_travel_en_de.json` for a complete working example.
+
+### Phase 3 — PDF rendering
+
+Run: `langwich --from-json <file> --level <CEFR> --path <path>`
+Report the output path to the user.
+
+### Phase 4 — Skill creation (optional)
+
+Ask the user if they want to save their preferences as a personal slash command for one-command reuse next time.
+
+## Common mistakes to avoid
+
+- Do not install the package and generate content immediately without asking the user any questions.
+- Do not invent a topic, language pair, or CEFR level without asking.
+- Do not generate a JSON file with only 2–3 vocabulary items (minimum is 20).
+- Do not leave grammar.content empty or as a placeholder string.
+- Do not skip the confirmation step before generation.
+- Do not combine multiple setup questions into a single message.
 
 ## Slash commands
 
@@ -22,12 +55,17 @@ Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydant
 
 langwich is LLM-driven. Claude generates **all content** (vocabulary, grammar, reading passages, exercise items). Python handles only PDF rendering and database storage. There are no separate generator scripts.
 
-### Workflow
+## Getting started
 
-1. User runs `/langwich`
-2. Claude guides through setup: native language, target language, topics, CEFR level, learning path, grammar focus, exercise selection
-3. Claude generates a JSON file at `./data/<domain>_<source>_<target>.json` with vocabulary, phrases, grammar, reading passages, and exercise content
-4. Claude runs `langwich --from-json <file> --level <CEFR> --path <path>` to render the PDF
+```bash
+pip install -e .
+```
+
+Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydantic-settings.
+
+## JSON format
+
+The worksheet data must conform to the structure shown in `data/example_travel_en_de.json`. That file is a complete, realistic example you can use as a template.
 
 ## Project structure
 

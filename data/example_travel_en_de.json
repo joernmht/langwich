@@ -1,0 +1,120 @@
+{
+  "domain": "travel",
+  "source_lang": "en",
+  "target_lang": "de",
+  "vocabulary": [
+    {"term": "Flughafen", "lemma": "flughafen", "pos": "NOUN", "cefr": "A2", "translations": ["airport"], "frequency": 0.92},
+    {"term": "Bahnhof", "lemma": "bahnhof", "pos": "NOUN", "cefr": "A1", "translations": ["train station", "railway station"], "frequency": 0.95},
+    {"term": "Fahrkarte", "lemma": "fahrkarte", "pos": "NOUN", "cefr": "A2", "translations": ["ticket"], "frequency": 0.88},
+    {"term": "Abfahrt", "lemma": "abfahrt", "pos": "NOUN", "cefr": "A2", "translations": ["departure"], "frequency": 0.85},
+    {"term": "Ankunft", "lemma": "ankunft", "pos": "NOUN", "cefr": "A2", "translations": ["arrival"], "frequency": 0.84},
+    {"term": "Unterkunft", "lemma": "unterkunft", "pos": "NOUN", "cefr": "B1", "translations": ["accommodation", "lodging"], "frequency": 0.78},
+    {"term": "Gepäck", "lemma": "gepäck", "pos": "NOUN", "cefr": "A2", "translations": ["luggage", "baggage"], "frequency": 0.82},
+    {"term": "Reisepass", "lemma": "reisepass", "pos": "NOUN", "cefr": "A2", "translations": ["passport"], "frequency": 0.80},
+    {"term": "Verspätung", "lemma": "verspätung", "pos": "NOUN", "cefr": "B1", "translations": ["delay"], "frequency": 0.75},
+    {"term": "Auskunft", "lemma": "auskunft", "pos": "NOUN", "cefr": "B1", "translations": ["information"], "frequency": 0.70},
+    {"term": "Sehenswürdigkeit", "lemma": "sehenswürdigkeit", "pos": "NOUN", "cefr": "B1", "translations": ["sight", "point of interest"], "frequency": 0.72},
+    {"term": "Stadtplan", "lemma": "stadtplan", "pos": "NOUN", "cefr": "A2", "translations": ["city map"], "frequency": 0.68},
+    {"term": "Wechselstube", "lemma": "wechselstube", "pos": "NOUN", "cefr": "B1", "translations": ["currency exchange office"], "frequency": 0.55},
+    {"term": "Einzelzimmer", "lemma": "einzelzimmer", "pos": "NOUN", "cefr": "A2", "translations": ["single room"], "frequency": 0.65},
+    {"term": "Rückfahrt", "lemma": "rückfahrt", "pos": "NOUN", "cefr": "B1", "translations": ["return journey"], "frequency": 0.60},
+    {"term": "buchen", "lemma": "buchen", "pos": "VERB", "cefr": "A2", "translations": ["to book", "to reserve"], "frequency": 0.88},
+    {"term": "umsteigen", "lemma": "umsteigen", "pos": "VERB", "cefr": "A2", "translations": ["to change (trains)", "to transfer"], "frequency": 0.82},
+    {"term": "ankommen", "lemma": "ankommen", "pos": "VERB", "cefr": "A2", "translations": ["to arrive"], "frequency": 0.90},
+    {"term": "abfahren", "lemma": "abfahren", "pos": "VERB", "cefr": "A2", "translations": ["to depart", "to leave"], "frequency": 0.87},
+    {"term": "übernachten", "lemma": "übernachten", "pos": "VERB", "cefr": "B1", "translations": ["to stay overnight"], "frequency": 0.70},
+    {"term": "sich erkundigen", "lemma": "sich erkundigen", "pos": "VERB", "cefr": "B1", "translations": ["to inquire"], "frequency": 0.58},
+    {"term": "pünktlich", "lemma": "pünktlich", "pos": "ADJ", "cefr": "A2", "translations": ["on time", "punctual"], "frequency": 0.78},
+    {"term": "günstig", "lemma": "günstig", "pos": "ADJ", "cefr": "A2", "translations": ["cheap", "affordable"], "frequency": 0.75},
+    {"term": "gemütlich", "lemma": "gemütlich", "pos": "ADJ", "cefr": "B1", "translations": ["cosy", "comfortable"], "frequency": 0.72}
+  ],
+  "phrases": [
+    {"text": "Wann fährt der nächste Zug nach Berlin?", "translation": "When does the next train to Berlin leave?", "cefr": "A2"},
+    {"text": "Ich möchte ein Einzelzimmer für zwei Nächte buchen.", "translation": "I would like to book a single room for two nights.", "cefr": "A2"},
+    {"text": "Wo ist die nächste Wechselstube?", "translation": "Where is the nearest currency exchange office?", "cefr": "A2"},
+    {"text": "Der Zug hat zwanzig Minuten Verspätung.", "translation": "The train is twenty minutes late.", "cefr": "B1"},
+    {"text": "Können Sie mir den Weg zum Bahnhof zeigen?", "translation": "Can you show me the way to the train station?", "cefr": "A2"},
+    {"text": "Muss ich in Frankfurt umsteigen?", "translation": "Do I have to change trains in Frankfurt?", "cefr": "A2"},
+    {"text": "Ich hätte gerne eine Fahrkarte nach München, hin und zurück.", "translation": "I would like a return ticket to Munich, please.", "cefr": "B1"},
+    {"text": "Welche Sehenswürdigkeiten empfehlen Sie?", "translation": "Which sights do you recommend?", "cefr": "B1"},
+    {"text": "Die Unterkunft war sehr gemütlich und günstig.", "translation": "The accommodation was very cosy and affordable.", "cefr": "B1"},
+    {"text": "Bitte vergessen Sie Ihren Reisepass nicht!", "translation": "Please don't forget your passport!", "cefr": "A2"},
+    {"text": "Wo kann ich mein Gepäck aufgeben?", "translation": "Where can I check in my luggage?", "cefr": "A2"},
+    {"text": "Der Flughafen liegt etwa dreißig Kilometer außerhalb der Stadt.", "translation": "The airport is about thirty kilometres outside the city.", "cefr": "B1"},
+    {"text": "Ich erkundige mich nach günstigen Übernachtungsmöglichkeiten.", "translation": "I am inquiring about affordable accommodation options.", "cefr": "B1"},
+    {"text": "Die Rückfahrt ist für Sonntagabend geplant.", "translation": "The return journey is planned for Sunday evening.", "cefr": "B1"},
+    {"text": "Gibt es einen Stadtplan an der Auskunft?", "translation": "Is there a city map at the information desk?", "cefr": "A2"}
+  ],
+  "grammar": {
+    "topic": "Separable Verbs (trennbare Verben)",
+    "content": "In German, many verbs have a separable prefix that splits off and moves to the end of the clause in present tense and simple past.\n\n## How it works\n\nA separable verb has two parts: a prefix (e.g. ab-, an-, um-, zurück-) and a base verb. In the infinitive they are written as one word: abfahren, ankommen, umsteigen. In a main clause, the prefix moves to the very end.\n\n## Pattern\n\nSubject + conjugated base verb + ... + prefix\n\n## Conjugation: abfahren (to depart)\n\n| Person     | Present tense         |\n|------------|-----------------------|\n| ich        | fahre ... ab          |\n| du         | fährst ... ab         |\n| er/sie/es  | fährt ... ab          |\n| wir        | fahren ... ab         |\n| ihr        | fahrt ... ab          |\n| sie/Sie    | fahren ... ab         |\n\n## Examples\n\n1. Der Zug fährt um 8 Uhr ab. — The train departs at 8 o'clock.\n2. Wir kommen morgen in Berlin an. — We arrive in Berlin tomorrow.\n3. Steigst du in Hamburg um? — Do you change trains in Hamburg?\n4. Ich komme am Freitag zurück. — I come back on Friday.\n\n## Watch out\n\n- In subordinate clauses (with weil, dass, wenn ...), the verb stays together: Ich weiß, dass der Zug um 8 Uhr abfährt.\n- With modal verbs, the separable verb stays together as an infinitive at the end: Ich muss in Frankfurt umsteigen.\n- The past participle inserts -ge- between prefix and stem: abgefahren, angekommen, umgestiegen."
+  },
+  "reading": {
+    "passage": "Letztes Jahr habe ich eine Reise nach Süddeutschland gemacht. Ich bin mit dem Zug von Hamburg nach München gefahren. Die Fahrt hat etwa sechs Stunden gedauert, aber ich musste nur einmal in Frankfurt umsteigen.\n\nAm Bahnhof in München habe ich mich zuerst an der Auskunft nach einem günstigen Hotel erkundigt. Die Mitarbeiterin war sehr freundlich und hat mir ein kleines Hotel in der Nähe des Stadtzentrums empfohlen. Ich habe dort ein Einzelzimmer für drei Nächte gebucht — es war gemütlich und nicht teuer.\n\nAm ersten Tag habe ich mir einen Stadtplan geholt und bin zu den wichtigsten Sehenswürdigkeiten gelaufen: der Marienplatz, die Frauenkirche und der Englische Garten. Im Englischen Garten habe ich eine interessante Entdeckung gemacht: Mitten in München gibt es eine Stelle, an der Menschen tatsächlich auf einer stehenden Welle im Eisbach surfen — das hatte ich vorher nur in einem Reiseblog gelesen.\n\nLeider hatte mein Zug auf der Rückfahrt eine Verspätung von fast einer Stunde. Aber insgesamt war die Reise wunderbar, und ich möchte nächstes Jahr unbedingt wiederkommen.",
+    "questions": [
+      "The narrator mentions discovering something unexpected in the Englische Garten. What does this detail suggest about the narrator's approach to travel — were they following a strict plan or open to surprises?",
+      "In the second paragraph, the narrator says the hotel employee 'empfohlen' (recommended) a hotel. What does the word 'empfehlen' mean in this context, and how does the narrator's choice to follow the recommendation shape the rest of the trip?",
+      "The passage mentions the return train was delayed by almost an hour. Despite this, the narrator calls the trip 'wunderbar'. What does this contrast tell you about how the narrator weighs inconveniences against overall experience?",
+      "Why does the narrator specifically mention the price and comfort of the hotel ('gemütlich und nicht teuer')? What does this tell you about their priorities as a traveller?",
+      "The narrator travelled by train rather than by plane or car. Based on the details in the passage, what advantages and disadvantages of train travel can you identify? Would you choose the same mode of transport — why or why not?"
+    ]
+  },
+  "exercises": {
+    "vocab_matching": {
+      "items": [
+        {"number": 1, "term": "Flughafen", "translation": "airport"},
+        {"number": 2, "term": "Fahrkarte", "translation": "ticket"},
+        {"number": 3, "term": "Abfahrt", "translation": "departure"},
+        {"number": 4, "term": "Gepäck", "translation": "luggage"},
+        {"number": 5, "term": "Verspätung", "translation": "delay"},
+        {"number": 6, "term": "umsteigen", "translation": "to change trains"},
+        {"number": 7, "term": "Unterkunft", "translation": "accommodation"},
+        {"number": 8, "term": "Sehenswürdigkeit", "translation": "point of interest"},
+        {"number": 9, "term": "pünktlich", "translation": "on time"},
+        {"number": 10, "term": "buchen", "translation": "to book"}
+      ]
+    },
+    "fill_blanks": {
+      "items": [
+        {"number": 1, "sentence": "Wann ______ der nächste Zug nach Berlin ab?", "target": "fährt"},
+        {"number": 2, "sentence": "Ich möchte ein Einzelzimmer für zwei Nächte ______.", "target": "buchen"},
+        {"number": 3, "sentence": "Vergessen Sie Ihren ______ nicht!", "target": "Reisepass"},
+        {"number": 4, "sentence": "Der Zug hat zwanzig Minuten ______.", "target": "Verspätung"},
+        {"number": 5, "sentence": "Muss ich in Frankfurt ______?", "target": "umsteigen"},
+        {"number": 6, "sentence": "Wo kann ich mein ______ aufgeben?", "target": "Gepäck"},
+        {"number": 7, "sentence": "Die ______ war sehr gemütlich.", "target": "Unterkunft"},
+        {"number": 8, "sentence": "Welche ______ empfehlen Sie?", "target": "Sehenswürdigkeiten"}
+      ],
+      "word_bank": ["fährt", "buchen", "Reisepass", "Verspätung", "umsteigen", "Gepäck", "Unterkunft", "Sehenswürdigkeiten", "Stadtplan", "Auskunft"]
+    },
+    "synonyms": {
+      "items": [
+        {"number": 1, "term": "Fahrkarte", "pos": "NOUN", "synonym": "Ticket", "antonym": ""},
+        {"number": 2, "term": "abfahren", "pos": "VERB", "synonym": "losfahren", "antonym": "ankommen"},
+        {"number": 3, "term": "günstig", "pos": "ADJ", "synonym": "preiswert", "antonym": "teuer"},
+        {"number": 4, "term": "pünktlich", "pos": "ADJ", "synonym": "rechtzeitig", "antonym": "verspätet"},
+        {"number": 5, "term": "Gepäck", "pos": "NOUN", "synonym": "Koffer", "antonym": ""},
+        {"number": 6, "term": "buchen", "pos": "VERB", "synonym": "reservieren", "antonym": "stornieren"},
+        {"number": 7, "term": "gemütlich", "pos": "ADJ", "synonym": "behaglich", "antonym": "ungemütlich"},
+        {"number": 8, "term": "Unterkunft", "pos": "NOUN", "synonym": "Übernachtung", "antonym": ""}
+      ]
+    },
+    "translation": {
+      "items": [
+        {"number": 1, "source": "Der Zug fährt um acht Uhr ab."},
+        {"number": 2, "source": "Ich möchte eine Fahrkarte nach München kaufen."},
+        {"number": 3, "source": "Wo ist die nächste Wechselstube?"},
+        {"number": 4, "source": "Können Sie mir den Weg zum Bahnhof zeigen?"},
+        {"number": 5, "source": "Die Unterkunft war sehr gemütlich und günstig."},
+        {"number": 6, "source": "Welche Sehenswürdigkeiten empfehlen Sie?"}
+      ]
+    },
+    "creative_writing": {
+      "prompt": "Write a short paragraph (8–10 sentences) about a trip you would like to take. Describe how you would get there, where you would stay, and what you would see. Use at least 8 words from the vocabulary list.",
+      "vocab_required": ["Bahnhof", "Fahrkarte", "Unterkunft", "buchen", "Sehenswürdigkeit", "ankommen", "Gepäck", "gemütlich"]
+    },
+    "drawing_task": {
+      "prompt": "Draw a scene at a busy train station (Bahnhof). Include and label at least 6 of the following in German: platform, ticket counter, departures board, luggage, passengers, clock, information desk, city map."
+    }
+  }
+}
