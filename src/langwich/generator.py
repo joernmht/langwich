@@ -177,7 +177,13 @@ class WorksheetGenerator:
         for step in self.path.steps:
             exercise_cls = EXERCISE_REGISTRY.get(step.exercise_type)
             if exercise_cls is None:
-                logger.warning("Unknown exercise type: %s", step.exercise_type)
+                implemented = sorted(e.value for e in EXERCISE_REGISTRY)
+                logger.warning(
+                    "Exercise type '%s' is not yet implemented and will be skipped. "
+                    "Implemented types: %s",
+                    step.exercise_type.value,
+                    ", ".join(implemented),
+                )
                 continue
 
             # Use the partitioned phrase pool for text exercises, full set otherwise

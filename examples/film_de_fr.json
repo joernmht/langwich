@@ -1,0 +1,393 @@
+{
+  "domain": "film",
+  "source_lang": "de",
+  "target_lang": "fr",
+  "vocabulary": [
+    {
+      "term": "le film",
+      "lemma": "film",
+      "pos": "NOUN",
+      "cefr": "A1",
+      "translations": ["der Film"],
+      "frequency": 0.95
+    },
+    {
+      "term": "le réalisateur",
+      "lemma": "réalisateur",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Regisseur"],
+      "frequency": 0.82
+    },
+    {
+      "term": "la réalisatrice",
+      "lemma": "réalisatrice",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Regisseurin"],
+      "frequency": 0.75
+    },
+    {
+      "term": "l'acteur",
+      "lemma": "acteur",
+      "pos": "NOUN",
+      "cefr": "A1",
+      "translations": ["der Schauspieler"],
+      "frequency": 0.90
+    },
+    {
+      "term": "l'actrice",
+      "lemma": "actrice",
+      "pos": "NOUN",
+      "cefr": "A1",
+      "translations": ["die Schauspielerin"],
+      "frequency": 0.88
+    },
+    {
+      "term": "le scénario",
+      "lemma": "scénario",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["das Drehbuch"],
+      "frequency": 0.78
+    },
+    {
+      "term": "tourner",
+      "lemma": "tourner",
+      "pos": "VERB",
+      "cefr": "A2",
+      "translations": ["drehen", "filmen"],
+      "frequency": 0.80
+    },
+    {
+      "term": "le tournage",
+      "lemma": "tournage",
+      "pos": "NOUN",
+      "cefr": "B1",
+      "translations": ["die Dreharbeiten"],
+      "frequency": 0.65
+    },
+    {
+      "term": "la scène",
+      "lemma": "scène",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Szene"],
+      "frequency": 0.85
+    },
+    {
+      "term": "le personnage",
+      "lemma": "personnage",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Figur", "die Rolle"],
+      "frequency": 0.82
+    },
+    {
+      "term": "l'écran",
+      "lemma": "écran",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Leinwand", "der Bildschirm"],
+      "frequency": 0.78
+    },
+    {
+      "term": "la bande-annonce",
+      "lemma": "bande-annonce",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Trailer", "der Vorschau"],
+      "frequency": 0.70
+    },
+    {
+      "term": "le sous-titre",
+      "lemma": "sous-titre",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Untertitel"],
+      "frequency": 0.72
+    },
+    {
+      "term": "la séance",
+      "lemma": "séance",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Vorstellung", "die Vorführung"],
+      "frequency": 0.68
+    },
+    {
+      "term": "le cinéma",
+      "lemma": "cinéma",
+      "pos": "NOUN",
+      "cefr": "A1",
+      "translations": ["das Kino"],
+      "frequency": 0.92
+    },
+    {
+      "term": "le genre",
+      "lemma": "genre",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["das Genre", "die Gattung"],
+      "frequency": 0.75
+    },
+    {
+      "term": "la comédie",
+      "lemma": "comédie",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Komödie"],
+      "frequency": 0.78
+    },
+    {
+      "term": "le drame",
+      "lemma": "drame",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["das Drama"],
+      "frequency": 0.76
+    },
+    {
+      "term": "le documentaire",
+      "lemma": "documentaire",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Dokumentarfilm"],
+      "frequency": 0.72
+    },
+    {
+      "term": "la critique",
+      "lemma": "critique",
+      "pos": "NOUN",
+      "cefr": "B1",
+      "translations": ["die Kritik", "die Rezension"],
+      "frequency": 0.70
+    },
+    {
+      "term": "le spectateur",
+      "lemma": "spectateur",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Zuschauer"],
+      "frequency": 0.74
+    },
+    {
+      "term": "la spectatrice",
+      "lemma": "spectatrice",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["die Zuschauerin"],
+      "frequency": 0.68
+    },
+    {
+      "term": "émouvant",
+      "lemma": "émouvant",
+      "pos": "ADJ",
+      "cefr": "A2",
+      "translations": ["bewegend", "ergreifend"],
+      "frequency": 0.65
+    },
+    {
+      "term": "captivant",
+      "lemma": "captivant",
+      "pos": "ADJ",
+      "cefr": "B1",
+      "translations": ["fesselnd", "packend"],
+      "frequency": 0.62
+    },
+    {
+      "term": "décevant",
+      "lemma": "décevant",
+      "pos": "ADJ",
+      "cefr": "A2",
+      "translations": ["enttäuschend"],
+      "frequency": 0.60
+    },
+    {
+      "term": "recommander",
+      "lemma": "recommander",
+      "pos": "VERB",
+      "cefr": "A2",
+      "translations": ["empfehlen"],
+      "frequency": 0.72
+    },
+    {
+      "term": "le prix",
+      "lemma": "prix",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["der Preis", "die Auszeichnung"],
+      "frequency": 0.80
+    },
+    {
+      "term": "le festival",
+      "lemma": "festival",
+      "pos": "NOUN",
+      "cefr": "A2",
+      "translations": ["das Festival", "die Filmfestspiele"],
+      "frequency": 0.70
+    }
+  ],
+  "phrases": [
+    {
+      "text": "Ce film a remporté la Palme d'or au Festival de Cannes.",
+      "translation": "Dieser Film hat die Goldene Palme beim Festival von Cannes gewonnen.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Le réalisateur a tourné ce film en noir et blanc.",
+      "translation": "Der Regisseur hat diesen Film in Schwarz-Weiss gedreht.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Les sous-titres aident les spectateurs à comprendre les dialogues.",
+      "translation": "Die Untertitel helfen den Zuschauern, die Dialoge zu verstehen.",
+      "cefr": "A2"
+    },
+    {
+      "text": "La bande-annonce donne envie de voir le film.",
+      "translation": "Der Trailer macht Lust, den Film zu sehen.",
+      "cefr": "A2"
+    },
+    {
+      "text": "L'actrice principale a reçu un prix pour son interprétation.",
+      "translation": "Die Hauptdarstellerin hat einen Preis für ihre Darstellung erhalten.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Ce documentaire traite du changement climatique.",
+      "translation": "Dieser Dokumentarfilm behandelt den Klimawandel.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Le scénario est inspiré d'une histoire vraie.",
+      "translation": "Das Drehbuch ist von einer wahren Geschichte inspiriert.",
+      "cefr": "A2"
+    },
+    {
+      "text": "La critique du journal était très positive.",
+      "translation": "Die Kritik der Zeitung war sehr positiv.",
+      "cefr": "B1"
+    },
+    {
+      "text": "Le tournage a duré six mois dans le sud de la France.",
+      "translation": "Die Dreharbeiten dauerten sechs Monate im Süden Frankreichs.",
+      "cefr": "B1"
+    },
+    {
+      "text": "Je recommande cette comédie, elle est vraiment drôle.",
+      "translation": "Ich empfehle diese Komödie, sie ist wirklich lustig.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Les personnages de ce drame sont très réalistes.",
+      "translation": "Die Figuren dieses Dramas sind sehr realistisch.",
+      "cefr": "A2"
+    },
+    {
+      "text": "La première séance commence à quatorze heures.",
+      "translation": "Die erste Vorstellung beginnt um vierzehn Uhr.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Ce film est à la fois émouvant et captivant.",
+      "translation": "Dieser Film ist gleichzeitig bewegend und fesselnd.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Le cinéma du quartier projette des films en version originale.",
+      "translation": "Das Kino im Viertel zeigt Filme in der Originalfassung.",
+      "cefr": "A2"
+    },
+    {
+      "text": "Le genre préféré des Français est la comédie.",
+      "translation": "Das Lieblingsgenre der Franzosen ist die Komödie.",
+      "cefr": "A2"
+    },
+    {
+      "text": "L'écran géant offre une expérience immersive.",
+      "translation": "Die Grossleinwand bietet ein immersives Erlebnis.",
+      "cefr": "B1"
+    },
+    {
+      "text": "Les Frères Lumière ont inventé le cinématographe en 1895.",
+      "translation": "Die Gebrüder Lumière haben den Kinematographen 1895 erfunden.",
+      "cefr": "A2"
+    },
+    {
+      "text": "La Nouvelle Vague a révolutionné le cinéma français dans les années 1960.",
+      "translation": "Die Nouvelle Vague hat das französische Kino in den 1960er Jahren revolutioniert.",
+      "cefr": "B1"
+    }
+  ],
+  "grammar": {
+    "topic": "Le passé composé (das Perfekt)",
+    "content": "Das passé composé ist die wichtigste Vergangenheitsform im gesprochenen Französisch. Es entspricht dem deutschen Perfekt.\n\nBildung: Hilfsverb (avoir oder être) im Präsens + Partizip Perfekt (participe passé)\n\n1. Mit avoir (die meisten Verben):\n   j'ai regardé       ich habe geschaut\n   tu as regardé      du hast geschaut\n   il/elle a regardé  er/sie hat geschaut\n   nous avons regardé wir haben geschaut\n   vous avez regardé  ihr habt geschaut\n   ils/elles ont regardé  sie haben geschaut\n\n2. Mit être (Bewegungs- und reflexive Verben):\n   je suis allé(e)        ich bin gegangen\n   tu es allé(e)          du bist gegangen\n   il est allé / elle est allée   er/sie ist gegangen\n   nous sommes allé(e)s   wir sind gegangen\n   vous êtes allé(e)(s)   ihr seid gegangen\n   ils sont allés / elles sont allées   sie sind gegangen\n\n   Wichtig: Bei être passt sich das Partizip in Geschlecht und Zahl an das Subjekt an!\n\nPartizip-Bildung:\n   -er Verben: -é    (regarder → regardé)\n   -ir Verben: -i    (finir → fini)\n   -re Verben: -u    (attendre → attendu)\n\nHäufige unregelmässige Partizipien:\n   avoir → eu       être → été       faire → fait\n   voir → vu        prendre → pris   mettre → mis\n   dire → dit       écrire → écrit   lire → lu\n\nBeispiele:\n   J'ai vu un film émouvant hier soir.\n   (Ich habe gestern Abend einen bewegenden Film gesehen.)\n\n   Elle est allée au cinéma avec ses amis.\n   (Sie ist mit ihren Freunden ins Kino gegangen.)\n\n   Le réalisateur a tourné ce film en France.\n   (Der Regisseur hat diesen Film in Frankreich gedreht.)\n\n   Nous avons recommandé cette comédie à tout le monde.\n   (Wir haben diese Komödie allen empfohlen.)\n\nAchtung — typische Fehler:\n   • Avoir/être verwechseln: \"J'ai allé\" ist FALSCH → \"Je suis allé\"\n   • Angleichung vergessen: \"Elle est allé\" ist FALSCH → \"Elle est allée\"\n   • Unregelmässiges Partizip nicht kennen: \"J'ai voyé\" ist FALSCH → \"J'ai vu\""
+  },
+  "reading": {
+    "passage": "Le cinéma français est célèbre dans le monde entier. Depuis l'invention du cinématographe par les Frères Lumière en 1895, la France a joué un rôle central dans l'histoire du septième art.\n\nDans les années 1960, un groupe de jeunes réalisateurs a créé la Nouvelle Vague. François Truffaut, Jean-Luc Godard et Agnès Varda ont révolutionné la façon de faire des films. Ils ont utilisé des caméras légères, tourné dans les rues de Paris et raconté des histoires personnelles. Leurs films étaient différents du cinéma traditionnel : plus libres, plus proches de la vie réelle.\n\nAujourd'hui, le Festival de Cannes est le plus important festival de cinéma au monde. Chaque année en mai, des réalisateurs de tous les pays présentent leurs films sur la Croisette. La Palme d'or, le prix principal, est une récompense très prestigieuse. Des films comme \"Parasite\" de Bong Joon-ho (2019) ou \"Anatomie d'une chute\" de Justine Triet (2023) ont remporté ce prix.\n\nLe cinéma français produit environ 200 films par an. Les comédies sont le genre le plus populaire auprès du public français. Mais les drames et les documentaires reçoivent souvent les meilleures critiques. Les spectateurs français apprécient aussi les films en version originale avec sous-titres, surtout dans les grandes villes.\n\nLe cinéma reste un art vivant en France. Les petits cinémas de quartier existent toujours à côté des grands multiplexes. Pour beaucoup de Français, aller au cinéma est une sortie culturelle importante, pas seulement un divertissement.",
+    "questions": [
+      "Warum wird die Nouvelle Vague als revolutionär beschrieben? Nennen Sie zwei konkrete Veränderungen, die im Text erwähnt werden.",
+      "Was bedeutet der Ausdruck \"le septième art\" im Kontext des ersten Absatzes? Warum wird dieser Begriff für das Kino verwendet?",
+      "Der Text nennt zwei Palme-d'or-Gewinner aus verschiedenen Ländern. Was zeigt dies über die Bedeutung des Festivals von Cannes?",
+      "Welcher Zusammenhang besteht laut Text zwischen der Beliebtheit eines Filmgenres beim Publikum und der Qualität der Kritiken?",
+      "Am Ende des Textes werden kleine Quartierskinos und grosse Multiplexe nebeneinander erwähnt. Was sagt dies über die Rolle des Kinos in der französischen Kultur aus?"
+    ]
+  },
+  "exercises": {
+    "vocab_matching": {
+      "items": [
+        {"number": 1, "term": "le réalisateur", "translation": "der Regisseur"},
+        {"number": 2, "term": "le scénario", "translation": "das Drehbuch"},
+        {"number": 3, "term": "la scène", "translation": "die Szene"},
+        {"number": 4, "term": "le personnage", "translation": "die Figur"},
+        {"number": 5, "term": "l'écran", "translation": "die Leinwand"},
+        {"number": 6, "term": "la bande-annonce", "translation": "der Trailer"},
+        {"number": 7, "term": "le sous-titre", "translation": "der Untertitel"},
+        {"number": 8, "term": "la séance", "translation": "die Vorstellung"},
+        {"number": 9, "term": "le tournage", "translation": "die Dreharbeiten"},
+        {"number": 10, "term": "la critique", "translation": "die Kritik"}
+      ]
+    },
+    "fill_blanks": {
+      "items": [
+        {"number": 1, "sentence": "Ce ______ a remporté la Palme d'or à Cannes.", "target": "film"},
+        {"number": 2, "sentence": "Le ______ a tourné ce film en noir et blanc.", "target": "réalisateur"},
+        {"number": 3, "sentence": "Les ______ aident à comprendre les dialogues.", "target": "sous-titres"},
+        {"number": 4, "sentence": "La ______ donne envie de voir le film.", "target": "bande-annonce"},
+        {"number": 5, "sentence": "Le ______ est inspiré d'une histoire vraie.", "target": "scénario"},
+        {"number": 6, "sentence": "Je ______ cette comédie, elle est vraiment drôle.", "target": "recommande"},
+        {"number": 7, "sentence": "La première ______ commence à quatorze heures.", "target": "séance"},
+        {"number": 8, "sentence": "Ce film est à la fois émouvant et ______.", "target": "captivant"}
+      ],
+      "word_bank": ["film", "réalisateur", "sous-titres", "bande-annonce", "scénario", "recommande", "séance", "captivant", "spectateurs", "tournage"]
+    },
+    "synonyms": {
+      "items": [
+        {"number": 1, "term": "émouvant", "pos": "ADJ", "synonym": "touchant", "antonym": "indifférent"},
+        {"number": 2, "term": "captivant", "pos": "ADJ", "synonym": "passionnant", "antonym": "ennuyeux"},
+        {"number": 3, "term": "décevant", "pos": "ADJ", "synonym": "frustrant", "antonym": "satisfaisant"},
+        {"number": 4, "term": "recommander", "pos": "VERB", "synonym": "conseiller", "antonym": "déconseiller"},
+        {"number": 5, "term": "célèbre", "pos": "ADJ", "synonym": "connu", "antonym": "inconnu"},
+        {"number": 6, "term": "tourner", "pos": "VERB", "synonym": "filmer", "antonym": ""}
+      ]
+    },
+    "translation": {
+      "items": [
+        {"number": 1, "source": "Ce film a remporté la Palme d'or au Festival de Cannes."},
+        {"number": 2, "source": "Le réalisateur a tourné ce film en noir et blanc."},
+        {"number": 3, "source": "La bande-annonce donne envie de voir le film."},
+        {"number": 4, "source": "Le scénario est inspiré d'une histoire vraie."},
+        {"number": 5, "source": "Je recommande cette comédie, elle est vraiment drôle."},
+        {"number": 6, "source": "Les personnages de ce drame sont très réalistes."}
+      ]
+    },
+    "creative_writing": {
+      "prompt": "Schreiben Sie einen kurzen Absatz (6–8 Sätze) auf Französisch über einen Kinobesuch. Verwenden Sie mindestens 5 der folgenden Wörter und benutzen Sie das passé composé.",
+      "vocab_required": ["le cinéma", "le film", "la séance", "l'écran", "le spectateur", "recommander", "émouvant"]
+    },
+    "drawing_task": {
+      "prompt": "Zeichnen Sie eine Szene in einem Kino. Beschriften Sie mindestens 6 Gegenstände oder Personen auf Französisch (z.B. l'écran, le spectateur, le siège, le pop-corn, la sortie, la caisse)."
+    }
+  }
+}

@@ -60,7 +60,7 @@ langwich --domain railway-operations --source-lang en --target-lang de --level B
 ## Features
 
 - **Domain-specific vocabulary**: Separate SQLite databases per domain+language combo
-- **35 exercise types** across 9 categories (see below)
+- **9 implemented exercise types** (26 more planned) across 9 categories (see below)
 - **5+ learning paths**: Vocabulary Focus, Reading First, Balanced, Production, Multimedia, and more
 - **CEFR levels**: A1 through C2, with level-appropriate content selection
 - **Cupertino-style PDFs**: Clean Helvetica typography, high contrast, e-paper optimised
@@ -70,110 +70,175 @@ langwich --domain railway-operations --source-lang en --target-lang de --level B
 
 ---
 
-## Exercise Types (35)
+## Exercise Types
 
-### Core Vocabulary & Grammar
+### Implemented (9 types — ready to use)
+
 | Type | Size | CEFR | Description |
 |------|------|------|-------------|
 | `vocab_matching` | Half | A1+ | Match terms to translations |
 | `fill_blanks` | Half | A1+ | Complete sentences with missing words from word bank |
 | `synonyms` | Half | A1+ | Write synonyms and antonyms for terms |
-| `opposites` | Half | A1+ | Write antonyms / match opposites |
 | `translation` | Half | A1+ | Translate sentences between languages |
-| `word_stems` | Half | A2+ | Conjugation and declination tables |
-
-### Reading & Text Analysis
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
 | `reading_comprehension` | Double | A2+ | Read a passage, answer comprehension questions |
+| `creative_writing` | Full | A2+ | Open-ended writing prompts using target vocabulary |
 | `text_summary` | Full | A2+ | Summarise a passage in 2–3 sentences |
-| `word_marking` | Half | A2+ | Mark specific word categories (attributive, localization, temporal, modal) in a text |
-| `cloze_text` | Full | B1+ | Classic cloze test — every nth word removed |
+| `youtube_task` | Full | A2+ | Video comprehension with URL/QR code and questions |
+| `drawing_task` | Half | A1+ | Visual sketch or diagram in response to a prompt |
 
-### Text Production (Genres)
+### Planned (26 types — not yet implemented, will be skipped with a warning)
+
+<details>
+<summary>Click to expand planned exercise types</summary>
+
 | Type | Size | CEFR | Description |
 |------|------|------|-------------|
-| `creative_writing` | Full | A2+ | Open-ended writing prompts using target vocabulary |
+| `opposites` | Half | A1+ | Write antonyms / match opposites |
+| `word_stems` | Half | A2+ | Conjugation and declination tables |
+| `word_marking` | Half | A2+ | Mark specific word categories in a text |
+| `cloze_text` | Full | B1+ | Classic cloze test — every nth word removed |
 | `poetry_writing` | Full | A2+ | Write a poem (acrostic, haiku, limerick, free verse) |
-| `news_headline` | Full | A2+ | Write newspaper headlines and lead paragraphs (or academic abstracts) |
+| `news_headline` | Full | A2+ | Write newspaper headlines and lead paragraphs |
 | `press_release` | Full | B1+ | Write a press release with structured template |
 | `job_application` | Full | B1+ | Write a formal cover letter responding to a job ad |
 | `blog_post` | Full | A2+ | Write an informal blog post with personal opinion |
-| `movie_review` | Full | A2+ | Write a review (movie, book, restaurant, product) with rating |
+| `movie_review` | Full | A2+ | Write a review (movie, book, restaurant, product) |
 | `text_transformation` | Full | B1+ | Rewrite a text changing register, tense, person, or voice |
-
-### Conversation & Dialogue
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
-| `conversation` | Full | A1+ | Complete or write a dialogue (gap-fill, free, or role-play modes) |
-
-### Puzzles & Games
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
+| `conversation` | Full | A1+ | Complete or write a dialogue |
 | `word_search` | Half | A1+ | Find vocabulary words hidden in a letter grid |
 | `crossword` | Full | A1+ | Crossword puzzle — clues are translations or definitions |
 | `odd_one_out` | Half | A1+ | Identify which word doesn't belong in a group |
 | `sentence_reorder` | Half | A1+ | Arrange scrambled words into correct sentence order |
-
-### Numbers, Time & Calculation
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
 | `time_and_date` | Half | A1+ | Tell time, read schedules, write dates |
 | `number_tasks` | Half | A1+ | Telephone numbers, years, prices, technology specs |
 | `calculation` | Half | A1+ | Math word problems in the target language |
 | `statistics` | Full | B1+ | Read charts, calculate percentages, interpret data |
-
-### Real-World Texts
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
 | `recipe` | Full | A2+ | Read, write, or reorder recipe steps |
 | `walkthrough` | Full | A2+ | Write step-by-step instructions / how-to guide |
-
-### Listening & Media
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
-| `youtube_task` | Full | A2+ | Video comprehension with URL/QR code and questions |
-| `listening_steps` | Full | A2+ | Segmented YouTube listening with timestamps and step-by-step questions |
-
-### Visual & Preparation
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
-| `drawing_task` | Half | A1+ | Visual sketch or diagram in response to a prompt |
+| `listening_steps` | Full | A2+ | Segmented YouTube listening with timestamps |
 | `dictation_prep` | Half | A1+ | Practice writing words before a dictation |
 | `error_correction` | Half | A2+ | Find and correct deliberate mistakes in sentences |
+
+</details>
 
 ---
 
 ## JSON Format
 
-The `--from-json` input uses this structure:
+The `--from-json` input uses this structure. **All content must be pre-generated by the caller** (you, or an LLM agent). The Python code only renders the content to PDF — it does not generate vocabulary, grammar, reading passages, or exercise items.
+
+A complete working example is available at [`examples/film_de_fr.json`](examples/film_de_fr.json). Run it with:
+
+```bash
+langwich --from-json examples/film_de_fr.json --level A2 --path balanced
+```
+
+### Full schema
 
 ```json
 {
-  "domain": "railway-operations",
-  "source_lang": "en",
-  "target_lang": "de",
+  "domain": "film",
+  "source_lang": "de",
+  "target_lang": "fr",
+
   "vocabulary": [
     {
-      "term": "platform",
-      "lemma": "platform",
+      "term": "le film",
+      "lemma": "film",
       "pos": "NOUN",
-      "cefr": "A2",
-      "translations": ["Bahnsteig", "Gleis"],
-      "frequency": 0.85
+      "cefr": "A1",
+      "translations": ["der Film"],
+      "frequency": 0.95
     }
   ],
+
   "phrases": [
     {
-      "text": "The train departs from platform 3.",
-      "translation": "Der Zug faehrt von Gleis 3 ab.",
+      "text": "Ce film a remporté la Palme d'or.",
+      "translation": "Dieser Film hat die Goldene Palme gewonnen.",
       "cefr": "A2"
     }
-  ]
+  ],
+
+  "grammar": {
+    "topic": "Le passé composé",
+    "content": "Complete grammar explanation here — rules, conjugation tables, 3-5 example sentences with translations, common exceptions. This text is rendered directly onto the grammar page. If left empty, the page will be blank."
+  },
+
+  "reading": {
+    "passage": "A coherent, multi-paragraph reading text in the target language (120-700 words depending on CEFR level). This is NOT a list of sentences — it must be a proper article, essay, or narrative with paragraph structure.",
+    "questions": [
+      "Comprehension question 1 (in the learner's native language)",
+      "Comprehension question 2",
+      "Comprehension question 3",
+      "Comprehension question 4",
+      "Comprehension question 5"
+    ]
+  },
+
+  "exercises": {
+    "vocab_matching": {
+      "items": [
+        {"number": 1, "term": "le réalisateur", "translation": "der Regisseur"},
+        {"number": 2, "term": "le scénario", "translation": "das Drehbuch"}
+      ]
+    },
+    "fill_blanks": {
+      "items": [
+        {"number": 1, "sentence": "Le ______ a tourné ce film.", "target": "réalisateur"}
+      ],
+      "word_bank": ["réalisateur", "scénario", "film"]
+    },
+    "synonyms": {
+      "items": [
+        {"number": 1, "term": "émouvant", "pos": "ADJ", "synonym": "touchant", "antonym": "indifférent"}
+      ]
+    },
+    "translation": {
+      "items": [
+        {"number": 1, "source": "Ce film a remporté la Palme d'or."}
+      ]
+    },
+    "reading_comprehension": {
+      "passage": "Optional: overrides the top-level reading.passage for this exercise",
+      "questions": ["Optional: overrides reading.questions"]
+    },
+    "creative_writing": {
+      "prompt": "Write a short paragraph about...",
+      "vocab_required": ["word1", "word2"]
+    },
+    "text_summary": {
+      "passage": "A short text (150-250 words) for the student to summarise."
+    },
+    "youtube_task": {
+      "video_url": "https://www.youtube.com/watch?v=...",
+      "questions": ["Question about the video"]
+    },
+    "drawing_task": {
+      "prompt": "Draw a scene showing..."
+    }
+  }
 }
 ```
 
-Fields: `term` (required), `lemma` (defaults to lowercase term), `pos` (NOUN/VERB/ADJ/ADV/OTHER), `cefr` (A1-C2), `translations` (list of strings), `frequency` (0.0-1.0).
+### Field reference
+
+**Top-level fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `domain` | Yes | Short slug for the topic (e.g. `"film"`, `"railway-operations"`) |
+| `source_lang` | No | Learner's native language ISO code (default: `"en"`) |
+| `target_lang` | No | Target language ISO code (default: `"de"`) |
+| `vocabulary` | Yes | Array of 20+ vocabulary items (populates the reference table) |
+| `phrases` | Yes | Array of 15+ example sentences with translations |
+| `grammar` | No | Grammar reference page content (omit to skip, or use `--no-grammar-page`) |
+| `reading` | No | Reading comprehension passage and questions |
+| `exercises` | No | Pre-generated content for each exercise type |
+
+**Vocabulary item fields:** `term` (required), `lemma` (defaults to lowercase term), `pos` (NOUN/VERB/ADJ/ADV/PREP/CONJ/PRON/DET/OTHER), `cefr` (A1-C2), `translations` (list of strings), `frequency` (0.0-1.0).
+
+**Important:** The `vocabulary` array populates the vocabulary reference table at the end of the worksheet. Include at least 20 items or the page will look empty. The `grammar.content` field is rendered directly — it must contain a complete explanation, not just a topic name. The `reading.passage` must be a coherent multi-paragraph text, not disconnected sentences.
 
 ---
 
