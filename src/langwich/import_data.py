@@ -5,12 +5,15 @@ acts as the NLP engine: it generates domain-relevant vocabulary, translations,
 CEFR levels, and example phrases directly.  This module imports that structured
 data into the per-domain SQLite database so the worksheet generator can use it.
 
+See ``examples/film_de_fr.json`` for a complete working example.
+
 Expected JSON format
 ────────────────────
 {
   "domain": "railway-operations",
   "source_lang": "en",
   "target_lang": "de",
+
   "vocabulary": [
     {
       "term": "platform",
@@ -21,14 +24,45 @@ Expected JSON format
       "frequency": 0.85
     }
   ],
+
   "phrases": [
     {
       "text": "The train departs from platform 3.",
       "translation": "Der Zug fährt von Gleis 3 ab.",
       "cefr": "A2"
     }
-  ]
+  ],
+
+  "grammar": {
+    "topic": "Present Tense",
+    "content": "Complete grammar explanation — rules, tables, examples.
+                Rendered directly onto the PDF grammar page."
+  },
+
+  "reading": {
+    "passage": "Coherent multi-paragraph reading text in the target language.",
+    "questions": ["Comprehension question 1", "...up to 5 questions"]
+  },
+
+  "exercises": {
+    "vocab_matching": { "items": [{"number": 1, "term": "...", "translation": "..."}] },
+    "fill_blanks":    { "items": [{"number": 1, "sentence": "...", "target": "..."}],
+                        "word_bank": ["word1", "word2"] },
+    "synonyms":       { "items": [{"number": 1, "term": "...", "pos": "ADJ",
+                                    "synonym": "...", "antonym": "..."}] },
+    "translation":    { "items": [{"number": 1, "source": "Sentence to translate."}] },
+    "creative_writing": { "prompt": "Writing prompt text",
+                          "vocab_required": ["word1", "word2"] },
+    "text_summary":   { "passage": "Text for the student to summarise." },
+    "youtube_task":   { "video_url": "https://...",
+                        "questions": ["Question about the video"] },
+    "drawing_task":   { "prompt": "Draw a scene showing..." }
+  }
 }
+
+The ``grammar``, ``reading``, and ``exercises`` sections are optional but
+strongly recommended.  Without them, the worksheet will use low-quality
+fallbacks or skip content entirely.
 """
 
 from __future__ import annotations
