@@ -28,6 +28,22 @@ class TextSummaryExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("passage"):
+            return ExerciseContent(
+                title="Text Summary",
+                instructions="Read the text below and write a summary in 2\u20133 sentences. Focus on the key facts and any evidence presented.",
+                items=[],
+                solution=[],
+                metadata={
+                    "level": level.value,
+                    "passage": llm["passage"],
+                    "summary_lines": self.config.get("summary_lines", 5),
+                },
+            )
+
+        # ── Fallback: assemble from database phrases ────────────────
         max_sentences = self.config.get("max_passage_sentences", 10)
         passage_phrases = random.sample(phrases, min(max_sentences, len(phrases)))
         passage = " ".join(p.text for p in passage_phrases)

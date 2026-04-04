@@ -29,6 +29,21 @@ class DrawingTaskExercise(Exercise):
         phrases: list[PhraseEntry],
         level: CEFRLevel,
     ) -> ExerciseContent:
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm and llm.get("prompt"):
+            return ExerciseContent(
+                title="Drawing Task",
+                instructions=llm["prompt"],
+                items=[],
+                solution=[],
+                metadata={
+                    "level": level.value,
+                    "box_height_cm": self.config.get("box_height_cm", 8),
+                },
+            )
+
+        # ── Fallback: generate from database vocabulary ─────────────
         terms = [v.term for v in vocabulary[:5]]
         prompts = [
             f"Draw a scene that includes: {', '.join(terms)}.",

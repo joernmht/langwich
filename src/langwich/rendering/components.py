@@ -145,12 +145,21 @@ def grammar_reference_page(
     if content:
         flowables.extend(info_box(content, min_height=200))
     elif topic:
-        flowables.extend(info_box(topic, min_height=200))
+        # topic without content — render a warning so it's obvious something is missing
+        flowables.extend(
+            info_box(
+                f"<b>{topic_display}</b><br/><br/>"
+                "Grammar content was not provided. Regenerate the worksheet JSON "
+                "with a complete grammar explanation in the \"grammar.content\" field.",
+                min_height=200,
+            )
+        )
     else:
         flowables.extend(
             info_box(
-                "Grammar notes will appear here. Add a \"grammar\" section to "
-                "your JSON with \"topic\" and \"content\" fields.",
+                "Grammar content was not provided. Add a \"grammar\" section to "
+                "your JSON with \"topic\" and \"content\" fields, or pass "
+                "--no-grammar-page to skip this section.",
             )
         )
 

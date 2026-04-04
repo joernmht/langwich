@@ -142,6 +142,11 @@ def import_json(
         db.reading_passage = reading.get("passage", "")
         db.reading_questions = reading.get("questions", [])
 
+    # Pre-generated exercise content (LLM-driven workflow)
+    exercises = data.get("exercises")
+    if exercises:
+        db.exercises = exercises
+
     logger.info(
         "Imported %d vocabulary + %d phrases into %s",
         vocab_count, phrase_count, db.db_path,

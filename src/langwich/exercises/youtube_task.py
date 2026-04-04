@@ -30,6 +30,21 @@ class YouTubeTaskExercise(Exercise):
         video_url = self.config.get("video_url", "")
         num_questions = self.config.get("num_questions", 3)
 
+        # ── Prefer LLM-generated content ────────────────────────────
+        llm = self.config.get("llm_content")
+        if llm:
+            url = llm.get("video_url", video_url)
+            questions = llm.get("questions", [])[:num_questions]
+            items = [{"number": i, "question": q} for i, q in enumerate(questions, 1)]
+            return ExerciseContent(
+                title="Video Comprehension",
+                instructions=f"Watch the video, then answer the questions.\n{url}",
+                items=items,
+                solution=[],
+                metadata={"level": level.value, "video_url": url},
+            )
+
+        # ── Fallback: generic questions ─────────────────────────────
         questions = [
             "What is the main topic of the video?",
             "List three new words you heard.",
