@@ -8,11 +8,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from langwich.graph import (
+    GrammarNode,
+    GrammarPhenomenon,
+    VocabularyItem,
+    VocabularyNode,
+    NodeType,
+)
+
 
 @dataclass
 class PictureScene:
     """A section of text suitable for image generation."""
-
     description: str  # English prompt for image generation
     elements: list[str]  # Visual elements that must appear
     paragraph_index: int = 0  # Which paragraph describes the scene
@@ -37,10 +44,8 @@ class SourceText:
     topic: str
 
     picture_scene: PictureScene | None = None
-
-    # Extracted by analysis or provided
-    vocabulary: list[dict] = field(default_factory=list)
-    # Each: {"term": str, "translation": str, "pos": str}
+    vocabulary: VocabularyNode | None = None
+    grammar: GrammarNode | None = None
 
     @property
     def paragraphs(self) -> list[str]:
@@ -50,14 +55,12 @@ class SourceText:
     def picture_paragraph(self) -> str | None:
         if self.picture_scene is None:
             return None
-        paragraphs = self.paragraphs
+        paras = self.paragraphs
         idx = self.picture_scene.paragraph_index
-        if idx < len(paragraphs):
-            return paragraphs[idx]
-        return None
+        return paras[idx] if idx < len(paras) else None
 
     def to_dict(self) -> dict:
-        d = {
+        d: dict = {
             "title": self.title,
             "content": self.content,
             "translation": self.translation,
@@ -65,7 +68,6 @@ class SourceText:
             "target_lang": self.target_lang,
             "cefr_level": self.cefr_level,
             "topic": self.topic,
-            "vocabulary": self.vocabulary,
         }
         if self.picture_scene:
             d["picture_scene"] = {
@@ -73,6 +75,10 @@ class SourceText:
                 "elements": self.picture_scene.elements,
                 "paragraph_index": self.picture_scene.paragraph_index,
             }
+        if self.vocabulary:
+            d["vocabulary"] = self.vocabulary.to_dict()
+        if self.grammar:
+            d["grammar"] = self.grammar.to_dict()
         return d
 
     @classmethod
@@ -85,6 +91,40 @@ class SourceText:
                 elements=ps["elements"],
                 paragraph_index=ps.get("paragraph_index", 0),
             )
+
+        vocab = None
+        if "vocabulary" in data:
+            vd = data["vocabulary"]
+            items = [
+                VocabularyItem(
+                    term=it["term"],
+                    translation=it["translation"],
+                    pos=it["pos"],
+                    synonym=it.get("synonym"),
+                    antonym=it.get("antonym"),
+                )
+                for it in vd.get("items", vd if isinstance(vd, list) else [])
+            ]
+            vocab = VocabularyNode(
+                id="vocab", name="Vocabulary", node_type=NodeType.RESOURCE, items=items
+            )
+
+        grammar = None
+        if "grammar" in data:
+            gd = data["grammar"]
+            phenomena = [
+                GrammarPhenomenon(
+                    name=p["name"],
+                    description=p["description"],
+                    examples=p.get("examples", []),
+                )
+                for p in gd.get("phenomena", gd if isinstance(gd, list) else [])
+            ]
+            grammar = GrammarNode(
+                id="grammar", name="Grammar", node_type=NodeType.RESOURCE,
+                phenomena=phenomena,
+            )
+
         return cls(
             title=data["title"],
             content=data["content"],
@@ -94,5 +134,6 @@ class SourceText:
             cefr_level=data["cefr_level"],
             topic=data["topic"],
             picture_scene=scene,
-            vocabulary=data.get("vocabulary", []),
+            vocabulary=vocab,
+            grammar=grammar,
         )

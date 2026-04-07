@@ -1,0 +1,75 @@
+{
+  "title": "Kaffee: Eine Reise um die Welt",
+  "content": "Jeden Morgen beginnt für Millionen von Menschen der Tag mit einer Tasse Kaffee. Aber woher kommt dieses beliebte Getränk eigentlich?\n\nDie Kaffeepflanze wächst in tropischen Ländern nahe dem Äquator. Die wichtigsten Anbaugebiete liegen in Brasilien, Kolumbien, Äthiopien und Vietnam. Die Bauern ernten die roten Kaffeekirschen von Hand und trocknen sie in der Sonne.\n\nIn einem kleinen Café in Wien sitzt eine junge Frau am Fenster. Vor ihr steht eine weiße Tasse mit einem Cappuccino. Der Milchschaum hat die Form eines Blattes. Neben der Tasse liegt ein Stück Apfelstrudel auf einem blauen Teller. Durch das Fenster sieht man eine alte Straße mit Kopfsteinpflaster und ein rotes Fahrrad, das an einer Laterne lehnt.\n\nNach der Ernte werden die Bohnen geröstet. Die Röstung bestimmt den Geschmack: helle Röstung schmeckt fruchtig und säuerlich, dunkle Röstung ist kräftig und bitter. In Deutschland trinken die Menschen am liebsten Filterkaffee, während in Italien der Espresso dominiert.\n\nKaffee ist mehr als ein Getränk – er bringt Menschen zusammen. Ob im Büro, im Café oder zu Hause: Eine Tasse Kaffee bedeutet oft eine kleine Pause vom Alltag.",
+  "translation": "Every morning, millions of people start the day with a cup of coffee. But where does this popular drink actually come from?\n\nThe coffee plant grows in tropical countries near the equator. The most important growing regions are in Brazil, Colombia, Ethiopia and Vietnam. The farmers harvest the red coffee cherries by hand and dry them in the sun.\n\nIn a small café in Vienna, a young woman sits by the window. In front of her is a white cup with a cappuccino. The milk foam has the shape of a leaf. Next to the cup lies a piece of apple strudel on a blue plate. Through the window you can see an old street with cobblestones and a red bicycle leaning against a lamppost.\n\nAfter the harvest, the beans are roasted. The roast determines the taste: light roast tastes fruity and acidic, dark roast is strong and bitter. In Germany, people prefer filter coffee, while in Italy espresso dominates.\n\nCoffee is more than a drink – it brings people together. Whether in the office, in a café or at home: a cup of coffee often means a small break from everyday life.",
+  "source_lang": "en",
+  "target_lang": "de",
+  "cefr_level": "B1",
+  "topic": "coffee",
+  "picture_scene": {
+    "description": "A cozy Viennese café interior. A young woman sits at a small round table by a large window. In front of her: a white ceramic cup of cappuccino with leaf-shaped latte art in the milk foam. Next to the cup on a blue plate sits a slice of golden apple strudel dusted with powdered sugar. Through the window: a charming old cobblestone street, and a red bicycle leaning against a black iron lamppost. Warm, soft lighting. Watercolor illustration style.",
+    "elements": ["junge Frau", "weiße Tasse", "Cappuccino", "Milchschaum", "Blatt", "Apfelstrudel", "blauer Teller", "Fenster", "Kopfsteinpflaster", "rotes Fahrrad", "Laterne"],
+    "paragraph_index": 2
+  },
+  "vocabulary": {
+    "id": "vocab_coffee",
+    "name": "Coffee Vocabulary",
+    "items": [
+      {"term": "der Kaffee", "translation": "coffee", "pos": "noun", "semantic_type": "drink"},
+      {"term": "die Tasse", "translation": "cup", "pos": "noun", "semantic_type": "other", "synonym": "der Becher"},
+      {"term": "das Getränk", "translation": "drink, beverage", "pos": "noun", "semantic_type": "drink"},
+      {"term": "die Bohne", "translation": "bean", "pos": "noun", "semantic_type": "food"},
+      {"term": "der Geschmack", "translation": "taste, flavor", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Röstung", "translation": "roast", "pos": "noun", "semantic_type": "food"},
+      {"term": "der Milchschaum", "translation": "milk foam", "pos": "noun", "semantic_type": "drink"},
+      {"term": "der Apfelstrudel", "translation": "apple strudel", "pos": "noun", "semantic_type": "food"},
+      {"term": "der Teller", "translation": "plate", "pos": "noun", "semantic_type": "other"},
+      {"term": "das Fahrrad", "translation": "bicycle", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Laterne", "translation": "lamppost", "pos": "noun", "semantic_type": "other"},
+      {"term": "das Fenster", "translation": "window", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "die Straße", "translation": "street", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Ernte", "translation": "harvest", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Pause", "translation": "break, pause", "pos": "noun", "semantic_type": "time"},
+      {"term": "der Alltag", "translation": "everyday life", "pos": "noun", "semantic_type": "time"},
+      {"term": "beginnen", "translation": "to begin, to start", "pos": "verb", "synonym": "anfangen"},
+      {"term": "wachsen", "translation": "to grow", "pos": "verb"},
+      {"term": "ernten", "translation": "to harvest", "pos": "verb"},
+      {"term": "trocknen", "translation": "to dry", "pos": "verb"},
+      {"term": "rösten", "translation": "to roast", "pos": "verb"},
+      {"term": "schmecken", "translation": "to taste", "pos": "verb"},
+      {"term": "trinken", "translation": "to drink", "pos": "verb"},
+      {"term": "bedeuten", "translation": "to mean", "pos": "verb"},
+      {"term": "beliebt", "translation": "popular", "pos": "adjective", "synonym": "populär", "antonym": "unbeliebt"},
+      {"term": "tropisch", "translation": "tropical", "pos": "adjective"},
+      {"term": "fruchtig", "translation": "fruity", "pos": "adjective", "antonym": "bitter"},
+      {"term": "bitter", "translation": "bitter", "pos": "adjective", "antonym": "süß"},
+      {"term": "kräftig", "translation": "strong (flavor)", "pos": "adjective", "synonym": "stark", "antonym": "mild"},
+      {"term": "dunkel", "translation": "dark", "pos": "adjective", "antonym": "hell"},
+      {"term": "weiß", "translation": "white", "pos": "adjective", "semantic_type": "color"},
+      {"term": "rot", "translation": "red", "pos": "adjective", "semantic_type": "color"},
+      {"term": "blau", "translation": "blue", "pos": "adjective", "semantic_type": "color"},
+      {"term": "neben", "translation": "next to, beside", "pos": "preposition", "semantic_type": "position"},
+      {"term": "durch", "translation": "through", "pos": "preposition", "semantic_type": "position"},
+      {"term": "vor", "translation": "in front of", "pos": "preposition", "semantic_type": "position"}
+    ]
+  },
+  "grammar": {
+    "phenomena": [
+      {
+        "name": "present tense",
+        "description": "Most of the text uses Präsens (present tense) for general truths and habitual actions.",
+        "examples": ["Die Kaffeepflanze wächst in tropischen Ländern.", "Kaffee bringt Menschen zusammen."]
+      },
+      {
+        "name": "passive voice",
+        "description": "Vorgangspassiv (werden + Partizip II) describes the roasting process.",
+        "examples": ["Die Bohnen werden geröstet."]
+      },
+      {
+        "name": "compound nouns",
+        "description": "German compound nouns combine two or more words into one. Very productive in this text.",
+        "examples": ["Kaffeepflanze (Kaffee + Pflanze)", "Milchschaum (Milch + Schaum)", "Apfelstrudel (Apfel + Strudel)", "Kopfsteinpflaster (Kopf + Stein + Pflaster)", "Filterkaffee (Filter + Kaffee)"]
+      }
+    ]
+  }
+}

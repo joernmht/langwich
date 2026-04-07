@@ -1,8 +1,19 @@
 """Exercise knowledge graph.
 
-Defines exercise types, subclasses, their attributes, and connections.
-This graph is the single source of truth for what exercises exist and how
-they relate to each other. Both LLMs and deterministic systems can consume it.
+Defines the node hierarchy (resources + exercises), their attributes, and
+connections.  This graph is the single source of truth for what exists and
+how things relate.  Both LLMs and deterministic systems can consume it.
+
+Node hierarchy
+--------------
+GraphNode (base)
+├── ResourceNode
+│   ├── VocabularyNode   — word + translation + optional synonym/antonym
+│   └── GrammarNode      — grammar phenomenon found in a text
+└── ExerciseNode
+    ├── FIB subclasses   — fill-in-blank variations
+    ├── Picture subclasses — picture-interaction variations
+    └── WordConn subclasses — word-connection variations
 """
 
 from __future__ import annotations
@@ -14,6 +25,11 @@ from enum import Enum
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
+
+class NodeType(str, Enum):
+    RESOURCE = "resource"
+    EXERCISE = "exercise"
+
 
 class ExerciseType(str, Enum):
     FILL_IN_BLANKS = "fib"
@@ -34,12 +50,30 @@ class LearningFocus(str, Enum):
     SPELLING = "spelling"
 
 
+class SemanticType(str, Enum):
+    """Abstract semantic category for vocabulary items (used by tasks)."""
+    COLOR = "color"
+    POSITION = "position"
+    CLOTHING = "clothing"
+    FOOD = "food"
+    DRINK = "drink"
+    FURNITURE = "furniture"
+    BODY = "body"
+    ANIMAL = "animal"
+    PROFESSION = "profession"
+    EMOTION = "emotion"
+    WEATHER = "weather"
+    TIME = "time"
+    OTHER = "other"
+
+
 class EdgeType(str, Enum):
     FEEDS_VOCABULARY_TO = "feeds_vocabulary_to"
     REFERENCES_ELEMENTS_OF = "references_elements_of"
     COMBINES_WITH = "combines_with"
     REQUIRES_OUTPUT_OF = "requires_output_of"
     DERIVES_FROM_TEXT = "derives_from_text"
+    PROVIDES_RESOURCE_TO = "provides_resource_to"
 
 
 # ---------------------------------------------------------------------------
@@ -47,31 +81,133 @@ class EdgeType(str, Enum):
 # ---------------------------------------------------------------------------
 
 @dataclass
-class ExerciseNode:
-    """One exercise subclass in the knowledge graph."""
-
+class GraphNode:
+    """Base class for all graph nodes."""
     id: str
     name: str
-    exercise_type: ExerciseType
-    description: str
-    difficulty: int  # 1-5
-    cefr_range: tuple[str, str]  # e.g. ("A1", "C2")
-    learning_focus: list[LearningFocus]
-    pre_knowledge: list[str]
-    estimated_minutes: int
-    example: dict = field(default_factory=dict)
+    node_type: NodeType = NodeType.RESOURCE
 
-    # type-specific attributes (optional, filled per type)
-    hint_type: str | None = None        # FIB: what hint is given
-    blank_target: str | None = None     # FIB: what is blanked
-    required_elements: list[str] = field(default_factory=list)  # Picture
-    connection_type: str | None = None  # WordConnections
-    combinable_with: list[str] = field(default_factory=list)
+    def to_dict(self) -> dict:
+        return {"id": self.id, "name": self.name, "node_type": self.node_type.value}
+
+
+# ── Resource nodes ────────────────────────────────────────────────────
+
+@dataclass
+class VocabularyItem:
+    """Single vocabulary entry within a VocabularyNode."""
+    term: str
+    translation: str
+    pos: str  # verb, noun, adjective, adverb, preposition, ...
+    semantic_type: SemanticType = SemanticType.OTHER
+    synonym: str | None = None
+    antonym: str | None = None
+
+    def to_dict(self) -> dict:
+        d: dict = {
+            "term": self.term,
+            "translation": self.translation,
+            "pos": self.pos,
+            "semantic_type": self.semantic_type.value,
+        }
+        if self.synonym:
+            d["synonym"] = self.synonym
+        if self.antonym:
+            d["antonym"] = self.antonym
+        return d
+
+
+@dataclass
+class VocabularyNode(GraphNode):
+    """A vocabulary list extracted from / associated with a text."""
+    items: list[VocabularyItem] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.node_type = NodeType.RESOURCE
+
+    def by_semantic_type(self, st: SemanticType) -> list[VocabularyItem]:
+        return [i for i in self.items if i.semantic_type == st]
+
+    def by_pos(self, pos: str) -> list[VocabularyItem]:
+        return [i for i in self.items if i.pos == pos]
+
+    def with_synonyms(self) -> list[VocabularyItem]:
+        return [i for i in self.items if i.synonym]
+
+    def with_antonyms(self) -> list[VocabularyItem]:
+        return [i for i in self.items if i.antonym]
+
+    def to_dict(self) -> dict:
+        d = super().to_dict()
+        d["items"] = [i.to_dict() for i in self.items]
+        return d
+
+
+@dataclass
+class GrammarPhenomenon:
+    """A single grammar phenomenon found in a text."""
+    name: str  # e.g. "present tense", "compound nouns", "subordinate clauses"
+    description: str
+    examples: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
             "name": self.name,
+            "description": self.description,
+            "examples": self.examples,
+        }
+
+
+@dataclass
+class GrammarNode(GraphNode):
+    """Grammar phenomena found in / relevant to a text."""
+    phenomena: list[GrammarPhenomenon] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.node_type = NodeType.RESOURCE
+
+    def has_phenomenon(self, name: str) -> bool:
+        return any(p.name.lower() == name.lower() for p in self.phenomena)
+
+    def to_dict(self) -> dict:
+        d = super().to_dict()
+        d["phenomena"] = [p.to_dict() for p in self.phenomena]
+        return d
+
+
+# ── Exercise nodes ────────────────────────────────────────────────────
+
+@dataclass
+class ExerciseNode(GraphNode):
+    """One exercise subclass in the knowledge graph."""
+
+    exercise_type: ExerciseType = ExerciseType.FILL_IN_BLANKS
+    description: str = ""
+    difficulty: int = 1  # 1-5
+    cefr_range: tuple[str, str] = ("A1", "C2")
+    learning_focus: list[LearningFocus] = field(default_factory=list)
+    pre_knowledge: list[str] = field(default_factory=list)
+    estimated_minutes: int = 5
+    example: dict = field(default_factory=dict)
+
+    # FIB-specific
+    hint_type: str | None = None
+    blank_target: str | None = None
+
+    # Picture-specific
+    required_elements: list[str] = field(default_factory=list)
+
+    # WordConnections-specific
+    connection_type: str | None = None
+
+    combinable_with: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.node_type = NodeType.EXERCISE
+
+    def to_dict(self) -> dict:
+        d = super().to_dict()
+        d.update({
             "exercise_type": self.exercise_type.value,
             "description": self.description,
             "difficulty": self.difficulty,
@@ -85,13 +221,17 @@ class ExerciseNode:
             "connection_type": self.connection_type,
             "combinable_with": self.combinable_with,
             "example": self.example,
-        }
+        })
+        return d
 
+
+# ---------------------------------------------------------------------------
+# Edges
+# ---------------------------------------------------------------------------
 
 @dataclass
 class Edge:
-    """Directed connection between two exercise nodes."""
-
+    """Directed connection between two graph nodes."""
     source: str  # node id
     target: str  # node id
     edge_type: EdgeType
@@ -111,24 +251,36 @@ class Edge:
 # ---------------------------------------------------------------------------
 
 class ExerciseGraph:
-    """Knowledge graph of exercise types, subclasses, and their relationships."""
+    """Knowledge graph of resources, exercise types, and their relationships."""
 
     def __init__(self) -> None:
-        self.nodes: dict[str, ExerciseNode] = {}
+        self.nodes: dict[str, GraphNode] = {}
         self.edges: list[Edge] = []
 
-    def add_node(self, node: ExerciseNode) -> None:
+    def add_node(self, node: GraphNode) -> None:
         self.nodes[node.id] = node
 
     def add_edge(self, edge: Edge) -> None:
         self.edges.append(edge)
 
+    # -- Query helpers --
+
+    def exercises(self) -> list[ExerciseNode]:
+        return [n for n in self.nodes.values() if isinstance(n, ExerciseNode)]
+
+    def resources(self) -> list[GraphNode]:
+        return [n for n in self.nodes.values()
+                if isinstance(n, (VocabularyNode, GrammarNode))]
+
     def get_by_type(self, exercise_type: ExerciseType) -> list[ExerciseNode]:
-        return [n for n in self.nodes.values() if n.exercise_type == exercise_type]
+        return [n for n in self.exercises() if n.exercise_type == exercise_type]
 
     def get_combinable(self, node_id: str) -> list[ExerciseNode]:
         node = self.nodes[node_id]
-        return [self.nodes[cid] for cid in node.combinable_with if cid in self.nodes]
+        if not isinstance(node, ExerciseNode):
+            return []
+        return [self.nodes[cid] for cid in node.combinable_with  # type: ignore[misc]
+                if cid in self.nodes and isinstance(self.nodes[cid], ExerciseNode)]
 
     def get_edges_from(self, node_id: str) -> list[Edge]:
         return [e for e in self.edges if e.source == node_id]
@@ -138,7 +290,7 @@ class ExerciseGraph:
 
     def by_difficulty(self, max_difficulty: int) -> list[ExerciseNode]:
         return sorted(
-            [n for n in self.nodes.values() if n.difficulty <= max_difficulty],
+            [n for n in self.exercises() if n.difficulty <= max_difficulty],
             key=lambda n: n.difficulty,
         )
 
@@ -263,9 +415,8 @@ def build_default_graph() -> ExerciseGraph:
             id="fib_no_hint",
             name="FIB: No Hint",
             exercise_type=ExerciseType.FILL_IN_BLANKS,
-            description="No hints at all. Pure recall from context. "
-            "Hardest FIB variant.",
-            difficulty=5,
+            description="No hints at all. Pure recall from context.",
+            difficulty=4,
             cefr_range=("B1", "C2"),
             learning_focus=[LearningFocus.VOCABULARY, LearningFocus.READING_COMPREHENSION],
             pre_knowledge=["strong vocabulary", "reading comprehension"],
@@ -381,12 +532,13 @@ def build_default_graph() -> ExerciseGraph:
             name="Picture: Scene Description",
             exercise_type=ExerciseType.PICTURE_INTERACTION,
             description="'Describe what you see in the picture.' "
-            "Open-ended writing task connected to a visual.",
-            difficulty=4,
-            cefr_range=("A2", "C2"),
+            "Open-ended writing task connected to a visual. Most complex picture task.",
+            difficulty=5,
+            cefr_range=("B1", "C2"),
             learning_focus=[LearningFocus.CREATIVITY, LearningFocus.GRAMMAR],
-            pre_knowledge=["sentence construction", "descriptive vocabulary"],
-            estimated_minutes=8,
+            pre_knowledge=["sentence construction", "descriptive vocabulary",
+                           "spatial prepositions"],
+            estimated_minutes=10,
             required_elements=["rich scene"],
             combinable_with=["fib_no_hint"],
             example={
@@ -423,12 +575,12 @@ def build_default_graph() -> ExerciseGraph:
             name="Word Connections: Translation",
             exercise_type=ExerciseType.WORD_CONNECTIONS,
             description="Connect words to their translations. "
-            "Classic vocabulary matching exercise.",
-            difficulty=2,
+            "Classic vocabulary matching exercise. Easiest exercise type.",
+            difficulty=1,
             cefr_range=("A1", "C2"),
             learning_focus=[LearningFocus.VOCABULARY],
-            pre_knowledge=["bilingual vocabulary"],
-            estimated_minutes=4,
+            pre_knowledge=["word recognition"],
+            estimated_minutes=3,
             connection_type="translation",
             combinable_with=["fib_word_bank", "fib_translation_hint"],
             example={
@@ -526,11 +678,12 @@ def build_default_graph() -> ExerciseGraph:
         ),
     ]
 
-    # Register all nodes
+    # Register all exercise nodes
     for node in fib_nodes + pic_nodes + wc_nodes:
         g.add_node(node)
 
     # ── Edges ─────────────────────────────────────────────────────────
+
     # FIB → WordConnections: blanked words become vocabulary for connections
     g.add_edge(Edge("fib_word_bank", "wc_translation", EdgeType.FEEDS_VOCABULARY_TO,
                      "blanked words become translation pairs"))
