@@ -122,8 +122,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Generated output
-data/
+# Generated output (keep PDFs, ignore databases and temp files)
+data/*.sqlite
+data/*.tmp
 
 # IDE
 .vscode/
