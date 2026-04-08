@@ -1,8 +1,8 @@
 # langwich
 
-**Automated language learning worksheet generator for e-paper devices and print.**
+**Graph-based language learning worksheet generator.**
 
-langwich generates professional PDF worksheets for language learning. It supports domain-specific vocabulary, configurable learning paths, and 35 different exercise types — all rendered in a clean Cupertino-style design optimised for e-paper and print.
+langwich uses an exercise knowledge graph to generate PDF worksheets from any source text. The text is the gold mine — vocabulary, grammar, and exercises all derive from it. Three exercise types (Fill-in-Blanks, Picture Interaction, Word Connections) with 18 subclasses cover vocabulary, grammar, word manipulation, creativity, and spatial language.
 
 ---
 
@@ -12,547 +12,205 @@ langwich generates professional PDF worksheets for language learning. It support
 pip install -e .
 ```
 
-That's it. The core needs only Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydantic-settings. No SpaCy, no API keys, no `.env` file.
+Requires Python 3.11+ and one package: reportlab.
 
-### Using with Claude Code (recommended)
-
-Run the `/langwich` slash command. Claude walks you through picking your languages, topics, and level, then generates the vocabulary and worksheets for you automatically. Nothing else to install.
-
-### Using from the command line
-
-Provide vocabulary as a JSON file and generate a worksheet:
+### Generate a worksheet
 
 ```bash
-langwich --from-json vocab.json --level B1 --path balanced
+# Default exercise selection
+langwich --from-json examples/coffee_en_de.json
 
-# Vocabulary at the start instead of the end
-langwich --from-json vocab.json --level B1 --vocab-position start
+# Pick specific exercises
+langwich --from-json examples/coffee_en_de.json \
+  --exercises fib_word_bank,pic_color_query,wc_translation,wc_compound
 
-# Skip the AI upload recommendation
-langwich --from-json vocab.json --level B1 --no-ai-recommendation
+# List all available exercise types
+langwich --list-exercises
+
+# Custom output path
+langwich --from-json examples/coffee_en_de.json -o my_worksheet.pdf
 ```
 
-The JSON format is simple — see [JSON Format](#json-format) below.
+### Using with Claude Code
+
+Run the `/langwich` slash command. Claude generates the source text and vocabulary JSON, then renders the worksheet.
 
 ---
 
-## Two Modes
+## Exercise Knowledge Graph
 
-### 1. LLM Mode (default) — zero extra dependencies
+The graph defines **what exercises exist**, their attributes, and how they connect. Both LLMs and deterministic systems can consume it.
 
-The AI assistant generates vocabulary, translations, CEFR levels, and example phrases directly, writes them as JSON, and feeds them to `langwich --from-json`. This is the fastest path from zero to worksheet.
+### Node hierarchy
 
-### 2. Mining Mode (optional) — automated corpus extraction
-
-Uses SpaCy + web sources (Wikipedia, arXiv, OpenAlex, YouTube) to mine domain-specific vocabulary automatically.
-
-```bash
-# Install mining extras
-pip install -e ".[mining]"
-python -m spacy download en_core_web_sm
-
-# Mine and generate
-langwich --domain railway-operations --source-lang en --target-lang de --level B1 --path balanced
+```
+GraphNode (base)
+├── ResourceNode
+│   ├── VocabularyNode   — words with translation, pos, semantic type, synonym, antonym
+│   └── GrammarNode      — grammar phenomena found in the text
+└── ExerciseNode         — 18 subclasses across 3 types
 ```
 
+### Exercise types by difficulty
+
+| Diff | ID | Type | Name | Learning Focus |
+|------|----|------|------|----------------|
+| 1 | `wc_translation` | WordConn | Translation Matching | vocabulary |
+| 1 | `pic_color_query` | Picture | Color Query | vocabulary |
+| 1 | `pic_element_marking` | Picture | Element Marking | vocabulary |
+| 2 | `fib_word_bank` | FIB | Word Bank | vocabulary |
+| 2 | `fib_multiple_choice` | FIB | Multiple Choice | vocabulary, grammar |
+| 2 | `wc_category` | WordConn | Category Grouping | vocabulary |
+| 2 | `pic_object_naming` | Picture | Object Naming | vocabulary |
+| 3 | `fib_first_letter` | FIB | First Letter | vocabulary, spelling |
+| 3 | `fib_translation_hint` | FIB | Translation Hint | vocabulary |
+| 3 | `fib_full_translation` | FIB | Full Translation | vocabulary, reading |
+| 3 | `wc_synonym` | WordConn | Synonyms | vocabulary |
+| 3 | `wc_antonym` | WordConn | Antonyms | vocabulary |
+| 3 | `pic_position` | Picture | Position Description | spatial language |
+| 3 | `pic_fib` | Picture | Picture Fill-in-Blanks | vocabulary, grammar |
+| 4 | `fib_base_form` | FIB | Base Form | word manipulation, grammar |
+| 4 | `fib_no_hint` | FIB | No Hint | vocabulary, recall |
+| 4 | `wc_compound` | WordConn | Compounds | morphology |
+| 5 | `pic_scene_description` | Picture | Scene Description | creativity, grammar |
+
+### Graph connections (edges)
+
+Exercises are connected by directed edges:
+
+- **feeds_vocabulary_to** — blanked words from FIB feed into Word Connections vocabulary
+- **combines_with** — exercises that work well together on a worksheet
+- **provides_resource_to** — resource nodes (vocabulary, grammar) supply exercises
+- **references_elements_of** — picture tasks reference elements that must be in the image
+
+Example: `fib_word_bank` → *feeds_vocabulary_to* → `wc_translation` (blanked words become translation pairs).
+
 ---
 
-## Features
+## The Text-First Approach
 
-- **Domain-specific vocabulary**: Separate SQLite databases per domain+language combo
-- **9 implemented exercise types** (26 more planned) across 9 categories (see below)
-- **5+ learning paths**: Vocabulary Focus, Reading First, Balanced, Production, Multimedia, and more
-- **CEFR levels**: A1 through C2, with level-appropriate content selection
-- **Cupertino-style PDFs**: Clean Helvetica typography, high contrast, e-paper optimised
-- **Vocabulary reference at the end**: Word list placed after exercises with a recommendation to use the words and grammar rules (position configurable via `--vocab-position`)
-- **AI feedback recommendation**: Every worksheet ends with a tip to upload completed work to an AI assistant for instant correction
-- **Optional mining pipeline**: SpaCy NLP + open-access sources for automated vocabulary extraction
+A source text drives everything:
 
----
+1. **FIB** — blank out words from the text, produce hints (word bank, first letter, translation, base form, or nothing)
+2. **Picture** — the text describes a scene; generate an image from it, then ask questions about colors, positions, objects
+3. **Word Connections** — extract vocabulary from the text and pair it (translations, synonyms, antonyms, categories, compounds)
+4. **Vocabulary & Grammar** — extracted as resource nodes, rendered as reference pages
 
-## Exercise Types
-
-### Implemented (9 types — ready to use)
-
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
-| `vocab_matching` | Half | A1+ | Match terms to translations |
-| `fill_blanks` | Half | A1+ | Complete sentences with missing words from word bank |
-| `synonyms` | Half | A1+ | Write synonyms and antonyms for terms |
-| `translation` | Half | A1+ | Translate sentences between languages |
-| `reading_comprehension` | Double | A2+ | Read a passage, answer comprehension questions |
-| `creative_writing` | Full | A2+ | Open-ended writing prompts using target vocabulary |
-| `text_summary` | Full | A2+ | Summarise a passage in 2–3 sentences |
-| `youtube_task` | Full | A2+ | Video comprehension with URL/QR code and questions |
-| `drawing_task` | Half | A1+ | Visual sketch or diagram in response to a prompt |
-
-### Planned (26 types — not yet implemented, will be skipped with a warning)
-
-<details>
-<summary>Click to expand planned exercise types</summary>
-
-| Type | Size | CEFR | Description |
-|------|------|------|-------------|
-| `opposites` | Half | A1+ | Write antonyms / match opposites |
-| `word_stems` | Half | A2+ | Conjugation and declination tables |
-| `word_marking` | Half | A2+ | Mark specific word categories in a text |
-| `cloze_text` | Full | B1+ | Classic cloze test — every nth word removed |
-| `poetry_writing` | Full | A2+ | Write a poem (acrostic, haiku, limerick, free verse) |
-| `news_headline` | Full | A2+ | Write newspaper headlines and lead paragraphs |
-| `press_release` | Full | B1+ | Write a press release with structured template |
-| `job_application` | Full | B1+ | Write a formal cover letter responding to a job ad |
-| `blog_post` | Full | A2+ | Write an informal blog post with personal opinion |
-| `movie_review` | Full | A2+ | Write a review (movie, book, restaurant, product) |
-| `text_transformation` | Full | B1+ | Rewrite a text changing register, tense, person, or voice |
-| `conversation` | Full | A1+ | Complete or write a dialogue |
-| `word_search` | Half | A1+ | Find vocabulary words hidden in a letter grid |
-| `crossword` | Full | A1+ | Crossword puzzle — clues are translations or definitions |
-| `odd_one_out` | Half | A1+ | Identify which word doesn't belong in a group |
-| `sentence_reorder` | Half | A1+ | Arrange scrambled words into correct sentence order |
-| `time_and_date` | Half | A1+ | Tell time, read schedules, write dates |
-| `number_tasks` | Half | A1+ | Telephone numbers, years, prices, technology specs |
-| `calculation` | Half | A1+ | Math word problems in the target language |
-| `statistics` | Full | B1+ | Read charts, calculate percentages, interpret data |
-| `recipe` | Full | A2+ | Read, write, or reorder recipe steps |
-| `walkthrough` | Full | A2+ | Write step-by-step instructions / how-to guide |
-| `listening_steps` | Full | A2+ | Segmented YouTube listening with timestamps |
-| `dictation_prep` | Half | A1+ | Practice writing words before a dictation |
-| `error_correction` | Half | A2+ | Find and correct deliberate mistakes in sentences |
-
-</details>
+The text can be written by hand, provided as input, or generated by an LLM. The exercise system is independent of text quality.
 
 ---
 
 ## JSON Format
 
-The `--from-json` input uses this structure. **All content must be pre-generated by the caller** (you, or an LLM agent). The Python code only renders the content to PDF — it does not generate vocabulary, grammar, reading passages, or exercise items.
-
-A complete working example is available at [`examples/film_de_fr.json`](examples/film_de_fr.json). Run it with:
-
-```bash
-langwich --from-json examples/film_de_fr.json --level A2 --path balanced
-```
-
-### Full schema
+The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](examples/coffee_en_de.json) for a complete working example.
 
 ```json
 {
-  "domain": "film",
-  "source_lang": "de",
-  "target_lang": "fr",
+  "title": "Kaffee: Eine Reise um die Welt",
+  "content": "Full text in the target language...",
+  "translation": "Full text in the source language...",
+  "source_lang": "en",
+  "target_lang": "de",
+  "cefr_level": "B1",
+  "topic": "coffee",
 
-  "vocabulary": [
-    {
-      "term": "le film",
-      "lemma": "film",
-      "pos": "NOUN",
-      "cefr": "A1",
-      "translations": ["der Film"],
-      "frequency": 0.95
-    }
-  ],
-
-  "phrases": [
-    {
-      "text": "Ce film a remporté la Palme d'or.",
-      "translation": "Dieser Film hat die Goldene Palme gewonnen.",
-      "cefr": "A2"
-    }
-  ],
-
-  "grammar": {
-    "topic": "Le passé composé",
-    "content": "Complete grammar explanation here — rules, conjugation tables, 3-5 example sentences with translations, common exceptions. This text is rendered directly onto the grammar page. If left empty, the page will be blank."
+  "picture_scene": {
+    "description": "Image generation prompt describing the scene...",
+    "elements": ["junge Frau", "weiße Tasse", "Cappuccino", "blauer Teller"],
+    "paragraph_index": 2
   },
 
-  "reading": {
-    "passage": "A coherent, multi-paragraph reading text in the target language (120-700 words depending on CEFR level). This is NOT a list of sentences — it must be a proper article, essay, or narrative with paragraph structure.",
-    "questions": [
-      "Comprehension question 1 (in the learner's native language)",
-      "Comprehension question 2",
-      "Comprehension question 3",
-      "Comprehension question 4",
-      "Comprehension question 5"
+  "vocabulary": {
+    "id": "vocab_coffee",
+    "name": "Coffee Vocabulary",
+    "items": [
+      {
+        "term": "der Kaffee",
+        "translation": "coffee",
+        "pos": "noun",
+        "semantic_type": "drink",
+        "synonym": null,
+        "antonym": null
+      }
     ]
   },
 
-  "exercises": {
-    "vocab_matching": {
-      "items": [
-        {"number": 1, "term": "le réalisateur", "translation": "der Regisseur"},
-        {"number": 2, "term": "le scénario", "translation": "das Drehbuch"}
-      ]
-    },
-    "fill_blanks": {
-      "items": [
-        {"number": 1, "sentence": "Le ______ a tourné ce film.", "target": "réalisateur"}
-      ],
-      "word_bank": ["réalisateur", "scénario", "film"]
-    },
-    "synonyms": {
-      "items": [
-        {"number": 1, "term": "émouvant", "pos": "ADJ", "synonym": "touchant", "antonym": "indifférent"}
-      ]
-    },
-    "translation": {
-      "items": [
-        {"number": 1, "source": "Ce film a remporté la Palme d'or."}
-      ]
-    },
-    "reading_comprehension": {
-      "passage": "Optional: overrides the top-level reading.passage for this exercise",
-      "questions": ["Optional: overrides reading.questions"]
-    },
-    "creative_writing": {
-      "prompt": "Write a short paragraph about...",
-      "vocab_required": ["word1", "word2"]
-    },
-    "text_summary": {
-      "passage": "A short text (150-250 words) for the student to summarise."
-    },
-    "youtube_task": {
-      "video_url": "https://www.youtube.com/watch?v=...",
-      "questions": ["Question about the video"]
-    },
-    "drawing_task": {
-      "prompt": "Draw a scene showing..."
-    }
+  "grammar": {
+    "phenomena": [
+      {
+        "name": "present tense",
+        "description": "Most of the text uses Präsens for general truths.",
+        "examples": ["Die Kaffeepflanze wächst in tropischen Ländern."]
+      }
+    ]
   }
 }
 ```
 
 ### Field reference
 
-**Top-level fields:**
-
 | Field | Required | Description |
 |-------|----------|-------------|
-| `domain` | Yes | Short slug for the topic (e.g. `"film"`, `"railway-operations"`) |
-| `source_lang` | No | Learner's native language ISO code (default: `"en"`) |
-| `target_lang` | No | Target language ISO code (default: `"de"`) |
-| `vocabulary` | Yes | Array of 20+ vocabulary items (populates the reference table) |
-| `phrases` | Yes | Array of 15+ example sentences with translations |
-| `grammar` | No | Grammar reference page content (omit to skip, or use `--no-grammar-page`) |
-| `reading` | No | Reading comprehension passage and questions |
-| `exercises` | No | Pre-generated content for each exercise type |
+| `title` | Yes | Title of the text |
+| `content` | Yes | Full text in target language |
+| `translation` | Yes | Full text in source language |
+| `source_lang` | Yes | Learner's native language (ISO 639-1) |
+| `target_lang` | Yes | Target language (ISO 639-1) |
+| `cefr_level` | Yes | A1–C2 |
+| `topic` | Yes | Topic slug (used in header and filename) |
+| `picture_scene` | No | Scene description for image generation |
+| `vocabulary` | No | Vocabulary list with items |
+| `grammar` | No | Grammar phenomena list |
 
-**Vocabulary item fields:** `term` (required), `lemma` (defaults to lowercase term), `pos` (NOUN/VERB/ADJ/ADV/PREP/CONJ/PRON/DET/OTHER), `cefr` (A1-C2), `translations` (list of strings), `frequency` (0.0-1.0).
-
-**Important:** The `vocabulary` array populates the vocabulary reference table at the end of the worksheet. Include at least 20 items or the page will look empty. The `grammar.content` field is rendered directly — it must contain a complete explanation, not just a topic name. The `reading.passage` must be a coherent multi-paragraph text, not disconnected sentences.
+**Vocabulary item fields:** `term` (required), `translation` (required), `pos` (noun/verb/adjective/adverb/preposition), `semantic_type` (color/position/food/drink/clothing/furniture/...), `synonym` (optional), `antonym` (optional).
 
 ---
 
 ## Architecture
 
-### Class Diagram
-
-```mermaid
-classDiagram
-    direction TB
-
-    class DomainDatabase {
-        +str domain
-        +str source_lang
-        +str target_lang
-        +Path db_path
-        +initialize() void
-        +add_vocabulary(...) VocabularyEntry
-        +add_phrase(...) PhraseEntry
-        +query_vocabulary(level, pos, limit) list~VocabularyEntry~
-        +query_phrases(level, limit) list~PhraseEntry~
-    }
-
-    class VocabularyEntry {
-        +int id
-        +str term
-        +str lemma
-        +PartOfSpeech part_of_speech
-        +CEFRLevel cefr_level
-        +float frequency
-        +str translations_json
-    }
-
-    class PhraseEntry {
-        +int id
-        +str text
-        +str translation
-        +CEFRLevel cefr_level
-    }
-
-    class MiningPipeline {
-        +DomainDatabase db
-        +list~Source~ sources
-        +Tokenizer tokenizer
-        +CEFRClassifier cefr_classifier
-        +DomainTagger domain_tagger
-        +run(query) MiningResult
-    }
-
-    class Source {
-        <<abstract>>
-        +str name
-        +search(query) list~SourceResult~
-        +extract_text(result) str
-    }
-
-    class WikipediaSource
-    class ArxivSource
-    class OpenAlexSource
-    class YouTubeSource
-
-    class CEFRClassifier {
-        +classify(lemma) tuple~CEFRLevel, Method~
-        +classify_phrase(phrase) tuple~CEFRLevel, Method~
-    }
-
-    class LearningPath {
-        +str name
-        +list~PathStep~ steps
-        +ensure_vocab_first() void
-    }
-
-    class Exercise {
-        <<abstract>>
-        +generate(vocab, phrases, level) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class VocabMatchingExercise
-    class FillBlanksExercise
-    class SynonymsExercise
-    class TranslationExercise
-    class ReadingComprehensionExercise
-    class CreativeWritingExercise
-    class TextSummaryExercise
-    class YouTubeTaskExercise
-    class DrawingTaskExercise
-    class PoetryWritingExercise
-    class NewsHeadlineExercise
-    class PressReleaseExercise
-    class JobApplicationExercise
-    class BlogPostExercise
-    class MovieReviewExercise
-    class ConversationExercise
-    class WordSearchExercise
-    class CrosswordExercise
-    class WordStemsExercise
-    class OppositesExercise
-    class TimeAndDateExercise
-    class NumberTasksExercise
-    class CalculationExercise
-    class StatisticsExercise
-    class WordMarkingExercise
-    class RecipeExercise
-    class WalkthroughExercise
-    class ListeningStepsExercise
-    class ErrorCorrectionExercise
-    class SentenceReorderExercise
-    class OddOneOutExercise
-    class ClozeTextExercise
-    class DictationPrepExercise
-    class TextTransformationExercise
-
-    class WorksheetGenerator {
-        +DomainDatabase db
-        +LearningPath path
-        +CEFRLevel level
-        +generate(output_path) Path
-    }
-
-    class PDFRenderer {
-        +render(flowables, path, title, ...) Path
-    }
-
-    Source <|-- WikipediaSource
-    Source <|-- ArxivSource
-    Source <|-- OpenAlexSource
-    Source <|-- YouTubeSource
-
-    Exercise <|-- VocabMatchingExercise
-    Exercise <|-- FillBlanksExercise
-    Exercise <|-- SynonymsExercise
-    Exercise <|-- TranslationExercise
-    Exercise <|-- ReadingComprehensionExercise
-    Exercise <|-- CreativeWritingExercise
-    Exercise <|-- TextSummaryExercise
-    Exercise <|-- YouTubeTaskExercise
-    Exercise <|-- DrawingTaskExercise
-    Exercise <|-- PoetryWritingExercise
-    Exercise <|-- NewsHeadlineExercise
-    Exercise <|-- PressReleaseExercise
-    Exercise <|-- JobApplicationExercise
-    Exercise <|-- BlogPostExercise
-    Exercise <|-- MovieReviewExercise
-    Exercise <|-- ConversationExercise
-    Exercise <|-- WordSearchExercise
-    Exercise <|-- CrosswordExercise
-    Exercise <|-- WordStemsExercise
-    Exercise <|-- OppositesExercise
-    Exercise <|-- TimeAndDateExercise
-    Exercise <|-- NumberTasksExercise
-    Exercise <|-- CalculationExercise
-    Exercise <|-- StatisticsExercise
-    Exercise <|-- WordMarkingExercise
-    Exercise <|-- RecipeExercise
-    Exercise <|-- WalkthroughExercise
-    Exercise <|-- ListeningStepsExercise
-    Exercise <|-- ErrorCorrectionExercise
-    Exercise <|-- SentenceReorderExercise
-    Exercise <|-- OddOneOutExercise
-    Exercise <|-- ClozeTextExercise
-    Exercise <|-- DictationPrepExercise
-    Exercise <|-- TextTransformationExercise
-
-    MiningPipeline --> DomainDatabase : writes to
-    MiningPipeline --> Source : queries
-    MiningPipeline --> CEFRClassifier : classifies with
-    WorksheetGenerator --> DomainDatabase : reads from
-    WorksheetGenerator --> LearningPath : follows
-    WorksheetGenerator --> Exercise : instantiates
-    WorksheetGenerator --> PDFRenderer : renders with
-    DomainDatabase --> VocabularyEntry : manages
-    DomainDatabase --> PhraseEntry : manages
-    VocabularyEntry "*" -- "*" PhraseEntry : linked
+```
+SourceText (JSON)
+     │
+     ├──→ VocabularyNode ──→ exercises (wc_translation, fib_word_bank, ...)
+     ├──→ GrammarNode    ──→ grammar reference page
+     ├──→ PictureScene   ──→ exercises (pic_color_query, pic_position, ...)
+     │
+     └──→ ExerciseGraph.generate_exercise(node, text)
+              │
+              └──→ ExerciseInstance (items + solutions)
+                       │
+                       └──→ render_worksheet() ──→ PDF
 ```
 
-### Process Diagram
-
-```mermaid
-flowchart TB
-    subgraph LLM_MODE["LLM Mode (default)"]
-        direction TB
-        L1([AI generates vocabulary + phrases])
-        L2[Write JSON file]
-        L3[(Import into SQLite DB)]
-        L1 --> L2 --> L3
-    end
-
-    subgraph MINING["Mining Mode (optional)"]
-        direction TB
-        M1([User provides domain + languages])
-        M2[Source Discovery<br/>Wikipedia, arXiv, OpenAlex, YouTube]
-        M3[Text Extraction<br/>fetch + clean markup]
-        M4[NLP Processing<br/>SpaCy tokenise, lemmatise, POS-tag]
-        M5[Vocabulary Extraction<br/>unique lemmas + frequency scores]
-        M6{Word in<br/>frequency list?}
-        M7[Assign CEFR level<br/>via frequency list]
-        M8[Call scads.ai LLM<br/>for classification]
-        M9{Valid JSON<br/>response?}
-        M10[Assign CEFR level<br/>via LLM]
-        M11[Assign UNKNOWN]
-        M12[Domain Relevance Filter<br/>keyword + TF-IDF scoring]
-        M13[(Per-domain SQLite DB)]
-
-        M1 --> M2 --> M3 --> M4 --> M5 --> M6
-        M6 -- Yes --> M7 --> M12
-        M6 -- No --> M8 --> M9
-        M9 -- Yes --> M10 --> M12
-        M9 -- No --> M11 --> M12
-        M12 --> M13
-    end
-
-    subgraph GENERATION["Worksheet Generation"]
-        direction TB
-        G1([Select path + level])
-        G2[Load vocabulary + phrases<br/>from SQLite by CEFR level]
-        G3[Iterate LearningPath steps]
-        G4[Instantiate Exercise class<br/>from registry]
-        G5[Generate ExerciseContent<br/>items, solutions, metadata]
-        G6[Render to ReportLab Flowables]
-        G7[Assemble PDF<br/>header, sections, footer]
-        G8[/Worksheet PDF/]
-
-        G1 --> G2 --> G3 --> G4 --> G5 --> G6 --> G7 --> G8
-    end
-
-    L3 -.->|vocabulary + phrases| G2
-    M13 -.->|vocabulary + phrases| G2
-
-    style LLM_MODE fill:#f0fff0,stroke:#34a853,stroke-width:2px
-    style MINING fill:#f0f7ff,stroke:#0071E3,stroke-width:2px
-    style GENERATION fill:#fff8f0,stroke:#ea8600,stroke-width:2px
-```
-
----
-
-## Tech Stack
-
-| Component | Package | Required |
-|-----------|---------|----------|
-| PDF Rendering | ReportLab 4.1 | Core |
-| Database | SQLAlchemy 2.0 (SQLite) | Core |
-| Configuration | Pydantic Settings | Core |
-| NLP | SpaCy 3.7 | Mining extra |
-| LLM Fallback | scads.ai (OpenAI-compatible) | Mining extra |
-| HTTP Client | httpx | Mining extra |
-| YouTube | youtube-transcript-api | Mining extra |
-| Parsing | BeautifulSoup4, lxml, feedparser | Mining extra |
-
----
-
-## Configuration
-
-Copy `.env.example` to `.env` if you need to change defaults. For the core LLM mode, no configuration is required.
-
----
-
-## Project Structure
+### Project structure
 
 ```
 langwich/
-├── README.md
-├── pyproject.toml
-├── requirements.txt              # Core deps only
-├── .env.example
-├── docs/
-│   ├── architecture.md
-│   ├── class_diagram.mermaid
-│   └── process_diagram.mermaid
-├── src/
-│   └── langwich/
-│       ├── __init__.py
-│       ├── config.py
-│       ├── generator.py          # CLI entry point + WorksheetGenerator
-│       ├── import_data.py        # JSON vocabulary import (LLM mode)
-│       ├── db/
-│       │   ├── models.py         # SQLAlchemy ORM models
-│       │   └── manager.py        # Per-domain DB manager
-│       ├── mining/               # Optional — pip install langwich[mining]
-│       │   ├── pipeline.py
-│       │   ├── domain_tagger.py
-│       │   ├── sources/
-│       │   │   ├── base.py
-│       │   │   ├── wikipedia.py
-│       │   │   ├── arxiv.py
-│       │   │   ├── openalex.py
-│       │   │   └── youtube.py
-│       │   └── nlp/
-│       │       ├── tokenizer.py
-│       │       ├── phrase_extractor.py
-│       │       └── cefr_classifier.py
-│       ├── paths/
-│       │   ├── template.py       # LearningPath, PathStep
-│       │   └── defaults.py       # 5 built-in path templates
-│       ├── exercises/
-│       │   ├── base.py           # Abstract Exercise class
-│       │   ├── vocab_matching.py
-│       │   ├── fill_blanks.py
-│       │   ├── synonyms.py
-│       │   ├── translation.py
-│       │   ├── reading.py
-│       │   ├── creative_writing.py
-│       │   ├── text_summary.py
-│       │   ├── youtube_task.py
-│       │   └── drawing_task.py
-│       └── rendering/
-│           ├── pdf_renderer.py   # Cupertino-style PDF engine
-│           ├── styles.py         # Typography + colours
-│           └── components.py     # Reusable PDF components
-├── scripts/
-│   └── render_diagrams.py
-└── tests/
-    └── __init__.py
+├── src/langwich/
+│   ├── __init__.py
+│   ├── graph.py          # Exercise knowledge graph (nodes, edges, default graph)
+│   ├── text.py           # SourceText model with PictureScene
+│   ├── generate.py       # Exercise generation from text
+│   ├── render.py         # PDF rendering (ReportLab)
+│   └── cli.py            # CLI entry point
+├── examples/
+│   ├── coffee_en_de.json # Complete coffee example (EN→DE, B1)
+│   └── film_de_fr.json   # Legacy film example
+├── archive/              # Previous implementation (preserved for reference)
+├── data/                 # Generated PDFs
+└── pyproject.toml
 ```
+
+---
+
+## Adding New Exercise Subclasses
+
+To add a new exercise subclass:
+
+1. **Define the node** in `graph.py` → `build_default_graph()`: add an `ExerciseNode` with id, type, difficulty, learning focus, example, and combinable_with
+2. **Add edges** connecting it to existing nodes (feeds_vocabulary_to, combines_with)
+3. **Implement generation** in `generate.py`: add a handler in the appropriate `_generate_*` function
+4. **The renderer** in `render.py` picks it up automatically via the exercise type prefix (`fib_*`, `pic_*`, `wc_*`)
 
 ---
 
