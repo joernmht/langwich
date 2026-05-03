@@ -16,6 +16,98 @@ from langwich.graph import ExerciseNode, ExerciseType, VocabularyItem
 from langwich.text import SourceText
 
 
+# ---------------------------------------------------------------------------
+# Instruction localization
+# ---------------------------------------------------------------------------
+
+_INSTRUCTION_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "de": {
+        "Fill in the blanks using the words from the word bank.": "Fülle die Lücken mit den Wörtern aus der Wortbank aus.",
+        "Fill in the blanks. The first letter is given.": "Fülle die Lücken aus. Der erste Buchstabe ist angegeben.",
+        "Choose the correct word for each blank.": "Wähle das richtige Wort für jede Lücke.",
+        "Fill in the blanks. The translation is given as a hint.": "Fülle die Lücken aus. Die Übersetzung ist als Hinweis angegeben.",
+        "Fill in the correct form of the word in parentheses.": "Setze die richtige Form des Wortes in Klammern ein.",
+        "Fill in the blanks from memory.": "Fülle die Lücken aus dem Gedächtnis aus.",
+        "Fill in the blanks using the translation as reference.": "Fülle die Lücken mithilfe der Übersetzung aus.",
+        "Look at the picture and answer the color questions.": "Sieh dir das Bild an und beantworte die Farbfragen.",
+        "Find and circle the following elements in the picture.": "Finde und kreise die folgenden Elemente im Bild ein.",
+        "Describe the position of the objects using prepositions.": "Beschreibe die Position der Gegenstände mit Präpositionen.",
+        "Describe the picture in your own words.": "Beschreibe das Bild in eigenen Worten.",
+        "Fill in the blanks using what you see in the picture.": "Fülle die Lücken anhand des Bildes aus.",
+        "Complete the picture task.": "Bearbeite die Bildaufgabe.",
+        "Find the synonym for each word.": "Finde das Synonym für jedes Wort.",
+        "Find the antonym (opposite) for each word.": "Finde das Antonym (Gegenteil) für jedes Wort.",
+        "Sort the words into the correct categories.": "Ordne die Wörter den richtigen Kategorien zu.",
+        "Connect the word parts to form compound words.": "Verbinde die Wortteile zu zusammengesetzten Wörtern.",
+        "Complete the word connections.": "Vervollständige die Wortverbindungen.",
+        "Fill in the blanks.": "Fülle die Lücken aus.",
+    },
+    "fr": {
+        "Fill in the blanks using the words from the word bank.": "Remplis les blancs avec les mots de la banque de mots.",
+        "Fill in the blanks. The first letter is given.": "Remplis les blancs. La première lettre est donnée.",
+        "Choose the correct word for each blank.": "Choisis le mot correct pour chaque blanc.",
+        "Fill in the blanks. The translation is given as a hint.": "Remplis les blancs. La traduction est donnée comme indice.",
+        "Fill in the correct form of the word in parentheses.": "Écris la forme correcte du mot entre parenthèses.",
+        "Fill in the blanks from memory.": "Remplis les blancs de mémoire.",
+        "Fill in the blanks using the translation as reference.": "Remplis les blancs en utilisant la traduction comme référence.",
+        "Look at the picture and answer the color questions.": "Regarde l'image et réponds aux questions sur les couleurs.",
+        "Find and circle the following elements in the picture.": "Trouve et entoure les éléments suivants dans l'image.",
+        "Describe the position of the objects using prepositions.": "Décris la position des objets en utilisant des prépositions.",
+        "Describe the picture in your own words.": "Décris l'image avec tes propres mots.",
+        "Fill in the blanks using what you see in the picture.": "Remplis les blancs en utilisant ce que tu vois dans l'image.",
+        "Complete the picture task.": "Complète l'exercice sur l'image.",
+        "Find the synonym for each word.": "Trouve le synonyme de chaque mot.",
+        "Find the antonym (opposite) for each word.": "Trouve l'antonyme (le contraire) de chaque mot.",
+        "Sort the words into the correct categories.": "Classe les mots dans les bonnes catégories.",
+        "Connect the word parts to form compound words.": "Relie les parties de mots pour former des mots composés.",
+        "Complete the word connections.": "Complète les associations de mots.",
+        "Fill in the blanks.": "Remplis les blancs.",
+    },
+    "es": {
+        "Fill in the blanks using the words from the word bank.": "Rellena los huecos con las palabras del banco de palabras.",
+        "Fill in the blanks. The first letter is given.": "Rellena los huecos. Se da la primera letra.",
+        "Choose the correct word for each blank.": "Elige la palabra correcta para cada hueco.",
+        "Fill in the blanks. The translation is given as a hint.": "Rellena los huecos. La traducción se da como pista.",
+        "Fill in the correct form of the word in parentheses.": "Escribe la forma correcta de la palabra entre paréntesis.",
+        "Fill in the blanks from memory.": "Rellena los huecos de memoria.",
+        "Fill in the blanks using the translation as reference.": "Rellena los huecos usando la traducción como referencia.",
+        "Look at the picture and answer the color questions.": "Mira la imagen y responde las preguntas sobre colores.",
+        "Find and circle the following elements in the picture.": "Encuentra y rodea los siguientes elementos en la imagen.",
+        "Describe the position of the objects using prepositions.": "Describe la posición de los objetos usando preposiciones.",
+        "Describe the picture in your own words.": "Describe la imagen con tus propias palabras.",
+        "Fill in the blanks using what you see in the picture.": "Rellena los huecos usando lo que ves en la imagen.",
+        "Complete the picture task.": "Completa la tarea de imagen.",
+        "Find the synonym for each word.": "Encuentra el sinónimo de cada palabra.",
+        "Find the antonym (opposite) for each word.": "Encuentra el antónimo (opuesto) de cada palabra.",
+        "Sort the words into the correct categories.": "Clasifica las palabras en las categorías correctas.",
+        "Connect the word parts to form compound words.": "Conecta las partes de palabras para formar palabras compuestas.",
+        "Complete the word connections.": "Completa las conexiones de palabras.",
+        "Fill in the blanks.": "Rellena los huecos.",
+    },
+}
+
+_LANG_NAMES: dict[str, dict[str, str]] = {
+    "en": {"de": "German", "fr": "French", "es": "Spanish", "it": "Italian", "pt": "Portuguese", "en": "English"},
+    "de": {"de": "deutsche", "fr": "französische", "es": "spanische", "it": "italienische", "pt": "portugiesische", "en": "englische"},
+    "fr": {"de": "allemand", "fr": "français", "es": "espagnol", "it": "italien", "pt": "portugais", "en": "anglais"},
+    "es": {"de": "alemán", "fr": "francés", "es": "español", "it": "italiano", "pt": "portugués", "en": "inglés"},
+}
+
+
+def _localize(en_text: str, source_lang: str) -> str:
+    if source_lang == "en":
+        return en_text
+    lang_table = _INSTRUCTION_TRANSLATIONS.get(source_lang)
+    if lang_table:
+        return lang_table.get(en_text, en_text)
+    return en_text
+
+
+def _lang_name(lang_code: str, in_language: str) -> str:
+    names = _LANG_NAMES.get(in_language, _LANG_NAMES["en"])
+    return names.get(lang_code, lang_code)
+
+
 @dataclass
 class ExerciseInstance:
     """A concrete exercise generated from a text."""
@@ -189,7 +281,7 @@ def _generate_fib(node: ExerciseNode, text: SourceText) -> ExerciseInstance:
     return ExerciseInstance(
         node_id=node.id,
         title=node.name,
-        instruction=_fib_instruction(node),
+        instruction=_fib_instruction(node, text.source_lang),
         items=items,
         solution=solutions,
         word_bank=bank_words if node.hint_type == "word_bank" else [],
@@ -214,23 +306,24 @@ def _generate_fib_base_form(node: ExerciseNode, text: SourceText) -> ExerciseIns
     return ExerciseInstance(
         node_id=node.id,
         title=node.name,
-        instruction=_fib_instruction(node),
+        instruction=_fib_instruction(node, text.source_lang),
         items=items,
         solution=solutions,
     )
 
 
-def _fib_instruction(node: ExerciseNode) -> str:
+def _fib_instruction(node: ExerciseNode, source_lang: str = "en") -> str:
     instructions = {
         "word_bank": "Fill in the blanks using the words from the word bank.",
         "first_letter": "Fill in the blanks. The first letter is given.",
         "multiple_choice": "Choose the correct word for each blank.",
-        "translation": "Fill in the blanks. The English translation is given as a hint.",
+        "translation": "Fill in the blanks. The translation is given as a hint.",
         "base_form": "Fill in the correct form of the word in parentheses.",
         "none": "Fill in the blanks from memory.",
-        "full_translation": "Fill in the blanks using the English translation as reference.",
+        "full_translation": "Fill in the blanks using the translation as reference.",
     }
-    return instructions.get(node.hint_type or "none", "Fill in the blanks.")
+    en_text = instructions.get(node.hint_type or "none", "Fill in the blanks.")
+    return _localize(en_text, source_lang)
 
 
 def _get_distractors(word: str, text: SourceText) -> list[str]:
@@ -339,23 +432,36 @@ def _generate_picture(node: ExerciseNode, text: SourceText) -> ExerciseInstance 
     return ExerciseInstance(
         node_id=node.id,
         title=node.name,
-        instruction=_picture_instruction(node),
+        instruction=_picture_instruction(node, text.source_lang, text.target_lang),
         items=items,
         solution=solutions,
         picture_prompt=scene.description,
     )
 
 
-def _picture_instruction(node: ExerciseNode) -> str:
+def _picture_instruction(node: ExerciseNode, source_lang: str = "en", target_lang: str = "") -> str:
+    if node.id == "pic_object_naming":
+        return _pic_object_naming_instruction(source_lang, target_lang)
     instructions = {
         "pic_color_query": "Look at the picture and answer the color questions.",
         "pic_element_marking": "Find and circle the following elements in the picture.",
         "pic_position": "Describe the position of the objects using prepositions.",
-        "pic_object_naming": "Write the German word for each numbered object in the picture.",
         "pic_scene_description": "Describe the picture in your own words.",
         "pic_fib": "Fill in the blanks using what you see in the picture.",
     }
-    return instructions.get(node.id, "Complete the picture task.")
+    en_text = instructions.get(node.id, "Complete the picture task.")
+    return _localize(en_text, source_lang)
+
+
+def _pic_object_naming_instruction(source_lang: str, target_lang: str) -> str:
+    target_name = _lang_name(target_lang, source_lang)
+    templates = {
+        "en": f"Write the {target_name} word for each numbered object in the picture.",
+        "de": f"Schreibe das {target_name} Wort für jeden nummerierten Gegenstand im Bild.",
+        "fr": f"Écris le mot {target_name} pour chaque objet numéroté dans l'image.",
+        "es": f"Escribe la palabra en {target_name} para cada objeto numerado en la imagen.",
+    }
+    return templates.get(source_lang, templates["en"])
 
 
 # ---------------------------------------------------------------------------
@@ -418,18 +524,32 @@ def _generate_word_connections(node: ExerciseNode, text: SourceText) -> Exercise
     return ExerciseInstance(
         node_id=node.id,
         title=node.name,
-        instruction=_wc_instruction(node),
+        instruction=_wc_instruction(node, text.source_lang, text.target_lang),
         items=items,
         solution=solutions,
     )
 
 
-def _wc_instruction(node: ExerciseNode) -> str:
+def _wc_instruction(node: ExerciseNode, source_lang: str = "en", target_lang: str = "") -> str:
+    if node.id == "wc_translation":
+        return _wc_translation_instruction(source_lang, target_lang)
     instructions = {
-        "wc_translation": "Connect each German word to its English translation.",
         "wc_synonym": "Find the synonym for each word.",
         "wc_antonym": "Find the antonym (opposite) for each word.",
         "wc_category": "Sort the words into the correct categories.",
         "wc_compound": "Connect the word parts to form compound words.",
     }
-    return instructions.get(node.id, "Complete the word connections.")
+    en_text = instructions.get(node.id, "Complete the word connections.")
+    return _localize(en_text, source_lang)
+
+
+def _wc_translation_instruction(source_lang: str, target_lang: str) -> str:
+    target_name = _lang_name(target_lang, source_lang)
+    source_name = _lang_name(source_lang, source_lang)
+    templates = {
+        "en": f"Connect each {target_name} word to its {source_name} translation.",
+        "de": f"Verbinde jedes {target_name} Wort mit seiner {source_name}n Übersetzung.",
+        "fr": f"Relie chaque mot {target_name} à sa traduction {source_name}.",
+        "es": f"Conecta cada palabra en {target_name} con su traducción en {source_name}.",
+    }
+    return templates.get(source_lang, templates["en"])
