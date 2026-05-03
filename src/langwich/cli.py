@@ -60,15 +60,6 @@ def main(argv: list[str] | None = None) -> None:
     if args.exercises:
         node_ids = [s.strip() for s in args.exercises.split(",")]
     else:
-        # Default: one per type, pick lowest difficulty
-        node_ids = []
-        for etype_nodes in [
-            graph.get_by_type(et) for et in
-            [e for e in graph.nodes.values()
-             if hasattr(e, "exercise_type")].__class__.__mro__[0]  # type: ignore
-        ]:
-            pass
-        # Simpler: just pick a representative set
         node_ids = [
             "fib_word_bank",
             "pic_color_query",
