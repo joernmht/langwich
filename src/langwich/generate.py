@@ -410,24 +410,7 @@ def _generate_word_connections(node: ExerciseNode, text: SourceText) -> Exercise
                      for k, vs in categories.items()]
 
     elif node.id == "wc_compound":
-        compounds = [
-            {"left": "Kaffee", "right": "pflanze", "compound": "Kaffeepflanze"},
-            {"left": "Kaffee", "right": "kirsche", "compound": "Kaffeekirsche"},
-            {"left": "Milch", "right": "schaum", "compound": "Milchschaum"},
-            {"left": "Apfel", "right": "strudel", "compound": "Apfelstrudel"},
-            {"left": "Kopfstein", "right": "pflaster", "compound": "Kopfsteinpflaster"},
-            {"left": "Filter", "right": "kaffee", "compound": "Filterkaffee"},
-        ]
-        # Deduplicate left parts, shuffle right parts independently
-        lefts = list(dict.fromkeys(c["left"] for c in compounds))  # unique, preserve order
-        rights = [c["right"] for c in compounds]
-        random.shuffle(rights)
-        # Present as two-column matching (numbered left, lettered right)
-        left_col = [{"number": i, "term": t} for i, t in enumerate(lefts, 1)]
-        right_col = [{"letter": chr(64 + i), "term": t} for i, t in enumerate(rights, 1)]
-        items = [{"left": left_col, "right": right_col, "format": "compound"}]
-        solutions = [{"compound": c["compound"], "parts": f"{c['left']} + {c['right']}"}
-                     for c in compounds]
+        pass
 
     if not items:
         return None
