@@ -15,6 +15,7 @@ from reportlab.lib.units import cm, mm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    PageBreak,
     PageTemplate,
     Paragraph,
     Spacer,
@@ -94,6 +95,10 @@ def _styles() -> dict[str, ParagraphStyle]:
     }
 
 
+def _humanize_topic(slug: str) -> str:
+    return slug.replace("-", " ").replace("_", " ").title()
+
+
 # ---------------------------------------------------------------------------
 # Header / footer
 # ---------------------------------------------------------------------------
@@ -104,7 +109,7 @@ def _header_footer(canvas, doc, text: SourceText):
     canvas.setFont("Helvetica-Bold", 8)
     canvas.setFillColor(TEXT_GREY)
     canvas.drawString(MARGIN, PAGE_H - 1.2 * cm,
-                      f"langwich  |  {text.topic.upper()}  |  {text.cefr_level}")
+                      f"langwich  |  {_humanize_topic(text.topic)}  |  {text.cefr_level}")
     canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - 1.2 * cm,
                            f"{text.source_lang.upper()} → {text.target_lang.upper()}")
     # Header rule
@@ -381,7 +386,7 @@ def _render_reading_page(text: SourceText, styles: dict) -> list:
     elements: list = []
     elements.append(Paragraph(text.title, styles["title"]))
     elements.append(Paragraph(
-        f"{text.topic.title()}  |  {text.cefr_level}  |  "
+        f"{_humanize_topic(text.topic)}  |  {text.cefr_level}  |  "
         f"{text.source_lang.upper()} → {text.target_lang.upper()}",
         styles["subtitle"],
     ))
@@ -479,12 +484,15 @@ def render_worksheet(
         story.append(Spacer(1, 6 * mm))
 
     # Vocabulary reference
+    story.append(PageBreak())
     story.extend(_render_vocabulary_page(text, styles))
 
     # Grammar reference
+    story.append(PageBreak())
     story.extend(_render_grammar_page(text, styles))
 
     # Solutions
+    story.append(PageBreak())
     story.extend(_render_solutions(exercises, styles))
 
     # Build PDF
