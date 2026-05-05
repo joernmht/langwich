@@ -15,6 +15,7 @@ from reportlab.lib.units import cm, mm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    KeepTogether,
     PageBreak,
     PageTemplate,
     Paragraph,
