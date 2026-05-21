@@ -28,15 +28,19 @@ class ExerciseInstance:
     picture_prompt: str = ""
 
 
-def generate_exercise(node: ExerciseNode, text: SourceText) -> ExerciseInstance | None:
+def generate_exercise(
+    node: ExerciseNode, text: SourceText, rng: random.Random | None = None
+) -> ExerciseInstance | None:
     """Generate a concrete exercise instance from a node + text."""
+    if rng is None:
+        rng = random.Random(0)
     etype = node.exercise_type
     if etype == ExerciseType.FILL_IN_BLANKS:
-        return _generate_fib(node, text)
+        return _generate_fib(node, text, rng)
     elif etype == ExerciseType.PICTURE_INTERACTION:
         return _generate_picture(node, text)
     elif etype == ExerciseType.WORD_CONNECTIONS:
-        return _generate_word_connections(node, text)
+        return _generate_word_connections(node, text, rng)
     return None
 
 
@@ -137,7 +141,7 @@ def _pick_verb_targets(text: SourceText, count: int = 6) -> list[tuple[str, str,
     return results[:count]
 
 
-def _generate_fib(node: ExerciseNode, text: SourceText) -> ExerciseInstance:
+def _generate_fib(node: ExerciseNode, text: SourceText, rng: random.Random) -> ExerciseInstance:
     # Base form variant: only blank verbs and always provide the infinitive
     if node.hint_type == "base_form":
         return _generate_fib_base_form(node, text)
@@ -157,9 +161,9 @@ def _generate_fib(node: ExerciseNode, text: SourceText) -> ExerciseInstance:
             item["hint"] = clean[0] + "______"
         elif node.hint_type == "multiple_choice":
             clean = re.sub(r"[.,;:!?]", "", word)
-            distractors = _get_distractors(clean, text)
+            distractors = _get_distractors(clean, text, rng)
             options = [clean] + distractors[:2]
-            random.shuffle(options)
+            rng.shuffle(options)
             item["choices"] = options
         elif node.hint_type == "translation":
             clean = re.sub(r"[.,;:!?]", "", word)
@@ -182,9 +186,9 @@ def _generate_fib(node: ExerciseNode, text: SourceText) -> ExerciseInstance:
     if node.hint_type == "word_bank" and text.vocabulary:
         extra = [_strip_article(v.term) for v in text.vocabulary.items
                  if _strip_article(v.term) not in bank_words]
-        random.shuffle(extra)
+        rng.shuffle(extra)
         bank_words.extend(extra[:3])
-        random.shuffle(bank_words)
+        rng.shuffle(bank_words)
 
     return ExerciseInstance(
         node_id=node.id,
@@ -233,12 +237,12 @@ def _fib_instruction(node: ExerciseNode) -> str:
     return instructions.get(node.hint_type or "none", "Fill in the blanks.")
 
 
-def _get_distractors(word: str, text: SourceText) -> list[str]:
+def _get_distractors(word: str, text: SourceText, rng: random.Random) -> list[str]:
     if not text.vocabulary:
         return []
     candidates = [_strip_article(v.term) for v in text.vocabulary.items
                   if _strip_article(v.term).lower() != word.lower()]
-    random.shuffle(candidates)
+    rng.shuffle(candidates)
     return candidates[:3]
 
 
@@ -299,7 +303,7 @@ def _generate_picture(node: ExerciseNode, text: SourceText) -> ExerciseInstance 
 
     elif node.id == "pic_element_marking":
         for i, elem in enumerate(elements[:5], 1):
-            items.append({"number": i, "instruction": f'Kreise \u201e{elem}\u201c im Bild ein!'})
+            items.append({"number": i, "instruction": f'Kreise „{elem}“ im Bild ein!'})
 
     elif node.id == "pic_position":
         position_pairs = [
@@ -362,7 +366,9 @@ def _picture_instruction(node: ExerciseNode) -> str:
 # Word Connections generators
 # ---------------------------------------------------------------------------
 
-def _generate_word_connections(node: ExerciseNode, text: SourceText) -> ExerciseInstance | None:
+def _generate_word_connections(
+    node: ExerciseNode, text: SourceText, rng: random.Random
+) -> ExerciseInstance | None:
     if not text.vocabulary or not text.vocabulary.items:
         return None
 
@@ -371,10 +377,10 @@ def _generate_word_connections(node: ExerciseNode, text: SourceText) -> Exercise
     solutions: list[dict] = []
 
     if node.id == "wc_translation":
-        selected = random.sample(vocab, min(8, len(vocab)))
+        selected = rng.sample(vocab, min(8, len(vocab)))
         left = [{"number": i, "term": v.term} for i, v in enumerate(selected, 1)]
         right_items = list(enumerate(selected, 1))
-        random.shuffle(right_items)
+        rng.shuffle(right_items)
         right = [{"letter": chr(64 + j), "term": r.translation}
                  for j, (_, r) in enumerate(right_items, 1)]
         items = [{"left": left, "right": right}]
@@ -404,7 +410,7 @@ def _generate_word_connections(node: ExerciseNode, text: SourceText) -> Exercise
         # Pick categories with 2+ items
         categories = {k: vs for k, vs in by_type.items() if len(vs) >= 2 and k != "other"}
         all_words = [_strip_article(v.term) for vs in categories.values() for v in vs]
-        random.shuffle(all_words)
+        rng.shuffle(all_words)
         items = [{"words": all_words, "categories": list(categories.keys())}]
         solutions = [{"category": k, "words": [_strip_article(v.term) for v in vs]}
                      for k, vs in categories.items()]

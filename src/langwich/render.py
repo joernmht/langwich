@@ -98,15 +98,16 @@ def _styles() -> dict[str, ParagraphStyle]:
 # Header / footer
 # ---------------------------------------------------------------------------
 
-def _header_footer(canvas, doc, text: SourceText):
+def _header_footer(canvas, doc, text: SourceText, estimated_minutes: int = 0):
     canvas.saveState()
     # Header
     canvas.setFont("Helvetica-Bold", 8)
     canvas.setFillColor(TEXT_GREY)
     canvas.drawString(MARGIN, PAGE_H - 1.2 * cm,
                       f"langwich  |  {text.topic.upper()}  |  {text.cefr_level}")
+    time_str = f"  |  ~{estimated_minutes} min" if estimated_minutes else ""
     canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - 1.2 * cm,
-                           f"{text.source_lang.upper()} → {text.target_lang.upper()}")
+                           f"{text.source_lang.upper()} → {text.target_lang.upper()}{time_str}")
     # Header rule
     canvas.setStrokeColor(BORDER)
     canvas.setLineWidth(0.5)
@@ -377,12 +378,13 @@ def _render_grammar_page(text: SourceText, styles: dict) -> list:
 # Reading text page
 # ---------------------------------------------------------------------------
 
-def _render_reading_page(text: SourceText, styles: dict) -> list:
+def _render_reading_page(text: SourceText, styles: dict, estimated_minutes: int = 0) -> list:
     elements: list = []
     elements.append(Paragraph(text.title, styles["title"]))
+    time_part = f"  |  ~{estimated_minutes} min" if estimated_minutes else ""
     elements.append(Paragraph(
         f"{text.topic.title()}  |  {text.cefr_level}  |  "
-        f"{text.source_lang.upper()} → {text.target_lang.upper()}",
+        f"{text.source_lang.upper()} → {text.target_lang.upper()}{time_part}",
         styles["subtitle"],
     ))
     elements.extend(_text_box(text.content, styles, CONTENT_W))
@@ -458,9 +460,10 @@ def render_worksheet(
 
     styles = _styles()
     story: list = []
+    total_minutes = sum(ex.estimated_minutes for ex in exercises)
 
     # Page 1: Reading text
-    story.extend(_render_reading_page(text, styles))
+    story.extend(_render_reading_page(text, styles, total_minutes))
     story.append(Spacer(1, 4 * mm))
 
     # Exercises
@@ -507,7 +510,7 @@ def render_worksheet(
         PageTemplate(
             id="main",
             frames=[frame],
-            onPage=lambda canvas, doc: _header_footer(canvas, doc, text),
+            onPage=lambda canvas, doc, _t=text, _m=total_minutes: _header_footer(canvas, doc, _t, _m),
         )
     ])
 

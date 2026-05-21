@@ -17,14 +17,20 @@ Requires Python 3.11+ and one package: reportlab.
 ### Generate a worksheet
 
 ```bash
-# Default exercise selection
+# Default: auto-selects exercises by CEFR level and combinability
 langwich --from-json examples/coffee_en_de.json
+
+# Prefer grammar-focused exercises
+langwich --from-json examples/coffee_en_de.json --focus grammar
+
+# Prefer vocabulary + morphology exercises
+langwich --from-json examples/coffee_en_de.json --focus vocabulary,morphology
 
 # Pick specific exercises
 langwich --from-json examples/coffee_en_de.json \
   --exercises fib_word_bank,pic_color_query,wc_translation,wc_compound
 
-# List all available exercise types
+# List all available exercise types (with CEFR range, estimated time, focus)
 langwich --list-exercises
 
 # Custom output path
@@ -79,11 +85,21 @@ GraphNode (base)
 Exercises are connected by directed edges:
 
 - **feeds_vocabulary_to** — blanked words from FIB feed into Word Connections vocabulary
-- **combines_with** — exercises that work well together on a worksheet
+- **combines_with** — exercises that work well together on a worksheet (used by default selection to suggest pairings)
 - **provides_resource_to** — resource nodes (vocabulary, grammar) supply exercises
 - **references_elements_of** — picture tasks reference elements that must be in the image
 
 Example: `fib_word_bank` → *feeds_vocabulary_to* → `wc_translation` (blanked words become translation pairs).
+
+### How metadata drives exercise selection
+
+When no `--exercises` flag is passed, the CLI uses `ExerciseNode` metadata to pick a suitable set:
+
+1. **`cefr_range`** — filters exercises to those matching the text's CEFR level
+2. **`learning_focus`** — when `--focus` is given, prefers exercises whose focus areas match
+3. **`difficulty`** — picks the lowest-difficulty exercise per type for the given level
+4. **`combinable_with`** — adds one complementary exercise per selected exercise
+5. **`estimated_minutes`** — displayed in the worksheet header and CLI output
 
 ---
 

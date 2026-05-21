@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from pathlib import Path
 
@@ -35,6 +36,10 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--output", "-o", type=Path, default=None,
         help="Output PDF path (default: data/<topic>.pdf)",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=0,
+        help="Random seed for reproducible worksheets (default: 0)",
     )
     parser.add_argument(
         "--list-exercises", action="store_true",
@@ -67,13 +72,15 @@ def main(argv: list[str] | None = None) -> None:
             "wc_compound",
         ]
 
+    rng = random.Random(args.seed)
+
     exercises: list[ExerciseInstance] = []
     for nid in node_ids:
         if nid not in graph.nodes:
             print(f"Warning: unknown exercise '{nid}', skipping", file=sys.stderr)
             continue
         node = graph.nodes[nid]
-        ex = generate_exercise(node, text)  # type: ignore[arg-type]
+        ex = generate_exercise(node, text, rng)  # type: ignore[arg-type]
         if ex:
             exercises.append(ex)
         else:
@@ -90,8 +97,6 @@ def main(argv: list[str] | None = None) -> None:
 
 
 def _list_exercises(graph: ExerciseGraph) -> None:
-    from langwich.graph import ExerciseNode
-
     print(f"\n{'ID':<25} {'Type':<18} {'Diff':>4}  {'Name'}")
     print("-" * 75)
     for node in sorted(graph.exercises(), key=lambda n: (n.exercise_type.value, n.difficulty)):
