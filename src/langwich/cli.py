@@ -130,6 +130,10 @@ def select_exercises(
             return False
         if node.id == "wc_compound" and not has_compounds:
             return False
+        if node.id == "comp_questions" and not text.questions:
+            return False
+        if node.id == "comp_true_false" and not text.true_false:
+            return False
         return True
 
     def score(node) -> tuple:
@@ -139,10 +143,16 @@ def select_exercises(
 
     chosen: list[str] = []
     for etype in (ExerciseType.WORD_CONNECTIONS,
+                  ExerciseType.COMPREHENSION,
                   ExerciseType.FILL_IN_BLANKS,
                   ExerciseType.PICTURE_INTERACTION):
         candidates = [n for n in graph.get_by_type(etype) if usable(n)]
         if not candidates:
+            continue
+        # Comprehension is the demanding, non-repetitive core of the sheet —
+        # include every subtype whose material exists, not just the best.
+        if etype == ExerciseType.COMPREHENSION:
+            chosen.extend(n.id for n in sorted(candidates, key=score))
             continue
         best = sorted(candidates, key=score)[0]
         chosen.append(best.id)

@@ -171,7 +171,8 @@ def _exercise_header(ex: ExerciseInstance, index: int, styles: dict) -> Table:
     chips = []
     if ex.focus:
         chips.append(ex.focus)
-    chips.append("◆" * ex.difficulty + "◇" * (5 - ex.difficulty))
+    # Difficulty as filled/empty dots using glyphs present in base-14 Helvetica.
+    chips.append("&#8226;" * ex.difficulty + "&#183;" * (5 - ex.difficulty))
     if ex.estimated_minutes:
         chips.append(f"~{ex.estimated_minutes} min")
     meta = "&nbsp;&nbsp;·&nbsp;&nbsp;".join(chips)
@@ -288,7 +289,8 @@ def _render_picture(ex: ExerciseInstance, styles: dict, show_picture: bool) -> l
 
     elif ex.node_id == "pic_element_marking":
         names = ex.items[0].get("mark", []) if ex.items else []
-        chips = "&nbsp;&nbsp;&nbsp;".join(f"☐&nbsp;{n}" for n in names)
+        chips = "&nbsp;&nbsp;&nbsp;&nbsp;".join(
+            f"<font color='#2F5BD0'>&#8226;</font>&nbsp;{n}" for n in names)
         out.append(Paragraph(chips, styles["item"]))
 
     elif ex.node_id == "pic_scene_description":
@@ -370,6 +372,24 @@ def _match_style() -> TableStyle:
     ])
 
 
+def _render_comprehension(ex: ExerciseInstance, styles: dict) -> list:
+    out: list = []
+    if ex.node_id == "comp_questions":
+        for it in ex.items:
+            out.append(Paragraph(
+                f"<b>{it['number']}.</b>&nbsp;&nbsp;{it['prompt']}", styles["item"]))
+            out.extend(_writing_lines(2))
+            out.append(Spacer(1, 1.5 * mm))
+    elif ex.node_id == "comp_true_false":
+        for it in ex.items:
+            line = (f"<b>{it['number']}.</b>&nbsp;&nbsp;{it['text']}"
+                    "&nbsp;&nbsp;&nbsp;&nbsp;"
+                    "<font color='#5B6B82'>(&nbsp;&nbsp;) true"
+                    "&nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;) false</font>")
+            out.append(Paragraph(line, styles["item"]))
+    return out
+
+
 def _render_body(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list:
     if ex.node_id.startswith("fib"):
         return _render_fib(ex, styles)
@@ -377,6 +397,8 @@ def _render_body(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list
         return _render_picture(ex, styles, show_picture)
     if ex.node_id.startswith("wc"):
         return _render_word_connections(ex, styles)
+    if ex.node_id.startswith("comp"):
+        return _render_comprehension(ex, styles)
     return []
 
 
@@ -398,7 +420,9 @@ def _render_cover(text: SourceText, styles: dict, total_minutes: int) -> list:
     out.append(_rule(ACCENT, 1.4, space_after=4 * mm))
     out.append(Paragraph("READ THIS FIRST", styles["eyebrow"]))
     out.append(_panel(text.content, styles))
-    out.append(Spacer(1, 5 * mm))
+    out.append(Spacer(1, 4 * mm))
+    out.extend(_render_facts(text, styles))
+    out.append(Spacer(1, 2 * mm))
     return out
 
 
@@ -424,6 +448,28 @@ def _render_grammar(text: SourceText, styles: dict) -> list:
         ]))
         out.append(KeepTogether([card, Spacer(1, 3 * mm)]))
     return out
+
+
+def _render_facts(text: SourceText, styles: dict) -> list:
+    if not text.facts:
+        return []
+    block: list = [Paragraph("Facts &amp; Culture", styles["grammar_name"]),
+                   Spacer(1, 1 * mm)]
+    for f in text.facts:
+        line = f"<font color='#2F5BD0'>&#8226;</font>&nbsp;&nbsp;{f.text}"
+        if f.source:
+            line += f"&nbsp;<font color='#8A97A8' size='8'>({f.source})</font>"
+        block.append(Paragraph(line, styles["body"]))
+    card = Table([[block]], colWidths=[CONTENT_W])
+    card.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), TINT),
+        ("LINEBEFORE", (0, 0), (0, -1), 2.5, ACCENT),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("TOPPADDING", (0, 0), (-1, -1), 3.5 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5 * mm),
+    ]))
+    return [KeepTogether([card, Spacer(1, 4 * mm)])]
 
 
 def _render_vocabulary(text: SourceText, styles: dict) -> list:

@@ -41,6 +41,7 @@ class ExerciseType(str, Enum):
     FILL_IN_BLANKS = "fib"
     PICTURE_INTERACTION = "picture"
     WORD_CONNECTIONS = "word_connections"
+    COMPREHENSION = "comprehension"
 
 
 class LearningFocus(str, Enum):
@@ -187,6 +188,7 @@ EXERCISE_TYPE_LABELS: dict[ExerciseType, str] = {
     ExerciseType.FILL_IN_BLANKS: "Fill in the Blanks",
     ExerciseType.PICTURE_INTERACTION: "Picture Task",
     ExerciseType.WORD_CONNECTIONS: "Word Connections",
+    ExerciseType.COMPREHENSION: "Reading & Comprehension",
 }
 
 
@@ -412,6 +414,15 @@ _LEARNER_META: dict[str, tuple[str, str]] = {
     "wc_compound": (
         "Build Compounds",
         "Join a word on the left with one on the right to build a compound word.",
+    ),
+    "comp_questions": (
+        "Comprehension Questions",
+        "Answer in full sentences, using evidence from the text.",
+    ),
+    "comp_true_false": (
+        "True or False?",
+        "Decide whether each statement about the text is true or false, "
+        "and correct the false ones.",
     ),
 }
 
@@ -793,8 +804,50 @@ def build_default_graph() -> ExerciseGraph:
         ),
     ]
 
+    # ── Reading & Comprehension ───────────────────────────────────────
+    comp_nodes = [
+        ExerciseNode(
+            id="comp_questions",
+            name="Comprehension: Open Questions",
+            exercise_type=ExerciseType.COMPREHENSION,
+            description="Open questions that require inference, cause-effect, and "
+            "critical thinking about the text — not word recognition.",
+            difficulty=4,
+            cefr_range=("A2", "C2"),
+            learning_focus=[LearningFocus.READING_COMPREHENSION],
+            pre_knowledge=["reading comprehension"],
+            estimated_minutes=10,
+            combinable_with=["comp_true_false", "wc_synonym"],
+            example={
+                "questions": [
+                    "Why does the text describe coffee as more than a drink?",
+                    "What can you infer about the role of climate in coffee growing?",
+                ],
+            },
+        ),
+        ExerciseNode(
+            id="comp_true_false",
+            name="Comprehension: True or False",
+            exercise_type=ExerciseType.COMPREHENSION,
+            description="True/false statements about the text; learner marks each "
+            "and corrects the false ones.",
+            difficulty=3,
+            cefr_range=("A1", "C2"),
+            learning_focus=[LearningFocus.READING_COMPREHENSION],
+            pre_knowledge=["reading comprehension"],
+            estimated_minutes=6,
+            combinable_with=["comp_questions"],
+            example={
+                "statements": [
+                    {"text": "Kaffee wächst nur in Europa.", "is_true": False},
+                    {"text": "Dunkle Röstung schmeckt kräftig.", "is_true": True},
+                ],
+            },
+        ),
+    ]
+
     # Register all exercise nodes, attaching learner-facing presentation copy.
-    for node in fib_nodes + pic_nodes + wc_nodes:
+    for node in fib_nodes + pic_nodes + wc_nodes + comp_nodes:
         display, instruction = _LEARNER_META.get(node.id, ("", ""))
         node.display_name = display
         node.short_instruction = instruction

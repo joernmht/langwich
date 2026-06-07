@@ -252,3 +252,49 @@ class TestTopicAgnostic:
         assert ex is not None
         names = {s["answer"] for s in ex.solution}
         assert names == {"der Traktor", "die Scheune", "das Huhn"}
+
+
+class TestComprehension:
+    def test_questions_produce_items(self, coffee_text: SourceText, graph) -> None:
+        ex = generate_exercise(_node(graph, "comp_questions"), coffee_text)
+        assert ex is not None
+        assert len(ex.items) == len(coffee_text.questions)
+        assert all("prompt" in it for it in ex.items)
+
+    def test_true_false_has_answers(self, coffee_text: SourceText, graph) -> None:
+        ex = generate_exercise(_node(graph, "comp_true_false"), coffee_text)
+        assert ex is not None
+        assert {s["answer"] for s in ex.solution} <= {"True", "False"}
+
+    def test_comprehension_none_without_material(self, coffee_data: dict, graph) -> None:
+        data = dict(coffee_data)
+        data.pop("questions", None)
+        data.pop("true_false", None)
+        text = SourceText.from_dict(data)
+        assert generate_exercise(_node(graph, "comp_questions"), text) is None
+        assert generate_exercise(_node(graph, "comp_true_false"), text) is None
+
+
+class TestRecapNotRepetition:
+    """Gap-fills must practise the reworded summary, not re-print the article."""
+
+    def test_cloze_uses_summary_not_article(self, coffee_text: SourceText, graph) -> None:
+        assert coffee_text.summary, "fixture must have a summary"
+        ex = generate_exercise(_node(graph, "fib_word_bank"), coffee_text)
+        assert ex is not None and ex.items
+        for it in ex.items:
+            lead = it["sentence"].split("______")[0].strip()
+            if len(lead) > 12:  # ignore very short leading fragments
+                assert lead in coffee_text.summary, lead
+                assert lead not in coffee_text.content, (
+                    "gap-fill is repeating the article verbatim"
+                )
+
+    def test_cloze_falls_back_to_article_without_summary(
+        self, coffee_data: dict, graph,
+    ) -> None:
+        data = dict(coffee_data)
+        data.pop("summary", None)
+        text = SourceText.from_dict(data)
+        ex = generate_exercise(_node(graph, "fib_word_bank"), text)
+        assert ex is not None and ex.items  # still works, from the article

@@ -87,5 +87,27 @@
         "examples": ["Kaffeepflanze (Kaffee + Pflanze)", "Milchschaum (Milch + Schaum)", "Apfelstrudel (Apfel + Strudel)", "Kopfsteinpflaster (Kopf + Stein + Pflaster)", "Filterkaffee (Filter + Kaffee)"]
       }
     ]
-  }
+  },
+  "summary": "Kaffee stammt ursprünglich aus tropischen Regionen und gehört heute zu den beliebtesten Getränken der Welt. Nach der Ernte trocknen und rösten die Produzenten die Bohnen, wobei die Dauer der Röstung über Geschmack und Stärke entscheidet. Ob mild oder kräftig – für viele Menschen bedeutet eine Tasse vor allem einen kurzen, geselligen Moment im Alltag.",
+  "questions": [
+    {"kind": "inference", "prompt": "Why does the text call coffee 'more than a drink'? What evidence supports this?", "answer": "Because it brings people together — in the office, in cafés and at home a cup marks a shared pause from everyday life."},
+    {"kind": "cause-effect", "prompt": "How does the degree of roasting change the coffee? Describe both extremes named in the text.", "answer": "A light roast tastes fruity and acidic, while a dark roast is strong and bitter."},
+    {"kind": "vocabulary-in-context", "prompt": "What does 'die Ernte' refer to in the third paragraph, and who carries it out?", "answer": "The harvest of the red coffee cherries, picked by hand by the farmers."},
+    {"kind": "critical", "prompt": "Brazil, Colombia, Ethiopia and Vietnam are named as growing regions. What do they have in common, and why does that limit where coffee can be grown?", "answer": "They all lie in tropical zones near the equator; the coffee plant needs that warm climate, so cultivation is restricted to such regions."},
+    {"kind": "purpose", "prompt": "Why might the author contrast filter coffee in Germany with espresso in Italy?", "answer": "To show that how coffee is prepared and enjoyed differs from country to country and culture to culture."}
+  ],
+  "true_false": [
+    {"text": "Die Kaffeepflanze wächst vor allem in kalten Regionen.", "is_true": false},
+    {"text": "Die Bauern ernten die Kaffeekirschen mit Maschinen.", "is_true": false},
+    {"text": "Eine dunkle Röstung schmeckt kräftig und bitter.", "is_true": true},
+    {"text": "In Italien trinkt man am liebsten Filterkaffee.", "is_true": false},
+    {"text": "Äthiopien gehört zu den wichtigen Anbaugebieten.", "is_true": true},
+    {"text": "Helle Röstung schmeckt fruchtig und säuerlich.", "is_true": true}
+  ],
+  "facts": [
+    {"text": "Coffee is among the most traded agricultural commodities in the world and supports the livelihoods of an estimated 125 million people.", "source": "International Coffee Organization, 2023"},
+    {"text": "Caffeine works by blocking adenosine receptors in the brain, which is why it reduces the feeling of drowsiness.", "source": "Nehlig et al., 1992"},
+    {"text": "Ethiopia is widely regarded as the birthplace of Coffea arabica, which still grows wild in its highland forests.", "source": "Royal Botanic Gardens, Kew"},
+    {"text": "Viennese coffee-house culture has been on UNESCO's list of Intangible Cultural Heritage since 2011.", "source": "UNESCO"}
+  ]
 }

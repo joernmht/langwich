@@ -22,6 +22,20 @@ The exact JSON schema and a complete worked example live in:
 Read the relevant example before writing any JSON. If your JSON is missing
 `vocabulary`, `grammar`, or `picture_scene`, those parts of the sheet are empty.
 
+## Two ways in
+
+**A. Build from a topic** (the interview below) — you write an original story on
+the user's chosen topic.
+
+**B. Deconstruct a text the user already has** — a newspaper or magazine
+article, an essay, a page they paste in. This is a first-class use case. The
+pasted text becomes `content` (translate it for `translation`); then you *mine
+it into tasks*: pull the vocabulary, name the grammar it exhibits, write a short
+reworded `summary`, and derive comprehension `questions`, `true_false`
+statements and `facts`. You still confirm the **grammar focus** with the user
+(the article fixes the topic; the user chooses which grammar to drill). Keep the
+author's meaning faithful — don't invent facts the article doesn't support.
+
 ---
 
 ## ⛔ HARD GUARDRAILS — non-negotiable
@@ -189,6 +203,29 @@ If a chosen twist is compounding, add `compounds`:
 `[{"left": "Kaffee", "right": "Pflanze", "compound": "die Kaffeepflanze",
 "translation": "coffee plant"}]`.
 
+### `summary` — STRONGLY RECOMMENDED, kills repetition
+A short **reworded** recap of the text (3–5 sentences) in the target language,
+reusing the key vocabulary but **not** the original sentences. Gap-fill
+exercises target this, so the worksheet practises the material in fresh words
+instead of re-printing the opening text — that one change is what stops a sheet
+from feeling like "read this, now fill the same lines." Always include it.
+
+### `questions` — comprehension (demanding, non-repetitive)
+4–6 open questions **in the native language**, each `{prompt, answer, kind}`.
+Mix `kind`s: inference, cause-effect, vocabulary-in-context, author's purpose,
+critical, grammar-in-context. They must require *thinking about* the text, not
+spotting a word. Provide a model `answer` for the key.
+
+### `true_false` — quick comprehension check
+4–6 statements **in the target language** about the text, each
+`{text, is_true}`, with a believable mix of true and false.
+
+### `facts` — embed real science / history / culture
+3–5 `{text, source}` items that make the sheet genuinely interesting and
+informative — a scientific mechanism, a historical first, a cultural note —
+each with a light source (*ICO 2023*, *UNESCO*, an author). These render as a
+"Facts & Culture" panel under the story.
+
 ---
 
 ## Rendering
@@ -210,13 +247,25 @@ reportlab).
 
 ---
 
-## Content quality
+## Content quality — make it worth reading
 
-- Ground the story in real, evidence-based knowledge; where a claim has a notable
-  source, a light parenthetical citation is welcome — *(Nature, 2024)*, an author
-  name. Prefer critically acclaimed, openly available references over trending or
-  ad-driven content. Avoid advertising tone and unsupported claims.
-- Keep the register and vocabulary honest to the stated CEFR level.
+The text is the heart of the sheet. Aim for the feel of a good feature article,
+not a textbook filler paragraph:
+
+- **It must develop**, not list. A real arc — a hook, a turn, a payoff — or a
+  line of argument that builds. The reader should *want* the next paragraph.
+- **Embed facts, science and culture.** Weave in genuine, evidence-based detail:
+  a mechanism, a discovery, a historical first, a cultural practice. Every topic
+  has a scientific and a cultural angle — find it without forcing it. Add light
+  citations for notable claims — *(Nature, 2024)*, *(UNESCO)*, an author name.
+- **Be demanding and interesting**, at the stated CEFR level. Favour vivid,
+  specific language and real names/places over generic filler. Prefer critically
+  acclaimed, openly available references over trending or ad-driven content;
+  avoid advertising tone and unsupported claims.
+- The exercises should form a **learning arc**: recognise vocabulary → read →
+  think about the text (comprehension, true/false) → drill language on the recap
+  → apply/produce. langwich orders them this way; your job is to give each stage
+  real material.
 
 ## Tone
 

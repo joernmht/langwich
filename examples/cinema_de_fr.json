@@ -67,5 +67,27 @@
         "examples": ["Léa et son frère sont allés au cinéma.", "Léa s'est assise sur un siège.", "Ils sont rentrés à pied."]
       }
     ]
-  }
+  },
+  "summary": "Léa et son frère ont passé la soirée au cinéma. Après avoir acheté du pop-corn, ils ont regardé une comédie recommandée par un ami. Le réalisateur avait tourné certaines scènes en noir et blanc, et le public a applaudi à la fin. Léa a tellement aimé le film qu'elle l'a conseillé à ses amis.",
+  "questions": [
+    {"kind": "inference", "prompt": "Woran erkennt man im Text, dass Léa den Film wirklich mochte? Nennen Sie zwei Belege.", "answer": "Sie hat am Ende applaudiert und den Film danach ihren Freunden empfohlen."},
+    {"kind": "cause-effect", "prompt": "Warum gingen Léa und ihr Bruder gerade in diese Vorstellung?", "answer": "Ein Freund hatte ihnen die französische Komödie empfohlen."},
+    {"kind": "vocabulary-in-context", "prompt": "Welche Farben werden im dritten Absatz genannt und zu welchen Gegenständen gehören sie?", "answer": "Die weiße Leinwand, der rote Sessel, die blaue Jacke und die grüne Lampe über der Tür."},
+    {"kind": "critical", "prompt": "Der Regisseur drehte einige Szenen in Schwarz-Weiß. Welche Wirkung könnte das auf die Zuschauer haben?", "answer": "Schwarz-Weiß kann eine besondere, künstlerische oder nostalgische Stimmung erzeugen und die Aufmerksamkeit auf Licht und Form lenken."},
+    {"kind": "grammar-in-context", "prompt": "Der Text steht im passé composé. Suchen Sie zwei Verben mit 'être' und erklären Sie die Angleichung des Partizips.", "answer": "Zum Beispiel 'sont allés' und 's'est assise' – das Partizip richtet sich in Geschlecht und Zahl nach dem Subjekt."}
+  ],
+  "true_false": [
+    {"text": "Léa et son frère sont allés au théâtre.", "is_true": false},
+    {"text": "Un ami a recommandé la comédie.", "is_true": true},
+    {"text": "Le siège de Léa était bleu.", "is_true": false},
+    {"text": "Le réalisateur a tourné certaines scènes en noir et blanc.", "is_true": true},
+    {"text": "À la fin, le public a applaudi.", "is_true": true},
+    {"text": "Léa a déconseillé le film à ses amis.", "is_true": false}
+  ],
+  "facts": [
+    {"text": "Die Brüder Lumière zeigten im Dezember 1895 in Paris die erste öffentliche Filmvorführung – oft als Geburtsstunde des Kinos bezeichnet.", "source": "Institut Lumière"},
+    {"text": "Das Phi-Phänomen erklärt, warum eine schnelle Folge von Einzelbildern als durchgehende Bewegung wahrgenommen wird.", "source": "Wertheimer, 1912"},
+    {"text": "Die Goldene Palme von Cannes wird seit 1955 vergeben und zählt zu den renommiertesten Filmpreisen der Welt.", "source": "Festival de Cannes"},
+    {"text": "Frankreich gehört zu den größten Filmproduzenten der Welt und bringt jährlich rund 300 Spielfilme heraus.", "source": "CNC, 2023"}
+  ]
 }

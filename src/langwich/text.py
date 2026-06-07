@@ -135,6 +135,73 @@ class Compound:
 
 
 # ---------------------------------------------------------------------------
+# Comprehension material (demanding tasks that engage with the text, rather
+# than re-printing it)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Question:
+    """An open comprehension question (asked in the learner's native language)."""
+
+    prompt: str
+    answer: str | None = None
+    kind: str | None = None  # inference / cause-effect / purpose / critical / ...
+
+    @classmethod
+    def from_any(cls, v: object) -> Question:
+        if isinstance(v, str):
+            return cls(prompt=v)
+        if isinstance(v, dict):
+            return cls(prompt=v["prompt"], answer=v.get("answer"), kind=v.get("kind"))
+        raise TypeError(f"cannot build Question from {v!r}")
+
+    def to_dict(self) -> dict:
+        d: dict = {"prompt": self.prompt}
+        if self.answer:
+            d["answer"] = self.answer
+        if self.kind:
+            d["kind"] = self.kind
+        return d
+
+
+@dataclass
+class Statement:
+    """A true/false statement about the text (in the target language)."""
+
+    text: str
+    is_true: bool
+
+    @classmethod
+    def from_dict(cls, d: dict) -> Statement:
+        return cls(text=d["text"], is_true=bool(d["is_true"]))
+
+    def to_dict(self) -> dict:
+        return {"text": self.text, "is_true": self.is_true}
+
+
+@dataclass
+class Fact:
+    """A real fact (science / history / culture) worth surfacing on the sheet."""
+
+    text: str
+    source: str | None = None
+
+    @classmethod
+    def from_any(cls, v: object) -> Fact:
+        if isinstance(v, str):
+            return cls(text=v)
+        if isinstance(v, dict):
+            return cls(text=v["text"], source=v.get("source"))
+        raise TypeError(f"cannot build Fact from {v!r}")
+
+    def to_dict(self) -> dict:
+        d: dict = {"text": self.text}
+        if self.source:
+            d["source"] = self.source
+        return d
+
+
+# ---------------------------------------------------------------------------
 # Source text
 # ---------------------------------------------------------------------------
 
@@ -155,10 +222,24 @@ class SourceText:
     grammar: GrammarNode | None = None
     compounds: list[Compound] = field(default_factory=list)
 
+    # A short, reworded recap of the text. Gap-fill exercises target this so the
+    # worksheet practises the material in fresh words instead of re-printing the
+    # opening text verbatim.
+    summary: str | None = None
+    questions: list[Question] = field(default_factory=list)
+    true_false: list[Statement] = field(default_factory=list)
+    facts: list[Fact] = field(default_factory=list)
+
     # -- derived views -----------------------------------------------------
     @property
     def paragraphs(self) -> list[str]:
         return [p.strip() for p in self.content.split("\n\n") if p.strip()]
+
+    @property
+    def summary_paragraphs(self) -> list[str]:
+        if not self.summary:
+            return []
+        return [p.strip() for p in self.summary.split("\n\n") if p.strip()]
 
     @property
     def translation_paragraphs(self) -> list[str]:
@@ -191,6 +272,14 @@ class SourceText:
             d["grammar"] = self.grammar.to_dict()
         if self.compounds:
             d["compounds"] = [c.to_dict() for c in self.compounds]
+        if self.summary:
+            d["summary"] = self.summary
+        if self.questions:
+            d["questions"] = [q.to_dict() for q in self.questions]
+        if self.true_false:
+            d["true_false"] = [s.to_dict() for s in self.true_false]
+        if self.facts:
+            d["facts"] = [f.to_dict() for f in self.facts]
         return d
 
     @classmethod
@@ -207,12 +296,26 @@ class SourceText:
             vocabulary=_vocab_from_dict(data.get("vocabulary")),
             grammar=_grammar_from_dict(data.get("grammar")),
             compounds=[Compound.from_dict(c) for c in data.get("compounds", [])],
+            summary=data.get("summary"),
+            questions=[Question.from_any(q) for q in _questions_of(data)],
+            true_false=[Statement.from_dict(s) for s in data.get("true_false", [])],
+            facts=[Fact.from_any(f) for f in data.get("facts", [])],
         )
 
 
 # ---------------------------------------------------------------------------
 # Parsing helpers (tolerant of partial / LLM-authored JSON)
 # ---------------------------------------------------------------------------
+
+def _questions_of(data: dict) -> list:
+    """Accept comprehension questions at the top level or nested under ``reading``."""
+    if data.get("questions"):
+        return data["questions"]
+    reading = data.get("reading")
+    if isinstance(reading, dict):
+        return reading.get("questions", [])
+    return []
+
 
 def _scene_from_dict(ps: dict | None) -> PictureScene | None:
     if not ps:

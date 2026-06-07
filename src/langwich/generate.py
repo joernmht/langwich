@@ -98,15 +98,31 @@ def _blank(sentence: str, answer: str) -> str:
     return re.sub(rf"\b{re.escape(answer)}\b", "______", sentence, count=1)
 
 
-def _sentences(text: SourceText) -> list[tuple[int, str]]:
-    """All sentences of the story, in order, tagged with their paragraph index."""
+def _split_sentences(paragraphs: list[str]) -> list[tuple[int, str]]:
     out: list[tuple[int, str]] = []
-    for pi, para in enumerate(text.paragraphs):
+    for pi, para in enumerate(paragraphs):
         for sent in re.split(r"(?<=[.!?])\s+", para):
             s = sent.strip()
             if s:
                 out.append((pi, s))
     return out
+
+
+def _sentences(text: SourceText) -> list[tuple[int, str]]:
+    """All sentences of the story, in order, tagged with their paragraph index."""
+    return _split_sentences(text.paragraphs)
+
+
+def _cloze_sentences(text: SourceText) -> list[tuple[int, str]]:
+    """Sentences gap-fills draw from.
+
+    Prefers the reworded ``summary`` when present, so the worksheet practises the
+    material in fresh wording instead of re-printing the opening text verbatim.
+    Falls back to the article itself.
+    """
+    if text.summary:
+        return _split_sentences(text.summary_paragraphs)
+    return _sentences(text)
 
 
 def _vocab_index(text: SourceText) -> dict[str, VocabularyItem]:
@@ -144,6 +160,8 @@ def generate_exercise(
         inst = _generate_picture(node, text, rng, ledger)
     elif node.exercise_type == ExerciseType.WORD_CONNECTIONS:
         inst = _generate_word_connections(node, text, rng, ledger)
+    elif node.exercise_type == ExerciseType.COMPREHENSION:
+        inst = _generate_comprehension(node, text)
     else:
         inst = None
 
@@ -181,7 +199,7 @@ def _pick_blank_targets(
         return []
 
     results: list[tuple[str, str, VocabularyItem]] = []
-    for _pi, sentence in _sentences(text):
+    for _pi, sentence in _cloze_sentences(text):
         if not ledger.sentence_free(sentence):
             continue
         words = sentence.split()
@@ -280,7 +298,7 @@ def _pick_verb_targets(
     endings = ("t", "e", "st", "en", "et", "te", "tet", "ten")
 
     results: list[tuple[str, str, str]] = []
-    for _pi, sentence in _sentences(text):
+    for _pi, sentence in _cloze_sentences(text):
         if not ledger.sentence_free(sentence):
             continue
         for word in sentence.split():
@@ -476,3 +494,35 @@ def _generate_compounds(
 
 def _pretty(semantic_type: str) -> str:
     return semantic_type.replace("_", " ").title()
+
+
+# ---------------------------------------------------------------------------
+# Comprehension
+# ---------------------------------------------------------------------------
+
+def _generate_comprehension(
+    node: ExerciseNode, text: SourceText
+) -> ExerciseInstance | None:
+    ex = _shell(node)
+
+    if node.id == "comp_questions":
+        if not text.questions:
+            return None
+        for i, q in enumerate(text.questions, 1):
+            item: dict = {"number": i, "prompt": q.prompt}
+            if q.kind:
+                item["kind"] = q.kind
+            ex.items.append(item)
+            if q.answer:
+                ex.solution.append({"number": i, "answer": q.answer})
+
+    elif node.id == "comp_true_false":
+        if not text.true_false:
+            return None
+        for i, s in enumerate(text.true_false, 1):
+            ex.items.append({"number": i, "text": s.text})
+            ex.solution.append(
+                {"number": i, "answer": "True" if s.is_true else "False"}
+            )
+
+    return ex if ex.items else None

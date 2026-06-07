@@ -2,7 +2,7 @@
 
 **Graph-based language learning worksheet generator.**
 
-langwich uses an exercise knowledge graph to generate PDF worksheets from any source text. The text is the gold mine — vocabulary, grammar, and exercises all derive from it. Three exercise types (Fill-in-Blanks, Picture Interaction, Word Connections) with 18 subclasses cover vocabulary, grammar, word manipulation, creativity, and spatial language.
+langwich uses an exercise knowledge graph to generate PDF worksheets from any source text — including a newspaper article you paste in. The text is the gold mine: vocabulary, grammar, comprehension and exercises all derive from it. Four exercise families (Fill-in-Blanks, Picture Interaction, Word Connections, Reading & Comprehension) with 20 subclasses cover vocabulary, grammar, word manipulation, comprehension, creativity, and spatial language. A reworded **summary** drives the gap-fills, so the worksheet practises the material in fresh wording instead of re-printing the text.
 
 ---
 
@@ -54,7 +54,7 @@ GraphNode (base)
 ├── ResourceNode
 │   ├── VocabularyNode   — words with translation, pos, semantic type, synonym, antonym
 │   └── GrammarNode      — grammar phenomena found in the text
-└── ExerciseNode         — 18 subclasses across 3 types
+└── ExerciseNode         — 20 subclasses across 4 families
 ```
 
 ### Exercise types by difficulty
@@ -75,6 +75,8 @@ GraphNode (base)
 | 3 | `wc_antonym` | WordConn | Antonyms | vocabulary |
 | 3 | `pic_position` | Picture | Position Description | spatial language |
 | 3 | `pic_fib` | Picture | Picture Fill-in-Blanks | vocabulary, grammar |
+| 3 | `comp_true_false` | Comprehension | True or False | reading comprehension |
+| 4 | `comp_questions` | Comprehension | Open Questions | reading comprehension |
 | 4 | `fib_base_form` | FIB | Base Form | word manipulation, grammar |
 | 4 | `fib_no_hint` | FIB | No Hint | vocabulary, recall |
 | 4 | `wc_compound` | WordConn | Compounds | morphology |
@@ -186,6 +188,10 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
 | `vocabulary` | No | Vocabulary list with items |
 | `grammar` | No | Grammar phenomena list (the "grammatical twists" the text trains) |
 | `compounds` | No | Compound words split into parts (drives the morphology exercise) |
+| `summary` | Recommended | A short **reworded** recap; gap-fills target it so they don't repeat the text |
+| `questions` | No | Comprehension questions `{prompt, answer, kind}` (native language) |
+| `true_false` | No | True/false statements `{text, is_true}` about the text (target language) |
+| `facts` | No | Real science/history/culture notes `{text, source}` → a "Facts & Culture" panel |
 
 **Vocabulary item fields:** `term` (required), `translation` (required), `pos` (noun/verb/adjective/adverb/preposition), `semantic_type` (color/position/food/drink/clothing/furniture/...), `synonym` (optional), `antonym` (optional).
 

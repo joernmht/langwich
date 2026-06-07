@@ -52,8 +52,9 @@ the command file for the full rules.
 
 ## Source layout
 
-- `src/langwich/graph.py` — node hierarchy, the 18 exercise subclasses, edges,
-  CEFR/difficulty/focus metadata, and the learner-facing titles/instructions.
+- `src/langwich/graph.py` — node hierarchy, the 20 exercise subclasses (four
+  families incl. Reading & Comprehension), edges, CEFR/difficulty/focus
+  metadata, and the learner-facing titles/instructions.
 - `src/langwich/text.py` — `SourceText`, `PictureScene` + structured
   `SceneElement` (name/color/position), `Compound`. JSON (de)serialisation.
 - `src/langwich/generate.py` — deterministic, **data-driven** generators (no
