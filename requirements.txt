@@ -1,5 +1,4 @@
-# Core dependencies (worksheet generation + PDF rendering)
+# Runtime dependency (worksheet generation + PDF rendering).
+# This is the single dependency; see pyproject.toml for the authoritative list
+# and the optional [dev] extras (pytest, ruff, mypy).
 reportlab>=4.1
-sqlalchemy>=2.0
-pydantic>=2.6
-pydantic-settings>=2.2

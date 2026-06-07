@@ -1,0 +1,71 @@
+{
+  "title": "Une soirée au cinéma",
+  "topic": "cinema",
+  "source_lang": "de",
+  "target_lang": "fr",
+  "cefr_level": "B1",
+  "content": "Hier soir, Léa et son frère sont allés au cinéma du quartier. Un ami leur a recommandé une comédie française, et ils ont choisi cette séance.\n\nAvant le film, ils ont acheté du pop-corn. Léa a gardé les deux billets dans sa poche. La bande-annonce a duré cinq minutes.\n\nDans la salle, le grand écran blanc brillait dans l'obscurité. Léa s'est assise sur un siège rouge, près de l'allée. Son frère a posé sa veste bleue sur le fauteuil voisin. Au-dessus de la porte, une lampe verte indiquait la sortie.\n\nLe film a commencé. L'histoire, émouvante et captivante, a tenu les spectateurs en haleine. Le réalisateur a tourné plusieurs scènes en noir et blanc.\n\nÀ la fin, le public a applaudi. Léa a beaucoup aimé le film et l'a recommandé à ses amis. Ensuite, ils sont rentrés à pied sous la pluie.",
+  "translation": "Gestern Abend sind Léa und ihr Bruder ins Kino im Viertel gegangen. Ein Freund hat ihnen eine französische Komödie empfohlen, und sie haben diese Vorstellung gewählt.\n\nVor dem Film haben sie Popcorn gekauft. Léa hat die beiden Karten in ihrer Tasche aufbewahrt. Der Trailer hat fünf Minuten gedauert.\n\nIm Saal leuchtete die große weiße Leinwand in der Dunkelheit. Léa hat sich auf einen roten Sessel in der Nähe des Gangs gesetzt. Ihr Bruder hat seine blaue Jacke auf den Nachbarsessel gelegt. Über der Tür zeigte eine grüne Lampe den Ausgang an.\n\nDer Film hat begonnen. Die bewegende und fesselnde Geschichte hat die Zuschauer in Atem gehalten. Der Regisseur hat mehrere Szenen in Schwarz-Weiß gedreht.\n\nAm Ende hat das Publikum applaudiert. Léa hat den Film sehr gemocht und ihn ihren Freunden empfohlen. Danach sind sie bei Regen zu Fuß nach Hause gegangen.",
+  "picture_scene": {
+    "description": "Interior of a small neighbourhood cinema, seen from the back rows during the trailers. A large white screen glows at the front in the dark hall. Rows of red velvet seats. A young woman sits on a red seat near the aisle; a blue jacket is draped over the seat beside her. Above a side door, a green EXIT lamp casts a soft glow. Warm cinematic lighting, illustration style.",
+    "caption": "La salle de cinéma — la scène du troisième paragraphe.",
+    "paragraph_index": 2,
+    "elements": [
+      {"name": "l'écran", "color": "blanc", "position": "L'écran est au fond de la salle."},
+      {"name": "le siège", "color": "rouge", "position": "Léa est assise sur un siège rouge, près de l'allée."},
+      {"name": "la veste", "color": "bleu", "position": "La veste est posée sur le siège voisin."},
+      {"name": "la lampe", "color": "vert", "position": "La lampe verte est au-dessus de la porte."},
+      {"name": "la porte"},
+      {"name": "l'allée"}
+    ]
+  },
+  "vocabulary": {
+    "name": "Cinema Vocabulary",
+    "items": [
+      {"term": "le cinéma", "translation": "das Kino", "pos": "noun", "semantic_type": "other"},
+      {"term": "le film", "translation": "der Film", "pos": "noun", "semantic_type": "other"},
+      {"term": "la séance", "translation": "die Vorstellung", "pos": "noun", "semantic_type": "other", "synonym": "la projection"},
+      {"term": "la salle", "translation": "der Saal", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "l'écran", "translation": "die Leinwand", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "le siège", "translation": "der Sitz, der Sessel", "pos": "noun", "semantic_type": "furniture", "synonym": "le fauteuil"},
+      {"term": "la porte", "translation": "die Tür", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "la sortie", "translation": "der Ausgang", "pos": "noun", "semantic_type": "other", "antonym": "l'entrée"},
+      {"term": "le spectateur", "translation": "der Zuschauer", "pos": "noun", "semantic_type": "profession"},
+      {"term": "le réalisateur", "translation": "der Regisseur", "pos": "noun", "semantic_type": "profession"},
+      {"term": "la comédie", "translation": "die Komödie", "pos": "noun", "semantic_type": "other", "antonym": "le drame"},
+      {"term": "la bande-annonce", "translation": "der Trailer", "pos": "noun", "semantic_type": "other"},
+      {"term": "le billet", "translation": "die Karte, das Ticket", "pos": "noun", "semantic_type": "other"},
+      {"term": "la veste", "translation": "die Jacke", "pos": "noun", "semantic_type": "clothing"},
+      {"term": "la lampe", "translation": "die Lampe", "pos": "noun", "semantic_type": "other"},
+      {"term": "aller", "translation": "gehen", "pos": "verb", "synonym": "se rendre", "antonym": "rester"},
+      {"term": "choisir", "translation": "wählen", "pos": "verb", "synonym": "sélectionner"},
+      {"term": "acheter", "translation": "kaufen", "pos": "verb", "antonym": "vendre"},
+      {"term": "commencer", "translation": "beginnen", "pos": "verb", "synonym": "débuter", "antonym": "finir"},
+      {"term": "tourner", "translation": "drehen", "pos": "verb", "synonym": "filmer"},
+      {"term": "recommander", "translation": "empfehlen", "pos": "verb", "synonym": "conseiller", "antonym": "déconseiller"},
+      {"term": "applaudir", "translation": "applaudieren", "pos": "verb"},
+      {"term": "émouvant", "translation": "bewegend", "pos": "adjective", "synonym": "touchant", "antonym": "indifférent"},
+      {"term": "captivant", "translation": "fesselnd", "pos": "adjective", "synonym": "passionnant", "antonym": "ennuyeux"},
+      {"term": "blanc", "translation": "weiß", "pos": "adjective", "semantic_type": "color", "antonym": "noir"},
+      {"term": "rouge", "translation": "rot", "pos": "adjective", "semantic_type": "color"},
+      {"term": "bleu", "translation": "blau", "pos": "adjective", "semantic_type": "color"},
+      {"term": "vert", "translation": "grün", "pos": "adjective", "semantic_type": "color"},
+      {"term": "sur", "translation": "auf", "pos": "preposition", "semantic_type": "position", "antonym": "sous"},
+      {"term": "sous", "translation": "unter", "pos": "preposition", "semantic_type": "position"}
+    ]
+  },
+  "grammar": {
+    "phenomena": [
+      {
+        "name": "passé composé",
+        "description": "The whole story is told in the passé composé: présent of avoir or être plus the past participle. It matches the German Perfekt.",
+        "examples": ["Ils ont choisi cette séance.", "Le film a commencé.", "Le public a applaudi."]
+      },
+      {
+        "name": "agreement with être",
+        "description": "Verbs of movement form the passé composé with être, and the participle agrees with the subject in gender and number.",
+        "examples": ["Léa et son frère sont allés au cinéma.", "Léa s'est assise sur un siège.", "Ils sont rentrés à pied."]
+      }
+    ]
+  }
+}

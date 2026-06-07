@@ -132,12 +132,16 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
 
   "picture_scene": {
     "description": "Image generation prompt describing the scene...",
-    "elements": ["junge Frau", "weiße Tasse", "Cappuccino", "blauer Teller"],
-    "paragraph_index": 2
+    "caption": "A Viennese café — the scene from paragraph 3.",
+    "paragraph_index": 2,
+    "elements": [
+      {"name": "die Tasse", "color": "weiß", "position": "Die Tasse steht vor der Frau."},
+      {"name": "das Fahrrad", "color": "rot"},
+      {"name": "das Fenster"}
+    ]
   },
 
   "vocabulary": {
-    "id": "vocab_coffee",
     "name": "Coffee Vocabulary",
     "items": [
       {
@@ -159,7 +163,11 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
         "examples": ["Die Kaffeepflanze wächst in tropischen Ländern."]
       }
     ]
-  }
+  },
+
+  "compounds": [
+    {"left": "Milch", "right": "Schaum", "compound": "der Milchschaum", "translation": "milk foam"}
+  ]
 }
 ```
 
@@ -174,11 +182,16 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
 | `target_lang` | Yes | Target language (ISO 639-1) |
 | `cefr_level` | Yes | A1–C2 |
 | `topic` | Yes | Topic slug (used in header and filename) |
-| `picture_scene` | No | Scene description for image generation |
+| `picture_scene` | No | Scene description + structured elements for picture tasks |
 | `vocabulary` | No | Vocabulary list with items |
-| `grammar` | No | Grammar phenomena list |
+| `grammar` | No | Grammar phenomena list (the "grammatical twists" the text trains) |
+| `compounds` | No | Compound words split into parts (drives the morphology exercise) |
 
 **Vocabulary item fields:** `term` (required), `translation` (required), `pos` (noun/verb/adjective/adverb/preposition), `semantic_type` (color/position/food/drink/clothing/furniture/...), `synonym` (optional), `antonym` (optional).
+
+**Scene element fields:** `name` (required, target-language noun phrase), `color` (optional, target language — used by colour and picture-gap tasks), `position` (optional, a full target-language sentence — used by the position task), `key` (optional bool, default true — whether the object is named/marked). Picture exercises only emit what the scene declares, so the system is fully topic-agnostic — nothing is hard-coded.
+
+**Compound fields:** `left`, `right`, `compound` (required), `translation` (optional).
 
 ---
 
@@ -191,9 +204,9 @@ SourceText (JSON)
      ├──→ GrammarNode    ──→ grammar reference page
      ├──→ PictureScene   ──→ exercises (pic_color_query, pic_position, ...)
      │
-     └──→ ExerciseGraph.generate_exercise(node, text)
-              │
-              └──→ ExerciseInstance (items + solutions)
+     └──→ plan.build_worksheet(text, node_ids)   # one shared MaterialLedger
+              │                                   # → no sentence/word reused
+              └──→ [ExerciseInstance]  (items + solutions, in story order)
                        │
                        └──→ render_worksheet() ──→ PDF
 ```
@@ -204,14 +217,15 @@ SourceText (JSON)
 langwich/
 ├── src/langwich/
 │   ├── __init__.py
-│   ├── graph.py          # Exercise knowledge graph (nodes, edges, default graph)
-│   ├── text.py           # SourceText model with PictureScene
-│   ├── generate.py       # Exercise generation from text
-│   ├── render.py         # PDF rendering (ReportLab)
-│   └── cli.py            # CLI entry point
+│   ├── graph.py          # Exercise knowledge graph (nodes, edges, metadata)
+│   ├── text.py           # SourceText, PictureScene + SceneElement, Compound
+│   ├── generate.py       # Data-driven generators + MaterialLedger (no overlap)
+│   ├── plan.py           # Ordering + no-overlap worksheet orchestration
+│   ├── render.py         # PDF design system (ReportLab)
+│   └── cli.py            # CLI + CEFR/focus-aware auto-selection
 ├── examples/
-│   ├── coffee_en_de.json # Complete coffee example (EN→DE, B1)
-│   └── film_de_fr.json   # Legacy film example
+│   ├── coffee_en_de.json # Complete example (EN→DE, B1, present tense + compounds)
+│   └── cinema_de_fr.json # Complete example (DE→FR, B1, passé composé)
 ├── archive/              # Previous implementation (preserved for reference)
 ├── data/                 # Generated PDFs
 └── pyproject.toml

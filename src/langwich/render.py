@@ -1,20 +1,31 @@
-"""Lean PDF renderer for langwich worksheets.
+"""PDF renderer for langwich worksheets.
 
-Modern, clean design using ReportLab. Renders exercises generated from the
-exercise graph into a printable A4 worksheet.
+A single, consistent design system turns the generated exercises into a sheet
+that reads like a finished teaching resource: a story to read, a numbered
+sequence of exercises that develop from it, reference pages, and an answer key.
+
+Layout rules that keep it clean:
+
+* every exercise is kept together (header never orphans at a page break);
+* one shared type scale and palette — no ad-hoc fonts or colours;
+* generous, uniform spacing so nothing collides or overlaps.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
+from reportlab import rl_config
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm, mm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    KeepTogether,
+    PageBreak,
     PageTemplate,
     Paragraph,
     Spacer,
@@ -25,20 +36,27 @@ from reportlab.platypus import (
 from langwich.generate import ExerciseInstance
 from langwich.text import SourceText
 
+# Reproducible output: fix the PDF creation date and document id so that the
+# same input always yields byte-identical PDFs (no embedded timestamp/random id).
+rl_config.invariant = 1
+
 
 # ---------------------------------------------------------------------------
 # Design tokens
 # ---------------------------------------------------------------------------
 
-TEXT_DARK = colors.HexColor("#1a1a2e")
-TEXT_GREY = colors.HexColor("#6b7280")
-ACCENT = colors.HexColor("#2563eb")
-ACCENT_LIGHT = colors.HexColor("#eff6ff")
-BORDER = colors.HexColor("#e5e7eb")
-BG_LIGHT = colors.HexColor("#f9fafb")
+INK = colors.HexColor("#16223B")       # primary text
+MUTED = colors.HexColor("#5B6B82")      # secondary text
+FAINT = colors.HexColor("#8A97A8")      # captions / least important
+ACCENT = colors.HexColor("#2F5BD0")     # single brand accent (denim blue)
+ACCENT_DK = colors.HexColor("#1E3A8A")
+TINT = colors.HexColor("#F1F5FC")       # accent-tinted panel
+PAPER = colors.HexColor("#FBFCFE")      # subtle card background
+HAIRLINE = colors.HexColor("#DDE3EC")   # rules and borders
+WRITE_LINE = colors.HexColor("#C7D0DD")
 
 PAGE_W, PAGE_H = A4
-MARGIN = 2 * cm
+MARGIN = 1.9 * cm
 CONTENT_W = PAGE_W - 2 * MARGIN
 
 
@@ -47,403 +65,433 @@ CONTENT_W = PAGE_W - 2 * MARGIN
 # ---------------------------------------------------------------------------
 
 def _styles() -> dict[str, ParagraphStyle]:
+    def S(name: str, **kw) -> ParagraphStyle:
+        opts: dict = dict(fontName="Helvetica", textColor=INK)
+        opts.update(kw)
+        return ParagraphStyle(name, **opts)
+
     return {
-        "title": ParagraphStyle(
-            "title", fontName="Helvetica-Bold", fontSize=20,
-            textColor=TEXT_DARK, spaceAfter=4 * mm, leading=24,
-        ),
-        "subtitle": ParagraphStyle(
-            "subtitle", fontName="Helvetica", fontSize=10,
-            textColor=TEXT_GREY, spaceAfter=8 * mm,
-        ),
-        "section": ParagraphStyle(
-            "section", fontName="Helvetica-Bold", fontSize=13,
-            textColor=ACCENT, spaceBefore=6 * mm, spaceAfter=3 * mm, leading=16,
-        ),
-        "instruction": ParagraphStyle(
-            "instruction", fontName="Helvetica-Oblique", fontSize=10,
-            textColor=TEXT_GREY, spaceAfter=3 * mm, leading=13,
-        ),
-        "body": ParagraphStyle(
-            "body", fontName="Helvetica", fontSize=10.5,
-            textColor=TEXT_DARK, spaceAfter=2 * mm, leading=14,
-        ),
-        "item": ParagraphStyle(
-            "item", fontName="Helvetica", fontSize=10.5,
-            textColor=TEXT_DARK, spaceAfter=4 * mm, leading=15,
-            leftIndent=6 * mm,
-        ),
-        "word_bank": ParagraphStyle(
-            "word_bank", fontName="Helvetica-Bold", fontSize=10,
-            textColor=ACCENT, spaceAfter=4 * mm, leading=13,
-            borderColor=ACCENT_LIGHT, borderWidth=0,
-        ),
-        "small": ParagraphStyle(
-            "small", fontName="Helvetica", fontSize=8,
-            textColor=TEXT_GREY, leading=10,
-        ),
-        "reading": ParagraphStyle(
-            "reading", fontName="Helvetica", fontSize=10,
-            textColor=TEXT_DARK, spaceAfter=2 * mm, leading=14,
-            leftIndent=3 * mm, rightIndent=3 * mm,
-        ),
-        "picture_prompt": ParagraphStyle(
-            "picture_prompt", fontName="Helvetica-Oblique", fontSize=8,
-            textColor=TEXT_GREY, spaceAfter=2 * mm, leading=10,
-        ),
+        "eyebrow": S("eyebrow", fontName="Helvetica-Bold", fontSize=8.5,
+                     textColor=ACCENT, spaceAfter=2 * mm, leading=10),
+        "title": S("title", fontName="Helvetica-Bold", fontSize=23,
+                   leading=27, spaceAfter=3 * mm),
+        "meta": S("meta", fontSize=9.5, textColor=MUTED, leading=13,
+                  spaceAfter=2 * mm),
+        "section": S("section", fontName="Helvetica-Bold", fontSize=13,
+                     leading=16),
+        "ex_title": S("ex_title", fontName="Helvetica-Bold", fontSize=12.5,
+                      leading=15),
+        "ex_meta": S("ex_meta", fontSize=8, textColor=FAINT, leading=11,
+                     spaceBefore=0.6 * mm),
+        "rubric": S("rubric", fontSize=9.5, textColor=MUTED, leading=13,
+                    spaceBefore=1.2 * mm),
+        "body": S("body", fontSize=10.5, leading=15, spaceAfter=1 * mm),
+        "item": S("item", fontSize=10.5, leading=16, spaceAfter=3.2 * mm),
+        "reading": S("reading", fontSize=10.5, leading=16, spaceAfter=2.5 * mm),
+        "bank": S("bank", fontName="Helvetica-Bold", fontSize=10.5,
+                  textColor=ACCENT_DK, leading=17, alignment=TA_CENTER,
+                  splitLongWords=0),
+        "caption": S("caption", fontSize=8, textColor=FAINT, leading=11,
+                     alignment=TA_CENTER),
+        "prompt": S("prompt", fontSize=7.5, textColor=FAINT, leading=10),
+        "sol_h": S("sol_h", fontName="Helvetica-Bold", fontSize=9.5,
+                   leading=13, spaceBefore=2 * mm, spaceAfter=0.8 * mm),
+        "sol": S("sol", fontSize=8.5, textColor=MUTED, leading=12.5),
+        "grammar_name": S("grammar_name", fontName="Helvetica-Bold",
+                          fontSize=10.5, textColor=ACCENT_DK, leading=14),
     }
 
 
 # ---------------------------------------------------------------------------
-# Header / footer
+# Running header / footer
 # ---------------------------------------------------------------------------
 
-def _header_footer(canvas, doc, text: SourceText, estimated_minutes: int = 0):
+def _furniture(canvas, doc, text: SourceText) -> None:
     canvas.saveState()
-    # Header
-    canvas.setFont("Helvetica-Bold", 8)
-    canvas.setFillColor(TEXT_GREY)
-    canvas.drawString(MARGIN, PAGE_H - 1.2 * cm,
-                      f"langwich  |  {text.topic.upper()}  |  {text.cefr_level}")
-    time_str = f"  |  ~{estimated_minutes} min" if estimated_minutes else ""
-    canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - 1.2 * cm,
-                           f"{text.source_lang.upper()} → {text.target_lang.upper()}{time_str}")
-    # Header rule
-    canvas.setStrokeColor(BORDER)
+    # Footer rule + page number + wordmark
+    canvas.setStrokeColor(HAIRLINE)
     canvas.setLineWidth(0.5)
-    canvas.line(MARGIN, PAGE_H - 1.4 * cm, PAGE_W - MARGIN, PAGE_H - 1.4 * cm)
-    # Footer
-    canvas.setFont("Helvetica", 7)
-    canvas.drawCentredString(PAGE_W / 2, 1 * cm, f"– {doc.page} –")
+    canvas.line(MARGIN, 1.25 * cm, PAGE_W - MARGIN, 1.25 * cm)
+    canvas.setFont("Helvetica", 7.5)
+    canvas.setFillColor(FAINT)
+    canvas.drawString(MARGIN, 0.85 * cm, "langwich")
+    canvas.drawRightString(
+        PAGE_W - MARGIN, 0.85 * cm,
+        f"{text.topic.title()} · {text.cefr_level} · "
+        f"{text.source_lang.upper()}–{text.target_lang.upper()}",
+    )
+    canvas.drawCentredString(PAGE_W / 2, 0.85 * cm, f"{doc.page}")
+    # Running header from page 2
+    if doc.page > 1:
+        canvas.setFont("Helvetica-Bold", 7.5)
+        canvas.setFillColor(FAINT)
+        canvas.drawString(MARGIN, PAGE_H - 1.15 * cm, "LANGWICH WORKSHEET")
+        canvas.setStrokeColor(HAIRLINE)
+        canvas.line(MARGIN, PAGE_H - 1.3 * cm, PAGE_W - MARGIN, PAGE_H - 1.3 * cm)
     canvas.restoreState()
 
 
 # ---------------------------------------------------------------------------
-# Component builders
+# Shared flowables
 # ---------------------------------------------------------------------------
 
-def _text_box(text_content: str, styles: dict, width: float) -> list:
-    """Render text in a light background box."""
-    para = Paragraph(text_content.replace("\n", "<br/>"), styles["reading"])
-    t = Table([[para]], colWidths=[width - 6 * mm])
+def _rule(color=HAIRLINE, width=0.7, space_before=0.0, space_after=2.5 * mm) -> Table:
+    t = Table([[""]], colWidths=[CONTENT_W], rowHeights=[0.1])
     t.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), BG_LIGHT),
-        ("BOX", (0, 0), (-1, -1), 0.5, BORDER),
+        ("LINEABOVE", (0, 0), (-1, -1), width, color),
+        ("TOPPADDING", (0, 0), (-1, -1), space_before),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), space_after),
+    ]))
+    return t
+
+
+def _writing_lines(count: int, width: float = CONTENT_W, indent: float = 0.0) -> list:
+    rows = [[""] for _ in range(count)]
+    t = Table(rows, colWidths=[width - indent], rowHeights=[8.5 * mm] * count)
+    t.setStyle(TableStyle([
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, WRITE_LINE),
+        ("LEFTPADDING", (0, 0), (-1, -1), indent),
+    ]))
+    return [t]
+
+
+def _exercise_header(ex: ExerciseInstance, index: int, styles: dict) -> Table:
+    """Numbered badge + title + focus/time chips + rubric, as one block."""
+    badge = Table([[Paragraph(f'<font color="white"><b>{index}</b></font>',
+                              ParagraphStyle("b", fontSize=12, alignment=TA_CENTER,
+                                             textColor=colors.white))]],
+                  colWidths=[8 * mm], rowHeights=[8 * mm])
+    badge.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), ACCENT),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [2, 2, 2, 2]),
+    ]))
+
+    chips = []
+    if ex.focus:
+        chips.append(ex.focus)
+    chips.append("◆" * ex.difficulty + "◇" * (5 - ex.difficulty))
+    if ex.estimated_minutes:
+        chips.append(f"~{ex.estimated_minutes} min")
+    meta = "&nbsp;&nbsp;·&nbsp;&nbsp;".join(chips)
+
+    title_block = [
+        Paragraph(ex.title, styles["ex_title"]),
+        Paragraph(meta, styles["ex_meta"]),
+        Paragraph(ex.instruction, styles["rubric"]),
+    ]
+
+    header = Table([[badge, title_block]], colWidths=[11 * mm, CONTENT_W - 11 * mm])
+    header.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (0, 0), "TOP"),
+        ("VALIGN", (1, 0), (1, 0), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5 * mm),
+        ("LEFTPADDING", (0, 0), (0, 0), 0),
+    ]))
+    return header
+
+
+def _word_bank(words: list[str], styles: dict) -> list:
+    text = ("&nbsp;&nbsp;&nbsp;<font color='#C7D0DD'>·</font>&nbsp;&nbsp;&nbsp;"
+            ).join(words)
+    label = Paragraph("WORD BANK", ParagraphStyle(
+        "wbl", fontName="Helvetica-Bold", fontSize=7.5, textColor=ACCENT,
+        alignment=TA_CENTER, spaceAfter=1.5 * mm))
+    inner = Paragraph(text, styles["bank"])
+    box = Table([[label], [inner]], colWidths=[CONTENT_W])
+    box.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), TINT),
+        ("BOX", (0, 0), (-1, -1), 0.6, HAIRLINE),
         ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4 * mm),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4 * mm),
-        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [3, 3, 3, 3]),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [4, 4, 4, 4]),
     ]))
-    return [t, Spacer(1, 3 * mm)]
+    return [box, Spacer(1, 4 * mm)]
 
 
-def _writing_lines(count: int = 3, width: float = CONTENT_W) -> list:
-    """Render horizontal writing lines."""
-    elements = []
-    for _ in range(count):
-        t = Table([[""]],  colWidths=[width], rowHeights=[8 * mm])
-        t.setStyle(TableStyle([
-            ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
-        ]))
-        elements.append(t)
-    return elements
-
-
-def _picture_placeholder(prompt: str, styles: dict, width: float) -> list:
-    """Render a picture placeholder box with the generation prompt."""
-    elements = []
-    # Bordered box for the picture
-    t = Table([["[Picture placeholder — generate with the prompt below]"]],
-              colWidths=[width - 6 * mm], rowHeights=[8 * cm])
-    t.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 1, BORDER),
+def _picture_box(prompt: str, caption: str, styles: dict) -> list:
+    box = Table([[Paragraph(
+        "<font color='#8A97A8'><i>Picture area — paste or draw the scene here</i></font>",
+        ParagraphStyle("ph", fontSize=9, alignment=TA_CENTER, textColor=FAINT))]],
+        colWidths=[CONTENT_W], rowHeights=[6.6 * cm])
+    box.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), PAPER),
+        ("BOX", (0, 0), (-1, -1), 1, HAIRLINE),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_GREY),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [5, 5, 5, 5]),
     ]))
-    elements.append(t)
-    elements.append(Spacer(1, 2 * mm))
-    elements.append(Paragraph(
-        f"<b>Image prompt:</b> {prompt}", styles["picture_prompt"]
-    ))
-    elements.append(Spacer(1, 3 * mm))
-    return elements
+    out: list = [box]
+    if caption:
+        out.append(Spacer(1, 1.5 * mm))
+        out.append(Paragraph(caption, styles["caption"]))
+    out.append(Spacer(1, 1.5 * mm))
+    out.append(Paragraph(f"<b>Image prompt:</b> {prompt}", styles["prompt"]))
+    out.append(Spacer(1, 4 * mm))
+    return out
 
 
 # ---------------------------------------------------------------------------
-# Exercise renderers
+# Exercise body renderers
 # ---------------------------------------------------------------------------
 
 def _render_fib(ex: ExerciseInstance, styles: dict) -> list:
-    elements: list = []
-    elements.append(Paragraph(ex.title, styles["section"]))
-    elements.append(Paragraph(ex.instruction, styles["instruction"]))
-
+    out: list = []
     if ex.word_bank:
-        bank_text = "   ".join(f"<b>{w}</b>" for w in ex.word_bank)
-        elements.extend(_text_box(bank_text, styles, CONTENT_W))
-
-    for item in ex.items:
-        text = f"<b>{item['number']}.</b>  {item['sentence']}"
-        if "hint" in item:
-            text += f"  <i>{item['hint']}</i>"
-        if "choices" in item:
-            choices = "  /  ".join(item["choices"])
-            text += f"  [ {choices} ]"
-        if "translation" in item:
-            text += f"<br/><i><font size='9' color='#6b7280'>{item['translation']}</font></i>"
-        elements.append(Paragraph(text, styles["item"]))
-
-    return elements
-
-
-_picture_rendered = False  # module-level flag to avoid duplicate placeholders
+        out.extend(_word_bank(ex.word_bank, styles))
+    for it in ex.items:
+        line = f"<b>{it['number']}.</b>&nbsp;&nbsp;{it['sentence']}"
+        if "hint" in it:
+            line += f"&nbsp;&nbsp;<font color='#5B6B82'><i>{it['hint']}</i></font>"
+        if "choices" in it:
+            opts = "&nbsp;&nbsp;/&nbsp;&nbsp;".join(it["choices"])
+            line += (f"<br/><font color='#2F5BD0' size='9'>"
+                     f"&nbsp;&nbsp;&nbsp;&nbsp;{opts}</font>")
+        if "translation" in it:
+            line += (f"<br/><font color='#8A97A8' size='8.5'><i>"
+                     f"{it['translation']}</i></font>")
+        out.append(Paragraph(line, styles["item"]))
+    return out
 
 
-def _render_picture(ex: ExerciseInstance, styles: dict) -> list:
-    global _picture_rendered
-    elements: list = []
-    elements.append(Paragraph(ex.title, styles["section"]))
-    elements.append(Paragraph(ex.instruction, styles["instruction"]))
+def _numbered_answer_table(items: list[dict], styles: dict,
+                           label_for) -> Table:
+    rows = []
+    for it in items:
+        n = it.get("number", "")
+        label = label_for(it)
+        rows.append([Paragraph(f"<b>{n}.</b>&nbsp;&nbsp;{label}", styles["item"]), ""])
+    t = Table(rows, colWidths=[CONTENT_W * 0.5, CONTENT_W * 0.5])
+    t.setStyle(TableStyle([
+        ("LINEBELOW", (1, 0), (1, -1), 0.4, WRITE_LINE),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.6 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("LEFTPADDING", (1, 0), (1, -1), 4 * mm),
+    ]))
+    return t
 
-    if ex.picture_prompt and not _picture_rendered:
-        elements.extend(_picture_placeholder(ex.picture_prompt, styles, CONTENT_W))
-        _picture_rendered = True
 
-    for item in ex.items:
-        if "question" in item:
-            elements.append(Paragraph(
-                f"<b>{item.get('number', '')}.</b>  {item['question']}", styles["item"]
-            ))
-            elements.extend(_writing_lines(1))
-        elif "instruction" in item:
-            num = item.get("number", "")
-            prefix = f"<b>{num}.</b>  " if num else ""
-            elements.append(Paragraph(
-                f"{prefix}{item['instruction']}", styles["item"]
-            ))
-            if "Beschreibe" in item["instruction"]:
-                elements.extend(_writing_lines(5))
-        elif "text" in item:
-            elements.extend(_text_box(item["text"], styles, CONTENT_W))
+def _render_picture(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list:
+    out: list = []
+    if show_picture and ex.picture_prompt:
+        out.extend(_picture_box(ex.picture_prompt, ex.picture_caption, styles))
 
-    return elements
+    if ex.node_id in ("pic_color_query", "pic_position", "pic_object_naming"):
+        def label(it: dict) -> str:
+            return it.get("term", "")
+        out.append(_numbered_answer_table(ex.items, styles, label))
+
+    elif ex.node_id == "pic_element_marking":
+        names = ex.items[0].get("mark", []) if ex.items else []
+        chips = "&nbsp;&nbsp;&nbsp;".join(f"☐&nbsp;{n}" for n in names)
+        out.append(Paragraph(chips, styles["item"]))
+
+    elif ex.node_id == "pic_scene_description":
+        lines = ex.items[0].get("write_lines", 5) if ex.items else 5
+        out.extend(_writing_lines(lines))
+
+    elif ex.node_id == "pic_fib":
+        for it in ex.items:
+            if "text" in it:
+                out.append(_panel(it["text"], styles))
+    return out
+
+
+def _panel(content: str, styles: dict) -> Table:
+    para = Paragraph(content.replace("\n", "<br/>"), styles["reading"])
+    t = Table([[para]], colWidths=[CONTENT_W])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), PAPER),
+        ("BOX", (0, 0), (-1, -1), 0.6, HAIRLINE),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("TOPPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [4, 4, 4, 4]),
+    ]))
+    return t
 
 
 def _render_word_connections(ex: ExerciseInstance, styles: dict) -> list:
-    elements: list = []
-    elements.append(Paragraph(ex.title, styles["section"]))
-    elements.append(Paragraph(ex.instruction, styles["instruction"]))
+    out: list = []
+    it = ex.items[0] if ex.items else {}
 
-    for item in ex.items:
-        if "left" in item and "right" in item:
-            left = item["left"]
-            right = item["right"]
-            is_compound = item.get("format") == "compound"
+    if ex.node_id == "wc_translation" and "left" in it:
+        left, right = it["left"], it["right"]
+        rows = []
+        for i in range(max(len(left), len(right))):
+            ltxt = f"<b>{left[i]['number']}.</b>&nbsp;&nbsp;{left[i]['term']}" if i < len(left) else ""
+            rtxt = f"<b>{right[i]['letter']}.</b>&nbsp;&nbsp;{right[i]['term']}" if i < len(right) else ""
+            rows.append([Paragraph(ltxt, styles["body"]),
+                         Paragraph(rtxt, styles["body"])])
+        t = Table(rows, colWidths=[CONTENT_W * 0.5, CONTENT_W * 0.5])
+        t.setStyle(_match_style())
+        out.append(t)
 
-            rows = []
-            max_len = max(len(left), len(right))
-            for i in range(max_len):
-                l_text = f"{left[i]['number']}. {left[i]['term']}" if i < len(left) else ""
-                r_text = f"{right[i]['letter']}. {right[i]['term']}" if i < len(right) else ""
-                rows.append([l_text, "", r_text])
+    elif ex.node_id == "wc_compound" and "left" in it:
+        left, right = it["left"], it["right"]
+        rows = []
+        for i in range(max(len(left), len(right))):
+            ltxt = f"<b>{i + 1}.</b>&nbsp;&nbsp;{left[i]}" if i < len(left) else ""
+            rtxt = f"<b>{chr(65 + i)}.</b>&nbsp;&nbsp;{right[i]}" if i < len(right) else ""
+            rows.append([Paragraph(ltxt, styles["body"]), Paragraph(rtxt, styles["body"])])
+        t = Table(rows, colWidths=[CONTENT_W * 0.5, CONTENT_W * 0.5])
+        t.setStyle(_match_style())
+        out.append(t)
+        out.append(Spacer(1, 3 * mm))
+        out.append(Paragraph("Write the compound words you built:", styles["body"]))
+        out.extend(_writing_lines(max(2, (len(left) + 1) // 2)))
 
-            t = Table(rows, colWidths=[CONTENT_W * 0.4, CONTENT_W * 0.2, CONTENT_W * 0.4])
-            t.setStyle(TableStyle([
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10.5),
-                ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_DARK),
-                ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
-                ("ALIGN", (2, 0), (2, -1), "RIGHT"),
-            ]))
-            elements.append(t)
+    elif ex.node_id in ("wc_synonym", "wc_antonym"):
+        out.append(_numbered_answer_table(ex.items, styles, lambda it: it.get("term", "")))
 
-            if is_compound:
-                elements.append(Spacer(1, 3 * mm))
-                elements.append(Paragraph(
-                    "<b>Write the compound words:</b>", styles["body"]
-                ))
-                elements.extend(_writing_lines(len(right)))
-
-        elif "words" in item and "categories" in item:
-            # Category grouping
-            words = "   ".join(f"<b>{w}</b>" for w in item["words"])
-            elements.extend(_text_box(words, styles, CONTENT_W))
-            for cat in item["categories"]:
-                elements.append(Paragraph(f"<b>{cat}:</b>", styles["body"]))
-                elements.extend(_writing_lines(1))
-                elements.append(Spacer(1, 2 * mm))
-
-        elif "left_column" in item and "right_column" in item:
-            # Compound matching
-            rows = []
-            for i, (l, r) in enumerate(
-                zip(item["left_column"], item["right_column"]), 1
-            ):
-                rows.append([f"{i}. {l}  +", f"{r}  =  _______________"])
-
-            t = Table(rows, colWidths=[CONTENT_W * 0.4, CONTENT_W * 0.6])
-            t.setStyle(TableStyle([
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10.5),
-                ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_DARK),
-                ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
-            ]))
-            elements.append(t)
-
-        elif "term" in item:
-            elements.append(Paragraph(
-                f"<b>{item['number']}.</b>  {item['term']}  →  _______________",
-                styles["item"],
-            ))
-
-    return elements
+    elif ex.node_id == "wc_category" and "words" in it:
+        out.extend(_word_bank(it["words"], styles))
+        for cat in it["categories"]:
+            out.append(Paragraph(f"<b>{cat}</b>", styles["body"]))
+            out.extend(_writing_lines(1))
+            out.append(Spacer(1, 1.5 * mm))
+    return out
 
 
-EXERCISE_RENDERERS = {
-    "fib": _render_fib,
-    "picture": _render_picture,
-    "word_connections": _render_word_connections,
-}
+def _match_style() -> TableStyle:
+    return TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.2 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.2 * mm),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, HAIRLINE),
+        ("LEFTPADDING", (0, 0), (0, -1), 0),
+        ("LEFTPADDING", (1, 0), (1, -1), 8 * mm),
+    ])
+
+
+def _render_body(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list:
+    if ex.node_id.startswith("fib"):
+        return _render_fib(ex, styles)
+    if ex.node_id.startswith("pic"):
+        return _render_picture(ex, styles, show_picture)
+    if ex.node_id.startswith("wc"):
+        return _render_word_connections(ex, styles)
+    return []
 
 
 # ---------------------------------------------------------------------------
-# Vocabulary & Grammar reference pages
+# Story / reference / solution pages
 # ---------------------------------------------------------------------------
 
-def _render_vocabulary_page(text: SourceText, styles: dict) -> list:
+def _render_cover(text: SourceText, styles: dict, total_minutes: int) -> list:
+    out: list = [
+        Paragraph("LANGWICH&nbsp;&nbsp;·&nbsp;&nbsp;LANGUAGE WORKSHEET", styles["eyebrow"]),
+        Paragraph(text.title, styles["title"]),
+    ]
+    meta = (f"{text.topic.title()}&nbsp;&nbsp;·&nbsp;&nbsp;Level {text.cefr_level}"
+            f"&nbsp;&nbsp;·&nbsp;&nbsp;{text.source_lang.upper()} → "
+            f"{text.target_lang.upper()}")
+    if total_minutes:
+        meta += f"&nbsp;&nbsp;·&nbsp;&nbsp;~{total_minutes} min"
+    out.append(Paragraph(meta, styles["meta"]))
+    out.append(_rule(ACCENT, 1.4, space_after=4 * mm))
+    out.append(Paragraph("READ THIS FIRST", styles["eyebrow"]))
+    out.append(_panel(text.content, styles))
+    out.append(Spacer(1, 5 * mm))
+    return out
+
+
+def _render_grammar(text: SourceText, styles: dict) -> list:
+    if not text.grammar or not text.grammar.phenomena:
+        return []
+    out: list = [Paragraph("Grammar in this story", styles["section"]),
+                 Spacer(1, 2 * mm)]
+    for p in text.grammar.phenomena:
+        block = [Paragraph(p.name.title(), styles["grammar_name"]),
+                 Paragraph(p.description, styles["rubric"])]
+        for ex in p.examples:
+            block.append(Paragraph(f"<font color='#2F5BD0'>•</font>&nbsp;&nbsp;"
+                                   f"<i>{ex}</i>", styles["body"]))
+        card = Table([[block]], colWidths=[CONTENT_W])
+        card.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), TINT),
+            ("LINEBEFORE", (0, 0), (0, -1), 2.5, ACCENT),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+            ("TOPPADDING", (0, 0), (-1, -1), 3.5 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5 * mm),
+        ]))
+        out.append(KeepTogether([card, Spacer(1, 3 * mm)]))
+    return out
+
+
+def _render_vocabulary(text: SourceText, styles: dict) -> list:
     if not text.vocabulary or not text.vocabulary.items:
         return []
-
-    elements: list = []
-    elements.append(Paragraph("Vocabulary Reference", styles["section"]))
-
-    # Group by POS
+    out: list = [Paragraph("Vocabulary", styles["section"]), Spacer(1, 2 * mm)]
     by_pos: dict[str, list] = {}
     for v in text.vocabulary.items:
         by_pos.setdefault(v.pos, []).append(v)
 
-    for pos, items in sorted(by_pos.items()):
-        elements.append(Paragraph(f"<b>{pos.upper()}</b>", styles["small"]))
+    for pos in sorted(by_pos):
+        items = by_pos[pos]
         rows = []
         for v in items:
             extra = ""
             if v.synonym:
-                extra += f"  (≈ {v.synonym})"
+                extra += f"  <font color='#8A97A8'>≈ {v.synonym}</font>"
             if v.antonym:
-                extra += f"  (≠ {v.antonym})"
-            rows.append([v.term, v.translation + extra])
-
-        t = Table(rows, colWidths=[CONTENT_W * 0.45, CONTENT_W * 0.55])
-        t.setStyle(TableStyle([
-            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-            ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_DARK),
-            ("TEXTCOLOR", (1, 0), (1, -1), TEXT_GREY),
-            ("TOPPADDING", (0, 0), (-1, -1), 1 * mm),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 1 * mm),
-            ("LINEBELOW", (0, 0), (-1, -1), 0.2, BORDER),
+                extra += f"  <font color='#8A97A8'>≠ {v.antonym}</font>"
+            rows.append([Paragraph(f"<b>{v.term}</b>", styles["sol"]),
+                         Paragraph(f"{v.translation}{extra}", styles["sol"])])
+        tbl = Table(rows, colWidths=[CONTENT_W * 0.42, CONTENT_W * 0.58])
+        tbl.setStyle(TableStyle([
+            ("TEXTCOLOR", (1, 0), (1, -1), MUTED),
+            ("TOPPADDING", (0, 0), (-1, -1), 1.1 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.1 * mm),
+            ("LINEBELOW", (0, 0), (-1, -1), 0.3, HAIRLINE),
         ]))
-        elements.append(t)
-        elements.append(Spacer(1, 3 * mm))
+        block = [Paragraph(pos.upper(), styles["eyebrow"]), tbl, Spacer(1, 3 * mm)]
+        out.append(KeepTogether(block))
+    return out
 
-    return elements
-
-
-def _render_grammar_page(text: SourceText, styles: dict) -> list:
-    if not text.grammar or not text.grammar.phenomena:
-        return []
-
-    elements: list = []
-    elements.append(Paragraph("Grammar Reference", styles["section"]))
-
-    for p in text.grammar.phenomena:
-        elements.append(Paragraph(f"<b>{p.name.title()}</b>", styles["body"]))
-        elements.append(Paragraph(p.description, styles["instruction"]))
-        for ex in p.examples:
-            elements.append(Paragraph(f"• <i>{ex}</i>", styles["item"]))
-        elements.append(Spacer(1, 2 * mm))
-
-    return elements
-
-
-# ---------------------------------------------------------------------------
-# Reading text page
-# ---------------------------------------------------------------------------
-
-def _render_reading_page(text: SourceText, styles: dict, estimated_minutes: int = 0) -> list:
-    elements: list = []
-    elements.append(Paragraph(text.title, styles["title"]))
-    time_part = f"  |  ~{estimated_minutes} min" if estimated_minutes else ""
-    elements.append(Paragraph(
-        f"{text.topic.title()}  |  {text.cefr_level}  |  "
-        f"{text.source_lang.upper()} → {text.target_lang.upper()}{time_part}",
-        styles["subtitle"],
-    ))
-    elements.extend(_text_box(text.content, styles, CONTENT_W))
-    return elements
-
-
-# ---------------------------------------------------------------------------
-# Solution page
-# ---------------------------------------------------------------------------
 
 def _render_solutions(exercises: list[ExerciseInstance], styles: dict) -> list:
-    elements: list = []
-    elements.append(Paragraph("Solutions", styles["section"]))
-
-    for ex in exercises:
+    sols = [ex for ex in exercises if ex.solution]
+    if not sols:
+        return []
+    out: list = [Paragraph("Answer Key", styles["section"]), Spacer(1, 2 * mm)]
+    for idx, ex in enumerate(exercises, 1):
         if not ex.solution:
             continue
-        elements.append(Paragraph(f"<b>{ex.title}</b>", styles["body"]))
-        for sol in ex.solution:
-            if "answer" in sol:
-                num = sol.get("number", "")
-                elements.append(Paragraph(
-                    f"{num}. {sol['answer']}", styles["small"]
-                ))
-            elif "answers" in sol:
-                elements.append(Paragraph(
-                    ", ".join(sol["answers"]), styles["small"]
-                ))
-            elif "synonym" in sol:
-                elements.append(Paragraph(
-                    f"{sol.get('number', '')}. {sol['term']} → {sol['synonym']}",
-                    styles["small"],
-                ))
-            elif "antonym" in sol:
-                elements.append(Paragraph(
-                    f"{sol.get('number', '')}. {sol['term']} → {sol['antonym']}",
-                    styles["small"],
-                ))
-            elif "words" in sol:
-                elements.append(Paragraph(
-                    f"{sol.get('category', '')}: {', '.join(sol['words'])}",
-                    styles["small"],
-                ))
-            elif "compound" in sol:
-                elements.append(Paragraph(
-                    f"{sol.get('parts', '')} = {sol['compound']}",
-                    styles["small"],
-                ))
-            elif "letter" in sol:
-                elements.append(Paragraph(
-                    f"{sol['number']} → {sol['letter']}", styles["small"]
-                ))
-        elements.append(Spacer(1, 2 * mm))
+        lines = [Paragraph(f"{idx}.&nbsp;&nbsp;{ex.title}", styles["sol_h"])]
+        for s in ex.solution:
+            lines.append(Paragraph(_solution_line(s), styles["sol"]))
+        out.append(KeepTogether(lines + [Spacer(1, 1.5 * mm)]))
+    return out
 
-    return elements
+
+def _solution_line(s: dict) -> str:
+    if "answer" in s:
+        return f"{s.get('number', '')}. {s['answer']}"
+    if "answers" in s:
+        return ", ".join(s["answers"])
+    if "synonym" in s:
+        return f"{s.get('number', '')}. {s['term']} ≈ {s['synonym']}"
+    if "antonym" in s:
+        return f"{s.get('number', '')}. {s['term']} ≠ {s['antonym']}"
+    if "compound" in s:
+        return f"{s['left']} + {s['right']} = {s['compound']}"
+    if "words" in s:
+        return f"<b>{s.get('category', '')}:</b> {', '.join(s['words'])}"
+    if "letter" in s:
+        return f"{s['number']} → {s['letter']}"
+    return ""
 
 
 # ---------------------------------------------------------------------------
-# Main render function
+# Main render
 # ---------------------------------------------------------------------------
 
 def render_worksheet(
@@ -451,68 +499,56 @@ def render_worksheet(
     exercises: list[ExerciseInstance],
     output_path: str | Path,
 ) -> Path:
-    """Render a complete worksheet PDF."""
-    global _picture_rendered
-    _picture_rendered = False
-
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     styles = _styles()
-    story: list = []
     total_minutes = sum(ex.estimated_minutes for ex in exercises)
+    story: list = []
 
-    # Page 1: Reading text
-    story.extend(_render_reading_page(text, styles, total_minutes))
-    story.append(Spacer(1, 4 * mm))
+    story.extend(_render_cover(text, styles, total_minutes))
 
-    # Exercises
-    for ex in exercises:
-        etype = ex.node_id.split("_")[0]
-        # Map node_id prefix to exercise type key
-        if ex.node_id.startswith("fib"):
-            renderer = EXERCISE_RENDERERS["fib"]
-        elif ex.node_id.startswith("pic"):
-            renderer = EXERCISE_RENDERERS["picture"]
-        elif ex.node_id.startswith("wc"):
-            renderer = EXERCISE_RENDERERS["word_connections"]
-        else:
-            continue
-        story.extend(renderer(ex, styles))
+    # Exercises — numbered, kept together, picture shown only once.
+    picture_shown = False
+    for idx, ex in enumerate(exercises, 1):
+        show_picture = ex.node_id.startswith("pic") and not picture_shown
+        if show_picture:
+            picture_shown = True
+        header = _exercise_header(ex, idx, styles)
+        body = _render_body(ex, styles, show_picture)
+        # Keep the header with the first body element; let long bodies flow.
+        head_chunk = [header] + body[:1]
+        story.append(KeepTogether(head_chunk))
+        story.extend(body[1:])
         story.append(Spacer(1, 6 * mm))
 
-    # Vocabulary reference
-    story.extend(_render_vocabulary_page(text, styles))
+    # Reference + answer key, each starting fresh.
+    refs: list = []
+    refs.extend(_render_grammar(text, styles))
+    vocab = _render_vocabulary(text, styles)
+    if vocab:
+        if refs:
+            refs.append(Spacer(1, 5 * mm))
+        refs.extend(vocab)
+    if refs:
+        story.append(PageBreak())
+        story.extend(refs)
 
-    # Grammar reference
-    story.extend(_render_grammar_page(text, styles))
+    sols = _render_solutions(exercises, styles)
+    if sols:
+        story.append(PageBreak())
+        story.extend(sols)
 
-    # Solutions
-    story.extend(_render_solutions(exercises, styles))
-
-    # Build PDF
     doc = BaseDocTemplate(
-        str(output),
-        pagesize=A4,
-        leftMargin=MARGIN,
-        rightMargin=MARGIN,
-        topMargin=1.8 * cm,
-        bottomMargin=1.5 * cm,
+        str(output), pagesize=A4,
+        leftMargin=MARGIN, rightMargin=MARGIN,
+        topMargin=1.7 * cm, bottomMargin=1.6 * cm,
+        title=text.title, author="langwich",
     )
-
-    frame = Frame(
-        MARGIN, 1.5 * cm,
-        CONTENT_W, PAGE_H - 3.3 * cm,
-        id="main",
-    )
-
-    doc.addPageTemplates([
-        PageTemplate(
-            id="main",
-            frames=[frame],
-            onPage=lambda canvas, doc, _t=text, _m=total_minutes: _header_footer(canvas, doc, _t, _m),
-        )
-    ])
-
+    frame = Frame(MARGIN, 1.5 * cm, CONTENT_W, PAGE_H - 3.2 * cm, id="main")
+    doc.addPageTemplates([PageTemplate(
+        id="main", frames=[frame],
+        onPage=lambda c, d, _t=text: _furniture(c, d, _t),
+    )])
     doc.build(story)
     return output

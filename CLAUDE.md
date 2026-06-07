@@ -1,72 +1,86 @@
 # langwich
 
-Automated language learning worksheet generator for e-paper devices and print.
+Graph-based language-learning **worksheet generator**. One source text → a
+printable PDF worksheet whose exercises are all derived deterministically from
+that text via an **exercise knowledge graph**.
 
 ## Getting started
 
-Install the project in development mode:
-
 ```bash
-pip install -e .
+pip install -e .          # Python 3.11+, single dependency: reportlab
+langwich --from-json examples/coffee_en_de.json
+langwich --list-exercises
+pytest                    # or:  PYTHONPATH=src python3 -m pytest -q
 ```
 
-Requires Python 3.11+ and four packages: reportlab, sqlalchemy, pydantic, pydantic-settings.
-
-## Slash commands
-
-- `/langwich` — Interactive worksheet generator. Walks the user through picking languages, topics, CEFR level, and exercises, then generates vocabulary JSON and renders a PDF worksheet. This is the primary way to use the project with Claude Code.
+The package lives under `src/`; if it isn't installed, run tooling with
+`PYTHONPATH=src`.
 
 ## How it works
 
-langwich is LLM-driven. Claude generates **all content** (vocabulary, grammar, reading passages, exercise items). Python handles only PDF rendering and database storage. There are no separate generator scripts.
+A `SourceText` (the JSON input) carries the story plus structured material:
+vocabulary, grammar phenomena, an optional picture scene, and optional compounds.
+The **exercise graph** (`graph.py`) defines what exercises exist and how they
+relate. The **planner** (`plan.py`) chooses an order and threads one
+`MaterialLedger` through generation so **no sentence or word is reused across
+exercises** — the sheet reads as one developing story. The **renderer**
+(`render.py`) lays it out with a single, consistent design system.
 
-**Important for LLM agents outside Claude Code:** The complete JSON schema, content generation guidelines, and per-exercise content format are documented in two places:
-1. **[`README.md`](README.md)** — full JSON schema with field reference and a working example
-2. **[`.claude/commands/langwich.md`](.claude/commands/langwich.md)** — detailed content guidelines (grammar quality, reading passage length by CEFR level, exercise item formats)
-3. **[`examples/film_de_fr.json`](examples/film_de_fr.json)** — a complete, working example JSON that produces a valid worksheet
+```
+SourceText (JSON)
+   │  vocabulary · grammar · picture_scene · compounds
+   ▼
+ExerciseGraph ──select_exercises()──▶ ordered node ids
+   ▼
+plan.build_worksheet()  ── shared MaterialLedger (no overlap) ──▶ [ExerciseInstance]
+   ▼
+render_worksheet() ──▶ PDF  (story · numbered exercises · grammar · vocab · answer key)
+```
 
-Read these files before generating any JSON. The Python code does **not** generate content — if your JSON is missing `grammar`, `reading`, or `exercises` sections, those parts of the worksheet will be empty or use low-quality fallbacks.
+**Claude generates the content; Python never invents any.** The complete schema
+and content rules are in `README.md` and the `/langwich` slash command
+(`.claude/commands/langwich.md`). Two working inputs to mirror:
+`examples/coffee_en_de.json` (EN→DE) and `examples/cinema_de_fr.json` (DE→FR).
 
-### Workflow
+## The `/langwich` skill — hard guardrails
 
-1. User runs `/langwich` (or an LLM generates JSON directly)
-2. Claude guides through setup: native language, target language, topics, CEFR level, learning path, grammar focus, exercise selection
-3. Claude generates a JSON file at `./data/<domain>_<source>_<target>.json` with vocabulary, phrases, grammar, reading passages, and exercise content
-4. Claude runs `langwich --from-json <file> --level <CEFR> --path <path>` to render the PDF
+`/langwich` runs a structured interview, then writes the JSON and renders it.
+**The user always chooses the topic and the grammar focus; Claude must never
+infer or default them.** The generated text must be one coherent story that
+*develops* and that deliberately exhibits the chosen grammatical phenomena. See
+the command file for the full rules.
 
-### Only 9 of 35 exercise types are currently implemented
+## Source layout
 
-The `ExerciseType` enum defines 35 types, but only these 9 have Python rendering classes: `vocab_matching`, `fill_blanks`, `synonyms`, `translation`, `reading_comprehension`, `creative_writing`, `text_summary`, `youtube_task`, `drawing_task`. The remaining 26 are planned but will be skipped with a warning. Stick to the implemented types when generating worksheets.
-
-## Project structure
-
-- `src/langwich/` — main package
-  - `generator.py` — CLI entry point and WorksheetGenerator
-  - `import_data.py` — JSON vocabulary import
-  - `db/` — SQLAlchemy models and per-domain database manager
-  - `exercises/` — exercise type implementations (9 implemented, 26 planned)
-  - `paths/` — learning path templates
-  - `rendering/` — Cupertino-style PDF renderer
-  - `mining/` — optional corpus mining pipeline (requires `pip install -e ".[mining]"`)
-- `.claude/commands/langwich.md` — the `/langwich` slash command definition (detailed content guidelines)
-- `examples/` — working example JSON files
-- `data/` — generated JSON and PDF output directory
+- `src/langwich/graph.py` — node hierarchy, the 18 exercise subclasses, edges,
+  CEFR/difficulty/focus metadata, and the learner-facing titles/instructions.
+- `src/langwich/text.py` — `SourceText`, `PictureScene` + structured
+  `SceneElement` (name/color/position), `Compound`. JSON (de)serialisation.
+- `src/langwich/generate.py` — deterministic, **data-driven** generators (no
+  hard-coded content) + the `MaterialLedger`.
+- `src/langwich/plan.py` — ordering + no-overlap orchestration.
+- `src/langwich/render.py` — the PDF design system (ReportLab).
+- `src/langwich/cli.py` — argument parsing, CEFR/focus-aware auto-selection,
+  `--list-exercises`.
+- `archive/` — the previous (DB + mining + SQLAlchemy) implementation, kept for
+  reference only. Not imported by anything live.
 
 ## CLI reference
 
 ```bash
-# Generate from JSON (primary usage)
-langwich --from-json vocab.json --level B1 --path balanced
-
-# Optional flags
---vocab-position start    # vocabulary at start instead of end
---no-grammar-page         # skip grammar reference page
---no-ai-recommendation    # skip AI upload suggestion
---custom-exercises type:count,type:count  # custom exercise selection
+langwich --from-json text.json            # auto-select by CEFR + combinability
+langwich --from-json text.json --focus grammar,morphology
+langwich --from-json text.json --exercises wc_translation,fib_word_bank,pic_color_query
+langwich --from-json text.json --seed 7   # reproducible alternative selection
+langwich --list-exercises                 # catalogue with CEFR range / minutes / focus
 ```
 
-## Testing
+## Conventions
 
-```bash
-pytest
-```
+- **Determinism**: same JSON + same `--seed` ⇒ identical worksheet. Don't
+  introduce wall-clock or unseeded randomness into generation.
+- **No hard-coded content**: a generator must read facts from the `SourceText`
+  (e.g. an element's `color`), never assume topic-specific values. The picture
+  generators are the canonical example — they only emit what the scene declares.
+- **Graph is the source of truth**: learner-facing titles, instructions,
+  difficulty, CEFR ranges and focus all live on `ExerciseNode`.

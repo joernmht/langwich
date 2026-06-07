@@ -8,9 +8,25 @@
   "topic": "coffee",
   "picture_scene": {
     "description": "A cozy Viennese café interior. A young woman sits at a small round table by a large window. In front of her: a white ceramic cup of cappuccino with leaf-shaped latte art in the milk foam. Next to the cup on a blue plate sits a slice of golden apple strudel dusted with powdered sugar. Through the window: a charming old cobblestone street, and a red bicycle leaning against a black iron lamppost. Warm, soft lighting. Watercolor illustration style.",
-    "elements": ["junge Frau", "weiße Tasse", "Cappuccino", "Milchschaum", "Blatt", "Apfelstrudel", "blauer Teller", "Fenster", "Kopfsteinpflaster", "rotes Fahrrad", "Laterne"],
-    "paragraph_index": 2
+    "caption": "Ein Wiener Café — die Szene aus dem dritten Absatz.",
+    "paragraph_index": 2,
+    "elements": [
+      {"name": "die Tasse", "color": "weiß", "position": "Die Tasse steht vor der jungen Frau."},
+      {"name": "der Teller", "color": "blau", "position": "Der Teller liegt neben der Tasse."},
+      {"name": "das Fahrrad", "color": "rot", "position": "Das Fahrrad lehnt an der Laterne."},
+      {"name": "die junge Frau", "position": "Die Frau sitzt am Fenster."},
+      {"name": "der Apfelstrudel", "position": "Der Apfelstrudel liegt auf dem Teller."},
+      {"name": "der Milchschaum"},
+      {"name": "das Fenster"},
+      {"name": "die Laterne"}
+    ]
   },
+  "compounds": [
+    {"left": "Kaffee", "right": "Pflanze", "compound": "die Kaffeepflanze", "translation": "coffee plant"},
+    {"left": "Milch", "right": "Schaum", "compound": "der Milchschaum", "translation": "milk foam"},
+    {"left": "Apfel", "right": "Strudel", "compound": "der Apfelstrudel", "translation": "apple strudel"},
+    {"left": "Filter", "right": "Kaffee", "compound": "der Filterkaffee", "translation": "filter coffee"}
+  ],
   "vocabulary": {
     "id": "vocab_coffee",
     "name": "Coffee Vocabulary",

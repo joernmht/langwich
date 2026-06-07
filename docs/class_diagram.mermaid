@@ -2,427 +2,150 @@ classDiagram
     direction TB
 
     %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% DATABASE LAYER
+    %% TEXT MODEL (text.py) — the single input
     %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    class DomainDatabase {
-        +str domain
+    class SourceText {
+        +str title
+        +str content
+        +str translation
         +str source_lang
         +str target_lang
-        +Path db_path
-        -Engine _engine
-        -sessionmaker _session_factory
-        -DomainMeta _meta
-        +initialize() void
-        +session() Session
-        +add_vocabulary(term, lemma, pos, level, ...) VocabularyEntry
-        +add_phrase(text, level, translation, ...) PhraseEntry
-        +query_vocabulary(level, pos, limit, offset) list~VocabularyEntry~
-        +query_phrases(level, limit) list~PhraseEntry~
-        +count_vocabulary(level) int
-    }
-
-    class DomainMeta {
-        +int id
-        +str domain
-        +str source_language
-        +str target_language
-        +str description
-        +datetime created_at
-        +datetime updated_at
-        +list~VocabularyEntry~ vocabulary_entries
-        +list~PhraseEntry~ phrase_entries
-    }
-
-    class VocabularyEntry {
-        +int id
-        +int domain_meta_id
-        +str term
-        +str lemma
-        +PartOfSpeech part_of_speech
-        +CEFRLevel cefr_level
-        +ClassificationMethod classification_method
-        +float frequency
-        +str source_url
-        +str translations_json
-        +datetime created_at
-        +DomainMeta domain_meta
-        +list~PhraseEntry~ phrases
-    }
-
-    class PhraseEntry {
-        +int id
-        +int domain_meta_id
-        +str text
-        +str translation
-        +CEFRLevel cefr_level
-        +ClassificationMethod classification_method
-        +str source_url
-        +datetime created_at
-        +DomainMeta domain_meta
-        +list~VocabularyEntry~ vocabulary
-    }
-
-    class CEFRLevel {
-        <<enumeration>>
-        A1
-        A2
-        B1
-        B2
-        C1
-        C2
-        UNKNOWN
-    }
-
-    class PartOfSpeech {
-        <<enumeration>>
-        NOUN
-        VERB
-        ADJ
-        ADV
-        PREP
-        CONJ
-        PRON
-        DET
-        INTJ
-        NUM
-        PART
-        OTHER
-    }
-
-    class ClassificationMethod {
-        <<enumeration>>
-        FREQUENCY_LIST
-        LLM_FALLBACK
-        MANUAL
-    }
-
-    DomainDatabase --> DomainMeta : manages
-    DomainMeta "1" --> "*" VocabularyEntry : has
-    DomainMeta "1" --> "*" PhraseEntry : has
-    VocabularyEntry "*" -- "*" PhraseEntry : vocab_phrase_link
-    VocabularyEntry --> CEFRLevel : tagged with
-    VocabularyEntry --> PartOfSpeech : classified as
-    VocabularyEntry --> ClassificationMethod : determined by
-    PhraseEntry --> CEFRLevel : tagged with
-
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% MINING PIPELINE
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    class MiningPipeline {
-        +DomainDatabase db
-        +list~Source~ sources
-        +AppConfig cfg
-        +Tokenizer tokenizer
-        +PhraseExtractor phrase_extractor
-        +CEFRClassifier cefr_classifier
-        +DomainTagger domain_tagger
-        +run(query) MiningResult
-    }
-
-    class MiningResult {
-        +str domain
-        +str source_language
-        +str target_language
-        +int terms_added
-        +int phrases_added
-        +int sources_processed
-        +list~str~ errors
-    }
-
-    class ExtractedTerm {
-        +str term
-        +str lemma
-        +PartOfSpeech pos
-        +float frequency
-        +str source_url
-        +list~str~ context_sentences
-    }
-
-    class Source {
-        <<abstract>>
-        +str name*
-        +search(query, max_results) list~SourceResult~*
-        +extract_text(result) str*
-    }
-
-    class SourceResult {
-        +str url
-        +str title
-        +str text
-        +str language
-        +str license
-        +datetime retrieved_at
-        +dict metadata
-    }
-
-    class WikipediaSource {
-        +str language
-        -str _api_url
-        +str name
-        +search(query, max_results) list~SourceResult~
-        +extract_text(result) str
-    }
-
-    class ArxivSource {
-        +str name
-        +search(query, max_results) list~SourceResult~
-        +extract_text(result) str
-    }
-
-    class OpenAlexSource {
-        +str email
-        +str name
-        +search(query, max_results) list~SourceResult~
-        +extract_text(result) str
-    }
-
-    class YouTubeSource {
-        +str language
-        +str name
-        +search(query, max_results) list~SourceResult~
-        +extract_text(result) str
-    }
-
-    Source <|-- WikipediaSource
-    Source <|-- ArxivSource
-    Source <|-- OpenAlexSource
-    Source <|-- YouTubeSource
-    Source --> SourceResult : produces
-
-    MiningPipeline --> DomainDatabase : writes to
-    MiningPipeline --> "1..*" Source : queries
-    MiningPipeline --> Tokenizer : uses
-    MiningPipeline --> PhraseExtractor : uses
-    MiningPipeline --> CEFRClassifier : uses
-    MiningPipeline --> DomainTagger : uses
-    MiningPipeline --> MiningResult : returns
-    MiningPipeline ..> ExtractedTerm : creates internally
-
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% NLP MODULES
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    class Tokenizer {
-        +int min_token_length
-        -Language _nlp
-        +process(text) list~Token~
-        +sentences(text) list~str~
-        -_load_model(model_name) Language
-    }
-
-    class Token {
-        <<frozen>>
-        +str text
-        +str lemma
-        +PartOfSpeech pos
-        +bool is_stop
-        +bool is_alpha
-    }
-
-    class PhraseExtractor {
-        +int min_words
-        +int max_words
-        +extract(text) list~str~
-        -_is_citation(sentence) bool
-        -_is_heading(sentence) bool
-        -_has_excessive_special_chars(sentence) bool
-    }
-
-    class CEFRClassifier {
-        +ScadsConfig scads
-        -Path _list_dir
-        -dict _lists
-        +classify(lemma) tuple~CEFRLevel, ClassificationMethod~
-        +classify_phrase(phrase) tuple~CEFRLevel, ClassificationMethod~
-        -_load_lists() dict
-        -_lookup_frequency_list(lemma) CEFRLevel
-        -_classify_via_llm(text) CEFRLevel
-    }
-
-    class DomainTagger {
-        +str domain
-        +float relevance_threshold
-        -list~str~ _domain_keywords
-        +score(term) float
-        +is_relevant(term) bool
-    }
-
-    Tokenizer --> Token : produces
-    CEFRClassifier --> CEFRLevel : returns
-    CEFRClassifier --> ClassificationMethod : returns
-
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% LEARNING PATHS
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    class LearningPath {
-        +str name
-        +str description
-        +list~PathStep~ steps
-        +bool difficulty_progression
-        +ensure_vocab_first() void
-        +exercise_types() list~ExerciseType~
+        +str cefr_level
+        +str topic
+        +PictureScene picture_scene
+        +VocabularyNode vocabulary
+        +GrammarNode grammar
+        +list~Compound~ compounds
+        +paragraphs() list~str~
+        +from_dict(dict) SourceText
         +to_dict() dict
-        +from_dict(data) LearningPath$
     }
 
-    class PathStep {
+    class PictureScene {
+        +str description
+        +str caption
+        +int paragraph_index
+        +list~SceneElement~ elements
+        +colored() list~SceneElement~
+        +positioned() list~SceneElement~
+        +key_elements() list~SceneElement~
+    }
+
+    class SceneElement {
+        +str name
+        +str color
+        +str position
+        +bool key
+    }
+
+    class VocabularyItem {
+        +str term
+        +str translation
+        +str pos
+        +SemanticType semantic_type
+        +str synonym
+        +str antonym
+    }
+
+    class GrammarPhenomenon {
+        +str name
+        +str description
+        +list~str~ examples
+    }
+
+    class Compound {
+        +str left
+        +str right
+        +str compound
+        +str translation
+    }
+
+    SourceText *-- PictureScene
+    SourceText *-- VocabularyItem : vocabulary.items
+    SourceText *-- GrammarPhenomenon : grammar.phenomena
+    SourceText *-- Compound
+    PictureScene *-- SceneElement
+
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    %% KNOWLEDGE GRAPH (graph.py) — what exercises exist
+    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    class ExerciseGraph {
+        +dict nodes
+        +list~Edge~ edges
+        +exercises() list~ExerciseNode~
+        +get_by_type(type) list~ExerciseNode~
+        +get_combinable(id) list~ExerciseNode~
+    }
+
+    class ExerciseNode {
+        +str id
         +ExerciseType exercise_type
-        +str title
-        +dict config
-        +bool required
+        +int difficulty
+        +tuple cefr_range
+        +list~LearningFocus~ learning_focus
+        +int estimated_minutes
+        +str display_name
+        +str short_instruction
+        +list~str~ combinable_with
+        +title() str
     }
 
-    class ExerciseType {
-        <<enumeration>>
-        VOCAB_MATCHING
-        FILL_BLANKS
-        SYNONYMS
-        TRANSLATION
-        READING_COMPREHENSION
-        CREATIVE_WRITING
-        TEXT_SUMMARY
-        YOUTUBE_TASK
-        DRAWING_TASK
+    class Edge {
+        +str source
+        +str target
+        +EdgeType edge_type
     }
 
-    LearningPath "1" --> "*" PathStep : contains
-    PathStep --> ExerciseType : specifies
+    ExerciseGraph *-- ExerciseNode
+    ExerciseGraph *-- Edge
 
     %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% EXERCISE CLASSES
+    %% PIPELINE (plan.py / generate.py / render.py)
     %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    class Exercise {
-        <<abstract>>
-        +dict config
-        +str exercise_type*
-        +generate(vocabulary, phrases, level) ExerciseContent*
-        +render(content) list~Flowable~*
+    class MaterialLedger {
+        +set used_sentences
+        +set used_terms
+        +reserve(sentence, term) void
+        +sentence_free(sentence) bool
+        +term_free(term) bool
     }
 
-    class ExerciseContent {
+    class ExerciseInstance {
+        +str node_id
         +str title
-        +str instructions
+        +str instruction
         +list~dict~ items
         +list~dict~ solution
-        +dict metadata
+        +list~str~ word_bank
+        +str picture_prompt
+        +int estimated_minutes
+        +int difficulty
     }
 
-    class VocabMatchingExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
+    class plan {
+        <<module>>
+        +build_worksheet(text, ids, graph, seed)
+        +order_node_ids(graph, ids)
     }
 
-    class FillBlanksExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
+    class generate {
+        <<module>>
+        +generate_exercise(node, text, rng, ledger)
     }
 
-    class SynonymsExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
+    class render {
+        <<module>>
+        +render_worksheet(text, exercises, path)
     }
 
-    class TranslationExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class ReadingComprehensionExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class CreativeWritingExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class TextSummaryExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class YouTubeTaskExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    class DrawingTaskExercise {
-        +str exercise_type
-        +generate(...) ExerciseContent
-        +render(content) list~Flowable~
-    }
-
-    Exercise <|-- VocabMatchingExercise
-    Exercise <|-- FillBlanksExercise
-    Exercise <|-- SynonymsExercise
-    Exercise <|-- TranslationExercise
-    Exercise <|-- ReadingComprehensionExercise
-    Exercise <|-- CreativeWritingExercise
-    Exercise <|-- TextSummaryExercise
-    Exercise <|-- YouTubeTaskExercise
-    Exercise <|-- DrawingTaskExercise
-    Exercise --> ExerciseContent : generates
-
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    %% RENDERING & GENERATION
-    %% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-    class PDFRenderer {
-        +PDFConfig cfg
-        +render(exercise_flowables, output_path, title, domain, level, date) Path
-    }
-
-    class WorksheetGenerator {
-        +DomainDatabase db
-        +LearningPath path
-        +CEFRLevel level
-        +AppConfig cfg
-        +PDFRenderer renderer
-        +generate(output_path, title, date) Path
-    }
-
-    class AppConfig {
-        +str spacy_model
-        +str log_level
-        +ScadsConfig scads
-        +MiningConfig mining
-        +PDFConfig pdf
-    }
-
-    class ScadsConfig {
-        +str api_key
-        +str base_url
-        +str model
-        +float temperature
-        +int max_tokens
-    }
-
-    class PDFConfig {
-        +Path output_dir
-        +float page_width
-        +float page_height
-        +float margin
-        +str brand_name
-    }
-
-    WorksheetGenerator --> DomainDatabase : reads from
-    WorksheetGenerator --> LearningPath : follows
-    WorksheetGenerator --> PDFRenderer : renders with
-    WorksheetGenerator --> Exercise : instantiates
-    PDFRenderer --> PDFConfig : configured by
-    CEFRClassifier --> ScadsConfig : configured by
-    AppConfig *-- ScadsConfig
-    AppConfig *-- PDFConfig
+    plan ..> generate : per node
+    generate ..> MaterialLedger : reserve / check
+    generate ..> ExerciseNode : reads metadata
+    generate ..> SourceText : reads facts
+    generate --> ExerciseInstance : produces
+    plan --> ExerciseInstance
+    render ..> ExerciseInstance : lays out
+    render ..> SourceText : story / refs

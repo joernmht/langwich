@@ -1,9 +1,18 @@
-"""Exercise generation from a SourceText using the exercise graph.
+"""Exercise generation from a :class:`SourceText`.
 
-The text is the gold mine. This module extracts exercise content from it:
-- FIB: blank out words, produce hints
-- Picture: reference picture_scene elements
-- WordConnections: pair vocabulary items
+The text is the gold mine.  Every exercise is cut from it deterministically:
+
+* **Fill-in-Blanks** — blank vocabulary words out of real sentences, in story
+  order, and attach the requested kind of hint.
+* **Picture** — query the *structured* facts of the scene (an element's colour,
+  position, or name).  Nothing here is hard-coded: a fact that isn't in the
+  scene simply yields no item.
+* **Word Connections** — pair vocabulary by translation, synonym, antonym,
+  semantic category, or compound parts.
+
+A shared :class:`MaterialLedger` lets a whole worksheet be generated without any
+two exercises reusing the same sentence or testing the same word — so the sheet
+reads as one developing story rather than the same lines over and over.
 """
 
 from __future__ import annotations
@@ -16,426 +25,454 @@ from langwich.graph import ExerciseNode, ExerciseType, VocabularyItem
 from langwich.text import SourceText
 
 
+# ---------------------------------------------------------------------------
+# Exercise instance + shared ledger
+# ---------------------------------------------------------------------------
+
 @dataclass
 class ExerciseInstance:
-    """A concrete exercise generated from a text."""
-    node_id: str  # which ExerciseNode this came from
+    """A concrete exercise generated from a text, ready to render."""
+
+    node_id: str
+    exercise_type: str
     title: str
     instruction: str
     items: list[dict] = field(default_factory=list)
     solution: list[dict] = field(default_factory=list)
     word_bank: list[str] = field(default_factory=list)
     picture_prompt: str = ""
+    picture_caption: str = ""
+    estimated_minutes: int = 5
+    difficulty: int = 1
+    focus: str = ""
 
 
-def generate_exercise(
-    node: ExerciseNode, text: SourceText, rng: random.Random | None = None
-) -> ExerciseInstance | None:
-    """Generate a concrete exercise instance from a node + text."""
-    if rng is None:
-        rng = random.Random(0)
-    etype = node.exercise_type
-    if etype == ExerciseType.FILL_IN_BLANKS:
-        return _generate_fib(node, text, rng)
-    elif etype == ExerciseType.PICTURE_INTERACTION:
-        return _generate_picture(node, text)
-    elif etype == ExerciseType.WORD_CONNECTIONS:
-        return _generate_word_connections(node, text, rng)
-    return None
+@dataclass
+class MaterialLedger:
+    """Tracks material already spent so exercises don't overlap."""
+
+    used_sentences: set[str] = field(default_factory=set)
+    used_terms: set[str] = field(default_factory=set)  # lowercased, article-stripped
+
+    def reserve(self, sentence: str, term: str) -> None:
+        self.used_sentences.add(_norm(sentence))
+        self.used_terms.add(term.lower())
+
+    def sentence_free(self, sentence: str) -> bool:
+        return _norm(sentence) not in self.used_sentences
+
+    def term_free(self, term: str) -> bool:
+        return term.lower() not in self.used_terms
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", " ", s).strip()
 
 
 # ---------------------------------------------------------------------------
-# FIB generators
+# Small text helpers
 # ---------------------------------------------------------------------------
 
-def _pick_blank_targets(text: SourceText, count: int = 6) -> list[tuple[str, str]]:
-    """Pick sentences from the text and a word to blank from each.
-
-    Returns list of (sentence, blanked_word).
-    """
-    if not text.vocabulary or not text.vocabulary.items:
-        return []
-
-    vocab_terms = {_strip_article(v.term).lower() for v in text.vocabulary.items}
-    results: list[tuple[str, str]] = []
-
-    for para in text.paragraphs:
-        for sentence in re.split(r"(?<=[.!?])\s+", para):
-            words = sentence.split()
-            for word in words:
-                clean = re.sub(r"[.,;:!?]", "", word).lower()
-                if clean in vocab_terms and len(clean) > 2:
-                    results.append((sentence, word))
-                    break
-            if len(results) >= count:
-                break
-        if len(results) >= count:
-            break
-
-    return results[:count]
+_ARTICLES = ("der ", "die ", "das ", "den ", "dem ", "ein ", "eine ", "le ", "la ",
+             "les ", "l'", "el ", "los ", "las ", "il ", "lo ", "gli ")
+_PUNCT = re.compile(r"[.,;:!?»«\"'„“”()]")
 
 
 def _strip_article(term: str) -> str:
-    for article in ("der ", "die ", "das ", "ein ", "eine "):
-        if term.lower().startswith(article):
-            return term[len(article):]
+    low = term.lower()
+    for art in _ARTICLES:
+        if low.startswith(art):
+            return term[len(art):]
     return term
 
 
-def _pick_verb_targets(text: SourceText, count: int = 6) -> list[tuple[str, str, str]]:
-    """Pick sentences containing inflected verbs from vocabulary.
+def _clean(word: str) -> str:
+    return _PUNCT.sub("", word).strip()
 
-    Returns list of (sentence, inflected_form, base_form).
-    Only matches words that look like conjugated verb forms (ending in -t, -e,
-    -st, -en, -et) and share a meaningful stem with a vocabulary verb.
+
+def _blank(sentence: str, answer: str) -> str:
+    """Replace the first whole-word occurrence of ``answer`` with a gap,
+    leaving surrounding punctuation (e.g. a trailing comma) intact."""
+    if not answer:
+        return sentence
+    return re.sub(rf"\b{re.escape(answer)}\b", "______", sentence, count=1)
+
+
+def _sentences(text: SourceText) -> list[tuple[int, str]]:
+    """All sentences of the story, in order, tagged with their paragraph index."""
+    out: list[tuple[int, str]] = []
+    for pi, para in enumerate(text.paragraphs):
+        for sent in re.split(r"(?<=[.!?])\s+", para):
+            s = sent.strip()
+            if s:
+                out.append((pi, s))
+    return out
+
+
+def _vocab_index(text: SourceText) -> dict[str, VocabularyItem]:
+    """Map article-stripped lowercase term -> vocabulary item."""
+    idx: dict[str, VocabularyItem] = {}
+    if text.vocabulary:
+        for v in text.vocabulary.items:
+            idx[_strip_article(v.term).lower()] = v
+    return idx
+
+
+# ---------------------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------------------
+
+def generate_exercise(
+    node: ExerciseNode,
+    text: SourceText,
+    rng: random.Random | None = None,
+    ledger: MaterialLedger | None = None,
+) -> ExerciseInstance | None:
+    """Generate one exercise instance from a node + text.
+
+    ``ledger`` is shared across a whole worksheet to prevent overlap; when called
+    standalone (e.g. in tests) a fresh ledger is used.
     """
-    if not text.vocabulary or not text.vocabulary.items:
+    if rng is None:
+        rng = random.Random(0)
+    if ledger is None:
+        ledger = MaterialLedger()
+
+    if node.exercise_type == ExerciseType.FILL_IN_BLANKS:
+        inst = _generate_fib(node, text, rng, ledger)
+    elif node.exercise_type == ExerciseType.PICTURE_INTERACTION:
+        inst = _generate_picture(node, text, rng, ledger)
+    elif node.exercise_type == ExerciseType.WORD_CONNECTIONS:
+        inst = _generate_word_connections(node, text, rng, ledger)
+    else:
+        inst = None
+
+    if inst is not None:
+        inst.estimated_minutes = node.estimated_minutes
+        inst.difficulty = node.difficulty
+        inst.focus = node.focus_label
+        if not inst.instruction:
+            inst.instruction = node.short_instruction
+    return inst
+
+
+def _shell(node: ExerciseNode) -> ExerciseInstance:
+    return ExerciseInstance(
+        node_id=node.id,
+        exercise_type=node.exercise_type.value,
+        title=node.title,
+        instruction=node.short_instruction,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Fill-in-Blanks
+# ---------------------------------------------------------------------------
+
+def _pick_blank_targets(
+    text: SourceText, ledger: MaterialLedger, count: int
+) -> list[tuple[str, str, VocabularyItem]]:
+    """Pick (sentence, original_word, vocab_item) triples in story order.
+
+    Skips sentences and words already spent on other exercises.
+    """
+    vocab = _vocab_index(text)
+    if not vocab:
         return []
 
-    verbs = {_strip_article(v.term).lower(): v.term
-             for v in text.vocabulary.items if v.pos == "verb"}
-    # Collect non-verb vocabulary to exclude nouns that look like verb forms
-    non_verb_words = {_strip_article(v.term).lower()
-                      for v in text.vocabulary.items if v.pos != "verb"}
-    results: list[tuple[str, str, str]] = []
-    seen_verbs: set[str] = set()
-
-    # Common German verb conjugation endings
-    verb_endings = ("t", "e", "st", "en", "et", "te", "tet", "ten")
-
-    for para in text.paragraphs:
-        for sentence in re.split(r"(?<=[.!?])\s+", para):
-            words = sentence.split()
-            for word in words:
-                clean = re.sub(r"[.,;:!?]", "", word).lower()
-                if len(clean) < 3:
-                    continue
-                # Skip if this word is a known non-verb in vocabulary
-                if clean in non_verb_words:
-                    continue
-                # Must end with a verb conjugation suffix
-                if not any(clean.endswith(e) for e in verb_endings):
-                    continue
-                for stem, base in verbs.items():
-                    if stem in seen_verbs:
-                        continue
-                    # The stem without -en/-n ending
-                    verb_root = stem[:-2] if stem.endswith("en") else stem[:-1]
-                    if len(verb_root) < 3:
-                        continue
-                    # The word must start with the verb root (allowing umlaut)
-                    # and the word itself must not be the infinitive
-                    if (clean.startswith(verb_root) and clean != stem
-                            and len(clean) <= len(stem) + 2):
-                        results.append((sentence, word, base))
-                        seen_verbs.add(stem)
-                        break
-                else:
-                    continue
-                break
-            if len(results) >= count:
-                break
+    results: list[tuple[str, str, VocabularyItem]] = []
+    for _pi, sentence in _sentences(text):
+        if not ledger.sentence_free(sentence):
+            continue
+        words = sentence.split()
+        for pos, word in enumerate(words):
+            # Never blank the first word — its capital letter would give it away.
+            if pos == 0:
+                continue
+            key = _clean(word).lower()
+            item = vocab.get(key)
+            if not item or len(key) <= 2 or not ledger.term_free(key):
+                continue
+            # Prefer content words; prepositions are better tested in the
+            # picture/position task, not as a gap.
+            if item.pos == "preposition":
+                continue
+            ledger.reserve(sentence, key)
+            results.append((sentence, word, item))
+            break
         if len(results) >= count:
             break
+    return results
 
-    return results[:count]
 
-
-def _generate_fib(node: ExerciseNode, text: SourceText, rng: random.Random) -> ExerciseInstance:
-    # Base form variant: only blank verbs and always provide the infinitive
+def _generate_fib(
+    node: ExerciseNode, text: SourceText, rng: random.Random, ledger: MaterialLedger
+) -> ExerciseInstance | None:
     if node.hint_type == "base_form":
-        return _generate_fib_base_form(node, text)
+        return _generate_fib_base_form(node, text, ledger)
 
-    targets = _pick_blank_targets(text)
-    items: list[dict] = []
-    solutions: list[dict] = []
+    targets = _pick_blank_targets(text, ledger, count=6)
+    if not targets:
+        return None
+
+    ex = _shell(node)
     bank_words: list[str] = []
 
-    for i, (sentence, word) in enumerate(targets, 1):
-        blanked = sentence.replace(word, "______", 1)
-
-        item: dict = {"number": i, "sentence": blanked}
+    for i, (sentence, word, item) in enumerate(targets, 1):
+        answer = _clean(word)
+        blanked = _blank(sentence, answer)
+        out: dict = {"number": i, "sentence": blanked}
 
         if node.hint_type == "first_letter":
-            clean = re.sub(r"[.,;:!?]", "", word)
-            item["hint"] = clean[0] + "______"
+            out["hint"] = f"{answer[0]} …"
         elif node.hint_type == "multiple_choice":
-            clean = re.sub(r"[.,;:!?]", "", word)
-            distractors = _get_distractors(clean, text, rng)
-            options = [clean] + distractors[:2]
-            rng.shuffle(options)
-            item["choices"] = options
+            out["choices"] = _choices(answer, text, rng)
         elif node.hint_type == "translation":
-            clean = re.sub(r"[.,;:!?]", "", word)
-            translation = _find_translation(clean, text)
-            if translation:
-                item["hint"] = f"({translation})"
+            out["hint"] = f"({item.translation})"
         elif node.hint_type == "full_translation":
-            para_idx = _find_paragraph_index(sentence, text)
-            if para_idx is not None and text.translation:
-                trans_paras = [p.strip() for p in text.translation.split("\n\n") if p.strip()]
-                if para_idx < len(trans_paras):
-                    item["translation"] = trans_paras[para_idx]
+            tp = text.translation_paragraphs
+            pi = _paragraph_of(sentence, text)
+            if pi is not None and pi < len(tp):
+                out["translation"] = tp[pi]
 
-        clean_word = re.sub(r"[.,;:!?]", "", word)
-        bank_words.append(clean_word)
-        items.append(item)
-        solutions.append({"number": i, "answer": clean_word})
+        bank_words.append(answer)
+        ex.items.append(out)
+        ex.solution.append({"number": i, "answer": answer})
 
-    # Add distractors to word bank
-    if node.hint_type == "word_bank" and text.vocabulary:
-        extra = [_strip_article(v.term) for v in text.vocabulary.items
-                 if _strip_article(v.term) not in bank_words]
-        rng.shuffle(extra)
-        bank_words.extend(extra[:3])
-        rng.shuffle(bank_words)
+    if node.hint_type == "word_bank":
+        extras = [
+            _strip_article(v.term)
+            for v in (text.vocabulary.items if text.vocabulary else [])
+            if _strip_article(v.term).lower() not in {w.lower() for w in bank_words}
+        ]
+        rng.shuffle(extras)
+        bank = bank_words + extras[:3]
+        rng.shuffle(bank)
+        ex.word_bank = bank
 
-    return ExerciseInstance(
-        node_id=node.id,
-        title=node.name,
-        instruction=_fib_instruction(node),
-        items=items,
-        solution=solutions,
-        word_bank=bank_words if node.hint_type == "word_bank" else [],
-    )
+    return ex
 
 
-def _generate_fib_base_form(node: ExerciseNode, text: SourceText) -> ExerciseInstance:
-    """FIB variant that blanks inflected verbs and gives the infinitive as hint."""
-    targets = _pick_verb_targets(text)
-    items: list[dict] = []
-    solutions: list[dict] = []
-
+def _generate_fib_base_form(
+    node: ExerciseNode, text: SourceText, ledger: MaterialLedger
+) -> ExerciseInstance | None:
+    targets = _pick_verb_targets(text, ledger, count=6)
+    if not targets:
+        return None
+    ex = _shell(node)
     for i, (sentence, inflected, base) in enumerate(targets, 1):
-        blanked = sentence.replace(inflected, "______", 1)
-        clean = re.sub(r"[.,;:!?]", "", inflected)
-        items.append({
-            "number": i,
-            "sentence": f"{blanked}  ({base})",
-        })
-        solutions.append({"number": i, "answer": clean})
-
-    return ExerciseInstance(
-        node_id=node.id,
-        title=node.name,
-        instruction=_fib_instruction(node),
-        items=items,
-        solution=solutions,
-    )
+        blanked = _blank(sentence, _clean(inflected))
+        ex.items.append({"number": i, "sentence": blanked, "hint": f"({base})"})
+        ex.solution.append({"number": i, "answer": _clean(inflected)})
+    return ex
 
 
-def _fib_instruction(node: ExerciseNode) -> str:
-    instructions = {
-        "word_bank": "Fill in the blanks using the words from the word bank.",
-        "first_letter": "Fill in the blanks. The first letter is given.",
-        "multiple_choice": "Choose the correct word for each blank.",
-        "translation": "Fill in the blanks. The English translation is given as a hint.",
-        "base_form": "Fill in the correct form of the word in parentheses.",
-        "none": "Fill in the blanks from memory.",
-        "full_translation": "Fill in the blanks using the English translation as reference.",
-    }
-    return instructions.get(node.hint_type or "none", "Fill in the blanks.")
-
-
-def _get_distractors(word: str, text: SourceText, rng: random.Random) -> list[str]:
+def _pick_verb_targets(
+    text: SourceText, ledger: MaterialLedger, count: int
+) -> list[tuple[str, str, str]]:
+    """Find sentences with an inflected form of a vocabulary verb."""
     if not text.vocabulary:
         return []
-    candidates = [_strip_article(v.term) for v in text.vocabulary.items
-                  if _strip_article(v.term).lower() != word.lower()]
-    rng.shuffle(candidates)
-    return candidates[:3]
+    verbs = {_strip_article(v.term).lower(): v.term
+             for v in text.vocabulary.items if v.pos == "verb"}
+    non_verbs = {_strip_article(v.term).lower()
+                 for v in text.vocabulary.items if v.pos != "verb"}
+    endings = ("t", "e", "st", "en", "et", "te", "tet", "ten")
+
+    results: list[tuple[str, str, str]] = []
+    for _pi, sentence in _sentences(text):
+        if not ledger.sentence_free(sentence):
+            continue
+        for word in sentence.split():
+            clean = _clean(word).lower()
+            if len(clean) < 3 or clean in non_verbs:
+                continue
+            if not any(clean.endswith(e) for e in endings):
+                continue
+            for stem, base in verbs.items():
+                if not ledger.term_free(stem):
+                    continue
+                root = stem[:-2] if stem.endswith("en") else stem[:-1]
+                if len(root) < 3:
+                    continue
+                if clean.startswith(root) and clean != stem and len(clean) <= len(stem) + 2:
+                    ledger.reserve(sentence, stem)
+                    results.append((sentence, word, base))
+                    break
+            else:
+                continue
+            break
+        if len(results) >= count:
+            break
+    return results
 
 
-def _find_translation(word: str, text: SourceText) -> str | None:
-    if not text.vocabulary:
-        return None
-    for v in text.vocabulary.items:
-        if _strip_article(v.term).lower() == word.lower():
-            return v.translation
-    return None
+def _choices(answer: str, text: SourceText, rng: random.Random) -> list[str]:
+    pool = [
+        _strip_article(v.term)
+        for v in (text.vocabulary.items if text.vocabulary else [])
+        if _strip_article(v.term).lower() != answer.lower()
+    ]
+    rng.shuffle(pool)
+    opts = [answer] + pool[:3]
+    rng.shuffle(opts)
+    return opts
 
 
-def _find_base_form(word: str, text: SourceText) -> str | None:
-    if not text.vocabulary:
-        return None
-    for v in text.vocabulary.items:
-        if v.pos == "verb":
-            stem = _strip_article(v.term).lower()
-            if word.lower().startswith(stem[:3]):
-                return v.term
-    return None
-
-
-def _find_paragraph_index(sentence: str, text: SourceText) -> int | None:
+def _paragraph_of(sentence: str, text: SourceText) -> int | None:
     for i, para in enumerate(text.paragraphs):
-        if sentence in para:
+        if _norm(sentence) in _norm(para):
             return i
     return None
 
 
 # ---------------------------------------------------------------------------
-# Picture generators
+# Picture
 # ---------------------------------------------------------------------------
 
-def _generate_picture(node: ExerciseNode, text: SourceText) -> ExerciseInstance | None:
-    if not text.picture_scene:
+def _generate_picture(
+    node: ExerciseNode, text: SourceText, rng: random.Random, ledger: MaterialLedger
+) -> ExerciseInstance | None:
+    scene = text.picture_scene
+    if scene is None:
         return None
 
-    scene = text.picture_scene
-    elements = scene.elements
-    items: list[dict] = []
-    solutions: list[dict] = []
+    ex = _shell(node)
+    ex.picture_prompt = scene.description
+    ex.picture_caption = scene.caption or ""
 
     if node.id == "pic_color_query":
-        color_vocab = []
-        if text.vocabulary:
-            color_vocab = [v for v in text.vocabulary.items
-                          if v.semantic_type and v.semantic_type.value == "color"]
-        # Generate color questions from the picture paragraph
-        color_pairs = [
-            ("die Tasse", "weiß"),
-            ("der Teller", "blau"),
-            ("das Fahrrad", "rot"),
-        ]
-        for i, (obj, color) in enumerate(color_pairs, 1):
-            items.append({"number": i, "question": f"Welche Farbe hat {obj}?"})
-            solutions.append({"number": i, "answer": color})
+        for i, el in enumerate(scene.colored(), 1):
+            ex.items.append({"number": i, "term": el.name})
+            ex.solution.append({"number": i, "answer": el.color})
 
     elif node.id == "pic_element_marking":
-        for i, elem in enumerate(elements[:5], 1):
-            items.append({"number": i, "instruction": f'Kreise „{elem}“ im Bild ein!'})
+        names = [el.name for el in scene.key_elements()]
+        if names:
+            ex.items.append({"mark": names})
 
     elif node.id == "pic_position":
-        position_pairs = [
-            ("die Tasse", "dem Teller", "Die Tasse steht neben dem Teller."),
-            ("der Apfelstrudel", "der Tasse", "Der Apfelstrudel liegt neben der Tasse."),
-            ("das Fahrrad", "der Laterne", "Das Fahrrad lehnt an der Laterne."),
-            ("die Frau", "dem Fenster", "Die Frau sitzt am Fenster."),
-        ]
-        for i, (a, b_dative, answer) in enumerate(position_pairs, 1):
-            items.append({
-                "number": i,
-                "question": f"Wo befindet sich {a} im Bild?",
-            })
-            solutions.append({"number": i, "answer": answer})
+        for i, el in enumerate(scene.positioned(), 1):
+            ex.items.append({"number": i, "term": el.name})
+            ex.solution.append({"number": i, "answer": el.position})
 
     elif node.id == "pic_object_naming":
-        for i, elem in enumerate(elements[:6], 1):
-            items.append({"number": i, "instruction": f"Gegenstand {i}: ___________"})
-            solutions.append({"number": i, "answer": elem})
+        for i, el in enumerate(scene.key_elements(), 1):
+            ex.items.append({"number": i})
+            ex.solution.append({"number": i, "answer": el.name})
 
     elif node.id == "pic_scene_description":
-        items.append({
-            "instruction": "Beschreibe das Bild in 4-6 Sätzen. "
-            "Verwende dabei mindestens 3 Präpositionen (neben, vor, durch, an, ...)."
-        })
+        ex.items.append({"write_lines": 6})
 
     elif node.id == "pic_fib":
-        pic_para = text.picture_paragraph
-        if pic_para:
-            blanks = ["weiße", "Cappuccino", "blauen", "rotes", "Laterne"]
-            blanked_text = pic_para
-            for w in blanks:
-                blanked_text = blanked_text.replace(w, "______", 1)
-            items.append({"text": blanked_text})
-            solutions = [{"answers": blanks}]
+        para = text.picture_paragraph
+        answers: list[str] = []
+        if para:
+            blanked = para
+            # Blank the colour words as they actually appear (declined forms),
+            # matching on the colour stem so "weiß" finds "weiße", etc.
+            for el in scene.colored():
+                m = re.search(rf"\b{re.escape(el.color)}\w*\b", blanked)
+                if m:
+                    answers.append(m.group(0))
+                    blanked = blanked[:m.start()] + "______" + blanked[m.end():]
+            if answers:
+                ex.items.append({"text": blanked})
+                ex.solution.append({"answers": answers})
 
-    return ExerciseInstance(
-        node_id=node.id,
-        title=node.name,
-        instruction=_picture_instruction(node),
-        items=items,
-        solution=solutions,
-        picture_prompt=scene.description,
-    )
-
-
-def _picture_instruction(node: ExerciseNode) -> str:
-    instructions = {
-        "pic_color_query": "Look at the picture and answer the color questions.",
-        "pic_element_marking": "Find and circle the following elements in the picture.",
-        "pic_position": "Describe the position of the objects using prepositions.",
-        "pic_object_naming": "Write the German word for each numbered object in the picture.",
-        "pic_scene_description": "Describe the picture in your own words.",
-        "pic_fib": "Fill in the blanks using what you see in the picture.",
-    }
-    return instructions.get(node.id, "Complete the picture task.")
+    return ex if ex.items else None
 
 
 # ---------------------------------------------------------------------------
-# Word Connections generators
+# Word Connections
 # ---------------------------------------------------------------------------
 
 def _generate_word_connections(
-    node: ExerciseNode, text: SourceText, rng: random.Random
+    node: ExerciseNode, text: SourceText, rng: random.Random, ledger: MaterialLedger
 ) -> ExerciseInstance | None:
+    if node.id == "wc_compound":
+        return _generate_compounds(node, text, rng)
+
     if not text.vocabulary or not text.vocabulary.items:
         return None
 
     vocab = text.vocabulary.items
-    items: list[dict] = []
-    solutions: list[dict] = []
+    ex = _shell(node)
 
     if node.id == "wc_translation":
-        selected = rng.sample(vocab, min(8, len(vocab)))
+        # Prefer words not already tested elsewhere, to keep exercises distinct.
+        fresh = [v for v in vocab if ledger.term_free(_strip_article(v.term))]
+        pool = fresh if len(fresh) >= 6 else vocab
+        selected = rng.sample(pool, min(8, len(pool)))
+        for v in selected:
+            ledger.used_terms.add(_strip_article(v.term).lower())
         left = [{"number": i, "term": v.term} for i, v in enumerate(selected, 1)]
-        right_items = list(enumerate(selected, 1))
-        rng.shuffle(right_items)
-        right = [{"letter": chr(64 + j), "term": r.translation}
-                 for j, (_, r) in enumerate(right_items, 1)]
-        items = [{"left": left, "right": right}]
-        solutions = [{"number": i, "letter": chr(64 + next(
-            j for j, (orig_i, _) in enumerate(right_items, 1) if orig_i == i
-        ))} for i in range(1, len(selected) + 1)]
+        order = list(range(len(selected)))
+        rng.shuffle(order)
+        right = [{"letter": chr(65 + pos), "term": selected[src].translation}
+                 for pos, src in enumerate(order)]
+        ex.items.append({"left": left, "right": right})
+        for i in range(1, len(selected) + 1):
+            pos = order.index(i - 1)
+            ex.solution.append({"number": i, "letter": chr(65 + pos)})
 
     elif node.id == "wc_synonym":
-        with_syn = [v for v in vocab if v.synonym]
-        selected = with_syn[:6] if len(with_syn) >= 3 else with_syn
-        for i, v in enumerate(selected, 1):
-            items.append({"number": i, "term": v.term, "connect_to": "?"})
-            solutions.append({"number": i, "term": v.term, "synonym": v.synonym})
+        sel = [v for v in vocab if v.synonym][:6]
+        if len(sel) < 2:
+            return None
+        for i, v in enumerate(sel, 1):
+            ex.items.append({"number": i, "term": v.term})
+            ex.solution.append({"number": i, "term": v.term, "synonym": v.synonym})
 
     elif node.id == "wc_antonym":
-        with_ant = [v for v in vocab if v.antonym]
-        selected = with_ant[:6] if len(with_ant) >= 3 else with_ant
-        for i, v in enumerate(selected, 1):
-            items.append({"number": i, "term": v.term, "connect_to": "?"})
-            solutions.append({"number": i, "term": v.term, "antonym": v.antonym})
+        sel = [v for v in vocab if v.antonym][:6]
+        if len(sel) < 2:
+            return None
+        for i, v in enumerate(sel, 1):
+            ex.items.append({"number": i, "term": v.term})
+            ex.solution.append({"number": i, "term": v.term, "antonym": v.antonym})
 
     elif node.id == "wc_category":
         by_type: dict[str, list[VocabularyItem]] = {}
         for v in vocab:
             st = v.semantic_type.value if v.semantic_type else "other"
+            if st == "other":
+                continue
             by_type.setdefault(st, []).append(v)
-        # Pick categories with 2+ items
-        categories = {k: vs for k, vs in by_type.items() if len(vs) >= 2 and k != "other"}
-        all_words = [_strip_article(v.term) for vs in categories.values() for v in vs]
-        rng.shuffle(all_words)
-        items = [{"words": all_words, "categories": list(categories.keys())}]
-        solutions = [{"category": k, "words": [_strip_article(v.term) for v in vs]}
-                     for k, vs in categories.items()]
+        cats = {k: vs for k, vs in by_type.items() if len(vs) >= 2}
+        if len(cats) < 2:
+            return None
+        words = [_strip_article(v.term) for vs in cats.values() for v in vs]
+        rng.shuffle(words)
+        ex.items.append({"words": words, "categories": [_pretty(k) for k in cats]})
+        for k, vs in cats.items():
+            ex.solution.append(
+                {"category": _pretty(k), "words": [_strip_article(v.term) for v in vs]}
+            )
 
-    elif node.id == "wc_compound":
-        pass
+    return ex if ex.items else None
 
-    if not items:
+
+def _generate_compounds(
+    node: ExerciseNode, text: SourceText, rng: random.Random
+) -> ExerciseInstance | None:
+    if not text.compounds:
         return None
+    ex = _shell(node)
+    rights = [c.right for c in text.compounds]
+    shuffled = rights[:]
+    rng.shuffle(shuffled)
+    ex.items.append({
+        "left": [c.left for c in text.compounds],
+        "right": shuffled,
+    })
+    for c in text.compounds:
+        sol: dict = {"left": c.left, "right": c.right, "compound": c.compound}
+        if c.translation:
+            sol["translation"] = c.translation
+        ex.solution.append(sol)
+    return ex
 
-    return ExerciseInstance(
-        node_id=node.id,
-        title=node.name,
-        instruction=_wc_instruction(node),
-        items=items,
-        solution=solutions,
-    )
 
-
-def _wc_instruction(node: ExerciseNode) -> str:
-    instructions = {
-        "wc_translation": "Connect each German word to its English translation.",
-        "wc_synonym": "Find the synonym for each word.",
-        "wc_antonym": "Find the antonym (opposite) for each word.",
-        "wc_category": "Sort the words into the correct categories.",
-        "wc_compound": "Connect the word parts to form compound words.",
-    }
-    return instructions.get(node.id, "Complete the word connections.")
+def _pretty(semantic_type: str) -> str:
+    return semantic_type.replace("_", " ").title()

@@ -1,126 +1,106 @@
-# langwich — Architecture Documentation
+# langwich — Architecture
 
 ## Overview
 
-langwich is a modular Python system that generates language learning worksheets as PDFs. It is designed around three independent subsystems connected by a per-domain SQLite database:
+langwich generates language-learning worksheets as PDFs. It is **text-first**
+and **deterministic**: a single source text is the gold mine, and every exercise
+is cut from it by rule. The same JSON input always produces the same worksheet
+(modulo an explicit `--seed`).
 
-1. **Mining Pipeline** — discovers and extracts vocabulary from open-access sources
-2. **Learning Paths** — defines configurable exercise sequences
-3. **Worksheet Generator** — assembles exercises and renders styled PDFs
+There is no database and no network access at runtime. The previous mining +
+SQLAlchemy implementation has been retired to `archive/` and is not imported by
+any live code.
 
----
-
-## Design Principles
-
-- **Domain isolation**: Each domain+language combination gets its own SQLite file, keeping databases small, portable, and version-control-friendly.
-- **Rule-first classification**: CEFR levels are assigned via frequency lists before falling back to LLM inference, minimising cost and latency.
-- **Open-access bias**: The mining pipeline prioritises openly licensed scientific and educational content.
-- **E-paper optimised**: The PDF renderer uses high-contrast, minimal-colour design suitable for e-ink displays.
-- **Extensibility**: New sources, exercises, and learning paths can be added without modifying core code.
-
----
-
-## Module Architecture
-
-### Database Layer (`langwich.db`)
-
-The database layer uses SQLAlchemy ORM with per-domain SQLite files.
-
-**Key entities:**
-- `DomainMeta` — one record per database, storing domain name, language pair, and timestamps
-- `VocabularyEntry` — individual terms with CEFR level, POS tag, frequency score, and translations
-- `PhraseEntry` — example sentences linked to vocabulary entries via a many-to-many association
-- `DomainDatabase` — manager class that handles DB lifecycle, CRUD, and querying
-
-**Schema relationships:**
-- DomainMeta 1:N VocabularyEntry
-- DomainMeta 1:N PhraseEntry
-- VocabularyEntry M:N PhraseEntry (via `vocab_phrase_link`)
-
-### Mining Pipeline (`langwich.mining`)
-
-The pipeline runs in seven stages:
-
-| Stage | Module | Description |
-|-------|--------|-------------|
-| 1. Source Discovery | `sources/*.py` | Query Wikipedia, arXiv, OpenAlex, YouTube for domain-relevant documents |
-| 2. Text Extraction | `sources/*.py` | Fetch full text via source APIs, strip markup |
-| 3. NLP Processing | `nlp/tokenizer.py` | SpaCy tokenisation, lemmatisation, POS tagging |
-| 4. Vocab Extraction | `pipeline.py` | Collect unique lemmas, calculate frequency scores |
-| 4b. Phrase Extraction | `nlp/phrase_extractor.py` | Select well-formed example sentences |
-| 5. CEFR Classification | `nlp/cefr_classifier.py` | Rule-based lookup, then LLM fallback via scads.ai |
-| 6. Domain Tagging | `domain_tagger.py` | Score and filter by domain relevance |
-| 7. DB Storage | `pipeline.py` → `db/` | Upsert terms and phrases to SQLite |
-
-**CEFR Classification Strategy:**
-1. Look up lemma in bundled frequency lists (Oxford 5000, English Profile, Kelly list)
-2. If found → assign level with method `FREQUENCY_LIST`
-3. If not found → call scads.ai with a structured classification prompt
-4. If LLM response is valid JSON → assign level with method `LLM_FALLBACK`
-5. If all else fails → assign `UNKNOWN` for manual review
-
-### Learning Paths (`langwich.paths`)
-
-Paths are ordered lists of `PathStep` objects. Each step specifies an exercise type and optional configuration. A vocabulary page is always ensured as the first step.
-
-**Built-in paths:**
-- Vocabulary Focus — term-heavy (matching, synonyms, fill-blanks, translation)
-- Reading First — comprehension-led (passage, then vocabulary consolidation)
-- Balanced — mix of receptive and productive exercises
-- Production — emphasises creative writing and summaries
-- Multimedia — incorporates YouTube video tasks
-
-Paths support serialisation to/from JSON for user customisation and curriculum design.
-
-### Exercises (`langwich.exercises`)
-
-Each exercise is a class that implements two methods:
-- `generate(vocabulary, phrases, level)` → `ExerciseContent` (data model)
-- `render(content)` → `list[Flowable]` (ReportLab PDF elements)
-
-**Exercise types:**
-- VocabMatching — match terms to translations
-- FillBlanks — complete sentences with missing words
-- Synonyms — identify words with similar meanings
-- Translation — translate sentences between languages
-- ReadingComprehension — read a passage and answer questions
-- CreativeWriting — open-ended writing prompts
-- TextSummary — summarise a passage
-- YouTubeTask — video comprehension with QR code/URL
-- DrawingTask — sketch/diagram response area
-
-### Rendering (`langwich.rendering`)
-
-The PDF engine uses ReportLab with a Cupertino-style design system:
-- `styles.py` — typography (Helvetica family), colour palette, spacing scale
-- `components.py` — reusable elements (info boxes, writing lines, drawing areas)
-- `pdf_renderer.py` — assembles the full document with headers, footers, and page numbers
-
-### Generator (`langwich.generator`)
-
-`WorksheetGenerator` is the top-level orchestrator:
-1. Loads vocabulary and phrases from the domain database
-2. Iterates through the learning path steps
-3. Instantiates the appropriate exercise class for each step
-4. Generates content and renders flowables
-5. Passes all flowables to `PDFRenderer` for final PDF assembly
-
----
-
-## Configuration
-
-All settings are managed via Pydantic Settings with `.env` file support:
-- `ScadsConfig` — LLM API endpoint, model, temperature
-- `MiningConfig` — rate limits, timeouts, max sources
-- `PDFConfig` — page dimensions, margins, output directory
-- `AppConfig` — aggregates all sub-configs
-
----
-
-## Data Flow Summary
+## The five subsystems
 
 ```
-Open Sources → Mining Pipeline → SQLite DB → Worksheet Generator → PDF
+            ┌──────────────┐
+  JSON ───▶ │  text.py     │  SourceText: story, vocabulary, grammar,
+            │  (model)     │  picture scene (structured), compounds
+            └──────┬───────┘
+                   │
+            ┌──────▼───────┐
+            │  graph.py    │  ExerciseGraph: 18 ExerciseNode subclasses with
+            │  (knowledge) │  CEFR range, difficulty, focus, edges, titles
+            └──────┬───────┘
+                   │ select_exercises()  (cli.py: CEFR + focus + combinability)
+            ┌──────▼───────┐
+            │  plan.py     │  order by type→difficulty; thread ONE
+            │  (orchestr.) │  MaterialLedger so nothing overlaps
+            └──────┬───────┘
+                   │ generate_exercise() per node  (generate.py, data-driven)
+            ┌──────▼───────┐
+            │ render.py    │  one design system → PDF
+            └──────────────┘
 ```
 
-The mining pipeline and worksheet generation are decoupled by the database. You can mine vocabulary once and generate many different worksheets from the same database using different paths and levels.
+### 1. Text model (`text.py`)
+
+`SourceText` is the whole input. Besides the story (`content` + `translation`),
+it holds:
+
+- `vocabulary` → `VocabularyNode` of `VocabularyItem`s (term, translation, pos,
+  semantic type, optional synonym/antonym);
+- `grammar` → `GrammarNode` of `GrammarPhenomenon`s (the "grammatical twists");
+- `picture_scene` → `PictureScene` of **structured** `SceneElement`s, each with
+  an optional target-language `color` and `position`;
+- `compounds` → optional `Compound`s for the morphology exercise.
+
+The structured scene is the key to topic-agnosticism: a picture exercise reads
+an element's declared colour/position rather than assuming anything.
+
+### 2. Knowledge graph (`graph.py`)
+
+`ExerciseGraph` holds resource nodes and 18 `ExerciseNode` subclasses across
+three types (Fill-in-Blanks, Picture, Word Connections). Each node carries the
+metadata selection and rendering depend on: `cefr_range`, `difficulty`,
+`learning_focus`, `estimated_minutes`, `combinable_with`, and the learner-facing
+`display_name` / `short_instruction`. Edges (`feeds_vocabulary_to`,
+`combines_with`, …) describe relationships. The graph is the single source of
+truth for *what exists*.
+
+### 3. Generation (`generate.py`)
+
+Pure, deterministic generators turn a node + text into an `ExerciseInstance`.
+They are strictly **data-driven** — no topic-specific constants. A shared
+`MaterialLedger` records every sentence and word already used, so each generator
+skips spent material.
+
+### 4. Planning (`plan.py`)
+
+`build_worksheet()` orders the chosen exercises (word-connection warm-ups →
+gap-fills that walk the story in document order → picture/production tasks),
+creates one `MaterialLedger`, and runs every generator through it. Result: a
+sheet that develops as one story with **no overlapping content**.
+
+### 5. Rendering (`render.py`)
+
+A single design system (one type scale, one palette) lays out: a story page,
+numbered exercise blocks (each `KeepTogether` so headers never orphan), a grammar
+reference, a vocabulary table, and an answer key.
+
+## Invariants
+
+- **Determinism** — `(JSON, seed)` fully determines the PDF. No wall-clock, no
+  unseeded randomness in generation.
+- **No overlap** — within one worksheet, no sentence and no tested word is
+  reused across exercises (enforced by the shared ledger).
+- **No hard-coded content** — generators read facts from the `SourceText` only.
+- **Graph is canonical** — titles, instructions, difficulty, CEFR ranges and
+  focus all live on `ExerciseNode`, not scattered in the renderer.
+- **E-paper / print friendly** — high contrast, restrained colour, A4.
+
+## Adding an exercise subclass
+
+1. Add an `ExerciseNode` in `graph.py` → `build_default_graph()` (id, type,
+   difficulty, CEFR range, focus, `combinable_with`), and a `_LEARNER_META`
+   entry for its title + rubric.
+2. Add any edges relating it to existing nodes.
+3. Implement generation in `generate.py` (read only from `SourceText`; reserve
+   what you consume on the `MaterialLedger`).
+4. The renderer dispatches by id prefix (`fib_*`, `pic_*`, `wc_*`); add a branch
+   if the body layout is new.
+
+See the Mermaid sources in this directory (`class_diagram.mermaid`,
+`process_diagram.mermaid`) for visual versions; render them with
+`python scripts/render_diagrams.py`.

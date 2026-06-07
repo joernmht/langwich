@@ -26,6 +26,12 @@ from enum import Enum
 # Enums
 # ---------------------------------------------------------------------------
 
+# CEFR levels in ascending order, for range comparisons.
+CEFR_ORDER: dict[str, int] = {
+    "A1": 0, "A2": 1, "B1": 2, "B2": 3, "C1": 4, "C2": 5,
+}
+
+
 class NodeType(str, Enum):
     RESOURCE = "resource"
     EXERCISE = "exercise"
@@ -177,6 +183,13 @@ class GrammarNode(GraphNode):
 
 # ── Exercise nodes ────────────────────────────────────────────────────
 
+EXERCISE_TYPE_LABELS: dict[ExerciseType, str] = {
+    ExerciseType.FILL_IN_BLANKS: "Fill in the Blanks",
+    ExerciseType.PICTURE_INTERACTION: "Picture Task",
+    ExerciseType.WORD_CONNECTIONS: "Word Connections",
+}
+
+
 @dataclass
 class ExerciseNode(GraphNode):
     """One exercise subclass in the knowledge graph."""
@@ -189,6 +202,10 @@ class ExerciseNode(GraphNode):
     pre_knowledge: list[str] = field(default_factory=list)
     estimated_minutes: int = 5
     example: dict = field(default_factory=dict)
+
+    # Learner-facing presentation (no internal jargon on the worksheet)
+    display_name: str = ""  # printed as the exercise title, e.g. "Word Bank"
+    short_instruction: str = ""  # the rubric printed under the title
 
     # FIB-specific
     hint_type: str | None = None
@@ -205,10 +222,26 @@ class ExerciseNode(GraphNode):
     def __post_init__(self) -> None:
         self.node_type = NodeType.EXERCISE
 
+    @property
+    def type_label(self) -> str:
+        return EXERCISE_TYPE_LABELS.get(self.exercise_type, self.exercise_type.value)
+
+    @property
+    def title(self) -> str:
+        """Learner-facing title, e.g. 'Fill in the Blanks · Word Bank'."""
+        sub = self.display_name or self.name.split(":", 1)[-1].strip()
+        return f"{self.type_label} · {sub}"
+
+    @property
+    def focus_label(self) -> str:
+        return ", ".join(f.value.replace("_", " ") for f in self.learning_focus)
+
     def to_dict(self) -> dict:
         d = super().to_dict()
         d.update({
             "exercise_type": self.exercise_type.value,
+            "display_name": self.display_name,
+            "short_instruction": self.short_instruction,
             "description": self.description,
             "difficulty": self.difficulty,
             "cefr_range": list(self.cefr_range),
@@ -299,6 +332,88 @@ class ExerciseGraph:
             "nodes": {nid: n.to_dict() for nid, n in self.nodes.items()},
             "edges": [e.to_dict() for e in self.edges],
         }
+
+
+# ---------------------------------------------------------------------------
+# Learner-facing presentation copy (kept out of the structural node defs)
+# ---------------------------------------------------------------------------
+
+# (display_name, short_instruction) per exercise id.  These are what a student
+# reads on the worksheet — clear, free of internal jargon.
+_LEARNER_META: dict[str, tuple[str, str]] = {
+    "fib_word_bank": (
+        "Word Bank",
+        "Complete each sentence with a word from the bank. Each word is used once.",
+    ),
+    "fib_first_letter": (
+        "First Letter",
+        "Complete each sentence. The first letter of the missing word is given.",
+    ),
+    "fib_multiple_choice": (
+        "Multiple Choice",
+        "Choose the word that correctly completes each sentence.",
+    ),
+    "fib_translation_hint": (
+        "With a Hint",
+        "Complete each sentence. The translation of the missing word is in brackets.",
+    ),
+    "fib_base_form": (
+        "Correct Form",
+        "Put the word in brackets into the correct form to complete the sentence.",
+    ),
+    "fib_no_hint": (
+        "From Memory",
+        "Complete each sentence from memory — no hints this time.",
+    ),
+    "fib_full_translation": (
+        "Guided Translation",
+        "Complete the gaps. The full translation is printed below each sentence.",
+    ),
+    "pic_color_query": (
+        "Colours",
+        "Look at the picture and answer in a full sentence.",
+    ),
+    "pic_element_marking": (
+        "Find & Mark",
+        "Find and circle each item in the picture.",
+    ),
+    "pic_position": (
+        "Where Is It?",
+        "Describe where each item is, using a preposition and a full sentence.",
+    ),
+    "pic_object_naming": (
+        "Name the Objects",
+        "Write the word for each marked object in the picture.",
+    ),
+    "pic_scene_description": (
+        "Describe the Scene",
+        "Describe the picture in your own words.",
+    ),
+    "pic_fib": (
+        "Picture Gaps",
+        "Fill the gaps using what you can see in the picture.",
+    ),
+    "wc_translation": (
+        "Match the Translations",
+        "Draw a line from each word to its translation.",
+    ),
+    "wc_synonym": (
+        "Match the Synonyms",
+        "Draw a line from each word to a word with a similar meaning.",
+    ),
+    "wc_antonym": (
+        "Match the Opposites",
+        "Draw a line from each word to its opposite.",
+    ),
+    "wc_category": (
+        "Sort into Groups",
+        "Write each word under the group it belongs to.",
+    ),
+    "wc_compound": (
+        "Build Compounds",
+        "Join a word on the left with one on the right to build a compound word.",
+    ),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -678,8 +793,11 @@ def build_default_graph() -> ExerciseGraph:
         ),
     ]
 
-    # Register all exercise nodes
+    # Register all exercise nodes, attaching learner-facing presentation copy.
     for node in fib_nodes + pic_nodes + wc_nodes:
+        display, instruction = _LEARNER_META.get(node.id, ("", ""))
+        node.display_name = display
+        node.short_instruction = instruction
         g.add_node(node)
 
     # ── Edges ─────────────────────────────────────────────────────────
