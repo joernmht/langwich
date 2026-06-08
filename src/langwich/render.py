@@ -387,6 +387,11 @@ def _render_comprehension(ex: ExerciseInstance, styles: dict) -> list:
                     "<font color='#5B6B82'>(&nbsp;&nbsp;) true"
                     "&nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;) false</font>")
             out.append(Paragraph(line, styles["item"]))
+    elif ex.node_id == "comp_sequence":
+        for it in ex.items:
+            line = (f"<font color='#5B6B82'>(&nbsp;&nbsp;&nbsp;)</font>"
+                    f"&nbsp;&nbsp;<b>{it['letter']}.</b>&nbsp;&nbsp;{it['text']}")
+            out.append(Paragraph(line, styles["item"]))
     return out
 
 
@@ -527,6 +532,9 @@ def _solution_line(s: dict) -> str:
         return f"{s['left']} + {s['right']} = {s['compound']}"
     if "words" in s:
         return f"<b>{s.get('category', '')}:</b> {', '.join(s['words'])}"
+    if "sequence" in s:
+        order = "  ".join(f"{i}.{ltr}" for i, ltr in enumerate(s["sequence"], 1))
+        return f"Correct order:  {order}"
     if "letter" in s:
         return f"{s['number']} → {s['letter']}"
     return ""

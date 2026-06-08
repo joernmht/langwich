@@ -134,6 +134,10 @@ def select_exercises(
             return False
         if node.id == "comp_true_false" and not text.true_false:
             return False
+        if node.id == "comp_sequence" and not (
+            text.summary or len(text.paragraphs) >= 4
+        ):
+            return False
         return True
 
     def score(node) -> tuple:

@@ -2,7 +2,7 @@
 
 **Graph-based language learning worksheet generator.**
 
-langwich uses an exercise knowledge graph to generate PDF worksheets from any source text — including a newspaper article you paste in. The text is the gold mine: vocabulary, grammar, comprehension and exercises all derive from it. Four exercise families (Fill-in-Blanks, Picture Interaction, Word Connections, Reading & Comprehension) with 20 subclasses cover vocabulary, grammar, word manipulation, comprehension, creativity, and spatial language. A reworded **summary** drives the gap-fills, so the worksheet practises the material in fresh wording instead of re-printing the text.
+langwich uses an exercise knowledge graph to generate PDF worksheets from any source text — including a newspaper article you paste in. The text is the gold mine: vocabulary, grammar, comprehension and exercises all derive from it. Four exercise families (Fill-in-Blanks, Picture Interaction, Word Connections, Reading & Comprehension) with 21 subclasses cover vocabulary, grammar, word manipulation, comprehension, creativity, and spatial language. A reworded **summary** drives the gap-fills, so the worksheet practises the material in fresh wording instead of re-printing the text.
 
 ---
 
@@ -54,7 +54,7 @@ GraphNode (base)
 ├── ResourceNode
 │   ├── VocabularyNode   — words with translation, pos, semantic type, synonym, antonym
 │   └── GrammarNode      — grammar phenomena found in the text
-└── ExerciseNode         — 20 subclasses across 4 families
+└── ExerciseNode         — 21 subclasses across 4 families
 ```
 
 ### Exercise types by difficulty
@@ -76,6 +76,7 @@ GraphNode (base)
 | 3 | `pic_position` | Picture | Position Description | spatial language |
 | 3 | `pic_fib` | Picture | Picture Fill-in-Blanks | vocabulary, grammar |
 | 3 | `comp_true_false` | Comprehension | True or False | reading comprehension |
+| 3 | `comp_sequence` | Comprehension | Order the Events | reading comprehension |
 | 4 | `comp_questions` | Comprehension | Open Questions | reading comprehension |
 | 4 | `fib_base_form` | FIB | Base Form | word manipulation, grammar |
 | 4 | `fib_no_hint` | FIB | No Hint | vocabulary, recall |

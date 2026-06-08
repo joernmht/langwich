@@ -424,6 +424,10 @@ _LEARNER_META: dict[str, tuple[str, str]] = {
         "Decide whether each statement about the text is true or false, "
         "and correct the false ones.",
     ),
+    "comp_sequence": (
+        "Order the Events",
+        "Number the statements in the order they happen in the text.",
+    ),
 }
 
 
@@ -842,6 +846,25 @@ def build_default_graph() -> ExerciseGraph:
                     {"text": "Kaffee wächst nur in Europa.", "is_true": False},
                     {"text": "Dunkle Röstung schmeckt kräftig.", "is_true": True},
                 ],
+            },
+        ),
+        ExerciseNode(
+            id="comp_sequence",
+            name="Comprehension: Order the Events",
+            exercise_type=ExerciseType.COMPREHENSION,
+            description="Scrambled stages of the text; the learner reconstructs the "
+            "order — a discourse-level comprehension task.",
+            difficulty=3,
+            cefr_range=("A2", "C2"),
+            learning_focus=[LearningFocus.READING_COMPREHENSION],
+            pre_knowledge=["reading comprehension", "discourse markers"],
+            estimated_minutes=5,
+            combinable_with=["comp_questions", "comp_true_false"],
+            example={
+                "scrambled": ["Die Bohnen werden geröstet.",
+                              "Die Kaffeepflanze wächst in den Tropen.",
+                              "Eine Tasse Kaffee bedeutet eine Pause."],
+                "answer": [2, 1, 3],
             },
         ),
     ]

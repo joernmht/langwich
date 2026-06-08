@@ -298,3 +298,23 @@ class TestRecapNotRepetition:
         text = SourceText.from_dict(data)
         ex = generate_exercise(_node(graph, "fib_word_bank"), text)
         assert ex is not None and ex.items  # still works, from the article
+
+
+class TestSequence:
+    def test_order_events_produces_scrambled_items_and_key(
+        self, coffee_text: SourceText, graph,
+    ) -> None:
+        ex = generate_exercise(_node(graph, "comp_sequence"), coffee_text)
+        assert ex is not None
+        assert len(ex.items) >= 3
+        assert all("letter" in it and "text" in it for it in ex.items)
+        seq = ex.solution[0]["sequence"]
+        # the answer key is a permutation of the displayed letters
+        assert sorted(seq) == sorted(it["letter"] for it in ex.items)
+
+    def test_sequence_none_when_too_short(self, graph) -> None:
+        text = SourceText(
+            title="t", content="Only one sentence here.", translation="x",
+            source_lang="en", target_lang="de", cefr_level="A1", topic="t",
+        )
+        assert generate_exercise(_node(graph, "comp_sequence"), text) is None

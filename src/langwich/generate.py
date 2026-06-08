@@ -161,7 +161,7 @@ def generate_exercise(
     elif node.exercise_type == ExerciseType.WORD_CONNECTIONS:
         inst = _generate_word_connections(node, text, rng, ledger)
     elif node.exercise_type == ExerciseType.COMPREHENSION:
-        inst = _generate_comprehension(node, text)
+        inst = _generate_comprehension(node, text, rng)
     else:
         inst = None
 
@@ -500,10 +500,43 @@ def _pretty(semantic_type: str) -> str:
 # Comprehension
 # ---------------------------------------------------------------------------
 
+def _sequence_units(text: SourceText) -> list[str]:
+    """Orderable stages of the text.
+
+    Prefers the reworded ``summary`` (so we don't re-show the article); falls back
+    to the opening sentence of each article paragraph.
+    """
+    summ = [s for _i, s in _split_sentences(text.summary_paragraphs)]
+    if len(summ) >= 4:
+        return summ
+    paras = text.paragraphs
+    if len(paras) >= 4:
+        leads = []
+        for p in paras:
+            first = re.split(r"(?<=[.!?])\s+", p)[0].strip()
+            if first:
+                leads.append(first)
+        return leads
+    return summ  # may be < 3; caller decides
+
+
 def _generate_comprehension(
-    node: ExerciseNode, text: SourceText
+    node: ExerciseNode, text: SourceText, rng: random.Random
 ) -> ExerciseInstance | None:
     ex = _shell(node)
+
+    if node.id == "comp_sequence":
+        units = _sequence_units(text)[:6]
+        if len(units) < 3:
+            return None
+        order = list(range(len(units)))
+        rng.shuffle(order)
+        for disp, orig in enumerate(order):
+            ex.items.append({"letter": chr(65 + disp), "text": units[orig]})
+        # The correct reading order, expressed as the displayed letters.
+        sequence = [chr(65 + order.index(k)) for k in range(len(units))]
+        ex.solution.append({"sequence": sequence})
+        return ex
 
     if node.id == "comp_questions":
         if not text.questions:
