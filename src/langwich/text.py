@@ -229,6 +229,11 @@ class SourceText:
     questions: list[Question] = field(default_factory=list)
     true_false: list[Statement] = field(default_factory=list)
     facts: list[Fact] = field(default_factory=list)
+    # Ordered stages of the process the text describes (target language) — drives
+    # the process-chart task.
+    process: list[str] = field(default_factory=list)
+    # An open discussion / opinion prompt (target language) for a production task.
+    discussion: str | None = None
 
     # -- derived views -----------------------------------------------------
     @property
@@ -280,6 +285,10 @@ class SourceText:
             d["true_false"] = [s.to_dict() for s in self.true_false]
         if self.facts:
             d["facts"] = [f.to_dict() for f in self.facts]
+        if self.process:
+            d["process"] = list(self.process)
+        if self.discussion:
+            d["discussion"] = self.discussion
         return d
 
     @classmethod
@@ -300,6 +309,8 @@ class SourceText:
             questions=[Question.from_any(q) for q in _questions_of(data)],
             true_false=[Statement.from_dict(s) for s in data.get("true_false", [])],
             facts=[Fact.from_any(f) for f in data.get("facts", [])],
+            process=list(data.get("process", [])),
+            discussion=data.get("discussion"),
         )
 
 

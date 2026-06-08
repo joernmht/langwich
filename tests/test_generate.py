@@ -318,3 +318,35 @@ class TestSequence:
             source_lang="en", target_lang="de", cefr_level="A1", topic="t",
         )
         assert generate_exercise(_node(graph, "comp_sequence"), text) is None
+
+
+class TestNewTaskTypes:
+    def test_process_chart(self, coffee_text: SourceText, graph) -> None:
+        ex = generate_exercise(_node(graph, "fib_process"), coffee_text)
+        assert ex is not None
+        steps = ex.items[0]["steps"]
+        assert len(steps) == len(coffee_text.process)
+        blanks = [s for s in steps if "number" in s]
+        assert blanks and len(ex.word_bank) == len(blanks) == len(ex.solution)
+        # first and last stage are always given (anchors)
+        assert "text" in steps[0] and "text" in steps[-1]
+
+    def test_process_none_when_no_steps(self, coffee_data: dict, graph) -> None:
+        data = dict(coffee_data)
+        data.pop("process", None)
+        text = SourceText.from_dict(data)
+        assert generate_exercise(_node(graph, "fib_process"), text) is None
+
+    def test_vocab_lookup(self, coffee_text: SourceText, graph) -> None:
+        ex = generate_exercise(_node(graph, "voc_lookup"), coffee_text)
+        assert ex is not None and ex.items[0]["rows"] > 0
+
+    def test_discussion(self, coffee_text: SourceText, graph) -> None:
+        ex = generate_exercise(_node(graph, "prod_discussion"), coffee_text)
+        assert ex is not None and ex.items[0]["prompt"] == coffee_text.discussion
+
+    def test_discussion_none_without_prompt(self, coffee_data: dict, graph) -> None:
+        data = dict(coffee_data)
+        data.pop("discussion", None)
+        text = SourceText.from_dict(data)
+        assert generate_exercise(_node(graph, "prod_discussion"), text) is None

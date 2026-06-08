@@ -89,6 +89,11 @@ def main(argv: list[str] | None = None) -> None:
 # Automatic exercise selection (CEFR + focus + combinability)
 # ---------------------------------------------------------------------------
 
+# The exercise difficulty that best suits each level (1–5). Keeps an adult B1
+# sheet from defaulting to the easiest, most childish tasks.
+_TARGET_DIFFICULTY = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 4, "C2": 5}
+
+
 def _parse_focus(raw: str | None) -> list[LearningFocus]:
     if not raw:
         return []
@@ -113,12 +118,14 @@ def select_exercises(
     """Pick a coherent set of exercises for this text.
 
     Strategy: keep only exercises within the text's CEFR band and whose material
-    actually exists (a picture task needs a scene; compounds need compound data).
-    Then take the best-fitting exercise of each *type* — preferring the requested
-    focus, otherwise the gentlest difficulty — and round it out with one
-    complementary partner via the graph's ``combinable_with`` edges.
+    actually exists. Then build a varied, level-appropriate sheet: pick the
+    exercise of each *type* whose difficulty best matches the learner's level
+    (so an adult B1 sheet isn't all "circle the cup"), always include the
+    comprehension and distinctive visual tasks when their material exists, and
+    keep a gentle matching warm-up.
     """
     level = text.cefr_level
+    target = _TARGET_DIFFICULTY.get(level, 3)
     has_scene = text.picture_scene is not None
     has_compounds = bool(text.compounds)
     focus_set = set(focus)
@@ -138,42 +145,49 @@ def select_exercises(
             text.summary or len(text.paragraphs) >= 4
         ):
             return False
+        if node.id == "fib_process" and len(text.process) < 3:
+            return False
+        if node.id == "prod_discussion" and not text.discussion:
+            return False
         return True
 
     def score(node) -> tuple:
         focus_hit = len(focus_set.intersection(node.learning_focus))
-        # Higher focus match first; then easier first (gentle ramp).
-        return (-focus_hit, node.difficulty)
+        # Best focus match, then closest difficulty to the level (ties → harder).
+        return (-focus_hit, abs(node.difficulty - target), -node.difficulty)
+
+    # Families whose every available subtype belongs on the sheet (varied,
+    # non-repetitive cores) vs. those we pick one best-fitting task from.
+    include_all = {ExerciseType.COMPREHENSION, ExerciseType.VOCABULARY,
+                   ExerciseType.PRODUCTION}
+    order = (ExerciseType.VOCABULARY, ExerciseType.WORD_CONNECTIONS,
+             ExerciseType.COMPREHENSION, ExerciseType.FILL_IN_BLANKS,
+             ExerciseType.PICTURE_INTERACTION, ExerciseType.PRODUCTION)
 
     chosen: list[str] = []
-    for etype in (ExerciseType.WORD_CONNECTIONS,
-                  ExerciseType.COMPREHENSION,
-                  ExerciseType.FILL_IN_BLANKS,
-                  ExerciseType.PICTURE_INTERACTION):
+    for etype in order:
         candidates = [n for n in graph.get_by_type(etype) if usable(n)]
         if not candidates:
             continue
-        # Comprehension is the demanding, non-repetitive core of the sheet —
-        # include every subtype whose material exists, not just the best.
-        if etype == ExerciseType.COMPREHENSION:
+        if etype in include_all:
             chosen.extend(n.id for n in sorted(candidates, key=score))
             continue
         best = sorted(candidates, key=score)[0]
         chosen.append(best.id)
-        # If a focus was requested, also add the next best distinct match.
         if focus_set:
             extras = [n for n in candidates
                       if n.id != best.id and focus_set.intersection(n.learning_focus)]
             if extras:
                 chosen.append(sorted(extras, key=score)[0].id)
 
-    # Add one complementary partner for the first chosen exercise, if usable.
-    if chosen:
-        for cid in graph.nodes[chosen[0]].combinable_with:  # type: ignore[attr-defined]
-            node = graph.nodes.get(cid)
-            if node and cid not in chosen and usable(node):
-                chosen.append(cid)
-                break
+    # The process chart is a distinctive visual task — always include it when the
+    # text provides process steps, even if another FIB was already chosen.
+    if "fib_process" not in chosen and usable(graph.nodes["fib_process"]):  # type: ignore[arg-type]
+        chosen.append("fib_process")
+
+    # Keep a gentle matching warm-up at the front if it isn't already there.
+    if "wc_translation" not in chosen and usable(graph.nodes["wc_translation"]):  # type: ignore[arg-type]
+        chosen.insert(0, "wc_translation")
 
     return chosen
 

@@ -2,7 +2,7 @@
 
 **Graph-based language learning worksheet generator.**
 
-langwich uses an exercise knowledge graph to generate PDF worksheets from any source text — including a newspaper article you paste in. The text is the gold mine: vocabulary, grammar, comprehension and exercises all derive from it. Four exercise families (Fill-in-Blanks, Picture Interaction, Word Connections, Reading & Comprehension) with 21 subclasses cover vocabulary, grammar, word manipulation, comprehension, creativity, and spatial language. A reworded **summary** drives the gap-fills, so the worksheet practises the material in fresh wording instead of re-printing the text.
+langwich uses an exercise knowledge graph to generate PDF worksheets from any source text — including a newspaper article you paste in. The text is the gold mine: vocabulary, grammar, comprehension and exercises all derive from it. Six exercise families (Fill-in-Blanks, Picture, Word Connections, Reading & Comprehension, Vocabulary Work, Writing & Discussion) with 24 subclasses cover everything from a fill-in **process chart** to demanding comprehension and an opinion essay. A reworded **summary** drives the gap-fills, so the worksheet practises the material in fresh wording instead of re-printing the text, and the default selection is level-aware so an adult B1 sheet isn't all "circle the cup".
 
 ---
 
@@ -54,7 +54,7 @@ GraphNode (base)
 ├── ResourceNode
 │   ├── VocabularyNode   — words with translation, pos, semantic type, synonym, antonym
 │   └── GrammarNode      — grammar phenomena found in the text
-└── ExerciseNode         — 21 subclasses across 4 families
+└── ExerciseNode         — 24 subclasses across 6 families
 ```
 
 ### Exercise types by difficulty
@@ -75,9 +75,12 @@ GraphNode (base)
 | 3 | `wc_antonym` | WordConn | Antonyms | vocabulary |
 | 3 | `pic_position` | Picture | Position Description | spatial language |
 | 3 | `pic_fib` | Picture | Picture Fill-in-Blanks | vocabulary, grammar |
+| 2 | `voc_lookup` | Vocabulary | Find Unknown Words | vocabulary, reading |
 | 3 | `comp_true_false` | Comprehension | True or False | reading comprehension |
 | 3 | `comp_sequence` | Comprehension | Order the Events | reading comprehension |
+| 3 | `fib_process` | FIB | Complete the Process (chart) | vocabulary, reading |
 | 4 | `comp_questions` | Comprehension | Open Questions | reading comprehension |
+| 4 | `prod_discussion` | Production | Discussion & Opinion | creativity, grammar |
 | 4 | `fib_base_form` | FIB | Base Form | word manipulation, grammar |
 | 4 | `fib_no_hint` | FIB | No Hint | vocabulary, recall |
 | 4 | `wc_compound` | WordConn | Compounds | morphology |
@@ -193,6 +196,8 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
 | `questions` | No | Comprehension questions `{prompt, answer, kind}` (native language) |
 | `true_false` | No | True/false statements `{text, is_true}` about the text (target language) |
 | `facts` | No | Real science/history/culture notes `{text, source}` in the **target language** → a "Facts & Culture" lead-in before the story |
+| `process` | No | Ordered stages of the process the text describes (target language) → the fill-in **process chart** |
+| `discussion` | No | An open opinion/discussion prompt (target language) → the production task |
 
 **Vocabulary item fields:** `term` (required), `translation` (required), `pos` (noun/verb/adjective/adverb/preposition), `semantic_type` (color/position/food/drink/clothing/furniture/...), `synonym` (optional), `antonym` (optional).
 

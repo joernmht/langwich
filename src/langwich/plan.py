@@ -28,10 +28,12 @@ from langwich.text import SourceText
 # Order in which exercise *types* should appear on a finished sheet.  Within a
 # type, difficulty (then the order requested) breaks ties.
 _TYPE_ORDER = {
-    ExerciseType.WORD_CONNECTIONS: 0,     # warm up: recognise vocabulary
-    ExerciseType.COMPREHENSION: 1,        # engage with the text (read → think)
-    ExerciseType.FILL_IN_BLANKS: 2,       # language focus, on a reworded recap
-    ExerciseType.PICTURE_INTERACTION: 3,  # apply it to a scene / produce language
+    ExerciseType.VOCABULARY: 0,           # while reading: note unknown words
+    ExerciseType.WORD_CONNECTIONS: 1,     # warm up: recognise vocabulary
+    ExerciseType.COMPREHENSION: 2,        # engage with the text (read → think)
+    ExerciseType.FILL_IN_BLANKS: 3,       # language focus, on a recap / a chart
+    ExerciseType.PICTURE_INTERACTION: 4,  # apply it to a scene
+    ExerciseType.PRODUCTION: 5,           # produce: write / discuss
 }
 
 

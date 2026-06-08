@@ -16,6 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from reportlab import rl_config
+from reportlab.graphics.shapes import Drawing, Line, Polygon
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
@@ -99,6 +100,10 @@ def _styles() -> dict[str, ParagraphStyle]:
                    textColor=FAINT, alignment=TA_CENTER, leading=10),
         "tflbl": S("tflbl", fontName="Helvetica-Bold", fontSize=6.5,
                    textColor=FAINT, alignment=TA_CENTER, leading=8),
+        "procfill": S("procfill", fontName="Helvetica-Bold", fontSize=10.5,
+                      textColor=ACCENT_DK, alignment=TA_CENTER, leading=12),
+        "procblank": S("procblank", fontName="Helvetica", fontSize=10.5,
+                       textColor=MUTED, alignment=TA_CENTER, leading=12),
         "caption": S("caption", fontSize=8, textColor=FAINT, leading=11,
                      alignment=TA_CENTER),
         "prompt": S("prompt", fontSize=7.5, textColor=FAINT, leading=10),
@@ -165,8 +170,9 @@ def _writing_lines(count: int, width: float = CONTENT_W, indent: float = 0.0) ->
 
 def _exercise_header(ex: ExerciseInstance, index: int, styles: dict) -> Table:
     """Numbered badge + title + focus/time chips + rubric, as one block."""
+    badge_fs = 12.5 if index < 10 else 10
     badge = Table([[Paragraph(f'<font color="white"><b>{index}</b></font>',
-                              ParagraphStyle("b", fontSize=12.5, alignment=TA_CENTER,
+                              ParagraphStyle("b", fontSize=badge_fs, alignment=TA_CENTER,
                                              textColor=colors.white))]],
                   colWidths=[8.5 * mm], rowHeights=[8.5 * mm])
     badge.setStyle(TableStyle([
@@ -481,6 +487,8 @@ def _render_comprehension(ex: ExerciseInstance, styles: dict) -> list:
 
 
 def _render_body(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list:
+    if ex.node_id == "fib_process":
+        return _render_process(ex, styles)
     if ex.node_id.startswith("fib"):
         return _render_fib(ex, styles)
     if ex.node_id.startswith("pic"):
@@ -489,7 +497,84 @@ def _render_body(ex: ExerciseInstance, styles: dict, show_picture: bool) -> list
         return _render_word_connections(ex, styles)
     if ex.node_id.startswith("comp"):
         return _render_comprehension(ex, styles)
+    if ex.node_id.startswith("voc"):
+        return _render_vocab_lookup(ex, styles)
+    if ex.node_id.startswith("prod"):
+        return _render_production(ex, styles)
     return []
+
+
+def _process_box(step: dict, width: float, styles: dict) -> Table:
+    if "text" in step:
+        para = Paragraph(f"<b>{step['text']}</b>", styles["procfill"])
+        bg, border = TINT, ACCENT
+    else:
+        para = Paragraph(
+            f"<font color='#2F5BD0'><b>{step['number']}.</b></font>"
+            "&nbsp;&nbsp;______________", styles["procblank"])
+        bg, border = colors.white, HAIRLINE
+    t = Table([[para]], colWidths=[width], rowHeights=[9.5 * mm])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), bg),
+        ("BOX", (0, 0), (-1, -1), 0.9, border),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [5, 5, 5, 5]),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    t.hAlign = "CENTER"
+    return t
+
+
+def _arrow_down() -> Drawing:
+    d = Drawing(CONTENT_W, 5.5 * mm)
+    cx = CONTENT_W / 2
+    d.add(Line(cx, 5.5 * mm, cx, 1.4 * mm, strokeColor=ACCENT, strokeWidth=1.3))
+    d.add(Polygon(points=[cx - 1.7 * mm, 2.0 * mm, cx + 1.7 * mm, 2.0 * mm, cx, 0],
+                  fillColor=ACCENT, strokeColor=ACCENT))
+    d.hAlign = "CENTER"
+    return d
+
+
+def _render_process(ex: ExerciseInstance, styles: dict) -> list:
+    out: list = []
+    if ex.word_bank:
+        out.extend(_word_bank(ex.word_bank, styles))
+    steps = ex.items[0]["steps"] if ex.items else []
+    box_w = CONTENT_W * 0.6
+    chart: list = []
+    for i, st in enumerate(steps):
+        chart.append(_process_box(st, box_w, styles))
+        if i < len(steps) - 1:
+            chart.append(_arrow_down())
+    # Keep the whole flow chart on one page.
+    out.append(KeepTogether(chart))
+    out.append(Spacer(1, 2 * mm))
+    return out
+
+
+def _render_vocab_lookup(ex: ExerciseInstance, styles: dict) -> list:
+    rows_n = ex.items[0].get("rows", 8) if ex.items else 8
+    head = [Paragraph("<b>Word from the text</b>", styles["body"]),
+            Paragraph("<b>Meaning / translation</b>", styles["body"])]
+    data = [head] + [["", ""] for _ in range(rows_n)]
+    t = Table(data, colWidths=[CONTENT_W * 0.45, CONTENT_W * 0.55],
+              rowHeights=[7 * mm] * (rows_n + 1))
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), TINT),
+        ("GRID", (0, 0), (-1, -1), 0.5, HAIRLINE),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("TOPPADDING", (0, 0), (-1, 0), 1.5 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 1.5 * mm),
+    ]))
+    return [t]
+
+
+def _render_production(ex: ExerciseInstance, styles: dict) -> list:
+    it = ex.items[0] if ex.items else {}
+    out: list = [_panel(it.get("prompt", ""), styles), Spacer(1, 2.5 * mm)]
+    out.extend(_writing_lines(it.get("lines", 8)))
+    return out
 
 
 # ---------------------------------------------------------------------------

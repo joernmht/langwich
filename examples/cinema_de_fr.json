@@ -70,12 +70,13 @@
   },
   "summary": "Léa et son frère ont passé la soirée au cinéma. Après avoir acheté du pop-corn, ils ont regardé une comédie recommandée par un ami. Le réalisateur avait tourné certaines scènes en noir et blanc, et le public a applaudi à la fin. Léa a tellement aimé le film qu'elle l'a conseillé à ses amis.",
   "questions": [
-    {"kind": "inference", "prompt": "Woran erkennt man im Text, dass Léa den Film wirklich mochte? Nennen Sie zwei Belege.", "answer": "Sie hat am Ende applaudiert und den Film danach ihren Freunden empfohlen."},
-    {"kind": "cause-effect", "prompt": "Warum gingen Léa und ihr Bruder gerade in diese Vorstellung?", "answer": "Ein Freund hatte ihnen die französische Komödie empfohlen."},
-    {"kind": "vocabulary-in-context", "prompt": "Welche Farben werden im dritten Absatz genannt und zu welchen Gegenständen gehören sie?", "answer": "Die weiße Leinwand, der rote Sessel, die blaue Jacke und die grüne Lampe über der Tür."},
-    {"kind": "critical", "prompt": "Der Regisseur drehte einige Szenen in Schwarz-Weiß. Welche Wirkung könnte das auf die Zuschauer haben?", "answer": "Schwarz-Weiß kann eine besondere, künstlerische oder nostalgische Stimmung erzeugen und die Aufmerksamkeit auf Licht und Form lenken."},
-    {"kind": "grammar-in-context", "prompt": "Der Text steht im passé composé. Suchen Sie zwei Verben mit 'être' und erklären Sie die Angleichung des Partizips.", "answer": "Zum Beispiel 'sont allés' und 's'est assise' – das Partizip richtet sich in Geschlecht und Zahl nach dem Subjekt."}
+    {"kind": "inference", "prompt": "Comment voit-on dans le texte que Léa a vraiment aimé le film ? Citez deux indices.", "answer": "Elle a applaudi à la fin et elle a recommandé le film à ses amis."},
+    {"kind": "cause-effect", "prompt": "Pourquoi Léa et son frère sont-ils allés à cette séance précise ?", "answer": "Un ami leur avait recommandé cette comédie française."},
+    {"kind": "vocabulary-in-context", "prompt": "Quelles couleurs sont mentionnées dans le troisième paragraphe et à quels objets se rapportent-elles ?", "answer": "L'écran blanc, le siège rouge, la veste bleue et la lampe verte au-dessus de la porte."},
+    {"kind": "critical", "prompt": "Le réalisateur a tourné certaines scènes en noir et blanc. Quel effet cela peut-il avoir sur les spectateurs ?", "answer": "Le noir et blanc peut créer une ambiance particulière, artistique ou nostalgique."},
+    {"kind": "grammar-in-context", "prompt": "Le texte est au passé composé. Trouvez deux verbes conjugués avec « être » et expliquez l'accord du participe.", "answer": "Par exemple « sont allés » et « s'est assise » : le participe s'accorde en genre et en nombre avec le sujet."}
   ],
+  "discussion": "Certaines personnes préfèrent voir les films au cinéma, d'autres à la maison sur un écran. Rédigez un court texte (8–10 phrases) dans lequel vous défendez votre point de vue, en donnant des arguments concrets.",
   "true_false": [
     {"text": "Léa et son frère sont allés au théâtre.", "is_true": false},
     {"text": "Un ami a recommandé la comédie.", "is_true": true},

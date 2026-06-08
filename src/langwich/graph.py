@@ -42,6 +42,8 @@ class ExerciseType(str, Enum):
     PICTURE_INTERACTION = "picture"
     WORD_CONNECTIONS = "word_connections"
     COMPREHENSION = "comprehension"
+    VOCABULARY = "vocabulary_study"
+    PRODUCTION = "production"
 
 
 class LearningFocus(str, Enum):
@@ -189,6 +191,8 @@ EXERCISE_TYPE_LABELS: dict[ExerciseType, str] = {
     ExerciseType.PICTURE_INTERACTION: "Picture Task",
     ExerciseType.WORD_CONNECTIONS: "Word Connections",
     ExerciseType.COMPREHENSION: "Reading & Comprehension",
+    ExerciseType.VOCABULARY: "Vocabulary Work",
+    ExerciseType.PRODUCTION: "Writing & Discussion",
 }
 
 
@@ -428,6 +432,20 @@ _LEARNER_META: dict[str, tuple[str, str]] = {
         "Order the Events",
         "Number the statements in the order they happen in the text.",
     ),
+    "fib_process": (
+        "Complete the Process",
+        "Fill the missing stages of the process chart using the word bank.",
+    ),
+    "voc_lookup": (
+        "Find the Unknown Words",
+        "Underline the words in the text you don't understand. Look them up in the "
+        "Vocabulary list and note each one with its meaning.",
+    ),
+    "prod_discussion": (
+        "Discussion & Opinion",
+        "Write a well-structured response. Use the vocabulary and the grammar "
+        "from this worksheet, and give reasons for your view.",
+    ),
 }
 
 
@@ -577,6 +595,25 @@ def build_default_graph() -> ExerciseGraph:
                 "text": "Die ______ ernten die roten Kaffeekirschen von ______.",
                 "translation": "The farmers harvest the red coffee cherries by hand.",
                 "answers": ["Bauern", "Hand"],
+            },
+        ),
+        ExerciseNode(
+            id="fib_process",
+            name="FIB: Process Chart",
+            exercise_type=ExerciseType.FILL_IN_BLANKS,
+            description="A flow chart of the process the text describes, with some "
+            "stages blanked. Tests sequencing + vocabulary in a visual layout.",
+            difficulty=3,
+            cefr_range=("A2", "C2"),
+            learning_focus=[LearningFocus.VOCABULARY, LearningFocus.READING_COMPREHENSION],
+            pre_knowledge=["process vocabulary", "sequencing"],
+            estimated_minutes=6,
+            hint_type="word_bank",
+            blank_target="process_steps",
+            combinable_with=["comp_sequence", "fib_word_bank"],
+            example={
+                "steps": ["Anbau", "Ernte", "Trocknen", "Rösten", "Mahlen", "Brühen"],
+                "blanked": [1, 3],
             },
         ),
     ]
@@ -869,8 +906,45 @@ def build_default_graph() -> ExerciseGraph:
         ),
     ]
 
+    # ── Vocabulary work ───────────────────────────────────────────────
+    voc_nodes = [
+        ExerciseNode(
+            id="voc_lookup",
+            name="Vocabulary: Find Unknown Words",
+            exercise_type=ExerciseType.VOCABULARY,
+            description="The learner identifies words they don't know in the text "
+            "and looks them up — a self-directed reading strategy.",
+            difficulty=2,
+            cefr_range=("A1", "C2"),
+            learning_focus=[LearningFocus.VOCABULARY, LearningFocus.READING_COMPREHENSION],
+            pre_knowledge=["reading"],
+            estimated_minutes=5,
+            combinable_with=["wc_translation", "comp_questions"],
+            example={"rows": 7},
+        ),
+    ]
+
+    # ── Production (writing / discussion) ──────────────────────────────
+    prod_nodes = [
+        ExerciseNode(
+            id="prod_discussion",
+            name="Production: Discussion & Opinion",
+            exercise_type=ExerciseType.PRODUCTION,
+            description="An open, adult-level prompt asking the learner to argue a "
+            "position or reflect, using the worksheet's vocabulary and grammar.",
+            difficulty=4,
+            cefr_range=("B1", "C2"),
+            learning_focus=[LearningFocus.CREATIVITY, LearningFocus.GRAMMAR],
+            pre_knowledge=["sentence construction", "connectors"],
+            estimated_minutes=12,
+            combinable_with=["comp_questions"],
+            example={"prompt": "Ist Kaffee ein Genussmittel oder ein Grundbedürfnis? "
+                     "Begründen Sie Ihre Meinung."},
+        ),
+    ]
+
     # Register all exercise nodes, attaching learner-facing presentation copy.
-    for node in fib_nodes + pic_nodes + wc_nodes + comp_nodes:
+    for node in fib_nodes + pic_nodes + wc_nodes + comp_nodes + voc_nodes + prod_nodes:
         display, instruction = _LEARNER_META.get(node.id, ("", ""))
         node.display_name = display
         node.short_instruction = instruction

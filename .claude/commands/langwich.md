@@ -211,10 +211,30 @@ instead of re-printing the opening text — that one change is what stops a shee
 from feeling like "read this, now fill the same lines." Always include it.
 
 ### `questions` — comprehension (demanding, non-repetitive)
-4–6 open questions **in the native language**, each `{prompt, answer, kind}`.
-Mix `kind`s: inference, cause-effect, vocabulary-in-context, author's purpose,
-critical, grammar-in-context. They must require *thinking about* the text, not
-spotting a word. Provide a model `answer` for the key.
+4–6 open questions, each `{prompt, answer, kind}`. Mix `kind`s: inference,
+cause-effect, vocabulary-in-context, author's purpose, critical, evaluation,
+grammar-in-context. They must require *thinking about* the text, not spotting a
+word. Provide a model `answer` for the key.
+
+**Language of the questions:** at **A1–A2**, write the question prompts in the
+learner's **native** language. From **B1 up**, write them in the **target**
+language — at that level the learner should be reading and answering in the
+language they're learning. (True/false statements are always in the target
+language.)
+
+### `process` — the fill-in process chart
+If the text describes a process (a sequence of stages), list them in order in
+the target language, e.g. `["Anbau", "Ernte", "Trocknen", "Rösten", "Mahlen",
+"Brühen", "Servieren"]`. langwich renders a flow chart and blanks some stages
+for the learner to complete. 5–8 stages works best. A "from X to Y" text (field
+to café, raw material to product, request to delivery) is the ideal case.
+
+### `discussion` — a demanding production task
+One open opinion/discussion prompt **in the target language** that asks the
+learner to argue a position or weigh trade-offs (not just describe). Aim it at
+an adult: real stakes, room for an argued opinion, e.g. *"Some people pay
+several euros for a cup of specialty coffee, others find it wasteful. Argue your
+view in 8–10 sentences, addressing origin, quality and price."*
 
 ### `true_false` — quick comprehension check
 4–6 statements **in the target language** about the text, each
@@ -256,6 +276,14 @@ not a textbook filler paragraph:
 
 - **It must develop**, not list. A real arc — a hook, a turn, a payoff — or a
   line of argument that builds. The reader should *want* the next paragraph.
+- **One coherent text.** Don't graft an unrelated narrative scene onto an
+  expository piece (no "...and meanwhile a woman sits in a café" inside an
+  article about how coffee is grown). If you include a `picture_scene`, make it a
+  real moment *within* the same text — e.g. the final stage of the process — and
+  point `paragraph_index` at the paragraph that describes it.
+- **Write for an adult.** Assume an intelligent reader who happens to be learning
+  the language. The tasks should be worth a grown-up's time: argue, infer,
+  compare, evaluate — not "what colour is the cup".
 - **Embed facts, science and culture.** Weave in genuine, evidence-based detail:
   a mechanism, a discovery, a historical first, a cultural practice. Every topic
   has a scientific and a cultural angle — find it without forcing it. Add light

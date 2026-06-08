@@ -1,113 +1,116 @@
 {
-  "title": "Kaffee: Eine Reise um die Welt",
-  "content": "Jeden Morgen beginnt für Millionen von Menschen der Tag mit einer Tasse Kaffee. Aber woher kommt dieses beliebte Getränk eigentlich?\n\nDie Kaffeepflanze wächst in tropischen Ländern nahe dem Äquator. Die wichtigsten Anbaugebiete liegen in Brasilien, Kolumbien, Äthiopien und Vietnam. Die Bauern ernten die roten Kaffeekirschen von Hand und trocknen sie in der Sonne.\n\nIn einem kleinen Café in Wien sitzt eine junge Frau am Fenster. Vor ihr steht eine weiße Tasse mit einem Cappuccino. Der Milchschaum hat die Form eines Blattes. Neben der Tasse liegt ein Stück Apfelstrudel auf einem blauen Teller. Durch das Fenster sieht man eine alte Straße mit Kopfsteinpflaster und ein rotes Fahrrad, das an einer Laterne lehnt.\n\nNach der Ernte werden die Bohnen geröstet. Die Röstung bestimmt den Geschmack: helle Röstung schmeckt fruchtig und säuerlich, dunkle Röstung ist kräftig und bitter. In Deutschland trinken die Menschen am liebsten Filterkaffee, während in Italien der Espresso dominiert.\n\nKaffee ist mehr als ein Getränk – er bringt Menschen zusammen. Ob im Büro, im Café oder zu Hause: Eine Tasse Kaffee bedeutet oft eine kleine Pause vom Alltag.",
-  "translation": "Every morning, millions of people start the day with a cup of coffee. But where does this popular drink actually come from?\n\nThe coffee plant grows in tropical countries near the equator. The most important growing regions are in Brazil, Colombia, Ethiopia and Vietnam. The farmers harvest the red coffee cherries by hand and dry them in the sun.\n\nIn a small café in Vienna, a young woman sits by the window. In front of her is a white cup with a cappuccino. The milk foam has the shape of a leaf. Next to the cup lies a piece of apple strudel on a blue plate. Through the window you can see an old street with cobblestones and a red bicycle leaning against a lamppost.\n\nAfter the harvest, the beans are roasted. The roast determines the taste: light roast tastes fruity and acidic, dark roast is strong and bitter. In Germany, people prefer filter coffee, while in Italy espresso dominates.\n\nCoffee is more than a drink – it brings people together. Whether in the office, in a café or at home: a cup of coffee often means a small break from everyday life.",
+  "title": "Kaffee: Vom Feld bis ins Café",
+  "topic": "coffee",
   "source_lang": "en",
   "target_lang": "de",
   "cefr_level": "B1",
-  "topic": "coffee",
+  "content": "Nur wenige Getränke legen einen so weiten Weg zurück wie der Kaffee. Bevor er dampfend in der Tasse steht, durchläuft er viele Schritte – vom tropischen Feld bis zur Theke im Café.\n\nDie Kaffeepflanze wächst in den warmen Regionen nahe dem Äquator, etwa in Brasilien, Kolumbien und Äthiopien. Auf großen Plantagen reifen die Kaffeekirschen langsam in der Sonne. Sobald sie tiefrot und reif sind, ernten die Bauern sie meist von Hand.\n\nNach der Ernte werden die Bohnen aus den Kirschen gelöst, gewaschen und in der Sonne getrocknet. Erst dann sind die grünen Rohbohnen bereit für den wichtigsten Schritt.\n\nBeim Rösten entfaltet sich das Aroma. Die Dauer der Röstung bestimmt den Geschmack: Eine helle Röstung schmeckt fruchtig und säuerlich, eine dunkle Röstung kräftig und bitter.\n\nIm Café beginnt der letzte Schritt. Hinter der Theke steht eine große rote Espressomaschine. Der Barista trägt eine grüne Schürze, mahlt die frischen, braunen Bohnen und brüht daraus einen Espresso. Vorsichtig gießt er den warmen Milchschaum in eine weiße Tasse.\n\nSo wird aus einer kleinen Kirsche am Ende ein Getränk, das Menschen auf der ganzen Welt verbindet. Während man in Deutschland gern Filterkaffee trinkt, dominiert in Italien der Espresso.",
+  "translation": "Few drinks travel as far as coffee. Before it stands steaming in the cup, it passes through many steps — from the tropical field to the counter in the café.\n\nThe coffee plant grows in the warm regions near the equator, for example in Brazil, Colombia and Ethiopia. On large plantations the coffee cherries ripen slowly in the sun. As soon as they are deep red and ripe, the farmers usually harvest them by hand.\n\nAfter the harvest, the beans are removed from the cherries, washed and dried in the sun. Only then are the green raw beans ready for the most important step.\n\nDuring roasting, the aroma develops. The length of the roast determines the taste: a light roast tastes fruity and acidic, a dark roast strong and bitter.\n\nIn the café the last step begins. Behind the counter stands a large red espresso machine. The barista wears a green apron, grinds the fresh, brown beans and brews an espresso from them. Carefully he pours the warm milk foam into a white cup.\n\nSo, in the end, a small cherry becomes a drink that connects people all over the world. While people in Germany like to drink filter coffee, in Italy the espresso dominates.",
+  "process": ["Anbau", "Ernte", "Trocknen", "Rösten", "Mahlen", "Brühen", "Servieren"],
   "picture_scene": {
-    "description": "A cozy Viennese café interior. A young woman sits at a small round table by a large window. In front of her: a white ceramic cup of cappuccino with leaf-shaped latte art in the milk foam. Next to the cup on a blue plate sits a slice of golden apple strudel dusted with powdered sugar. Through the window: a charming old cobblestone street, and a red bicycle leaning against a black iron lamppost. Warm, soft lighting. Watercolor illustration style.",
-    "caption": "Ein Wiener Café — die Szene aus dem dritten Absatz.",
-    "paragraph_index": 2,
+    "description": "Inside a modern specialty coffee café, seen across the counter. Behind the wooden counter stands a large red espresso machine, gleaming. A barista in a green apron grinds fresh brown coffee beans and pours white milk foam into a white ceramic cup. Warm light, shelves with cups in the background. Clean illustration style.",
+    "caption": "Im Café — die Szene aus dem fünften Absatz.",
+    "paragraph_index": 4,
     "elements": [
-      {"name": "die Tasse", "color": "weiß", "position": "Die Tasse steht vor der jungen Frau."},
-      {"name": "der Teller", "color": "blau", "position": "Der Teller liegt neben der Tasse."},
-      {"name": "das Fahrrad", "color": "rot", "position": "Das Fahrrad lehnt an der Laterne."},
-      {"name": "die junge Frau", "position": "Die Frau sitzt am Fenster."},
-      {"name": "der Apfelstrudel", "position": "Der Apfelstrudel liegt auf dem Teller."},
-      {"name": "der Milchschaum"},
-      {"name": "das Fenster"},
-      {"name": "die Laterne"}
+      {"name": "die Tasse", "color": "weiß", "position": "Die Tasse steht auf der Theke."},
+      {"name": "die Espressomaschine", "color": "rot", "position": "Die Espressomaschine steht hinter der Theke."},
+      {"name": "die Schürze", "color": "grün", "position": "Die grüne Schürze trägt der Barista."},
+      {"name": "die Bohne", "color": "braun"},
+      {"name": "der Barista", "position": "Der Barista steht hinter der Theke."},
+      {"name": "die Theke"},
+      {"name": "der Milchschaum"}
     ]
   },
-  "compounds": [
-    {"left": "Kaffee", "right": "Pflanze", "compound": "die Kaffeepflanze", "translation": "coffee plant"},
-    {"left": "Milch", "right": "Schaum", "compound": "der Milchschaum", "translation": "milk foam"},
-    {"left": "Apfel", "right": "Strudel", "compound": "der Apfelstrudel", "translation": "apple strudel"},
-    {"left": "Filter", "right": "Kaffee", "compound": "der Filterkaffee", "translation": "filter coffee"}
-  ],
   "vocabulary": {
-    "id": "vocab_coffee",
     "name": "Coffee Vocabulary",
     "items": [
       {"term": "der Kaffee", "translation": "coffee", "pos": "noun", "semantic_type": "drink"},
-      {"term": "die Tasse", "translation": "cup", "pos": "noun", "semantic_type": "other", "synonym": "der Becher"},
-      {"term": "das Getränk", "translation": "drink, beverage", "pos": "noun", "semantic_type": "drink"},
+      {"term": "die Kaffeepflanze", "translation": "coffee plant", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Plantage", "translation": "plantation", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Kaffeekirsche", "translation": "coffee cherry", "pos": "noun", "semantic_type": "food"},
       {"term": "die Bohne", "translation": "bean", "pos": "noun", "semantic_type": "food"},
-      {"term": "der Geschmack", "translation": "taste, flavor", "pos": "noun", "semantic_type": "other"},
-      {"term": "die Röstung", "translation": "roast", "pos": "noun", "semantic_type": "food"},
-      {"term": "der Milchschaum", "translation": "milk foam", "pos": "noun", "semantic_type": "drink"},
-      {"term": "der Apfelstrudel", "translation": "apple strudel", "pos": "noun", "semantic_type": "food"},
-      {"term": "der Teller", "translation": "plate", "pos": "noun", "semantic_type": "other"},
-      {"term": "das Fahrrad", "translation": "bicycle", "pos": "noun", "semantic_type": "other"},
-      {"term": "die Laterne", "translation": "lamppost", "pos": "noun", "semantic_type": "other"},
-      {"term": "das Fenster", "translation": "window", "pos": "noun", "semantic_type": "furniture"},
-      {"term": "die Straße", "translation": "street", "pos": "noun", "semantic_type": "other"},
       {"term": "die Ernte", "translation": "harvest", "pos": "noun", "semantic_type": "other"},
-      {"term": "die Pause", "translation": "break, pause", "pos": "noun", "semantic_type": "time"},
-      {"term": "der Alltag", "translation": "everyday life", "pos": "noun", "semantic_type": "time"},
-      {"term": "beginnen", "translation": "to begin, to start", "pos": "verb", "synonym": "anfangen"},
-      {"term": "wachsen", "translation": "to grow", "pos": "verb"},
+      {"term": "die Röstung", "translation": "roast", "pos": "noun", "semantic_type": "other"},
+      {"term": "der Geschmack", "translation": "taste, flavour", "pos": "noun", "semantic_type": "other", "synonym": "das Aroma"},
+      {"term": "das Aroma", "translation": "aroma", "pos": "noun", "semantic_type": "other"},
+      {"term": "die Tasse", "translation": "cup", "pos": "noun", "semantic_type": "other", "synonym": "der Becher"},
+      {"term": "der Milchschaum", "translation": "milk foam", "pos": "noun", "semantic_type": "drink"},
+      {"term": "die Espressomaschine", "translation": "espresso machine", "pos": "noun", "semantic_type": "other"},
+      {"term": "der Barista", "translation": "barista", "pos": "noun", "semantic_type": "profession"},
+      {"term": "die Theke", "translation": "counter", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "die Schürze", "translation": "apron", "pos": "noun", "semantic_type": "clothing"},
+      {"term": "der Espresso", "translation": "espresso", "pos": "noun", "semantic_type": "drink"},
+      {"term": "der Filterkaffee", "translation": "filter coffee", "pos": "noun", "semantic_type": "drink"},
+      {"term": "der Bauer", "translation": "farmer", "pos": "noun", "semantic_type": "profession"},
+      {"term": "anbauen", "translation": "to grow, to cultivate", "pos": "verb", "synonym": "anpflanzen"},
       {"term": "ernten", "translation": "to harvest", "pos": "verb"},
       {"term": "trocknen", "translation": "to dry", "pos": "verb"},
       {"term": "rösten", "translation": "to roast", "pos": "verb"},
+      {"term": "mahlen", "translation": "to grind", "pos": "verb"},
+      {"term": "brühen", "translation": "to brew", "pos": "verb"},
+      {"term": "gießen", "translation": "to pour", "pos": "verb"},
       {"term": "schmecken", "translation": "to taste", "pos": "verb"},
-      {"term": "trinken", "translation": "to drink", "pos": "verb"},
-      {"term": "bedeuten", "translation": "to mean", "pos": "verb"},
-      {"term": "beliebt", "translation": "popular", "pos": "adjective", "synonym": "populär", "antonym": "unbeliebt"},
-      {"term": "tropisch", "translation": "tropical", "pos": "adjective"},
+      {"term": "reif", "translation": "ripe", "pos": "adjective", "antonym": "unreif"},
       {"term": "fruchtig", "translation": "fruity", "pos": "adjective", "antonym": "bitter"},
+      {"term": "kräftig", "translation": "strong (flavour)", "pos": "adjective", "synonym": "stark", "antonym": "mild"},
       {"term": "bitter", "translation": "bitter", "pos": "adjective", "antonym": "süß"},
-      {"term": "kräftig", "translation": "strong (flavor)", "pos": "adjective", "synonym": "stark", "antonym": "mild"},
-      {"term": "dunkel", "translation": "dark", "pos": "adjective", "antonym": "hell"},
+      {"term": "frisch", "translation": "fresh", "pos": "adjective"},
       {"term": "weiß", "translation": "white", "pos": "adjective", "semantic_type": "color"},
       {"term": "rot", "translation": "red", "pos": "adjective", "semantic_type": "color"},
-      {"term": "blau", "translation": "blue", "pos": "adjective", "semantic_type": "color"},
-      {"term": "neben", "translation": "next to, beside", "pos": "preposition", "semantic_type": "position"},
-      {"term": "durch", "translation": "through", "pos": "preposition", "semantic_type": "position"},
-      {"term": "vor", "translation": "in front of", "pos": "preposition", "semantic_type": "position"}
+      {"term": "grün", "translation": "green", "pos": "adjective", "semantic_type": "color"},
+      {"term": "braun", "translation": "brown", "pos": "adjective", "semantic_type": "color"},
+      {"term": "hinter", "translation": "behind", "pos": "preposition", "semantic_type": "position"},
+      {"term": "auf", "translation": "on", "pos": "preposition", "semantic_type": "position"},
+      {"term": "in", "translation": "in, into", "pos": "preposition", "semantic_type": "position"}
     ]
   },
   "grammar": {
     "phenomena": [
       {
-        "name": "present tense",
-        "description": "Most of the text uses Präsens (present tense) for general truths and habitual actions.",
-        "examples": ["Die Kaffeepflanze wächst in tropischen Ländern.", "Kaffee bringt Menschen zusammen."]
+        "name": "passive voice",
+        "description": "The processing steps are described with the Vorgangspassiv (werden + Partizip II).",
+        "examples": ["Die Bohnen werden aus den Kirschen gelöst.", "Die Bohnen werden in der Sonne getrocknet."]
       },
       {
-        "name": "passive voice",
-        "description": "Vorgangspassiv (werden + Partizip II) describes the roasting process.",
-        "examples": ["Die Bohnen werden geröstet."]
+        "name": "temporal connectors",
+        "description": "Sequence words structure the process: zuerst, nach, sobald, erst dann, schließlich.",
+        "examples": ["Sobald sie reif sind, ernten die Bauern sie.", "Erst dann sind die Rohbohnen bereit."]
       },
       {
         "name": "compound nouns",
-        "description": "German compound nouns combine two or more words into one. Very productive in this text.",
-        "examples": ["Kaffeepflanze (Kaffee + Pflanze)", "Milchschaum (Milch + Schaum)", "Apfelstrudel (Apfel + Strudel)", "Kopfsteinpflaster (Kopf + Stein + Pflaster)", "Filterkaffee (Filter + Kaffee)"]
+        "description": "German builds compound nouns from two or more words; this text is full of them.",
+        "examples": ["Kaffeepflanze (Kaffee + Pflanze)", "Espressomaschine (Espresso + Maschine)", "Milchschaum (Milch + Schaum)"]
       }
     ]
   },
-  "summary": "Kaffee stammt ursprünglich aus tropischen Regionen und gehört heute zu den beliebtesten Getränken der Welt. Nach der Ernte trocknen und rösten die Produzenten die Bohnen, wobei die Dauer der Röstung über Geschmack und Stärke entscheidet. Ob mild oder kräftig – für viele Menschen bedeutet eine Tasse vor allem einen kurzen, geselligen Moment im Alltag.",
+  "compounds": [
+    {"left": "Kaffee", "right": "Pflanze", "compound": "die Kaffeepflanze", "translation": "coffee plant"},
+    {"left": "Kaffee", "right": "Kirsche", "compound": "die Kaffeekirsche", "translation": "coffee cherry"},
+    {"left": "Milch", "right": "Schaum", "compound": "der Milchschaum", "translation": "milk foam"},
+    {"left": "Espresso", "right": "Maschine", "compound": "die Espressomaschine", "translation": "espresso machine"},
+    {"left": "Filter", "right": "Kaffee", "compound": "der Filterkaffee", "translation": "filter coffee"}
+  ],
+  "summary": "Kaffee durchläuft einen langen Weg, bevor er in der Tasse landet. Zuerst bauen die Bauern die Pflanzen in tropischen Ländern an und ernten die reifen Kirschen von Hand. Anschließend werden die Bohnen getrocknet und geröstet, wobei die Röstung über den Geschmack entscheidet. Schließlich mahlt der Barista die Bohnen und brüht daraus einen frischen Espresso.",
   "questions": [
-    {"kind": "inference", "prompt": "Why does the text call coffee 'more than a drink'? What evidence supports this?", "answer": "Because it brings people together — in the office, in cafés and at home a cup marks a shared pause from everyday life."},
-    {"kind": "cause-effect", "prompt": "How does the degree of roasting change the coffee? Describe both extremes named in the text.", "answer": "A light roast tastes fruity and acidic, while a dark roast is strong and bitter."},
-    {"kind": "vocabulary-in-context", "prompt": "What does 'die Ernte' refer to in the third paragraph, and who carries it out?", "answer": "The harvest of the red coffee cherries, picked by hand by the farmers."},
-    {"kind": "critical", "prompt": "Brazil, Colombia, Ethiopia and Vietnam are named as growing regions. What do they have in common, and why does that limit where coffee can be grown?", "answer": "They all lie in tropical zones near the equator; the coffee plant needs that warm climate, so cultivation is restricted to such regions."},
-    {"kind": "purpose", "prompt": "Why might the author contrast filter coffee in Germany with espresso in Italy?", "answer": "To show that how coffee is prepared and enjoyed differs from country to country and culture to culture."}
+    {"kind": "inference", "prompt": "Warum beschreibt der Text den Weg des Kaffees als so weit? Nennen Sie mindestens drei Stationen.", "answer": "Weil der Kaffee viele Schritte durchläuft: Anbau, Ernte, Trocknen, Rösten, Mahlen und Brühen."},
+    {"kind": "cause-effect", "prompt": "Welchen Einfluss hat die Dauer der Röstung auf den Geschmack? Beschreiben Sie beide Extreme.", "answer": "Eine helle Röstung schmeckt fruchtig und säuerlich, eine dunkle Röstung kräftig und bitter."},
+    {"kind": "vocabulary-in-context", "prompt": "Was bedeutet 'reif' im Zusammenhang mit den Kaffeekirschen, und woran erkennt man es im Text?", "answer": "Dass die Kirschen erntereif sind; im Text erkennt man es daran, dass sie tiefrot sind."},
+    {"kind": "critical", "prompt": "Warum kann Kaffee nur in bestimmten Regionen der Welt angebaut werden?", "answer": "Die Kaffeepflanze braucht ein warmes, tropisches Klima nahe dem Äquator."},
+    {"kind": "evaluation", "prompt": "Welcher Schritt im Prozess ist Ihrer Meinung nach am wichtigsten für den Geschmack? Begründen Sie Ihre Antwort.", "answer": "Mögliche Antwort: das Rösten, weil dabei das Aroma entsteht und die Stärke bestimmt wird."}
   ],
   "true_false": [
-    {"text": "Die Kaffeepflanze wächst vor allem in kalten Regionen.", "is_true": false},
-    {"text": "Die Bauern ernten die Kaffeekirschen mit Maschinen.", "is_true": false},
+    {"text": "Die Kaffeepflanze wächst am besten in kalten Regionen.", "is_true": false},
+    {"text": "Die reifen Kaffeekirschen werden meist von Hand geerntet.", "is_true": true},
+    {"text": "Die Röstung hat keinen Einfluss auf den Geschmack.", "is_true": false},
     {"text": "Eine dunkle Röstung schmeckt kräftig und bitter.", "is_true": true},
-    {"text": "In Italien trinkt man am liebsten Filterkaffee.", "is_true": false},
-    {"text": "Äthiopien gehört zu den wichtigen Anbaugebieten.", "is_true": true},
-    {"text": "Helle Röstung schmeckt fruchtig und säuerlich.", "is_true": true}
+    {"text": "Der Barista mahlt die Bohnen, bevor er den Espresso brüht.", "is_true": true},
+    {"text": "Espresso wird vor allem in Deutschland getrunken.", "is_true": false}
   ],
   "facts": [
-    {"text": "Kaffee gehört zu den meistgehandelten Agrarrohstoffen der Welt und sichert das Einkommen von schätzungsweise 125 Millionen Menschen.", "source": "International Coffee Organization, 2023"},
-    {"text": "Koffein wirkt, indem es im Gehirn die Adenosin-Rezeptoren blockiert – deshalb verringert es das Gefühl von Müdigkeit.", "source": "Nehlig et al., 1992"},
+    {"text": "Kaffee gehört zu den meistgehandelten Agrarrohstoffen der Welt und sichert das Einkommen von rund 125 Millionen Menschen.", "source": "International Coffee Organization, 2023"},
+    {"text": "Beim Rösten entstehen durch die Maillard-Reaktion mehrere Hundert Aromastoffe, die den Geschmack des Kaffees prägen.", "source": "Belitz et al., Food Chemistry"},
     {"text": "Äthiopien gilt als Ursprungsland des Arabica-Kaffees, der dort bis heute wild in den Bergwäldern wächst.", "source": "Royal Botanic Gardens, Kew"},
     {"text": "Die Wiener Kaffeehauskultur steht seit 2011 auf der UNESCO-Liste des immateriellen Kulturerbes.", "source": "UNESCO"}
-  ]
+  ],
+  "discussion": "Manche Menschen bezahlen für eine Tasse Spezialitätenkaffee mehrere Euro, andere halten das für Verschwendung. Schreiben Sie einen kurzen Text (8–10 Sätze), in dem Sie Ihre Meinung begründen. Gehen Sie dabei auf Herkunft, Qualität und Preis des Kaffees ein."
 }

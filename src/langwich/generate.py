@@ -162,6 +162,10 @@ def generate_exercise(
         inst = _generate_word_connections(node, text, rng, ledger)
     elif node.exercise_type == ExerciseType.COMPREHENSION:
         inst = _generate_comprehension(node, text, rng)
+    elif node.exercise_type == ExerciseType.VOCABULARY:
+        inst = _generate_vocab_study(node, text)
+    elif node.exercise_type == ExerciseType.PRODUCTION:
+        inst = _generate_production(node, text)
     else:
         inst = None
 
@@ -226,6 +230,8 @@ def _pick_blank_targets(
 def _generate_fib(
     node: ExerciseNode, text: SourceText, rng: random.Random, ledger: MaterialLedger
 ) -> ExerciseInstance | None:
+    if node.id == "fib_process":
+        return _generate_process(node, text, rng)
     if node.hint_type == "base_form":
         return _generate_fib_base_form(node, text, ledger)
 
@@ -559,3 +565,65 @@ def _generate_comprehension(
             )
 
     return ex if ex.items else None
+
+
+# ---------------------------------------------------------------------------
+# Process chart (fill-in)
+# ---------------------------------------------------------------------------
+
+def _generate_process(
+    node: ExerciseNode, text: SourceText, rng: random.Random
+) -> ExerciseInstance | None:
+    steps = list(text.process)
+    if len(steps) < 3:
+        return None
+    # Keep the first and last stage as anchors; blank every other interior stage.
+    interior = list(range(1, len(steps) - 1))
+    blanked = set(interior[::2]) or {interior[0]}
+
+    ex = _shell(node)
+    chart: list[dict] = []
+    bank: list[str] = []
+    n = 0
+    for i, step in enumerate(steps):
+        if i in blanked:
+            n += 1
+            chart.append({"number": n})
+            bank.append(step)
+            ex.solution.append({"number": n, "answer": step})
+        else:
+            chart.append({"text": step})
+    rng.shuffle(bank)
+    ex.items.append({"steps": chart})
+    ex.word_bank = bank
+    return ex
+
+
+# ---------------------------------------------------------------------------
+# Vocabulary work
+# ---------------------------------------------------------------------------
+
+def _generate_vocab_study(
+    node: ExerciseNode, text: SourceText
+) -> ExerciseInstance | None:
+    if node.id == "voc_lookup":
+        ex = _shell(node)
+        ex.items.append({"rows": 8})
+        return ex
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Production
+# ---------------------------------------------------------------------------
+
+def _generate_production(
+    node: ExerciseNode, text: SourceText
+) -> ExerciseInstance | None:
+    if node.id == "prod_discussion":
+        if not text.discussion:
+            return None
+        ex = _shell(node)
+        ex.items.append({"prompt": text.discussion, "lines": 9})
+        return ex
+    return None

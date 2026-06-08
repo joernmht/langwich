@@ -27,7 +27,7 @@ def coffee_text(coffee_data: dict) -> SourceText:
 
 class TestFromDict:
     def test_scalar_fields(self, coffee_text: SourceText) -> None:
-        assert coffee_text.title == "Kaffee: Eine Reise um die Welt"
+        assert coffee_text.title == "Kaffee: Vom Feld bis ins Café"
         assert coffee_text.source_lang == "en"
         assert coffee_text.target_lang == "de"
         assert coffee_text.cefr_level == "B1"
@@ -36,17 +36,17 @@ class TestFromDict:
     def test_picture_scene_loaded(self, coffee_text: SourceText) -> None:
         assert coffee_text.picture_scene is not None
         assert isinstance(coffee_text.picture_scene, PictureScene)
-        assert coffee_text.picture_scene.paragraph_index == 2
+        assert coffee_text.picture_scene.paragraph_index == 4
         assert len(coffee_text.picture_scene.elements) > 0
 
     def test_vocabulary_loaded(self, coffee_text: SourceText) -> None:
         assert coffee_text.vocabulary is not None
-        assert len(coffee_text.vocabulary.items) == 36
+        assert len(coffee_text.vocabulary.items) == 38
 
     def test_grammar_loaded(self, coffee_text: SourceText) -> None:
         assert coffee_text.grammar is not None
         assert len(coffee_text.grammar.phenomena) == 3
-        assert coffee_text.grammar.has_phenomenon("present tense")
+        assert coffee_text.grammar.has_phenomenon("passive voice")
 
     def test_semantic_type_preserved(self, coffee_text: SourceText) -> None:
         vocab = coffee_text.vocabulary
@@ -55,8 +55,8 @@ class TestFromDict:
         assert kaffee.semantic_type == SemanticType.DRINK
         weiss = next(v for v in vocab.items if v.term == "weiß")
         assert weiss.semantic_type == SemanticType.COLOR
-        fenster = next(v for v in vocab.items if v.term == "das Fenster")
-        assert fenster.semantic_type == SemanticType.FURNITURE
+        theke = next(v for v in vocab.items if v.term == "die Theke")
+        assert theke.semantic_type == SemanticType.FURNITURE
 
     def test_semantic_type_defaults_to_other(self) -> None:
         data = {
@@ -74,9 +74,9 @@ class TestFromDict:
     def test_synonym_antonym_loaded(self, coffee_text: SourceText) -> None:
         vocab = coffee_text.vocabulary
         assert vocab is not None
-        beliebt = next(v for v in vocab.items if v.term == "beliebt")
-        assert beliebt.synonym == "populär"
-        assert beliebt.antonym == "unbeliebt"
+        kraeftig = next(v for v in vocab.items if v.term == "kräftig")
+        assert kraeftig.synonym == "stark"
+        assert kraeftig.antonym == "mild"
 
     def test_flat_vocabulary_list(self) -> None:
         data = {
@@ -93,13 +93,13 @@ class TestFromDict:
 
     def test_paragraphs(self, coffee_text: SourceText) -> None:
         paras = coffee_text.paragraphs
-        assert len(paras) == 5
-        assert paras[0].startswith("Jeden Morgen")
+        assert len(paras) == 6
+        assert paras[0].startswith("Nur wenige")
 
     def test_picture_paragraph(self, coffee_text: SourceText) -> None:
         pp = coffee_text.picture_paragraph
         assert pp is not None
-        assert "Wien" in pp
+        assert "Café" in pp
 
 
 class TestRoundTrip:
