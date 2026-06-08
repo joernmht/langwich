@@ -85,9 +85,9 @@
     {"text": "Léa a déconseillé le film à ses amis.", "is_true": false}
   ],
   "facts": [
-    {"text": "Die Brüder Lumière zeigten im Dezember 1895 in Paris die erste öffentliche Filmvorführung – oft als Geburtsstunde des Kinos bezeichnet.", "source": "Institut Lumière"},
-    {"text": "Das Phi-Phänomen erklärt, warum eine schnelle Folge von Einzelbildern als durchgehende Bewegung wahrgenommen wird.", "source": "Wertheimer, 1912"},
-    {"text": "Die Goldene Palme von Cannes wird seit 1955 vergeben und zählt zu den renommiertesten Filmpreisen der Welt.", "source": "Festival de Cannes"},
-    {"text": "Frankreich gehört zu den größten Filmproduzenten der Welt und bringt jährlich rund 300 Spielfilme heraus.", "source": "CNC, 2023"}
+    {"text": "Les frères Lumière ont organisé la première projection publique de films à Paris en décembre 1895, souvent considérée comme la naissance du cinéma.", "source": "Institut Lumière"},
+    {"text": "Le phénomène phi explique pourquoi une succession rapide d'images fixes est perçue comme un mouvement continu.", "source": "Wertheimer, 1912"},
+    {"text": "La Palme d'or de Cannes est décernée depuis 1955 et compte parmi les prix les plus prestigieux du cinéma.", "source": "Festival de Cannes"},
+    {"text": "La France est l'un des plus grands producteurs de films au monde, avec environ 300 longs métrages par an.", "source": "CNC, 2023"}
   ]
 }

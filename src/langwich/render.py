@@ -418,11 +418,11 @@ def _render_cover(text: SourceText, styles: dict, total_minutes: int) -> list:
         meta += f"&nbsp;&nbsp;·&nbsp;&nbsp;~{total_minutes} min"
     out.append(Paragraph(meta, styles["meta"]))
     out.append(_rule(ACCENT, 1.4, space_after=4 * mm))
+    # Lead with the facts (in the target language), then the story — one text box.
+    out.extend(_render_facts(text, styles))
     out.append(Paragraph("READ THIS FIRST", styles["eyebrow"]))
     out.append(_panel(text.content, styles))
-    out.append(Spacer(1, 4 * mm))
-    out.extend(_render_facts(text, styles))
-    out.append(Spacer(1, 2 * mm))
+    out.append(Spacer(1, 5 * mm))
     return out
 
 
@@ -451,25 +451,21 @@ def _render_grammar(text: SourceText, styles: dict) -> list:
 
 
 def _render_facts(text: SourceText, styles: dict) -> list:
+    """A light lead-in (not a boxed panel) so the page has a single text box.
+
+    Facts are written in the target language, so they double as a first read
+    before the story.
+    """
     if not text.facts:
         return []
-    block: list = [Paragraph("Facts &amp; Culture", styles["grammar_name"]),
-                   Spacer(1, 1 * mm)]
+    out: list = [Paragraph("FACTS &amp; CULTURE", styles["eyebrow"])]
     for f in text.facts:
         line = f"<font color='#2F5BD0'>&#8226;</font>&nbsp;&nbsp;{f.text}"
         if f.source:
             line += f"&nbsp;<font color='#8A97A8' size='8'>({f.source})</font>"
-        block.append(Paragraph(line, styles["body"]))
-    card = Table([[block]], colWidths=[CONTENT_W])
-    card.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), TINT),
-        ("LINEBEFORE", (0, 0), (0, -1), 2.5, ACCENT),
-        ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
-        ("TOPPADDING", (0, 0), (-1, -1), 3.5 * mm),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5 * mm),
-    ]))
-    return [KeepTogether([card, Spacer(1, 4 * mm)])]
+        out.append(Paragraph(line, styles["body"]))
+    out.append(Spacer(1, 4 * mm))
+    return out
 
 
 def _render_vocabulary(text: SourceText, styles: dict) -> list:

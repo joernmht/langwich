@@ -191,7 +191,7 @@ The `--from-json` input uses this structure. See [`examples/coffee_en_de.json`](
 | `summary` | Recommended | A short **reworded** recap; gap-fills target it so they don't repeat the text |
 | `questions` | No | Comprehension questions `{prompt, answer, kind}` (native language) |
 | `true_false` | No | True/false statements `{text, is_true}` about the text (target language) |
-| `facts` | No | Real science/history/culture notes `{text, source}` → a "Facts & Culture" panel |
+| `facts` | No | Real science/history/culture notes `{text, source}` in the **target language** → a "Facts & Culture" lead-in before the story |
 
 **Vocabulary item fields:** `term` (required), `translation` (required), `pos` (noun/verb/adjective/adverb/preposition), `semantic_type` (color/position/food/drink/clothing/furniture/...), `synonym` (optional), `antonym` (optional).
 

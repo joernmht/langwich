@@ -223,8 +223,10 @@ spotting a word. Provide a model `answer` for the key.
 ### `facts` — embed real science / history / culture
 3–5 `{text, source}` items that make the sheet genuinely interesting and
 informative — a scientific mechanism, a historical first, a cultural note —
-each with a light source (*ICO 2023*, *UNESCO*, an author). These render as a
-"Facts & Culture" panel under the story.
+each with a light source (*ICO 2023*, *UNESCO*, an author). **Write the `text`
+in the target language**, so the facts double as a first read. They render as a
+"Facts & Culture" lead-in *before* the story (the sheet opens with facts, then
+the story), so don't restate them in the story itself.
 
 ---
 

@@ -105,9 +105,9 @@
     {"text": "Helle Röstung schmeckt fruchtig und säuerlich.", "is_true": true}
   ],
   "facts": [
-    {"text": "Coffee is among the most traded agricultural commodities in the world and supports the livelihoods of an estimated 125 million people.", "source": "International Coffee Organization, 2023"},
-    {"text": "Caffeine works by blocking adenosine receptors in the brain, which is why it reduces the feeling of drowsiness.", "source": "Nehlig et al., 1992"},
-    {"text": "Ethiopia is widely regarded as the birthplace of Coffea arabica, which still grows wild in its highland forests.", "source": "Royal Botanic Gardens, Kew"},
-    {"text": "Viennese coffee-house culture has been on UNESCO's list of Intangible Cultural Heritage since 2011.", "source": "UNESCO"}
+    {"text": "Kaffee gehört zu den meistgehandelten Agrarrohstoffen der Welt und sichert das Einkommen von schätzungsweise 125 Millionen Menschen.", "source": "International Coffee Organization, 2023"},
+    {"text": "Koffein wirkt, indem es im Gehirn die Adenosin-Rezeptoren blockiert – deshalb verringert es das Gefühl von Müdigkeit.", "source": "Nehlig et al., 1992"},
+    {"text": "Äthiopien gilt als Ursprungsland des Arabica-Kaffees, der dort bis heute wild in den Bergwäldern wächst.", "source": "Royal Botanic Gardens, Kew"},
+    {"text": "Die Wiener Kaffeehauskultur steht seit 2011 auf der UNESCO-Liste des immateriellen Kulturerbes.", "source": "UNESCO"}
   ]
 }
