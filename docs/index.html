@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>langwich — AI-generated language worksheets for paper &amp; e-paper</title>
+<meta name="description" content="langwich turns any AI into a worksheet author. It writes a text at your level, mines it for vocabulary and grammar, builds exercises — and renders a clean, print-ready PDF. Then the screen goes off.">
+<meta property="og:title" content="langwich — Screens generate. Paper teaches.">
+<meta property="og:description" content="AI-generated language worksheets for print and e-paper. Your AI writes the text, vocabulary and exercises; langwich renders the PDF.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://joernmht.github.io/langwich/">
+<meta property="og:image" content="https://joernmht.github.io/langwich/assets/worksheet-page1.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='22' height='26' rx='2' fill='%23fdfaf3' stroke='%23274690' stroke-width='2'/%3E%3Cpath d='M10 10h12M10 15h12M10 20h7' stroke='%23274690' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M19 24l4-1-9 0z' fill='none'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --bg-accent: #efe8d8;
+    --panel: #fdfaf3;
+    --border: #e0d7c3;
+    --border-strong: #cfc4aa;
+    --ink: #241f15;
+    --muted: #6e6553;
+    --accent: #274690;
+    --accent-soft: #e6ebf7;
+    --red: #b23a2f;
+    --code-bg: #232019;
+    --code-ink: #ece5d3;
+    --code-muted: #97907e;
+    --shadow: 0 1px 2px rgba(60,50,30,.08), 0 12px 32px -12px rgba(60,50,30,.25);
+    --rule: rgba(39,70,144,.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17140e;
+      --bg-accent: #1c1912;
+      --panel: #201c14;
+      --border: #35301f;
+      --border-strong: #4a442f;
+      --ink: #ece5d3;
+      --muted: #a89f8a;
+      --accent: #a9bff5;
+      --accent-soft: #232a3f;
+      --red: #e0846f;
+      --code-bg: #12100a;
+      --code-ink: #e6dfcd;
+      --code-muted: #857e6b;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+      --rule: rgba(169,191,245,.05);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* ---------- header ---------- */
+  header {
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+  }
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 18px 0; flex-wrap: wrap;
+  }
+  .wordmark {
+    font-size: 22px; font-weight: 700; letter-spacing: -.01em;
+    color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 9px;
+  }
+  .wordmark .nib {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--accent); color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; line-height: 1;
+  }
+  nav.links { display: flex; gap: 22px; flex-wrap: wrap; font-size: 14.5px; }
+  nav.links a { color: var(--muted); text-decoration: none; }
+  nav.links a:hover { color: var(--ink); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    background:
+      repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px),
+      linear-gradient(var(--bg-accent), var(--bg));
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.05fr .95fr;
+    gap: 56px; align-items: center; padding: 84px 0 92px;
+  }
+  .eyebrow {
+    font-size: 12.5px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--red);
+  }
+  h1 {
+    font-size: clamp(42px, 6vw, 62px);
+    line-height: 1.06; letter-spacing: -.015em;
+    margin: 18px 0 22px; font-weight: 700;
+  }
+  h1 .alt { color: var(--accent); }
+  .lede { font-size: 19px; color: var(--muted); max-width: 34em; }
+  .cta-row { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 8px;
+    font-size: 15.5px; font-weight: 600; text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .btn.primary { background: var(--accent); color: var(--bg); }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn.ghost { border-color: var(--border-strong); color: var(--ink); background: var(--panel); }
+  .btn.ghost:hover { border-color: var(--accent); }
+  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+  .chip {
+    font-size: 12.5px; color: var(--muted); border: 1px solid var(--border);
+    background: var(--panel); border-radius: 999px; padding: 5px 12px;
+  }
+
+  .paper-stack { position: relative; justify-self: center; width: min(100%, 420px); }
+  .paper-stack .sheet {
+    width: 100%; display: block; border-radius: 4px;
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow);
+  }
+  .paper-stack .front { position: relative; transform: rotate(1.2deg); z-index: 2; }
+  .paper-stack .back {
+    position: absolute; inset: 0; transform: rotate(-2.4deg) translate(-14px, 10px); z-index: 1;
+  }
+  @media (prefers-color-scheme: dark) {
+    .paper-stack .sheet { filter: brightness(.93); }
+  }
+  .paper-caption {
+    margin-top: 22px; font-size: 13px; color: var(--muted); text-align: center;
+  }
+  .paper-caption code { font-size: 12px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 88px 0; }
+  section.tinted { background: var(--bg-accent); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section-head { max-width: 46em; margin-bottom: 48px; }
+  h2 {
+    font-size: clamp(28px, 4vw, 40px); line-height: 1.15;
+    letter-spacing: -.01em; margin: 14px 0 18px;
+  }
+  .section-head p { color: var(--muted); font-size: 18px; }
+
+  .cut {
+    border: none; border-top: 2px dashed var(--border-strong);
+    position: relative; margin: 0; overflow: visible;
+  }
+  .cut::after {
+    content: "✂"; position: absolute; left: 8%; top: -13px;
+    color: var(--muted); background: var(--bg); padding: 0 8px; font-size: 15px;
+  }
+
+  /* why-paper cards */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 26px 26px 24px;
+  }
+  .card .glyph { font-size: 22px; display: block; margin-bottom: 14px; }
+  .card h3 { font-size: 19.5px; margin-bottom: 8px; letter-spacing: -.01em; }
+  .card p { font-size: 15.5px; color: var(--muted); }
+  .footnote { margin-top: 26px; font-size: 13px; color: var(--muted); max-width: 60em; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: step; }
+  .step {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 26px; position: relative;
+  }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    font-size: 44px; font-style: italic; line-height: 1;
+    color: var(--red); display: block; margin-bottom: 14px; font-weight: 700;
+  }
+  .step h3 { font-size: 19.5px; margin-bottom: 8px; }
+  .step p { font-size: 15.5px; color: var(--muted); }
+  .step code {
+    font-size: 13px; background: var(--accent-soft); color: var(--accent);
+    padding: 2px 6px; border-radius: 5px;
+  }
+
+  /* exercises */
+  .ex-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: start; }
+  .family {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px 24px; margin-bottom: 18px;
+  }
+  .family-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .family h3 { font-size: 19px; }
+  .family .count { font-size: 12.5px; color: var(--muted); }
+  .family p { font-size: 15px; color: var(--muted); margin: 8px 0 14px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .ex-side img {
+    width: 100%; border: 1px solid var(--border-strong); border-radius: 4px;
+    box-shadow: var(--shadow); transform: rotate(.8deg);
+  }
+  @media (prefers-color-scheme: dark) { .ex-side img { filter: brightness(.93); } }
+  .ex-side figcaption { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
+
+  /* tabs */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
+  .tab {
+    font-size: 15px; font-weight: 600; padding: 11px 18px; cursor: pointer;
+    background: transparent; color: var(--muted);
+    border: 1px solid transparent; border-bottom: none;
+    border-radius: 10px 10px 0 0;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] {
+    background: var(--panel); color: var(--ink);
+    border-color: var(--border);
+  }
+  .tabpanel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 0 12px 12px 12px; padding: 30px;
+  }
+  .tabpanel[hidden] { display: none; }
+  .tabpanel p { max-width: 46em; }
+  .tabpanel p + p { margin-top: 12px; }
+  .tabpanel .hint { font-size: 14.5px; color: var(--muted); }
+  ol.plain { margin: 14px 0 14px 22px; }
+  ol.plain li { margin-bottom: 8px; }
+
+  /* code blocks */
+  .codebox { position: relative; margin: 20px 0; }
+  .codebox pre {
+    background: var(--code-bg); color: var(--code-ink);
+    border: 1px solid var(--border-strong); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto; font-size: 13.5px; line-height: 1.6;
+    tab-size: 4;
+  }
+  .codebox pre .c { color: var(--code-muted); }
+  .codebox pre .p { color: #8fb573; }
+  .codebox.tall pre { max-height: 440px; overflow-y: auto; }
+  .copy {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 12px; font-weight: 600; padding: 5px 11px; cursor: pointer;
+    background: color-mix(in srgb, var(--code-bg) 40%, #ffffff10);
+    color: var(--code-ink); border: 1px solid var(--code-muted); border-radius: 6px;
+  }
+  .copy:hover { border-color: var(--code-ink); }
+
+  /* get started */
+  .start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .start-grid .codebox { margin: 0; }
+  .start-note { font-size: 15.5px; color: var(--muted); margin-top: 18px; }
+
+  /* footer */
+  footer { border-top: 1px solid var(--border); padding: 44px 0 56px; }
+  .foot-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 14.5px; color: var(--muted); }
+  .foot-row a { color: var(--muted); }
+  .foot-row a:hover { color: var(--ink); }
+  .ps { margin-top: 18px; font-size: 13.5px; color: var(--muted); font-style: italic; }
+
+  /* responsive */
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 64px; }
+    .paper-stack { width: min(100%, 380px); }
+    .cards, .steps { grid-template-columns: 1fr 1fr; }
+    .ex-grid, .start-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .cards, .steps { grid-template-columns: 1fr; }
+    section { padding: 64px 0; }
+    .tabpanel { padding: 22px 18px; }
+    nav.links { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="wordmark" href="#top"><span class="nib" aria-hidden="true">✎</span>langwich</a>
+    <nav class="links sans" aria-label="Sections">
+      <a href="#why-paper">Why paper</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#exercises">Exercises</a>
+      <a href="#your-ai">Use with your AI</a>
+      <a href="#get-started">Get started</a>
+      <a href="https://github.com/joernmht/langwich">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow sans">AI-generated worksheets for print &amp; e-paper</p>
+        <h1>Screens generate.<br><span class="alt">Paper teaches.</span></h1>
+        <p class="lede">langwich turns any AI into a worksheet author. It writes a short text
+        at your level, mines it for vocabulary and grammar, and builds exercises around it —
+        then renders everything into a clean, print-ready PDF.
+        You print it, sharpen a pencil, and switch the screen off.</p>
+        <div class="cta-row sans">
+          <a class="btn primary" href="#get-started">Get started</a>
+          <a class="btn ghost" href="https://github.com/joernmht/langwich">View on GitHub</a>
+        </div>
+        <div class="meta-row sans">
+          <span class="chip">Python 3.11+ · one dependency</span>
+          <span class="chip">Works with Claude, ChatGPT, Gemini &amp; local models</span>
+          <span class="chip">A4 PDF · e-paper friendly</span>
+          <span class="chip">MIT</span>
+        </div>
+      </div>
+      <figure class="paper-stack">
+        <img class="sheet back" src="assets/worksheet-vocab.png" alt="" aria-hidden="true" loading="lazy">
+        <img class="sheet front" src="assets/worksheet-page1.png"
+             alt="First page of a generated worksheet: a German B1 reading text about coffee, followed by a fill-in-the-blanks exercise with a word bank.">
+        <figcaption class="paper-caption sans">
+          Real output — <code>examples/coffee_en_de.json</code> rendered to a five-page
+          A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ================= WHY PAPER ================= -->
+  <section id="why-paper">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow sans">The analogue case</p>
+        <h2>Why paper, in an age of bottomless feeds?</h2>
+        <p>Every language app shares a glass rectangle with your inbox, your group chats and
+        a dozen infinite feeds — each engineered to interrupt you. langwich makes the opposite
+        trade: the digital world generates, the analogue world teaches.</p>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <span class="glyph" aria-hidden="true">🔕</span>
+          <h3>Paper doesn’t ping</h3>
+          <p>A worksheet has no notification badge, no autoplay, no “just one more” loop.
+          The only thing that happens next is the word you write.</p>
+        </div>
+        <div class="card">
+          <span class="glyph" aria-hidden="true">✍️</span>
+          <h3>Handwriting sticks</h3>
+          <p>Writing by hand recruits motor and visual systems that tapping glass never touches —
+          and study after study links it to better recall and deeper understanding.<sup>†</sup></p>
+        </div>
+        <div class="card">
+          <span class="glyph" aria-hidden="true">🏁</span>
+          <h3>A worksheet ends</h3>
+          <p>Feeds are engineered to be bottomless. A sheet of paper is finished when it’s full —
+          completion, not a streak, is the reward.</p>
+        </div>
+        <div class="card">
+          <span class="glyph" aria-hidden="true">🌤️</span>
+          <h3>Easy on eyes and sleep</h3>
+          <p>Clean A4 layouts made for print and e-paper: readable in full sunlight,
+          and nothing glowing at your face at 11&nbsp;pm.</p>
+        </div>
+        <div class="card">
+          <span class="glyph" aria-hidden="true">🗂️</span>
+          <h3>Nothing to lose</h3>
+          <p>No account, no subscription, no streak to protect. Your worksheets are PDF files
+          on your own disk — they’ll still open in twenty years.</p>
+        </div>
+        <div class="card">
+          <span class="glyph" aria-hidden="true">⚡</span>
+          <h3>Screens where they shine</h3>
+          <p>Let the AI do what it’s good at — writing texts, picking vocabulary, building
+          exercises in seconds. Then take the paper somewhere the Wi-Fi can’t follow.</p>
+        </div>
+      </div>
+      <p class="footnote sans"><sup>†</sup> For instance Mueller &amp; Oppenheimer,
+      <em>Psychological Science</em> (2014), on longhand note-taking and conceptual learning;
+      van der Weel &amp; van der Meer, <em>Frontiers in Psychology</em> (2024), on brain
+      connectivity during handwriting.</p>
+    </div>
+  </section>
+
+  <hr class="cut" aria-hidden="true">
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow sans">The workflow</p>
+        <h2>From prompt to printout in three steps</h2>
+        <p>langwich is deliberately split in two: an AI generates the <em>content</em>,
+        a small Python tool renders the <em>paper</em>. No API calls, no keys, no accounts.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <h3>Ask your AI</h3>
+          <p>“A B1 German worksheet about coffee, for an English speaker.”
+          Any assistant that can write JSON is qualified — Claude, ChatGPT, Gemini,
+          or the model running on your own laptop.</p>
+        </div>
+        <div class="step">
+          <h3>It writes one JSON file</h3>
+          <p>A short text in the target language — the gold mine — plus its translation,
+          20–30 vocabulary items, grammar notes and a picture scene.
+          The format is documented in the
+          <a href="https://github.com/joernmht/langwich#json-format">README</a>.</p>
+        </div>
+        <div class="step">
+          <h3>langwich renders the PDF</h3>
+          <p><code>langwich --from-json coffee_en_de.json</code> — exercises, vocabulary
+          reference and grammar page included. Print it, or send it to your e-reader.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EXERCISES ================= -->
+  <section id="exercises" class="tinted">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow sans">What lands on the page</p>
+        <h2>One text. Eighteen kinds of exercise.</h2>
+        <p>langwich is built on an <strong>exercise knowledge graph</strong>: every exercise type
+        declares what it needs, what it produces and which exercises it feeds. From a single
+        source text it derives three exercise families, graded by difficulty from 1 to 5 —
+        plus vocabulary and grammar reference pages.</p>
+      </div>
+      <div class="ex-grid">
+        <div>
+          <div class="family">
+            <div class="family-head">
+              <h3>Fill in the Blanks</h3>
+              <span class="count sans">7 variants · difficulty 2–4</span>
+            </div>
+            <p>Words vanish from the text. Hints range from a full word bank
+            down to nothing at all.</p>
+            <div class="tags sans">
+              <span class="tag">Word Bank</span><span class="tag">Multiple Choice</span>
+              <span class="tag">First Letter</span><span class="tag">Translation Hint</span>
+              <span class="tag">Full Translation</span><span class="tag">Base Form</span>
+              <span class="tag">No Hint</span>
+            </div>
+          </div>
+          <div class="family">
+            <div class="family-head">
+              <h3>Picture</h3>
+              <span class="count sans">6 variants · difficulty 1–5</span>
+            </div>
+            <p>The text describes a scene; your AI can illustrate it. Then: name the colours,
+            mark the objects, describe who is standing where.</p>
+            <div class="tags sans">
+              <span class="tag">Color Query</span><span class="tag">Element Marking</span>
+              <span class="tag">Object Naming</span><span class="tag">Position Description</span>
+              <span class="tag">Picture Fill-in-Blanks</span><span class="tag">Scene Description</span>
+            </div>
+          </div>
+          <div class="family">
+            <div class="family-head">
+              <h3>Word Connections</h3>
+              <span class="count sans">5 variants · difficulty 1–4</span>
+            </div>
+            <p>Vocabulary mined from the text, then paired and grouped —
+            the classic connect-the-columns exercises.</p>
+            <div class="tags sans">
+              <span class="tag">Translation</span><span class="tag">Category Grouping</span>
+              <span class="tag">Synonyms</span><span class="tag">Antonyms</span>
+              <span class="tag">Compounds</span>
+            </div>
+          </div>
+        </div>
+        <figure class="ex-side">
+          <img src="assets/worksheet-vocab.png" loading="lazy"
+               alt="Vocabulary reference page of a generated worksheet, listing German terms grouped by part of speech with translations, synonyms and antonyms.">
+          <figcaption class="sans">Every worksheet ends with a vocabulary reference —
+          grouped by part of speech, with synonyms and antonyms.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= USE WITH YOUR AI ================= -->
+  <section id="your-ai">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow sans">Bring your own AI</p>
+        <h2>Works with the AI you already use</h2>
+        <p>langwich calls no API and stores no key — the Python side only renders.
+        The content comes from whichever assistant you already use, pay for, or run locally.
+        Three ways in:</p>
+      </div>
+
+      <div class="tabs sans" role="tablist" aria-label="Choose your AI">
+        <button class="tab" id="tab-claude" role="tab" aria-selected="true" aria-controls="panel-claude">Claude Code</button>
+        <button class="tab" id="tab-chat" role="tab" aria-selected="false" aria-controls="panel-chat" tabindex="-1">ChatGPT, Gemini &amp; friends</button>
+        <button class="tab" id="tab-agents" role="tab" aria-selected="false" aria-controls="panel-agents" tabindex="-1">Coding agents &amp; automation</button>
+      </div>
+
+      <div class="tabpanel" id="panel-claude" role="tabpanel" aria-labelledby="tab-claude">
+        <p>The repository ships a <code class="mono">/langwich</code> slash command.
+        Claude walks you through native language, target language, topic and CEFR level,
+        writes the JSON, and renders the PDF — all in one conversation. This is the
+        most comfortable way in.</p>
+        <div class="codebox">
+          <button class="copy sans" type="button">Copy</button>
+          <pre>git clone https://github.com/joernmht/langwich
+cd langwich
+pip install -e .
+claude
+<span class="p">&gt;</span> /langwich</pre>
+        </div>
+        <p class="hint sans">Works in the Claude Code CLI, the desktop app, and on claude.ai/code.</p>
+      </div>
+
+      <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
+        <p>No terminal-based AI? Any chat assistant that can write JSON works —
+        ChatGPT, Gemini, Claude.ai, Le Chat, or a local model.</p>
+        <ol class="plain">
+          <li>Copy the prompt below into a new chat and edit the three <strong>About me</strong> lines.</li>
+          <li>Save the JSON it returns as <code class="mono">data/coffee_en_de.json</code> (the JSON only, no backticks).</li>
+          <li>Render it: <code class="mono">langwich --from-json data/coffee_en_de.json</code></li>
+        </ol>
+        <div class="codebox tall">
+          <button class="copy sans" type="button">Copy</button>
+          <pre>You are a language-learning content author for langwich
+(https://github.com/joernmht/langwich), a tool that renders
+worksheet PDFs from a JSON source file.
+
+About me — edit these three lines:
+  My native language:  English    (source_lang "en")
+  I am learning:       German     (target_lang "de")
+  Level and topic:     B1, "coffee"
+
+Write my worksheet source. Reply with ONE json code block and
+nothing else, in exactly this structure:
+
+{
+  "title": "a title in the target language",
+  "content": "a coherent multi-paragraph text in the TARGET language
+    at my level (B1: 250-350 words). Informative and true - a small
+    essay, not filler. Exactly one paragraph must describe a concrete
+    visual scene. Separate paragraphs with blank lines.",
+  "translation": "the same text in my native language",
+  "source_lang": "en",
+  "target_lang": "de",
+  "cefr_level": "B1",
+  "topic": "coffee",
+  "picture_scene": {
+    "description": "an image-generation prompt for the scene paragraph,
+      in English",
+    "elements": ["4-8 visible objects with their colours, in the target
+      language, all of which appear in the text"],
+    "paragraph_index": 2
+  },
+  "vocabulary": {
+    "items": [
+      {
+        "term": "der Kaffee",
+        "translation": "coffee",
+        "pos": "noun",
+        "synonym": null,
+        "antonym": null
+      }
+    ]
+  },
+  "grammar": {
+    "phenomena": [
+      {
+        "name": "name of a grammar phenomenon",
+        "description": "one or two plain-language sentences about it",
+        "examples": ["a sentence taken from the text"]
+      }
+    ]
+  }
+}
+
+Rules:
+- 20-30 vocabulary items, all taken from the text: mostly nouns and
+  verbs, several adjectives, a few prepositions ("pos" is one of:
+  noun, verb, adjective, adverb, preposition).
+- Include some colour words and position words so that the picture
+  exercises work.
+- Add synonyms and antonyms where they exist naturally, else null.
+- 2-4 grammar phenomena that genuinely occur in the text.</pre>
+        </div>
+      </div>
+
+      <div class="tabpanel" id="panel-agents" role="tabpanel" aria-labelledby="tab-agents" hidden>
+        <p>Any coding agent — Cursor, Copilot, Codex CLI, Claude Code — can drive langwich
+        end-to-end, because the JSON format is documented in the repository itself.
+        One instruction is enough:</p>
+        <div class="codebox">
+          <button class="copy sans" type="button">Copy</button>
+          <pre>Read README.md and examples/coffee_en_de.json. Then write a worksheet
+source JSON for a B2 French worksheet about astronomy (my native
+language is English) to data/astronomy_en_fr.json and render it with:
+langwich --from-json data/astronomy_en_fr.json</pre>
+        </div>
+        <p>Agents that run headless can put fresh material on your desk every morning —
+        for example with Claude Code’s print mode from cron:</p>
+        <div class="codebox">
+          <button class="copy sans" type="button">Copy</button>
+          <pre><span class="c"># a fresh worksheet every morning at 06:30</span>
+30 6 * * *  cd ~/langwich &amp;&amp; claude -p "Read README.md, then generate \
+  a new B1 Spanish worksheet on a surprising topic and render it"</pre>
+        </div>
+        <p class="hint sans">Pair it with an e-paper device or a duplex printer and the day
+        starts with a worksheet instead of a feed.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="cut" aria-hidden="true">
+
+  <!-- ================= GET STARTED ================= -->
+  <section id="get-started">
+    <div class="wrap start-grid">
+      <div>
+        <p class="eyebrow sans">Get started</p>
+        <h2>Five commands to your first worksheet</h2>
+        <p class="start-note">Python 3.11 or newer and a single dependency
+        (<a href="https://pypi.org/project/reportlab/">reportlab</a>). The repository includes
+        a complete example, so you can render a worksheet before involving any AI at all.
+        Then print <code class="mono">data/coffee.pdf</code> — black-and-white duplex is fine —
+        and put your phone in another room.</p>
+        <div class="cta-row sans">
+          <a class="btn primary" href="https://github.com/joernmht/langwich">Clone on GitHub</a>
+          <a class="btn ghost" href="https://github.com/joernmht/langwich#json-format">Read the JSON format</a>
+        </div>
+      </div>
+      <div class="codebox">
+        <button class="copy sans" type="button">Copy</button>
+        <pre>git clone https://github.com/joernmht/langwich
+cd langwich
+pip install -e .
+
+<span class="c"># render the bundled example → data/coffee.pdf</span>
+langwich --from-json examples/coffee_en_de.json
+
+<span class="c"># list all 18 exercise types</span>
+langwich --list-exercises
+
+<span class="c"># or pick your own selection</span>
+langwich --from-json examples/coffee_en_de.json \
+  --exercises fib_word_bank,pic_color_query,wc_translation</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row sans">
+      <span><strong>langwich</strong> — analogue language learning, generated by AI. MIT license.</span>
+      <span>
+        <a href="https://github.com/joernmht/langwich">GitHub</a> ·
+        <a href="https://github.com/joernmht/langwich#json-format">JSON format</a> ·
+        <a href="#top">Back to top ↑</a>
+      </span>
+    </div>
+    <p class="ps sans">P.S. This page has a dark mode. Paper never needed one.</p>
+  </div>
+</footer>
+
+<script>
+  // Tabs
+  const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  function selectTab(tab) {
+    tabs.forEach(t => {
+      const selected = t === tab;
+      t.setAttribute('aria-selected', String(selected));
+      t.tabIndex = selected ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !selected;
+    });
+    tab.focus();
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') selectTab(tabs[(i + 1) % tabs.length]);
+      if (e.key === 'ArrowLeft') selectTab(tabs[(i - 1 + tabs.length) % tabs.length]);
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = btn.parentElement.querySelector('pre').innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied ✓';
+      } catch {
+        btn.textContent = 'Press Ctrl+C';
+        const range = document.createRange();
+        range.selectNodeContents(btn.parentElement.querySelector('pre'));
+        const sel = getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  });
+</script>
+
+</body>
+</html>
