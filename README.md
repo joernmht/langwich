@@ -2,6 +2,8 @@
 
 **Graph-based language learning worksheet generator.**
 
+**Website:** [joernmht.github.io/langwich](https://joernmht.github.io/langwich/) — why analogue material beats another app, and how to use langwich with Claude, ChatGPT, Gemini or any other AI.
+
 langwich uses an exercise knowledge graph to generate PDF worksheets from any source text. The text is the gold mine — vocabulary, grammar, and exercises all derive from it. Three exercise types (Fill-in-Blanks, Picture Interaction, Word Connections) with 18 subclasses cover vocabulary, grammar, word manipulation, creativity, and spatial language.
 
 ---
