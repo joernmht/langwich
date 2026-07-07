@@ -6,8 +6,11 @@ exercise graph into a printable A4 worksheet.
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics.shapes import Circle, Drawing, Line, Polygon
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
@@ -15,7 +18,6 @@ from reportlab.lib.units import cm, mm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
-    KeepTogether,
     PageBreak,
     PageTemplate,
     Paragraph,
@@ -177,6 +179,371 @@ def _picture_placeholder(prompt: str, styles: dict, width: float) -> list:
     return elements
 
 
+def _qr_flowable(url: str, size: float = 22 * mm) -> Drawing:
+    """QR code as a platypus flowable."""
+    widget = QrCodeWidget(url)
+    x0, y0, x1, y1 = widget.getBounds()
+    d = Drawing(size, size,
+                transform=[size / (x1 - x0), 0, 0, size / (y1 - y0), 0, 0])
+    d.add(widget)
+    return d
+
+
+def _resource_box(resource: dict, styles: dict, width: float) -> list:
+    """Culture-library resource card: title + description + QR code."""
+    url = resource.get("url", "")
+    title = resource.get("title", "")
+    desc = resource.get("description", "")
+    scan_label = resource.get("scan_label", "Scan to open:")
+
+    text_parts = [f"<b>{title}</b>"]
+    if desc:
+        text_parts.append(f"<font size='8.5' color='#6b7280'>{desc}</font>")
+    text_parts.append(f"<font size='7' color='#2563eb'>{url}</font>")
+    info = Paragraph("<br/>".join(text_parts), styles["body"])
+    scan = Paragraph(f"<font size='6.5' color='#6b7280'>{scan_label}</font>",
+                     styles["small"])
+
+    qr_size = 20 * mm
+    t = Table([[info, [scan, Spacer(1, 1 * mm), _qr_flowable(url, qr_size)]]],
+              colWidths=[width - qr_size - 14 * mm, qr_size + 8 * mm])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), ACCENT_LIGHT),
+        ("BOX", (0, 0), (-1, -1), 0.5, ACCENT),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (1, 0), (1, 0), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [3, 3, 3, 3]),
+    ]))
+    return [t, Spacer(1, 3 * mm)]
+
+
+def _star_points(cx: float, cy: float, r_outer: float, r_inner: float) -> list[float]:
+    pts: list[float] = []
+    for i in range(10):
+        r = r_outer if i % 2 == 0 else r_inner
+        angle = math.pi / 2 + i * math.pi / 5
+        pts.extend([cx + r * math.cos(angle), cy + r * math.sin(angle)])
+    return pts
+
+
+def _stars_drawing(count: int = 5, size: float = 7 * mm) -> Drawing:
+    """Row of outline stars for the learner to colour in."""
+    gap = size * 0.25
+    d = Drawing(count * (size + gap), size)
+    for i in range(count):
+        cx = i * (size + gap) + size / 2
+        d.add(Polygon(
+            _star_points(cx, size / 2, size / 2, size / 5),
+            strokeColor=ACCENT, strokeWidth=0.8, fillColor=None,
+        ))
+    return d
+
+
+def _clock_drawing(time_str: str, size: float = 20 * mm) -> Drawing:
+    """Analogue clock face showing HH:MM."""
+    hh, mm_ = (int(p) for p in time_str.split(":"))
+    r = size / 2
+    d = Drawing(size, size)
+    d.add(Circle(r, r, r - 1, strokeColor=TEXT_DARK, strokeWidth=1,
+                 fillColor=colors.white))
+    for i in range(12):
+        angle = math.pi / 2 - i * math.pi / 6
+        x1 = r + (r - 2) * math.cos(angle)
+        y1 = r + (r - 2) * math.sin(angle)
+        x2 = r + (r - 4.5) * math.cos(angle)
+        y2 = r + (r - 4.5) * math.sin(angle)
+        d.add(Line(x1, y1, x2, y2, strokeColor=TEXT_DARK, strokeWidth=0.7))
+    minute_angle = math.pi / 2 - (mm_ / 60.0) * 2 * math.pi
+    hour_angle = math.pi / 2 - ((hh % 12 + mm_ / 60.0) / 12.0) * 2 * math.pi
+    d.add(Line(r, r, r + (r - 6) * math.cos(minute_angle),
+               r + (r - 6) * math.sin(minute_angle),
+               strokeColor=TEXT_DARK, strokeWidth=1))
+    d.add(Line(r, r, r + (r * 0.5) * math.cos(hour_angle),
+               r + (r * 0.5) * math.sin(hour_angle),
+               strokeColor=TEXT_DARK, strokeWidth=1.6))
+    d.add(Circle(r, r, 1, fillColor=TEXT_DARK, strokeColor=TEXT_DARK))
+    return d
+
+
+def _letter_grid(grid: list[list[str]], width: float) -> Table:
+    """Monospaced letter grid for word-search puzzles."""
+    n_cols = len(grid[0])
+    cell = min(6.5 * mm, (width - 10 * mm) / n_cols)
+    t = Table([list(row) for row in grid],
+              colWidths=[cell] * n_cols, rowHeights=[cell] * len(grid))
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, -1), "Courier-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_DARK),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), 0.8, TEXT_DARK),
+        ("INNERGRID", (0, 0), (-1, -1), 0.15, BORDER),
+    ]))
+    t.hAlign = "CENTER"
+    return t
+
+
+def _crossword_table(cw: dict, width: float) -> Table:
+    """Empty crossword grid with clue numbers in the start cells."""
+    w, h = cw["width"], cw["height"]
+    cells = cw["cells"]  # "r,c" -> letter (not shown)
+    numbers = cw["numbers"]  # "r,c" -> clue number
+    cell = min(7 * mm, (width - 10 * mm) / max(w, 1))
+
+    data = [["" for _ in range(w)] for _ in range(h)]
+    for key, n in numbers.items():
+        r, c = (int(p) for p in key.split(","))
+        data[r][c] = str(n)
+
+    style: list = [
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 5.5),
+        ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_GREY),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 0.5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 1),
+    ]
+    for r in range(h):
+        for c in range(w):
+            if f"{r},{c}" in cells:
+                style.append(("BOX", (c, r), (c, r), 0.6, TEXT_DARK))
+                style.append(("BACKGROUND", (c, r), (c, r), colors.white))
+
+    t = Table(data, colWidths=[cell] * w, rowHeights=[cell] * h)
+    t.setStyle(TableStyle(style))
+    t.hAlign = "CENTER"
+    return t
+
+
+def _checkbox_rows(words: list[str], width: float) -> Table:
+    """Words with empty tick boxes, two per row."""
+    box, gap = 4.5 * mm, 2 * mm
+    word_w = (width - 2 * (box + gap)) / 2 - 4 * mm
+    rows, style = [], [
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_DARK),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.5 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5 * mm),
+    ]
+    for i in range(0, len(words), 2):
+        pair = words[i:i + 2]
+        row = []
+        for w in pair:
+            row.extend(["", w])
+        while len(row) < 4:
+            row.extend(["", ""])
+        rows.append(row)
+    for r in range(len(rows)):
+        for c in (0, 2):
+            if rows[r][c + 1]:
+                style.append(("BOX", (c, r), (c, r), 0.7, TEXT_DARK))
+    t = Table(rows, colWidths=[box, word_w, box, word_w],
+              rowHeights=[box + 2 * mm] * len(rows))
+    t.setStyle(TableStyle(style))
+    return t
+
+
+def _chat_bubbles(count: int, width: float) -> list:
+    """Alternating empty chat bubbles (left grey, right blue)."""
+    elements: list = []
+    bubble_w = width * 0.62
+    for i in range(count):
+        left = i % 2 == 0
+        inner = Table([[""], [""]], colWidths=[bubble_w - 6 * mm],
+                      rowHeights=[7 * mm, 7 * mm])
+        inner.setStyle(TableStyle([
+            ("LINEBELOW", (0, 0), (0, 0), 0.3, BORDER),
+            ("LINEBELOW", (0, 1), (0, 1), 0.3, BORDER),
+        ]))
+        bg = BG_LIGHT if left else ACCENT_LIGHT
+        bubble = Table([[inner]], colWidths=[bubble_w])
+        bubble.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), bg),
+            ("BOX", (0, 0), (-1, -1), 0.5, BORDER),
+            ("ROUNDEDCORNERS", (0, 0), (-1, -1), [4, 4, 4, 4]),
+            ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+        ]))
+        pad = width - bubble_w
+        row = [[bubble, ""]] if left else [["", bubble]]
+        widths = [bubble_w, pad] if left else [pad, bubble_w]
+        outer = Table(row, colWidths=widths)
+        outer.setStyle(TableStyle([
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        elements.append(outer)
+        elements.append(Spacer(1, 2 * mm))
+    return elements
+
+
+def _frames_grid(spec: dict, styles: dict, width: float) -> list:
+    """Empty sketch frames with caption lines (comic panels, storyboards)."""
+    count = spec.get("count", 4)
+    per_row = spec.get("per_row", 2)
+    caption_lines = spec.get("caption_lines", 1)
+    label = spec.get("frame_label", "")
+
+    frame_w = (width - (per_row - 1) * 3 * mm) / per_row
+    frame_h = max(28 * mm, min(45 * mm, frame_w * 0.75))
+
+    elements: list = []
+    for start in range(0, count, per_row):
+        chunk = min(per_row, count - start)
+        cells = []
+        for i in range(chunk):
+            content: list = []
+            box = Table([[f"{label} {start + i + 1}".strip()]],
+                        colWidths=[frame_w - 3 * mm], rowHeights=[frame_h])
+            box.setStyle(TableStyle([
+                ("BOX", (0, 0), (-1, -1), 0.7, TEXT_DARK),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("FONTSIZE", (0, 0), (-1, -1), 6.5),
+                ("TEXTCOLOR", (0, 0), (-1, -1), TEXT_GREY),
+                ("TOPPADDING", (0, 0), (-1, -1), 1.5 * mm),
+            ]))
+            content.append(box)
+            for _ in range(caption_lines):
+                line = Table([[""]], colWidths=[frame_w - 3 * mm],
+                             rowHeights=[6 * mm])
+                line.setStyle(TableStyle([
+                    ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
+                ]))
+                content.append(line)
+            cells.append(content)
+        while len(cells) < per_row:
+            cells.append("")
+        t = Table([cells], colWidths=[frame_w] * per_row)
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 1 * mm),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 1 * mm),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 3 * mm))
+    return elements
+
+
+def _fillable_table(spec: dict, styles: dict, width: float) -> Table:
+    """Table with header row and (partially) empty cells to fill in."""
+    headers = spec.get("headers", [])
+    rows = spec.get("rows", [])
+    row_h = spec.get("row_height", 8) * mm
+    n_cols = max(len(headers), max((len(r) for r in rows), default=1))
+    col_w = width / n_cols
+
+    data = [headers] + [list(r) + [""] * (n_cols - len(r)) for r in rows]
+    t = Table(data, colWidths=[col_w] * n_cols,
+              rowHeights=[7 * mm] + [row_h] * len(rows))
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9.5),
+        ("TEXTCOLOR", (0, 0), (-1, 0), ACCENT),
+        ("TEXTCOLOR", (0, 1), (-1, -1), TEXT_DARK),
+        ("BACKGROUND", (0, 0), (-1, 0), ACCENT_LIGHT),
+        ("GRID", (0, 0), (-1, -1), 0.4, BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.5 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5 * mm),
+    ]))
+    return t
+
+
+def _flashcards(cards: list[dict], styles: dict, width: float) -> list:
+    """Cut-out flashcards: dashed borders, term big, translation small."""
+    per_row = 2
+    card_w = width / per_row
+    elements: list = []
+    for start in range(0, len(cards), per_row):
+        chunk = cards[start:start + per_row]
+        row = []
+        for card in chunk:
+            inner = [
+                Paragraph(f"<para align='center'><b>{card['front']}</b></para>",
+                          styles["body"]),
+                Spacer(1, 4 * mm),
+                Paragraph(f"<para align='center'><font size='8' color='#6b7280'>"
+                          f"{card['back']}</font></para>", styles["small"]),
+            ]
+            row.append(inner)
+        while len(row) < per_row:
+            row.append("")
+        t = Table([row], colWidths=[card_w] * per_row, rowHeights=[22 * mm])
+        t.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.5, TEXT_GREY, None, (2, 2)),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
+        ]))
+        elements.append(t)
+    return elements
+
+
+def _postcard(spec: dict, width: float) -> Table:
+    """Postcard: message lines left, stamp box + address lines right."""
+    message_lines = spec.get("message_lines", 6)
+    address_lines = spec.get("address_lines", 3)
+    left_w = width * 0.58
+    right_w = width - left_w
+
+    left_content: list = []
+    for _ in range(message_lines):
+        line = Table([[""]], colWidths=[left_w - 8 * mm], rowHeights=[8 * mm])
+        line.setStyle(TableStyle([("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER)]))
+        left_content.append(line)
+
+    stamp = Table([[""]], colWidths=[16 * mm], rowHeights=[19 * mm])
+    stamp.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, TEXT_GREY, None, (2, 2)),
+    ]))
+    stamp.hAlign = "RIGHT"
+    right_content: list = [stamp, Spacer(1, 4 * mm)]
+    for _ in range(address_lines):
+        line = Table([[""]], colWidths=[right_w - 10 * mm], rowHeights=[8 * mm])
+        line.setStyle(TableStyle([("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER)]))
+        right_content.append(line)
+
+    t = Table([[left_content, right_content]], colWidths=[left_w, right_w])
+    t.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.8, TEXT_DARK),
+        ("LINEAFTER", (0, 0), (0, 0), 0.4, BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4 * mm),
+    ]))
+    return t
+
+
+def _tip_box(text_content: str, styles: dict, width: float) -> list:
+    """Accent-coloured tip box."""
+    para = Paragraph(f"<b>{text_content}</b>", ParagraphStyle(
+        "tip", fontName="Helvetica", fontSize=9.5, textColor=ACCENT, leading=13,
+    ))
+    t = Table([[para]], colWidths=[width - 6 * mm])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), ACCENT_LIGHT),
+        ("BOX", (0, 0), (-1, -1), 0.5, ACCENT),
+        ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4 * mm),
+        ("ROUNDEDCORNERS", (0, 0), (-1, -1), [3, 3, 3, 3]),
+    ]))
+    return [t, Spacer(1, 2 * mm)]
+
+
 # ---------------------------------------------------------------------------
 # Exercise renderers
 # ---------------------------------------------------------------------------
@@ -286,10 +653,10 @@ def _render_word_connections(ex: ExerciseInstance, styles: dict) -> list:
         elif "left_column" in item and "right_column" in item:
             # Compound matching
             rows = []
-            for i, (l, r) in enumerate(
+            for i, (left, right) in enumerate(
                 zip(item["left_column"], item["right_column"]), 1
             ):
-                rows.append([f"{i}. {l}  +", f"{r}  =  _______________"])
+                rows.append([f"{i}. {left}  +", f"{right}  =  _______________"])
 
             t = Table(rows, colWidths=[CONTENT_W * 0.4, CONTENT_W * 0.6])
             t.setStyle(TableStyle([
@@ -308,6 +675,238 @@ def _render_word_connections(ex: ExerciseInstance, styles: dict) -> list:
                 styles["item"],
             ))
 
+    return elements
+
+
+def _render_generic(ex: ExerciseInstance, styles: dict) -> list:
+    """Data-driven renderer for the extended task families.
+
+    Generators emit items built from small primitives (task lines, boxes,
+    word banks, grids, bubbles, frames, tables ...); this walks the items
+    and renders each primitive.
+    """
+    elements: list = []
+    elements.append(Paragraph(ex.title, styles["section"]))
+    if ex.instruction:
+        elements.append(Paragraph(ex.instruction, styles["instruction"]))
+
+    if ex.resource and ex.resource.get("url"):
+        elements.extend(_resource_box(ex.resource, styles, CONTENT_W))
+
+    if ex.word_bank:
+        bank_text = "   ".join(f"<b>{w}</b>" for w in ex.word_bank)
+        elements.extend(_text_box(bank_text, styles, CONTENT_W))
+
+    pending_role_cards: list[dict] = []
+
+    def flush_role_cards() -> None:
+        if not pending_role_cards:
+            return
+        cells = []
+        for card in pending_role_cards:
+            cells.append(Paragraph(
+                f"<b>{card.get('title', '')}</b><br/>{card.get('text', '')}",
+                styles["body"],
+            ))
+        w = CONTENT_W / len(cells)
+        t = Table([cells], colWidths=[w] * len(cells))
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), BG_LIGHT),
+            ("GRID", (0, 0), (-1, -1), 0.5, BORDER),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 3 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3 * mm),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3 * mm),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3 * mm),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 3 * mm))
+        pending_role_cards.clear()
+
+    for item in ex.items:
+        if "role_card" in item:
+            pending_role_cards.append(item["role_card"])
+            continue
+        flush_role_cards()
+
+        num = item.get("number", "")
+        prefix = f"<b>{num}.</b>  " if num != "" else ""
+
+        if "task" in item:
+            if item["task"]:
+                elements.append(Paragraph(f"{prefix}{item['task']}",
+                                          styles["item"]))
+            elif prefix:
+                elements.append(Paragraph(prefix, styles["item"]))
+
+        elif "label" in item:
+            elements.append(Paragraph(f"<b>{item['label']}</b>", styles["body"]))
+
+        elif "box" in item:
+            elements.extend(_text_box(item["box"], styles, CONTENT_W))
+
+        elif "bank" in item:
+            bank_text = "   ".join(f"<b>{w}</b>" for w in item["bank"])
+            elements.extend(_text_box(bank_text, styles, CONTENT_W))
+
+        elif "tip" in item:
+            elements.extend(_tip_box(item["tip"], styles, CONTENT_W))
+
+        elif "grid" in item:
+            elements.append(_letter_grid(item["grid"], CONTENT_W))
+            elements.append(Spacer(1, 3 * mm))
+
+        elif "crossword" in item:
+            elements.append(_crossword_table(item["crossword"], CONTENT_W))
+            elements.append(Spacer(1, 3 * mm))
+
+        elif "clues_across" in item or "clues_down" in item:
+            across = item.get("clues_across", [])
+            down = item.get("clues_down", [])
+            col_w = CONTENT_W / 2
+
+            def clue_cell(label: str, clues: list[dict]) -> list:
+                cell: list = [Paragraph(f"<b>{label}</b>", styles["body"])]
+                for e in clues:
+                    cell.append(Paragraph(
+                        f"{e['number']}. {e['clue']}", styles["small"]))
+                return cell
+
+            t = Table([[clue_cell(item.get("across_label", "Across"), across),
+                        clue_cell(item.get("down_label", "Down"), down)]],
+                      colWidths=[col_w, col_w])
+            t.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(t)
+            elements.append(Spacer(1, 2 * mm))
+
+        elif "scramble" in item:
+            elements.append(Paragraph(
+                f"{prefix}<font face='Courier-Bold'>{item['scramble']}</font>"
+                f"   <i>({item.get('hint', '')})</i>   "
+                f"→  ____________________",
+                styles["item"],
+            ))
+
+        elif "words_row" in item:
+            words = "   –   ".join(item["words_row"])
+            elements.append(Paragraph(f"{prefix}{words}", styles["item"]))
+            if item.get("why"):
+                elements.extend(_writing_lines(1))
+                elements.append(Spacer(1, 1 * mm))
+
+        elif "code" in item:
+            elements.append(Paragraph(
+                f"{prefix}<font face='Courier'>{item['code']}</font>"
+                f"   →  ____________________",
+                styles["item"],
+            ))
+
+        elif "key_table" in item:
+            key = item["key_table"]
+            key_text = "   ".join(f"<b>{k}</b>&nbsp;=&nbsp;{v}"
+                                  for k, v in key.items())
+            elements.extend(_text_box(key_text, styles, CONTENT_W))
+
+        elif "chat" in item:
+            elements.extend(_chat_bubbles(item["chat"], CONTENT_W))
+
+        elif "post" in item:
+            post = item["post"]
+            elements.extend(_text_box(
+                f"<b>{post.get('author', '')}</b><br/>{post.get('text', '')}",
+                styles, CONTENT_W))
+
+        elif "reply" in item:
+            reply = item["reply"]
+            elements.append(Paragraph(f"<b>{reply.get('label', '')}</b>",
+                                      styles["body"]))
+            elements.extend(_writing_lines(reply.get("lines", 2)))
+            elements.append(Spacer(1, 2 * mm))
+
+        elif "frames" in item:
+            elements.extend(_frames_grid(item["frames"], styles, CONTENT_W))
+
+        elif "table" in item:
+            elements.append(_fillable_table(item["table"], styles, CONTENT_W))
+            elements.append(Spacer(1, 3 * mm))
+
+        elif "clock" in item:
+            clock = _clock_drawing(item["clock"])
+            line = Table([[""]], colWidths=[CONTENT_W - 34 * mm],
+                         rowHeights=[8 * mm])
+            line.setStyle(TableStyle([
+                ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
+            ]))
+            numbered = Paragraph(prefix or "", styles["item"])
+            t = Table([[numbered, clock, line]],
+                      colWidths=[8 * mm, 24 * mm, CONTENT_W - 32 * mm])
+            t.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(t)
+            elements.append(Spacer(1, 2 * mm))
+            continue  # lines handled inline
+
+        elif "cards" in item:
+            elements.extend(_flashcards(item["cards"], styles, CONTENT_W))
+
+        elif "postcard" in item:
+            elements.append(_postcard(item["postcard"], CONTENT_W))
+            elements.append(Spacer(1, 3 * mm))
+
+        elif "acrostic" in item:
+            for letter in item["acrostic"]:
+                line = Table([[""]], colWidths=[CONTENT_W - 14 * mm],
+                             rowHeights=[8 * mm])
+                line.setStyle(TableStyle([
+                    ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
+                ]))
+                t = Table([[Paragraph(f"<b>{letter}</b>", styles["section"]),
+                            line]],
+                          colWidths=[10 * mm, CONTENT_W - 10 * mm])
+                t.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ]))
+                elements.append(t)
+
+        elif "dialogue_lines" in item:
+            spec = item["dialogue_lines"]
+            speakers = spec.get("speakers", ["A", "B"])
+            for i in range(spec.get("turns", 8)):
+                speaker = speakers[i % len(speakers)]
+                line = Table([[""]], colWidths=[CONTENT_W - 14 * mm],
+                             rowHeights=[8 * mm])
+                line.setStyle(TableStyle([
+                    ("LINEBELOW", (0, 0), (-1, -1), 0.3, BORDER),
+                ]))
+                t = Table([[Paragraph(f"<b>{speaker}:</b>", styles["body"]),
+                            line]],
+                          colWidths=[10 * mm, CONTENT_W - 10 * mm])
+                t.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ]))
+                elements.append(t)
+
+        elif "checkboxes" in item:
+            elements.append(_checkbox_rows(item["checkboxes"], CONTENT_W))
+            elements.append(Spacer(1, 2 * mm))
+
+        if item.get("stars"):
+            elements.append(_stars_drawing(item["stars"]))
+            elements.append(Spacer(1, 2 * mm))
+
+        lines = item.get("lines", 0)
+        if lines:
+            elements.extend(_writing_lines(lines))
+            elements.append(Spacer(1, 1 * mm))
+
+    flush_role_cards()
     return elements
 
 
@@ -441,6 +1040,8 @@ def _render_solutions(exercises: list[ExerciseInstance], styles: dict) -> list:
                 elements.append(Paragraph(
                     f"{sol['number']} → {sol['letter']}", styles["small"]
                 ))
+            elif "note" in sol:
+                elements.append(Paragraph(sol["note"], styles["small"]))
         elements.append(Spacer(1, 2 * mm))
 
     return elements
@@ -471,8 +1072,8 @@ def render_worksheet(
 
     # Exercises
     for ex in exercises:
-        etype = ex.node_id.split("_")[0]
-        # Map node_id prefix to exercise type key
+        # Map node_id prefix to a specialized renderer; everything else
+        # (puzzles, media, social, writing, ...) uses the generic renderer.
         if ex.node_id.startswith("fib"):
             renderer = EXERCISE_RENDERERS["fib"]
         elif ex.node_id.startswith("pic"):
@@ -480,7 +1081,7 @@ def render_worksheet(
         elif ex.node_id.startswith("wc"):
             renderer = EXERCISE_RENDERERS["word_connections"]
         else:
-            continue
+            renderer = _render_generic
         story.extend(renderer(ex, styles))
         story.append(Spacer(1, 6 * mm))
 

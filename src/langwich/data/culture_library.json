@@ -1,0 +1,242 @@
+{
+  "version": 1,
+  "description": "Curated authentic-media resources per target language. Each resource carries topic tags and a rough CEFR entry level so worksheets can pick a matching podcast, video channel, artist, news site, film or radio station and print a QR code to it. URLs are intentionally conservative: official homepages or search links that will not go stale.",
+  "categories": ["podcast", "video", "music", "news", "film_tv", "radio", "social"],
+  "topic_tags": [
+    "news", "politics", "society", "culture", "history", "science", "technology",
+    "business", "food", "travel", "sports", "music", "film", "comedy", "everyday",
+    "learning", "kids", "art", "nature", "health", "literature"
+  ],
+  "languages": {
+    "de": {
+      "name": "German",
+      "resources": [
+        {"category": "podcast", "title": "Slow German mit Annik Rubens", "url": "https://slowgerman.com", "description": "Short, slowly spoken episodes about everyday life and culture in Germany, with transcripts.", "topics": ["learning", "everyday", "culture"], "cefr": "A2+"},
+        {"category": "podcast", "title": "Easy German Podcast", "url": "https://www.easygerman.org/podcast", "description": "Casual conversations about life in Germany, with helper transcripts and vocabulary.", "topics": ["learning", "everyday", "society"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Langsam gesprochene Nachrichten (DW)", "url": "https://www.dw.com/de/deutsch-lernen/nachrichten/s-8030", "description": "Deutsche Welle reads the day's news slowly and clearly, with text to read along.", "topics": ["news", "politics", "learning"], "cefr": "B1+"},
+        {"category": "video", "title": "Easy German (YouTube)", "url": "https://www.youtube.com/@EasyGerman", "description": "Street interviews with dual German/English subtitles — real spoken German.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "MrWissen2go (YouTube)", "url": "https://www.youtube.com/@MrWissen2go", "description": "Clear explainers on politics, history and current affairs for young audiences.", "topics": ["politics", "history", "society", "news"], "cefr": "B2+"},
+        {"category": "video", "title": "Dinge Erklärt – Kurzgesagt", "url": "https://www.youtube.com/results?search_query=Dinge+Erkl%C3%A4rt+Kurzgesagt", "description": "Beautifully animated science videos — the German channel of Kurzgesagt.", "topics": ["science", "nature", "technology"], "cefr": "B2+"},
+        {"category": "video", "title": "Terra X (ZDF documentaries)", "url": "https://www.youtube.com/results?search_query=Terra+X+Doku", "description": "Public-broadcaster documentaries on history, nature and science.", "topics": ["history", "science", "nature", "travel"], "cefr": "B2+"},
+        {"category": "music", "title": "AnnenMayKantereit", "url": "https://www.youtube.com/results?search_query=AnnenMayKantereit", "description": "Cologne band with raspy vocals and clear, poetic German lyrics.", "topics": ["music", "everyday"], "cefr": "B1+"},
+        {"category": "music", "title": "Mark Forster", "url": "https://www.youtube.com/results?search_query=Mark+Forster", "description": "Upbeat German pop with simple, positive lyrics — great for beginners.", "topics": ["music", "everyday"], "cefr": "A2+"},
+        {"category": "music", "title": "Nena", "url": "https://www.youtube.com/results?search_query=Nena+99+Luftballons", "description": "Classic Neue Deutsche Welle — '99 Luftballons' is a piece of pop history.", "topics": ["music", "history"], "cefr": "A2+"},
+        {"category": "music", "title": "Die Fantastischen Vier", "url": "https://www.youtube.com/results?search_query=Die+Fantastischen+Vier", "description": "Pioneers of German hip-hop with playful, fast wordplay.", "topics": ["music", "culture"], "cefr": "B2+"},
+        {"category": "news", "title": "Nachrichtenleicht", "url": "https://www.nachrichtenleicht.de", "description": "The week's news in deliberately easy German (Deutschlandfunk).", "topics": ["news", "everyday", "learning"], "cefr": "A2+"},
+        {"category": "news", "title": "tagesschau", "url": "https://www.tagesschau.de", "description": "Germany's most trusted TV news — articles, live streams and the famous 8 pm bulletin.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "news", "title": "Deutsche Welle", "url": "https://www.dw.com/de", "description": "Germany's international broadcaster — news plus a large German-learning section.", "topics": ["news", "politics", "culture", "learning"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "ARD Mediathek", "url": "https://www.ardmediathek.de", "description": "Free streaming library of German public TV: series, films, documentaries.", "topics": ["film", "society", "news", "everyday"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "ARTE", "url": "https://www.arte.tv/de/", "description": "Franco-German culture channel — documentaries, cinema and arts, free to stream.", "topics": ["culture", "history", "science", "art", "film"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Dark (Series)", "url": "https://www.netflix.com/search?q=dark", "description": "Acclaimed German time-travel mystery series — gripping and widely subtitled.", "topics": ["film", "science"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Good Bye, Lenin! (Film)", "url": "https://www.youtube.com/results?search_query=Good+Bye+Lenin+Trailer", "description": "Beloved tragicomedy about German reunification — history through one family.", "topics": ["film", "history", "comedy"], "cefr": "B1+"},
+        {"category": "radio", "title": "Deutschlandfunk Nova", "url": "https://www.deutschlandfunknova.de", "description": "Young public radio: science, society and news in accessible language.", "topics": ["news", "science", "society"], "cefr": "B2+"},
+        {"category": "radio", "title": "radio.de", "url": "https://www.radio.de", "description": "Directory of all German radio stations — pick one and listen live.", "topics": ["music", "news", "everyday"], "cefr": "A1+"},
+        {"category": "social", "title": "@tagesschau on Instagram", "url": "https://www.instagram.com/tagesschau/", "description": "Bite-sized news posts and stories in German — short captions, daily practice.", "topics": ["news", "society"], "cefr": "B1+"},
+        {"category": "social", "title": "@easygerman on Instagram", "url": "https://www.instagram.com/easygerman/", "description": "Vocabulary snippets and mini-dialogues from the Easy German team.", "topics": ["learning", "everyday"], "cefr": "A2+"}
+      ]
+    },
+    "fr": {
+      "name": "French",
+      "resources": [
+        {"category": "podcast", "title": "InnerFrench", "url": "https://innerfrench.com", "description": "Intermediate podcast about society, psychology and culture in clear, natural French.", "topics": ["learning", "society", "culture", "science"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Journal en français facile (RFI)", "url": "https://francaisfacile.rfi.fr", "description": "RFI's daily world news bulletin in easy French, with transcripts.", "topics": ["news", "politics", "learning"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Duolingo French Podcast", "url": "https://podcast.duolingo.com", "description": "True stories in slow French with English narration to keep you on track.", "topics": ["culture", "everyday", "learning"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Coffee Break French", "url": "https://coffeebreaklanguages.com", "description": "Structured lessons in relaxed 15–20 minute episodes, from beginner to advanced.", "topics": ["learning"], "cefr": "A1+"},
+        {"category": "video", "title": "Easy French (YouTube)", "url": "https://www.youtube.com/@EasyFrench", "description": "Street interviews in Paris and beyond with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "HugoDécrypte", "url": "https://www.youtube.com/@HugoDecrypte", "description": "Daily news explained for young people — fast but clear French.", "topics": ["news", "politics", "society"], "cefr": "B2+"},
+        {"category": "video", "title": "C'est pas sorcier", "url": "https://www.youtube.com/results?search_query=C%27est+pas+sorcier", "description": "Legendary science show for kids — hundreds of episodes explaining how the world works.", "topics": ["science", "kids", "nature"], "cefr": "B1+"},
+        {"category": "music", "title": "Stromae", "url": "https://www.youtube.com/results?search_query=Stromae", "description": "Belgian superstar mixing chanson and electro — crisp diction, poetic lyrics.", "topics": ["music", "society"], "cefr": "B1+"},
+        {"category": "music", "title": "Zaz", "url": "https://www.youtube.com/results?search_query=Zaz+Je+veux", "description": "Gypsy-jazz-flavoured chanson — 'Je veux' is a modern classic.", "topics": ["music", "everyday"], "cefr": "A2+"},
+        {"category": "music", "title": "Angèle", "url": "https://www.youtube.com/results?search_query=Ang%C3%A8le", "description": "Belgian pop with clear vocals and contemporary themes.", "topics": ["music", "society"], "cefr": "B1+"},
+        {"category": "music", "title": "Édith Piaf", "url": "https://www.youtube.com/results?search_query=Edith+Piaf", "description": "The voice of classic chanson française — 'La Vie en rose', 'Non, je ne regrette rien'.", "topics": ["music", "history", "culture"], "cefr": "B1+"},
+        {"category": "news", "title": "1jour1actu", "url": "https://www.1jour1actu.com", "description": "One news topic per day explained for children — ideal easy authentic reading.", "topics": ["news", "kids", "everyday", "learning"], "cefr": "A2+"},
+        {"category": "news", "title": "France 24", "url": "https://www.france24.com/fr/", "description": "French international news channel — articles and live video.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "news", "title": "Le Monde", "url": "https://www.lemonde.fr", "description": "France's newspaper of record — for advanced readers.", "topics": ["news", "politics", "culture"], "cefr": "C1"},
+        {"category": "film_tv", "title": "TV5Monde – Apprendre le français", "url": "https://apprendre.tv5monde.com", "description": "Free exercises built around authentic French TV clips, sorted by level.", "topics": ["learning", "culture", "everyday"], "cefr": "A1+"},
+        {"category": "film_tv", "title": "Lupin (Series)", "url": "https://www.netflix.com/search?q=lupin", "description": "Hit heist series set in Paris — modern spoken French with wide subtitle support.", "topics": ["film", "everyday"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "Intouchables (Film)", "url": "https://www.youtube.com/results?search_query=Intouchables+bande+annonce", "description": "Heart-warming comedy-drama and one of France's biggest box-office hits.", "topics": ["film", "society", "comedy"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "Le Fabuleux Destin d'Amélie Poulain (Film)", "url": "https://www.youtube.com/results?search_query=Am%C3%A9lie+Poulain+bande+annonce", "description": "Whimsical Paris classic — a gentle introduction to French cinema.", "topics": ["film", "culture"], "cefr": "B1+"},
+        {"category": "radio", "title": "France Inter", "url": "https://www.radiofrance.fr/franceinter", "description": "France's most listened-to public radio — news, culture and humour.", "topics": ["news", "culture", "comedy"], "cefr": "C1"},
+        {"category": "radio", "title": "RFI", "url": "https://www.rfi.fr", "description": "Radio France Internationale — world news with a learner-friendly section.", "topics": ["news", "politics", "learning"], "cefr": "B2+"},
+        {"category": "social", "title": "@hugodecrypte on Instagram", "url": "https://www.instagram.com/hugodecrypte/", "description": "The day's news in swipeable French posts.", "topics": ["news", "society"], "cefr": "B1+"}
+      ]
+    },
+    "es": {
+      "name": "Spanish",
+      "resources": [
+        {"category": "podcast", "title": "Duolingo Spanish Podcast", "url": "https://podcast.duolingo.com", "description": "True stories in slow Spanish with English narration.", "topics": ["culture", "everyday", "learning"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Hoy Hablamos", "url": "https://www.hoyhablamos.com", "description": "Daily podcast about Spanish life and language, with transcripts.", "topics": ["everyday", "society", "learning"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Notes in Spanish", "url": "https://www.notesinspanish.com", "description": "Real conversations from Madrid at three levels.", "topics": ["learning", "everyday", "travel"], "cefr": "A2+"},
+        {"category": "podcast", "title": "Radio Ambulante (NPR)", "url": "https://radioambulante.org", "description": "Award-winning narrative journalism from across Latin America.", "topics": ["society", "culture", "politics"], "cefr": "C1"},
+        {"category": "video", "title": "Easy Spanish (YouTube)", "url": "https://www.youtube.com/@EasySpanish", "description": "Street interviews from Spain and Latin America with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "Dreaming Spanish", "url": "https://www.youtube.com/@DreamingSpanish", "description": "Comprehensible-input videos graded from superbeginner upwards.", "topics": ["learning", "everyday", "culture"], "cefr": "A1+"},
+        {"category": "video", "title": "Luisito Comunica", "url": "https://www.youtube.com/results?search_query=Luisito+Comunica", "description": "One of the biggest Spanish-language travel vloggers — fast, real-world Spanish.", "topics": ["travel", "everyday", "food"], "cefr": "B2+"},
+        {"category": "music", "title": "Rosalía", "url": "https://www.youtube.com/results?search_query=Rosal%C3%ADa", "description": "Flamenco-rooted pop innovation from Barcelona.", "topics": ["music", "culture"], "cefr": "B1+"},
+        {"category": "music", "title": "Juanes", "url": "https://www.youtube.com/results?search_query=Juanes", "description": "Colombian rock en español with clear, sing-along lyrics.", "topics": ["music", "everyday"], "cefr": "A2+"},
+        {"category": "music", "title": "Manu Chao", "url": "https://www.youtube.com/results?search_query=Manu+Chao", "description": "Simple, repetitive, catchy — 'Me gustas tú' practically teaches itself.", "topics": ["music", "travel"], "cefr": "A2+"},
+        {"category": "music", "title": "Shakira", "url": "https://www.youtube.com/results?search_query=Shakira", "description": "Global Colombian star — decades of Spanish-language hits.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "BBC News Mundo", "url": "https://www.bbc.com/mundo", "description": "The BBC's Spanish-language world news service.", "topics": ["news", "politics", "science"], "cefr": "B2+"},
+        {"category": "news", "title": "20minutos", "url": "https://www.20minutos.es", "description": "Free Spanish daily with short, accessible articles.", "topics": ["news", "everyday", "sports"], "cefr": "B1+"},
+        {"category": "news", "title": "El País", "url": "https://elpais.com", "description": "Spain's leading newspaper — for advanced readers.", "topics": ["news", "politics", "culture"], "cefr": "C1"},
+        {"category": "film_tv", "title": "RTVE Play", "url": "https://www.rtve.es/play/", "description": "Spain's public broadcaster streaming service — series, films, documentaries.", "topics": ["film", "news", "culture", "everyday"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "La casa de papel (Series)", "url": "https://www.netflix.com/search?q=la%20casa%20de%20papel", "description": "The global Spanish heist phenomenon — fast dialogue, gripping plot.", "topics": ["film"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Coco (Film)", "url": "https://www.youtube.com/results?search_query=Coco+tr%C3%A1iler+espa%C3%B1ol", "description": "Pixar's Día de los Muertos story — watch it dubbed in Spanish.", "topics": ["film", "kids", "culture", "music"], "cefr": "A2+"},
+        {"category": "film_tv", "title": "El laberinto del fauno (Film)", "url": "https://www.youtube.com/results?search_query=El+laberinto+del+fauno+tr%C3%A1iler", "description": "Guillermo del Toro's dark fairy tale set after the Spanish Civil War.", "topics": ["film", "history"], "cefr": "B2+"},
+        {"category": "radio", "title": "Cadena SER", "url": "https://cadenaser.com", "description": "Spain's most listened-to radio network — news, talk and sport.", "topics": ["news", "sports", "society"], "cefr": "C1"},
+        {"category": "radio", "title": "RTVE Radio", "url": "https://www.rtve.es/radio/", "description": "Spanish public radio live streams — Radio Nacional, Radio 5 and more.", "topics": ["news", "culture"], "cefr": "B2+"},
+        {"category": "social", "title": "@bbcmundo on Instagram", "url": "https://www.instagram.com/bbcmundo/", "description": "News in short Spanish captions and reels.", "topics": ["news", "society"], "cefr": "B1+"}
+      ]
+    },
+    "it": {
+      "name": "Italian",
+      "resources": [
+        {"category": "podcast", "title": "Podcast Italiano", "url": "https://www.podcastitaliano.com", "description": "Culture, language and life in Italy, graded by level with transcripts.", "topics": ["learning", "culture", "everyday"], "cefr": "A2+"},
+        {"category": "podcast", "title": "News in Slow Italian", "url": "https://www.newsinslowitalian.com", "description": "The week's news discussed slowly and clearly.", "topics": ["news", "learning"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Coffee Break Italian", "url": "https://coffeebreaklanguages.com", "description": "Structured audio lessons in relaxed short episodes.", "topics": ["learning"], "cefr": "A1+"},
+        {"category": "video", "title": "Easy Italian (YouTube)", "url": "https://www.youtube.com/@EasyItalian", "description": "Street interviews in Italy with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "Learn Italian with Lucrezia", "url": "https://www.youtube.com/results?search_query=Lucrezia+Oddone+italiano", "description": "Vlogs and lessons in clear Italian by a Roman teacher.", "topics": ["learning", "everyday", "travel"], "cefr": "A2+"},
+        {"category": "music", "title": "Måneskin", "url": "https://www.youtube.com/results?search_query=M%C3%A5neskin", "description": "Eurovision-winning Roman rock band.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "music", "title": "Laura Pausini", "url": "https://www.youtube.com/results?search_query=Laura+Pausini", "description": "Italy's pop export — emotional ballads with clear enunciation.", "topics": ["music", "everyday"], "cefr": "A2+"},
+        {"category": "music", "title": "Lucio Battisti", "url": "https://www.youtube.com/results?search_query=Lucio+Battisti", "description": "Timeless cantautore classics every Italian knows by heart.", "topics": ["music", "culture", "history"], "cefr": "B1+"},
+        {"category": "news", "title": "ANSA", "url": "https://www.ansa.it", "description": "Italy's main news agency — concise, factual articles.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "news", "title": "la Repubblica", "url": "https://www.repubblica.it", "description": "Major Italian daily — for advanced readers.", "topics": ["news", "politics", "culture"], "cefr": "C1"},
+        {"category": "film_tv", "title": "RaiPlay", "url": "https://www.raiplay.it", "description": "Italian public TV streaming — series, films and classic shows.", "topics": ["film", "news", "culture", "everyday"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "La vita è bella (Film)", "url": "https://www.youtube.com/results?search_query=La+vita+%C3%A8+bella+trailer", "description": "Benigni's Oscar-winning tragicomedy.", "topics": ["film", "history"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "Perfetti sconosciuti (Film)", "url": "https://www.youtube.com/results?search_query=Perfetti+sconosciuti+trailer", "description": "A dinner party where every phone secret is shared — brilliant everyday dialogue.", "topics": ["film", "society", "comedy"], "cefr": "B2+"},
+        {"category": "radio", "title": "RaiPlay Sound", "url": "https://www.raiplaysound.it", "description": "All RAI radio channels and podcasts in one place.", "topics": ["news", "culture", "music"], "cefr": "B2+"},
+        {"category": "radio", "title": "Radio Deejay", "url": "https://www.deejay.it", "description": "Italy's popular music-and-talk station.", "topics": ["music", "comedy", "everyday"], "cefr": "B1+"}
+      ]
+    },
+    "pt": {
+      "name": "Portuguese",
+      "resources": [
+        {"category": "podcast", "title": "Practice Portuguese", "url": "https://www.practiceportuguese.com", "description": "European Portuguese dialogues and shorts with transcripts.", "topics": ["learning", "everyday"], "cefr": "A2+"},
+        {"category": "podcast", "title": "Café Brasil", "url": "https://portalcafebrasil.com.br", "description": "Long-running Brazilian podcast on culture, ideas and society.", "topics": ["society", "culture", "business"], "cefr": "C1"},
+        {"category": "video", "title": "Easy Brazilian Portuguese", "url": "https://www.youtube.com/results?search_query=Easy+Brazilian+Portuguese", "description": "Street interviews from Brazil with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "Manual do Mundo", "url": "https://www.youtube.com/results?search_query=Manual+do+Mundo", "description": "Brazil's biggest science-experiment channel — clear, enthusiastic Portuguese.", "topics": ["science", "everyday", "kids"], "cefr": "B1+"},
+        {"category": "video", "title": "Porta dos Fundos", "url": "https://www.youtube.com/results?search_query=Porta+dos+Fundos", "description": "Brazil's famous comedy sketch collective — fast colloquial Portuguese.", "topics": ["comedy", "society"], "cefr": "C1"},
+        {"category": "music", "title": "Tribalistas", "url": "https://www.youtube.com/results?search_query=Tribalistas", "description": "Gentle MPB supergroup — slow, clear and beautiful.", "topics": ["music", "everyday"], "cefr": "A2+"},
+        {"category": "music", "title": "Caetano Veloso", "url": "https://www.youtube.com/results?search_query=Caetano+Veloso", "description": "A giant of Brazilian music — poetry set to bossa and tropicália.", "topics": ["music", "culture", "history"], "cefr": "B2+"},
+        {"category": "music", "title": "Anitta", "url": "https://www.youtube.com/results?search_query=Anitta", "description": "Brazil's global pop star — funk carioca and reggaeton crossovers.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "G1 (Globo)", "url": "https://g1.globo.com", "description": "Brazil's largest news portal.", "topics": ["news", "politics", "sports"], "cefr": "B2+"},
+        {"category": "news", "title": "BBC News Brasil", "url": "https://www.bbc.com/portuguese", "description": "The BBC's Brazilian Portuguese service — well-edited world news.", "topics": ["news", "science", "society"], "cefr": "B2+"},
+        {"category": "news", "title": "Público", "url": "https://www.publico.pt", "description": "Leading Portuguese (Portugal) daily newspaper.", "topics": ["news", "politics", "culture"], "cefr": "C1"},
+        {"category": "film_tv", "title": "Cidade de Deus (Film)", "url": "https://www.youtube.com/results?search_query=Cidade+de+Deus+trailer", "description": "Landmark Brazilian cinema — Rio's favelas in the 1970s.", "topics": ["film", "society", "history"], "cefr": "C1"},
+        {"category": "film_tv", "title": "3% (Series)", "url": "https://www.netflix.com/search?q=3%25", "description": "Brazilian dystopian sci-fi series — clear studio dialogue.", "topics": ["film", "science"], "cefr": "B2+"},
+        {"category": "radio", "title": "RTP Play (rádio e TV)", "url": "https://www.rtp.pt/play/", "description": "Portugal's public radio and TV live streams and archives.", "topics": ["news", "culture", "music"], "cefr": "B2+"}
+      ]
+    },
+    "en": {
+      "name": "English",
+      "resources": [
+        {"category": "podcast", "title": "BBC Learning English (6 Minute English)", "url": "https://www.bbc.co.uk/learningenglish", "description": "Short topical episodes with scripts and vocabulary — the classic learner podcast.", "topics": ["learning", "everyday", "news", "science"], "cefr": "A2+"},
+        {"category": "podcast", "title": "All Ears English", "url": "https://www.allearsenglish.com", "description": "Energetic American English conversation and culture tips.", "topics": ["learning", "everyday"], "cefr": "B1+"},
+        {"category": "podcast", "title": "Luke's English Podcast", "url": "https://teacherluke.co.uk", "description": "British humour and long-form rambles from an English teacher and comedian.", "topics": ["learning", "comedy", "everyday"], "cefr": "B1+"},
+        {"category": "podcast", "title": "This American Life", "url": "https://www.thisamericanlife.org", "description": "The benchmark of American narrative radio journalism.", "topics": ["society", "culture"], "cefr": "C1"},
+        {"category": "video", "title": "BBC Learning English (YouTube)", "url": "https://www.youtube.com/@bbclearningenglish", "description": "Grammar, vocabulary and news review videos every day.", "topics": ["learning", "news"], "cefr": "A1+"},
+        {"category": "video", "title": "TED", "url": "https://www.youtube.com/@TED", "description": "Talks on every subject with subtitles in dozens of languages.", "topics": ["science", "society", "technology", "business"], "cefr": "B2+"},
+        {"category": "video", "title": "CrashCourse", "url": "https://www.youtube.com/@crashcourse", "description": "Fast, well-produced courses on history, science and literature.", "topics": ["science", "history", "learning", "literature"], "cefr": "B2+"},
+        {"category": "video", "title": "Easy English (YouTube)", "url": "https://www.youtube.com/results?search_query=Easy+English+street+interviews", "description": "Street interviews across the UK with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "music", "title": "The Beatles", "url": "https://www.youtube.com/results?search_query=The+Beatles", "description": "Clear vocals, simple verses, endless classics — ideal lyric practice.", "topics": ["music", "history", "culture"], "cefr": "A2+"},
+        {"category": "music", "title": "Ed Sheeran", "url": "https://www.youtube.com/results?search_query=Ed+Sheeran", "description": "Contemporary singer-songwriter pop with storytelling lyrics.", "topics": ["music", "everyday"], "cefr": "B1+"},
+        {"category": "music", "title": "Adele", "url": "https://www.youtube.com/results?search_query=Adele", "description": "Powerful ballads sung slowly and clearly.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "Breaking News English", "url": "https://breakingnewsenglish.com", "description": "The same news story graded at seven difficulty levels, with exercises.", "topics": ["news", "learning"], "cefr": "A1+"},
+        {"category": "news", "title": "BBC News", "url": "https://www.bbc.com/news", "description": "World news in clear British English.", "topics": ["news", "politics", "science"], "cefr": "B2+"},
+        {"category": "news", "title": "NPR", "url": "https://www.npr.org", "description": "US public radio — news and beloved story formats.", "topics": ["news", "society", "culture"], "cefr": "B2+"},
+        {"category": "news", "title": "The Guardian", "url": "https://www.theguardian.com", "description": "In-depth British journalism, free to read.", "topics": ["news", "culture", "sports"], "cefr": "C1"},
+        {"category": "film_tv", "title": "Friends (Series)", "url": "https://www.netflix.com/search?q=friends", "description": "The eternal sitcom — everyday vocabulary, clear studio sound.", "topics": ["film", "everyday", "comedy"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "The Office US (Series)", "url": "https://www.youtube.com/results?search_query=The+Office+US+clips", "description": "Mockumentary office comedy — workplace English with deadpan humour.", "topics": ["film", "comedy", "business"], "cefr": "B2+"},
+        {"category": "radio", "title": "BBC Sounds", "url": "https://www.bbc.co.uk/sounds", "description": "All BBC radio stations and podcasts live and on demand.", "topics": ["news", "culture", "music"], "cefr": "B2+"},
+        {"category": "radio", "title": "TuneIn", "url": "https://tunein.com", "description": "Thousands of English-language stations worldwide — pick an accent.", "topics": ["music", "news", "everyday", "sports"], "cefr": "A2+"},
+        {"category": "social", "title": "@bbclearningenglish on Instagram", "url": "https://www.instagram.com/bbclearningenglish/", "description": "Daily vocabulary cards and short grammar reels.", "topics": ["learning", "everyday"], "cefr": "A2+"}
+      ]
+    },
+    "ja": {
+      "name": "Japanese",
+      "resources": [
+        {"category": "podcast", "title": "Nihongo con Teppei", "url": "https://nihongoconteppei.com", "description": "Hundreds of short monologues in simple, natural Japanese.", "topics": ["learning", "everyday"], "cefr": "A2+"},
+        {"category": "podcast", "title": "NHK Radio News", "url": "https://www.nhk.or.jp/radionews/", "description": "Japan's public-broadcaster radio news bulletins.", "topics": ["news", "politics"], "cefr": "C1"},
+        {"category": "video", "title": "Japanese Ammo with Misa", "url": "https://www.youtube.com/results?search_query=Japanese+Ammo+with+Misa", "description": "Deep, friendly grammar explanations with natural example sentences.", "topics": ["learning"], "cefr": "A1+"},
+        {"category": "video", "title": "Dogen", "url": "https://www.youtube.com/results?search_query=Dogen+Japanese", "description": "Pitch-accent mastery and pitch-perfect comedy about learning Japanese.", "topics": ["learning", "comedy"], "cefr": "B1+"},
+        {"category": "video", "title": "That Japanese Man Yuta", "url": "https://www.youtube.com/results?search_query=That+Japanese+Man+Yuta", "description": "Street interviews on how Japanese people really speak and think.", "topics": ["society", "everyday", "learning"], "cefr": "B1+"},
+        {"category": "music", "title": "YOASOBI", "url": "https://www.youtube.com/results?search_query=YOASOBI", "description": "J-pop duo whose songs are based on short stories — lyrics worth reading.", "topics": ["music", "literature"], "cefr": "B1+"},
+        {"category": "music", "title": "Kenshi Yonezu (米津玄師)", "url": "https://www.youtube.com/results?search_query=Kenshi+Yonezu", "description": "One of Japan's defining modern songwriters.", "topics": ["music"], "cefr": "B2+"},
+        {"category": "music", "title": "RADWIMPS", "url": "https://www.youtube.com/results?search_query=RADWIMPS", "description": "Rock band behind the 'Your Name' soundtrack.", "topics": ["music", "film"], "cefr": "B1+"},
+        {"category": "news", "title": "NHK News Web Easy", "url": "https://www3.nhk.or.jp/news/easy/", "description": "Daily news rewritten in simple Japanese with furigana — a learner's treasure.", "topics": ["news", "learning", "everyday"], "cefr": "A2+"},
+        {"category": "news", "title": "NHK News", "url": "https://www3.nhk.or.jp/news/", "description": "Full NHK news site for advanced readers.", "topics": ["news", "politics"], "cefr": "C1"},
+        {"category": "film_tv", "title": "Studio Ghibli films", "url": "https://www.youtube.com/results?search_query=Studio+Ghibli+trailer", "description": "Totoro, Spirited Away and friends — clear dialogue and universal stories.", "topics": ["film", "kids", "nature"], "cefr": "A2+"},
+        {"category": "film_tv", "title": "Your Name (君の名は。)", "url": "https://www.youtube.com/results?search_query=Your+Name+%E5%90%9B%E3%81%AE%E5%90%8D%E3%81%AF+trailer", "description": "Makoto Shinkai's body-swap masterpiece.", "topics": ["film"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "Midnight Diner (深夜食堂)", "url": "https://www.netflix.com/search?q=midnight%20diner", "description": "Quiet late-night food stories — slow, warm, everyday Japanese.", "topics": ["food", "everyday", "film"], "cefr": "B1+"},
+        {"category": "radio", "title": "NHK Radio (らじる★らじる)", "url": "https://www.nhk.or.jp/radio/", "description": "Live NHK radio streams.", "topics": ["news", "culture", "music"], "cefr": "B2+"}
+      ]
+    },
+    "zh": {
+      "name": "Mandarin Chinese",
+      "resources": [
+        {"category": "podcast", "title": "ChinesePod", "url": "https://www.chinesepod.com", "description": "Huge lesson library from newbie to advanced, built around dialogues.", "topics": ["learning", "everyday"], "cefr": "A1+"},
+        {"category": "podcast", "title": "TeaTime Chinese (茶歇中文)", "url": "https://www.teatimechinese.com", "description": "Intermediate podcast in slow Mandarin about culture and daily life.", "topics": ["learning", "culture", "everyday"], "cefr": "B1+"},
+        {"category": "video", "title": "Grace Mandarin Chinese", "url": "https://www.youtube.com/results?search_query=Grace+Mandarin+Chinese", "description": "Clear lessons on natural Mandarin expressions and pronunciation.", "topics": ["learning"], "cefr": "A2+"},
+        {"category": "video", "title": "Mandarin Corner", "url": "https://www.youtube.com/results?search_query=Mandarin+Corner", "description": "Real-life street interviews and vlogs with pinyin + English subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "B1+"},
+        {"category": "video", "title": "Li Ziqi (李子柒)", "url": "https://www.youtube.com/results?search_query=Li+Ziqi", "description": "Serene countryside cooking and craft videos — culture with light narration.", "topics": ["food", "culture", "nature"], "cefr": "B1+"},
+        {"category": "music", "title": "Jay Chou (周杰倫)", "url": "https://www.youtube.com/results?search_query=Jay+Chou", "description": "The defining Mandopop artist of the 2000s.", "topics": ["music"], "cefr": "B2+"},
+        {"category": "music", "title": "Teresa Teng (鄧麗君)", "url": "https://www.youtube.com/results?search_query=Teresa+Teng", "description": "Slow, crystal-clear classics — 月亮代表我的心 is the learner's anthem.", "topics": ["music", "history", "culture"], "cefr": "A2+"},
+        {"category": "music", "title": "G.E.M. (邓紫棋)", "url": "https://www.youtube.com/results?search_query=G.E.M.+%E9%82%93%E7%B4%AB%E6%A3%8B", "description": "Powerhouse Mandopop vocals from Hong Kong.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "The Chairman's Bao", "url": "https://www.thechairmansbao.com", "description": "News rewritten for learners and graded by HSK level.", "topics": ["news", "learning"], "cefr": "A2+"},
+        {"category": "news", "title": "BBC News 中文", "url": "https://www.bbc.com/zhongwen/simp", "description": "The BBC's Chinese-language service (simplified characters).", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "news", "title": "Lianhe Zaobao (联合早报)", "url": "https://www.zaobao.com.sg", "description": "Singapore's major Chinese daily — measured, clear prose.", "topics": ["news", "business"], "cefr": "C1"},
+        {"category": "film_tv", "title": "Crouching Tiger, Hidden Dragon (卧虎藏龙)", "url": "https://www.youtube.com/results?search_query=Crouching+Tiger+Hidden+Dragon+trailer", "description": "Ang Lee's wuxia classic.", "topics": ["film", "history"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "iQIYI International", "url": "https://www.iq.com", "description": "Chinese series and films with multilingual subtitles.", "topics": ["film", "everyday"], "cefr": "B1+"},
+        {"category": "radio", "title": "RTHK (香港电台)", "url": "https://www.rthk.hk", "description": "Hong Kong public broadcaster — Mandarin and Cantonese channels.", "topics": ["news", "culture"], "cefr": "B2+"}
+      ]
+    },
+    "ko": {
+      "name": "Korean",
+      "resources": [
+        {"category": "podcast", "title": "Talk To Me In Korean", "url": "https://talktomeinkorean.com", "description": "The best-known Korean curriculum — friendly podcast lessons at every level.", "topics": ["learning", "everyday"], "cefr": "A1+"},
+        {"category": "podcast", "title": "KoreanClass101", "url": "https://www.koreanclass101.com", "description": "Audio lessons with notes, from absolute beginner to advanced.", "topics": ["learning"], "cefr": "A1+"},
+        {"category": "video", "title": "Korean Englishman (영국남자)", "url": "https://www.youtube.com/results?search_query=Korean+Englishman", "description": "Fun culture-bridge videos, fully subtitled in Korean and English.", "topics": ["everyday", "food", "comedy", "culture"], "cefr": "B1+"},
+        {"category": "video", "title": "Paik Jong-won (백종원)", "url": "https://www.youtube.com/results?search_query=%EB%B0%B1%EC%A2%85%EC%9B%90", "description": "Korea's most famous chef cooking and chatting — great food vocabulary.", "topics": ["food", "everyday"], "cefr": "B1+"},
+        {"category": "music", "title": "IU (아이유)", "url": "https://www.youtube.com/results?search_query=IU+%EC%95%84%EC%9D%B4%EC%9C%A0", "description": "Beloved singer-songwriter with clear diction and poetic lyrics.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "music", "title": "BTS (방탄소년단)", "url": "https://www.youtube.com/results?search_query=BTS", "description": "The K-pop phenomenon — fan-made lyric translations for every song.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "KBS World Korean", "url": "https://world.kbs.co.kr", "description": "KBS's international service — news and Korean-learning programmes.", "topics": ["news", "learning", "culture"], "cefr": "B1+"},
+        {"category": "news", "title": "Yonhap News (연합뉴스)", "url": "https://www.yna.co.kr", "description": "South Korea's main news agency.", "topics": ["news", "politics"], "cefr": "C1"},
+        {"category": "film_tv", "title": "Parasite (기생충)", "url": "https://www.youtube.com/results?search_query=Parasite+%EA%B8%B0%EC%83%9D%EC%B6%A9+trailer", "description": "Bong Joon-ho's Oscar-winning class satire.", "topics": ["film", "society"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Reply 1988 (응답하라 1988)", "url": "https://www.netflix.com/search?q=reply%201988", "description": "Warm neighbourhood drama — everyday family Korean at its best.", "topics": ["film", "everyday", "history"], "cefr": "B1+"},
+        {"category": "film_tv", "title": "Squid Game (오징어 게임)", "url": "https://www.netflix.com/search?q=squid%20game", "description": "The global survival-drama hit.", "topics": ["film"], "cefr": "B1+"},
+        {"category": "radio", "title": "KBS World Radio", "url": "https://world.kbs.co.kr/service/index.htm?lang=k", "description": "Korean-language radio streams from KBS.", "topics": ["news", "music", "culture"], "cefr": "B2+"}
+      ]
+    },
+    "ru": {
+      "name": "Russian",
+      "resources": [
+        {"category": "podcast", "title": "Slow Russian (Real Russian Club)", "url": "https://realrussianclub.com", "description": "Slowly narrated stories and everyday topics with transcripts.", "topics": ["learning", "everyday"], "cefr": "A2+"},
+        {"category": "podcast", "title": "Радио Arzamas", "url": "https://arzamas.academy", "description": "Superb audio courses on Russian history, art and literature.", "topics": ["history", "culture", "art", "literature"], "cefr": "C1"},
+        {"category": "video", "title": "Easy Russian (YouTube)", "url": "https://www.youtube.com/results?search_query=Easy+Russian", "description": "Street interviews with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "Орёл и решка (Heads and Tails)", "url": "https://www.youtube.com/results?search_query=%D0%9E%D1%80%D1%91%D0%BB+%D0%B8+%D1%80%D0%B5%D1%88%D0%BA%D0%B0", "description": "Cult travel show — one host travels rich, one on 100 dollars.", "topics": ["travel", "everyday"], "cefr": "B1+"},
+        {"category": "music", "title": "Кино / Viktor Tsoi", "url": "https://www.youtube.com/results?search_query=%D0%9A%D0%B8%D0%BD%D0%BE+%D0%A6%D0%BE%D0%B9", "description": "Legendary 80s rock — simple, powerful lyrics every Russian knows.", "topics": ["music", "history", "culture"], "cefr": "B1+"},
+        {"category": "music", "title": "Земфира", "url": "https://www.youtube.com/results?search_query=%D0%97%D0%B5%D0%BC%D1%84%D0%B8%D1%80%D0%B0", "description": "Defining voice of Russian rock since the late 90s.", "topics": ["music"], "cefr": "B2+"},
+        {"category": "news", "title": "Meduza", "url": "https://meduza.io", "description": "Independent Russian-language news outlet (based in Riga).", "topics": ["news", "politics", "society"], "cefr": "C1"},
+        {"category": "news", "title": "BBC News Русская служба", "url": "https://www.bbc.com/russian", "description": "The BBC's Russian service.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Ирония судьбы (Film)", "url": "https://www.youtube.com/results?search_query=%D0%98%D1%80%D0%BE%D0%BD%D0%B8%D1%8F+%D1%81%D1%83%D0%B4%D1%8C%D0%B1%D1%8B", "description": "The New Year's Eve classic watched by generations.", "topics": ["film", "comedy", "culture"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Смешарики (KikoRiki)", "url": "https://www.youtube.com/results?search_query=%D0%A1%D0%BC%D0%B5%D1%88%D0%B0%D1%80%D0%B8%D0%BA%D0%B8", "description": "Clever kids' cartoon adults love too — clear, simple dialogue.", "topics": ["kids", "everyday", "comedy"], "cefr": "A2+"}
+      ]
+    },
+    "ar": {
+      "name": "Arabic",
+      "resources": [
+        {"category": "podcast", "title": "ArabicPod101", "url": "https://www.arabicpod101.com", "description": "Structured audio lessons across dialects and MSA.", "topics": ["learning"], "cefr": "A1+"},
+        {"category": "podcast", "title": "Sowt (صوت)", "url": "https://www.sowt.com", "description": "Award-winning Arabic podcast network — society, culture and storytelling.", "topics": ["society", "culture"], "cefr": "C1"},
+        {"category": "video", "title": "Easy Arabic (YouTube)", "url": "https://www.youtube.com/results?search_query=Easy+Arabic", "description": "Street interviews across the Arab world with dual subtitles.", "topics": ["everyday", "society", "learning"], "cefr": "A2+"},
+        {"category": "video", "title": "AJ+ عربي", "url": "https://www.youtube.com/results?search_query=AJ%2B+%D8%B9%D8%B1%D8%A8%D9%8A", "description": "Short, punchy explainers on news and society in modern Arabic.", "topics": ["news", "society", "technology"], "cefr": "B2+"},
+        {"category": "music", "title": "Fairuz (فيروز)", "url": "https://www.youtube.com/results?search_query=Fairuz", "description": "The morning voice of the Arab world — Lebanese icon.", "topics": ["music", "culture", "history"], "cefr": "B1+"},
+        {"category": "music", "title": "Amr Diab (عمرو دياب)", "url": "https://www.youtube.com/results?search_query=Amr+Diab", "description": "Egyptian pop megastar — catchy, repetitive choruses.", "topics": ["music"], "cefr": "B1+"},
+        {"category": "news", "title": "Al Jazeera Learning Arabic", "url": "https://learning.aljazeera.net", "description": "Free graded Arabic courses and learner news from Al Jazeera.", "topics": ["learning", "news"], "cefr": "A2+"},
+        {"category": "news", "title": "Al Jazeera (الجزيرة)", "url": "https://www.aljazeera.net", "description": "Major Arabic-language news network — Modern Standard Arabic.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "news", "title": "BBC News عربي", "url": "https://www.bbc.com/arabic", "description": "The BBC's Arabic service.", "topics": ["news", "politics"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Capernaum (كفرناحوم)", "url": "https://www.youtube.com/results?search_query=Capernaum+trailer", "description": "Nadine Labaki's Oscar-nominated Beirut drama.", "topics": ["film", "society"], "cefr": "B2+"},
+        {"category": "film_tv", "title": "Shahid (شاهد)", "url": "https://shahid.mbc.net", "description": "MBC's streaming platform — the largest Arabic series library.", "topics": ["film", "everyday"], "cefr": "B2+"},
+        {"category": "radio", "title": "Monte Carlo Doualiya", "url": "https://www.mc-doualiya.com", "description": "French public radio's Arabic service — clear MSA news.", "topics": ["news", "culture"], "cefr": "B2+"}
+      ]
+    }
+  }
+}
