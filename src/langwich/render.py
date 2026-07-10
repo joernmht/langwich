@@ -357,7 +357,6 @@ def _render_vocabulary_page(text: SourceText, styles: dict) -> list:
         by_pos.setdefault(v.pos, []).append(v)
 
     for pos, items in sorted(by_pos.items()):
-        elements.append(Paragraph(f"<b>{pos.upper()}</b>", styles["small"]))
         rows = []
         for v in items:
             extra = ""
@@ -378,7 +377,12 @@ def _render_vocabulary_page(text: SourceText, styles: dict) -> list:
             ("BOTTOMPADDING", (0, 0), (-1, -1), 1 * mm),
             ("LINEBELOW", (0, 0), (-1, -1), 0.2, BORDER),
         ]))
-        elements.append(t)
+        # Keep each part-of-speech group intact — a split table strands an
+        # orphan row alone on the next page. Groups longer than a page still
+        # split (KeepTogether degrades gracefully).
+        elements.append(KeepTogether([
+            Paragraph(f"<b>{pos.upper()}</b>", styles["small"]), t,
+        ]))
         elements.append(Spacer(1, 3 * mm))
 
     return elements
@@ -392,7 +396,10 @@ def _render_grammar_page(text: SourceText, styles: dict) -> list:
     elements.append(Paragraph("Grammar Reference", styles["section"]))
 
     for p in text.grammar.phenomena:
-        elements.append(Paragraph(f"<b>{p.name.title()}</b>", styles["body"]))
+        # Sentence case, not .title() — "passé composé" must not become
+        # "Passé Composé" and "il y a" not "Il Y A".
+        name = p.name[:1].upper() + p.name[1:]
+        elements.append(Paragraph(f"<b>{name}</b>", styles["body"]))
         elements.append(Paragraph(p.description, styles["instruction"]))
         for ex in p.examples:
             elements.append(Paragraph(f"• <i>{ex}</i>", styles["item"]))

@@ -230,14 +230,24 @@ def _blank_candidates(text: SourceText) -> list[tuple[str, str, VocabularyItem]]
     for sentence in _sentences(text):
         seen_in_sentence: set[str] = set()
         for token in sentence.split():
-            clean = _clean_token(token).lower()
+            raw = _clean_token(token)
+            clean = raw.lower()
             if len(clean) <= 2 or clean in seen_in_sentence:
                 continue
             # An exact stem match beats an inflection match ('ernten' is the
             # verb 'ernten', not the plural of 'die Ernte').
-            item = by_stem.get(clean) or next(
-                (i for stem, i in by_stem.items()
-                 if _token_matches_stem(clean, stem)), None)
+            item = by_stem.get(clean)
+            if item is None:
+                for stem, cand in by_stem.items():
+                    if not _token_matches_stem(clean, stem):
+                        continue
+                    # German nouns are capitalized: a lowercase token cannot
+                    # be an inflected noun ('weine' is not a form of 'Wein').
+                    if (cand.pos == "noun" and text.target_lang == "de"
+                            and not raw[:1].isupper()):
+                        continue
+                    item = cand
+                    break
             if item is not None:
                 results.append((sentence, token, item))
                 seen_in_sentence.add(clean)
@@ -271,14 +281,18 @@ def _pick_blank_targets(
 
     picked: list[tuple[str, str, VocabularyItem]] = []
     picked_sentences: set[str] = set()
+    picked_words: set[str] = set()
     for wanted_tier in range(4):
         for c in candidates:
             if len(picked) >= count:
                 break
-            if c[0] in picked_sentences or tier(c) != wanted_tier:
+            word = _clean_token(c[1]).lower()
+            if (c[0] in picked_sentences or word in picked_words
+                    or tier(c) != wanted_tier):
                 continue
             picked.append(c)
             picked_sentences.add(c[0])
+            picked_words.add(word)
         if len(picked) >= count:
             break
 
@@ -289,10 +303,15 @@ def _pick_blank_targets(
 
 
 def _blank_out(sentence: str, token: str) -> str:
-    """Replace the word inside ``token`` with a blank, keeping punctuation."""
+    """Replace the word inside ``token`` with a blank, keeping punctuation.
+
+    The match is word-bounded so blanking 'Kaffee' never eats the front of
+    'Kaffeepflanze'.
+    """
     clean = _clean_token(token)
     if clean:
-        blanked, n = re.subn(re.escape(clean), "______", sentence, count=1)
+        pattern = rf"(?<!\w){re.escape(clean)}(?!\w)"
+        blanked, n = re.subn(pattern, "______", sentence, count=1)
         if n:
             return blanked
     return sentence.replace(token, "______", 1)
@@ -318,45 +337,61 @@ def _pick_verb_targets(
     non_verb_words = {_strip_article(v.term).lower()
                       for v in text.vocabulary.items if v.pos != "verb"}
     results: list[tuple[str, str, str]] = []
+    picked_sentences: set[str] = set()
     seen_verbs: set[str] = set()
 
     # Common German verb conjugation endings
     verb_endings = ("t", "e", "st", "en", "et", "te", "tet", "ten")
 
-    for sentence in _sentences(text):
-        for word in sentence.split():
-            clean = _clean_token(word).lower()
-            if len(clean) < 3:
+    def scan(allow_used: bool) -> None:
+        for sentence in _sentences(text):
+            if len(results) >= count:
+                return
+            if sentence in picked_sentences:
                 continue
-            # Skip if this word is a known non-verb in vocabulary
-            if clean in non_verb_words:
+            if not allow_used and sentence in session.used_sentences:
                 continue
-            # Must end with a verb conjugation suffix
-            if not any(clean.endswith(e) for e in verb_endings):
-                continue
-            for stem, base in verbs.items():
-                if stem in seen_verbs:
+            for idx, word in enumerate(sentence.split()):
+                clean = _clean_token(word).lower()
+                if len(clean) < 3:
                     continue
-                # The stem without -en/-n ending
-                verb_root = stem[:-2] if stem.endswith("en") else stem[:-1]
-                if len(verb_root) < 3:
+                # Skip if this word is a known non-verb in vocabulary
+                if clean in non_verb_words:
                     continue
-                # The word must start with the verb root (allowing umlaut)
-                # and the word itself must not be the infinitive
-                if (clean.startswith(verb_root) and clean != stem
-                        and len(clean) <= len(stem) + 2):
-                    results.append((sentence, word, base))
-                    seen_verbs.add(stem)
-                    break
-            else:
-                continue
-            break
-        if len(results) >= count:
-            break
+                # A capitalized word mid-sentence is a noun, not a verb form
+                if idx > 0 and word[:1].isupper():
+                    continue
+                # Must end with a verb conjugation suffix
+                if not any(clean.endswith(e) for e in verb_endings):
+                    continue
+                for stem, base in verbs.items():
+                    if stem in seen_verbs:
+                        continue
+                    # The stem without -en/-n ending
+                    verb_root = stem[:-2] if stem.endswith("en") else stem[:-1]
+                    if len(verb_root) < 3:
+                        continue
+                    # The word must start with the verb root, and be neither
+                    # the infinitive nor the bare root (usually a noun)
+                    if (clean.startswith(verb_root) and clean != stem
+                            and clean != verb_root
+                            and len(clean) <= len(stem) + 2):
+                        results.append((sentence, word, base))
+                        seen_verbs.add(stem)
+                        picked_sentences.add(sentence)
+                        break
+                else:
+                    continue
+                break
 
-    for sentence, _, _ in results[:count]:
+    # Prefer sentences no other exercise of this worksheet has used yet
+    scan(allow_used=False)
+    if len(results) < count:
+        scan(allow_used=True)
+
+    for sentence, _, _ in results:
         session.used_sentences.add(sentence)
-    return results[:count]
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -365,7 +400,7 @@ def _pick_verb_targets(
 
 def _generate_fib(
     node: ExerciseNode, text: SourceText, session: GenerationSession
-) -> ExerciseInstance:
+) -> ExerciseInstance | None:
     # Base form variant: only blank verbs and always provide the infinitive
     if node.hint_type == "base_form":
         return _generate_fib_base_form(node, text, session)
@@ -401,6 +436,9 @@ def _generate_fib(
     if node.hint_type == "full_translation" and text.translation:
         context_text = text.translation
 
+    if not items:
+        return None
+
     # Add distractors to word bank
     if node.hint_type == "word_bank" and text.vocabulary:
         extra = [_strip_article(v.term) for v in text.vocabulary.items
@@ -422,7 +460,7 @@ def _generate_fib(
 
 def _generate_fib_base_form(
     node: ExerciseNode, text: SourceText, session: GenerationSession
-) -> ExerciseInstance:
+) -> ExerciseInstance | None:
     """FIB variant that blanks inflected verbs and gives the infinitive as hint."""
     targets = _pick_verb_targets(text, session)
     items: list[dict] = []
@@ -435,6 +473,9 @@ def _generate_fib_base_form(
             "sentence": f"{blanked}  ({base})",
         })
         solutions.append({"number": i, "answer": _clean_token(inflected)})
+
+    if not items:
+        return None
 
     return ExerciseInstance(
         node_id=node.id,
@@ -483,7 +524,6 @@ def _get_distractors(word: str, text: SourceText, pos: str | None = None) -> lis
 _PICTURE_TEMPLATES: dict[str, dict[str, str]] = {
     "de": {
         "color_q": "Welche Farbe hat {obj}?",
-        "color_a": "{obj} ist {color}.",
         "position_q": "Wo befindet sich {obj} im Bild?",
         "mark": "Kreise „{elem}“ im Bild ein!",
         "object_label": "Gegenstand {num}",
@@ -492,7 +532,6 @@ _PICTURE_TEMPLATES: dict[str, dict[str, str]] = {
     },
     "fr": {
         "color_q": "De quelle couleur est {obj} ?",
-        "color_a": "{obj} est {color}.",
         "position_q": "Où se trouve {obj} sur l'image ?",
         "mark": "Entoure « {elem} » sur l'image !",
         "object_label": "Objet {num}",
@@ -501,7 +540,6 @@ _PICTURE_TEMPLATES: dict[str, dict[str, str]] = {
     },
     "es": {
         "color_q": "¿De qué color es {obj}?",
-        "color_a": "{obj} es {color}.",
         "position_q": "¿Dónde está {obj} en la imagen?",
         "mark": "¡Rodea «{elem}» en la imagen!",
         "object_label": "Objeto {num}",
@@ -510,7 +548,6 @@ _PICTURE_TEMPLATES: dict[str, dict[str, str]] = {
     },
     "en": {
         "color_q": "What color is {obj}?",
-        "color_a": "{obj} is {color}.",
         "position_q": "Where is {obj} in the picture?",
         "mark": "Circle “{elem}” in the picture!",
         "object_label": "Object {num}",
@@ -638,10 +675,11 @@ def _generate_picture(node: ExerciseNode, text: SourceText) -> ExerciseInstance 
     solutions: list[dict] = []
 
     if node.id == "pic_color_query":
+        # The answer key names the color only — a full sentence would need
+        # language-specific gender/number agreement of the adjective.
         for i, (obj, color) in enumerate(_derive_color_pairs(text)[:4], 1):
             items.append({"number": i, "question": t["color_q"].format(obj=obj)})
-            solutions.append({"number": i,
-                              "answer": t["color_a"].format(obj=obj, color=color)})
+            solutions.append({"number": i, "answer": color})
 
     elif node.id == "pic_element_marking":
         for i, elem in enumerate(elements[:5], 1):
@@ -705,7 +743,8 @@ def _blank_picture_paragraph(pic_para: str, text: SourceText) -> tuple[str, list
         is_color = any(low.startswith(c) and len(c) >= 3 for c in color_stems)
         is_element = low in element_nouns
         if is_color or is_element:
-            new_blanked, n = re.subn(re.escape(clean), "______", blanked, count=1)
+            pattern = rf"(?<!\w){re.escape(clean)}(?!\w)"
+            new_blanked, n = re.subn(pattern, "______", blanked, count=1)
             if n:
                 blanked = new_blanked
                 answers.append(clean)
@@ -855,10 +894,12 @@ def _semantic_label(semantic_type: str, source_lang: str) -> str:
     return labels.get(semantic_type, semantic_type)
 
 
-_COMPOUND_EXAMPLE_RE = re.compile(r"^\s*(\S+)\s*\((.+)\)\s*$")
+_COMPOUND_EXAMPLE_RE = re.compile(r"^\s*(.+?)\s*\((.+)\)\s*$")
 
+# Deliberately specific: a bare "composé" would also match "passé composé".
 _COMPOUND_PHENOMENON_KEYWORDS = (
-    "compound", "komposita", "zusammenset", "zusammenges", "composé", "compuest",
+    "compound", "komposita", "zusammenset", "zusammenges",
+    "mots composés", "mot composé", "compuest",
 )
 
 
@@ -881,8 +922,9 @@ def _compound_pairs(text: SourceText) -> list[tuple[str, str, str]]:
                 if not m:
                     continue
                 parts = [s.strip() for s in m.group(2).split("+")]
-                compound = m.group(1)
-                if len(parts) == 2 and all(parts) and compound.lower() not in seen:
+                compound = _strip_article(m.group(1).strip())
+                if (len(parts) == 2 and all(parts) and " " not in compound
+                        and compound.lower() not in seen):
                     pairs.append((compound, parts[0], parts[1]))
                     seen.add(compound.lower())
 
@@ -923,13 +965,21 @@ def _wc_instruction(node: ExerciseNode, source_lang: str = "en", target_lang: st
     return _localize(en_text, source_lang)
 
 
+# Feminine adjective forms for French ("la traduction française").
+_LANG_NAMES_FR_FEMININE: dict[str, str] = {
+    "de": "allemande", "fr": "française", "es": "espagnole",
+    "it": "italienne", "pt": "portugaise", "en": "anglaise",
+}
+
+
 def _wc_translation_instruction(source_lang: str, target_lang: str) -> str:
     target_name = _lang_name(target_lang, source_lang)
     source_name = _lang_name(source_lang, source_lang)
+    source_name_fem = _LANG_NAMES_FR_FEMININE.get(source_lang, source_name)
     templates = {
         "en": f"Connect each {target_name} word to its {source_name} translation.",
         "de": f"Verbinde jedes {target_name} Wort mit seiner {source_name}n Übersetzung.",
-        "fr": f"Relie chaque mot {target_name} à sa traduction {source_name}.",
+        "fr": f"Relie chaque mot {target_name} à sa traduction {source_name_fem}.",
         "es": f"Conecta cada palabra en {target_name} con su traducción en {source_name}.",
     }
     return templates.get(source_lang, templates["en"])
@@ -1069,6 +1119,15 @@ _MEDIA_STRINGS: dict[str, dict[str, str]] = {
 }
 
 
+# Quotation marks of the learner's native language, for the search-ideas box.
+_QUOTE_MARKS: dict[str, tuple[str, str]] = {
+    "en": ("“", "”"),
+    "de": ("„", "“"),
+    "fr": ("« ", " »"),
+    "es": ("«", "»"),
+}
+
+
 def _media_strings(source_lang: str) -> dict[str, str]:
     return _MEDIA_STRINGS.get(source_lang, _MEDIA_STRINGS["en"])
 
@@ -1114,7 +1173,8 @@ def _generate_media(node: ExerciseNode, text: SourceText) -> ExerciseInstance | 
 
     suggestions = _search_suggestions(text, node.media_kind or "")
     if suggestions and node.media_kind in ("video", "article"):
-        quoted = "   ".join(f"“{sug}”" for sug in suggestions)
+        open_q, close_q = _QUOTE_MARKS.get(text.source_lang, _QUOTE_MARKS["en"])
+        quoted = "   ".join(f"{open_q}{sug}{close_q}" for sug in suggestions)
         context_text = f"{s['search_ideas']}: {quoted}"
 
     if node.media_kind == "video":

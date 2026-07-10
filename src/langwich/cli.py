@@ -30,7 +30,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--exercises", type=str, default=None,
         help="Comma-separated list of exercise node IDs to generate "
-        "(default: one of each type)",
+        "(default: fib_word_bank, pic_color_query, wc_translation, "
+        "wc_compound, media_video_search)",
     )
     parser.add_argument(
         "--output", "-o", type=Path, default=None,

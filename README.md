@@ -181,8 +181,8 @@ SourceText (JSON)
      ├──→ GrammarNode    ──→ grammar reference page
      ├──→ PictureScene   ──→ exercises (pic_color_query, pic_position, ...)
      │
-     └──→ ExerciseGraph.generate_exercise(node, text)
-              │
+     └──→ generate_exercise(node, text, session)
+              │        (one GenerationSession per worksheet keeps variants fresh)
               └──→ ExerciseInstance (items + solutions)
                        │
                        └──→ render_worksheet() ──→ PDF

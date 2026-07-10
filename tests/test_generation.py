@@ -193,6 +193,93 @@ def test_media_fact_hunt_uses_key_vocabulary(graph, coffee):
 
 
 # ---------------------------------------------------------------------------
+# Regressions confirmed during review
+# ---------------------------------------------------------------------------
+
+def _mini_text(content: str, vocab: list[dict], target_lang: str = "de") -> SourceText:
+    return SourceText.from_dict({
+        "title": "t", "content": content, "translation": "x",
+        "source_lang": "en", "target_lang": target_lang,
+        "cefr_level": "B1", "topic": "test",
+        "vocabulary": {"items": vocab},
+    })
+
+
+def test_blank_is_word_bounded(graph):
+    # Blanking 'Kaffee' must not eat the front of 'Kaffeepflanze'
+    text = _mini_text(
+        "Die Kaffeepflanze braucht guten Kaffee.",
+        [{"term": "der Kaffee", "translation": "coffee", "pos": "noun"}],
+    )
+    ex = generate_exercise(graph.nodes["fib_word_bank"], text, GenerationSession())
+    assert "Kaffeepflanze" in ex.items[0]["sentence"]
+    assert "______pflanze" not in ex.items[0]["sentence"]
+
+
+def test_word_bank_has_no_duplicate_answers(graph):
+    text = _mini_text(
+        "Der Kaffee ist stark. Ohne Kaffee geht hier gar nichts.",
+        [{"term": "der Kaffee", "translation": "coffee", "pos": "noun"}],
+    )
+    ex = generate_exercise(graph.nodes["fib_word_bank"], text, GenerationSession())
+    answers = [sol["answer"] for sol in ex.solution]
+    assert len(answers) == len(set(answers))
+
+
+def test_base_form_does_not_blank_nouns(graph):
+    # 'Arbeit' must not be treated as a conjugated form of 'arbeiten'
+    text = _mini_text(
+        "Die Arbeit auf der Plantage ist hart.",
+        [{"term": "arbeiten", "translation": "to work", "pos": "verb"}],
+    )
+    ex = generate_exercise(graph.nodes["fib_base_form"], text, GenerationSession())
+    assert ex is None
+
+
+def test_lowercase_token_is_not_an_inflected_german_noun(graph):
+    # 'weine' (I cry) must not be linked to the noun 'der Wein'
+    text = _mini_text(
+        "Ich weine oft im Kino.",
+        [{"term": "der Wein", "translation": "wine", "pos": "noun"}],
+    )
+    ex = generate_exercise(graph.nodes["fib_translation_hint"], text, GenerationSession())
+    assert ex is None
+
+
+def test_fib_without_material_returns_none(graph):
+    text = _mini_text("Ein Satz ohne passende Wörter.", [
+        {"term": "der Zug", "translation": "train", "pos": "noun"},
+    ])
+    assert generate_exercise(graph.nodes["fib_word_bank"], text, GenerationSession()) is None
+
+
+def test_compound_examples_may_carry_articles(graph, coffee):
+    coffee.grammar.phenomena[2].examples = [
+        "die Kaffeepflanze (Kaffee + Pflanze)",
+        "der Milchschaum (Milch + Schaum)",
+        "Apfelstrudel (Apfel + Strudel)",
+    ]
+    ex = generate_exercise(graph.nodes["wc_compound"], coffee, GenerationSession())
+    compounds = {sol["compound"] for sol in ex.solution}
+    assert compounds == {"Kaffeepflanze", "Milchschaum", "Apfelstrudel"}
+
+
+def test_passe_compose_is_not_a_compound_phenomenon(graph, film):
+    # The 'passé composé' phenomenon must not feed the compound exercise;
+    # for the film example the fallback finds nothing either.
+    ex = generate_exercise(graph.nodes["wc_compound"], film, GenerationSession())
+    assert ex is None
+
+
+def test_french_color_answers_have_no_bad_agreement(graph, film):
+    ex = generate_exercise(graph.nodes["pic_color_query"], film, GenerationSession())
+    for sol in ex.solution:
+        # Answer key names the color only — never a sentence like
+        # 'l'affiche est bleu.' with broken gender agreement
+        assert " est " not in sol["answer"]
+
+
+# ---------------------------------------------------------------------------
 # Graph invariants
 # ---------------------------------------------------------------------------
 
