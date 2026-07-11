@@ -29,7 +29,9 @@ def _page_count(pdf_path: Path) -> int:
     return data.count(b"/Type /Page") - data.count(b"/Type /Pages")
 
 
-@pytest.mark.parametrize("example", ["coffee_en_de.json", "film_de_fr.json"])
+@pytest.mark.parametrize("example", [
+    "coffee_en_de.json", "coffee_de_fr.json", "film_de_fr.json",
+])
 def test_examples_render_end_to_end(tmp_path, example):
     out = tmp_path / "worksheet.pdf"
     main([

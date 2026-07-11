@@ -1,0 +1,88 @@
+{
+  "title": "Le café : un voyage autour du monde",
+  "content": "Chaque matin, des millions de personnes commencent la journée avec une tasse de café. Mais d'où vient cette boisson si populaire ?\n\nLe caféier pousse dans les pays tropicaux, près de l'équateur. Les régions les plus importantes se trouvent au Brésil, en Colombie, en Éthiopie et au Vietnam. Les agriculteurs récoltent les cerises de café à la main et les font sécher au soleil.\n\nSur une petite terrasse à Paris, un serveur au tablier noir apporte une tasse blanche de café crème. Sur la table ronde, un croissant repose sur une assiette verte. À côté de l'entrée, un vélo rouge est appuyé contre un réverbère. Les clients lisent le journal au soleil.\n\nAprès la récolte, les grains sont torréfiés. La torréfaction détermine le goût : une torréfaction claire donne un café fruité et acide, une torréfaction foncée donne un café fort et amer. En France, on boit surtout du café noir ou du café crème, tandis qu'en Italie, l'espresso domine.\n\nLe café est plus qu'une boisson – il rassemble les gens. Au bureau, au café ou à la maison : une tasse de café signifie souvent une petite pause dans la journée.",
+  "translation": "Jeden Morgen beginnen Millionen von Menschen den Tag mit einer Tasse Kaffee. Aber woher kommt dieses so beliebte Getränk?\n\nDer Kaffeestrauch wächst in tropischen Ländern nahe dem Äquator. Die wichtigsten Regionen liegen in Brasilien, Kolumbien, Äthiopien und Vietnam. Die Bauern ernten die Kaffeekirschen von Hand und lassen sie in der Sonne trocknen.\n\nAuf einer kleinen Terrasse in Paris bringt ein Kellner mit schwarzer Schürze eine weiße Tasse Milchkaffee. Auf dem runden Tisch liegt ein Croissant auf einem grünen Teller. Neben dem Eingang lehnt ein rotes Fahrrad an einer Straßenlaterne. Die Gäste lesen die Zeitung in der Sonne.\n\nNach der Ernte werden die Bohnen geröstet. Die Röstung bestimmt den Geschmack: Eine helle Röstung ergibt einen fruchtigen, säuerlichen Kaffee, eine dunkle Röstung einen starken, bitteren Kaffee. In Frankreich trinkt man vor allem schwarzen Kaffee oder Milchkaffee, während in Italien der Espresso dominiert.\n\nKaffee ist mehr als ein Getränk – er bringt die Menschen zusammen. Im Büro, im Café oder zu Hause: Eine Tasse Kaffee bedeutet oft eine kleine Pause am Tag.",
+  "source_lang": "de",
+  "target_lang": "fr",
+  "cefr_level": "B1",
+  "topic": "coffee",
+  "picture_scene": {
+    "description": "A small Parisian café terrace in the morning sun. A waiter in a black apron brings a white cup of café crème to a round bistro table, where a golden croissant rests on a green plate. Next to the café entrance, a red bicycle leans against an old street lamp. Guests read newspapers in the sunlight. Warm colors, watercolor illustration style.",
+    "elements": ["tablier noir", "tasse blanche", "croissant", "assiette verte", "vélo rouge", "réverbère"],
+    "paragraph_index": 2
+  },
+  "vocabulary": {
+    "id": "vocab_coffee_fr",
+    "name": "Café Vocabulary",
+    "items": [
+      {"term": "le café", "translation": "der Kaffee", "pos": "noun", "semantic_type": "drink"},
+      {"term": "la tasse", "translation": "die Tasse", "pos": "noun"},
+      {"term": "la boisson", "translation": "das Getränk", "pos": "noun", "semantic_type": "drink"},
+      {"term": "le grain", "translation": "die Bohne", "pos": "noun", "semantic_type": "food"},
+      {"term": "le goût", "translation": "der Geschmack", "pos": "noun"},
+      {"term": "la torréfaction", "translation": "die Röstung", "pos": "noun", "semantic_type": "food"},
+      {"term": "la récolte", "translation": "die Ernte", "pos": "noun"},
+      {"term": "l'agriculteur", "translation": "der Bauer", "pos": "noun", "semantic_type": "profession"},
+      {"term": "le serveur", "translation": "der Kellner", "pos": "noun", "semantic_type": "profession", "synonym": "le garçon"},
+      {"term": "le tablier", "translation": "die Schürze", "pos": "noun", "semantic_type": "clothing"},
+      {"term": "la terrasse", "translation": "die Terrasse", "pos": "noun"},
+      {"term": "la table", "translation": "der Tisch", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "le croissant", "translation": "das Croissant", "pos": "noun", "semantic_type": "food"},
+      {"term": "l'assiette", "translation": "der Teller", "pos": "noun"},
+      {"term": "le vélo", "translation": "das Fahrrad", "pos": "noun", "synonym": "la bicyclette"},
+      {"term": "le réverbère", "translation": "die Straßenlaterne", "pos": "noun"},
+      {"term": "l'entrée", "translation": "der Eingang", "pos": "noun", "antonym": "la sortie"},
+      {"term": "le client", "translation": "der Gast", "pos": "noun"},
+      {"term": "le journal", "translation": "die Zeitung", "pos": "noun"},
+      {"term": "le soleil", "translation": "die Sonne", "pos": "noun", "semantic_type": "weather"},
+      {"term": "la pause", "translation": "die Pause", "pos": "noun", "semantic_type": "time"},
+      {"term": "la journée", "translation": "der Tag", "pos": "noun", "semantic_type": "time", "antonym": "la nuit"},
+      {"term": "commencer", "translation": "anfangen", "pos": "verb", "synonym": "débuter", "antonym": "finir"},
+      {"term": "pousser", "translation": "wachsen", "pos": "verb"},
+      {"term": "récolter", "translation": "ernten", "pos": "verb"},
+      {"term": "sécher", "translation": "trocknen", "pos": "verb"},
+      {"term": "apporter", "translation": "bringen", "pos": "verb"},
+      {"term": "boire", "translation": "trinken", "pos": "verb"},
+      {"term": "lire", "translation": "lesen", "pos": "verb"},
+      {"term": "signifier", "translation": "bedeuten", "pos": "verb"},
+      {"term": "rassembler", "translation": "zusammenbringen", "pos": "verb"},
+      {"term": "populaire", "translation": "beliebt", "pos": "adjective", "synonym": "connu"},
+      {"term": "tropical", "translation": "tropisch", "pos": "adjective"},
+      {"term": "fruité", "translation": "fruchtig", "pos": "adjective", "antonym": "amer"},
+      {"term": "acide", "translation": "säuerlich", "pos": "adjective", "antonym": "doux"},
+      {"term": "amer", "translation": "bitter", "pos": "adjective", "antonym": "sucré"},
+      {"term": "fort", "translation": "stark", "pos": "adjective", "synonym": "puissant", "antonym": "léger"},
+      {"term": "clair", "translation": "hell", "pos": "adjective", "antonym": "foncé"},
+      {"term": "foncé", "translation": "dunkel", "pos": "adjective", "antonym": "clair"},
+      {"term": "rond", "translation": "rund", "pos": "adjective"},
+      {"term": "blanc", "translation": "weiß", "pos": "adjective", "semantic_type": "color", "antonym": "noir"},
+      {"term": "noir", "translation": "schwarz", "pos": "adjective", "semantic_type": "color", "antonym": "blanc"},
+      {"term": "rouge", "translation": "rot", "pos": "adjective", "semantic_type": "color"},
+      {"term": "vert", "translation": "grün", "pos": "adjective", "semantic_type": "color"},
+      {"term": "sur", "translation": "auf", "pos": "preposition", "semantic_type": "position"},
+      {"term": "contre", "translation": "an, gegen", "pos": "preposition", "semantic_type": "position"},
+      {"term": "dans", "translation": "in", "pos": "preposition", "semantic_type": "position"},
+      {"term": "à côté de", "translation": "neben", "pos": "preposition", "semantic_type": "position"},
+      {"term": "près de", "translation": "in der Nähe von", "pos": "preposition", "semantic_type": "position"}
+    ]
+  },
+  "grammar": {
+    "phenomena": [
+      {
+        "name": "présent",
+        "description": "Das Präsens beschreibt allgemeine Wahrheiten und Gewohnheiten.",
+        "examples": ["Le caféier pousse dans les pays tropicaux.", "Le café est plus qu'une boisson."]
+      },
+      {
+        "name": "passif (être + participe passé)",
+        "description": "Das Passiv mit « être » + Partizip beschreibt den Verarbeitungsprozess; das Partizip richtet sich nach dem Subjekt.",
+        "examples": ["Les grains sont torréfiés.", "Un vélo rouge est appuyé contre un réverbère."]
+      },
+      {
+        "name": "on + Verb",
+        "description": "Das unpersönliche « on » entspricht dem deutschen „man“ und steht mit der 3. Person Singular.",
+        "examples": ["En France, on boit surtout du café noir."]
+      }
+    ]
+  }
+}

@@ -34,6 +34,6 @@ def test_index_html_has_all_count_markers():
     assert keys == set(script.compute_stats().keys())
 
 
-def test_both_examples_are_counted():
+def test_all_bundled_examples_are_counted():
     script = _load_script()
-    assert script.compute_stats()["examples"] == 2
+    assert script.compute_stats()["examples"] == 3
