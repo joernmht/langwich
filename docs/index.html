@@ -9,7 +9,7 @@
 <meta property="og:description" content="AI-generated language worksheets for print and e-paper. Your AI writes the text, vocabulary and exercises; langwich renders the PDF.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://joernmht.github.io/langwich/">
-<meta property="og:image" content="https://joernmht.github.io/langwich/assets/worksheet-page1.png">
+<meta property="og:image" content="https://joernmht.github.io/langwich/assets/coffee-en-de-page1.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='22' height='26' rx='2' fill='%23fdfaf3' stroke='%23274690' stroke-width='2'/%3E%3Cpath d='M10 10h12M10 15h12M10 20h7' stroke='%23274690' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M19 24l4-1-9 0z' fill='none'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -220,6 +220,23 @@
   @media (prefers-color-scheme: dark) { .ex-side img { filter: brightness(.93); } }
   .ex-side figcaption { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
 
+  /* example showcase */
+  .ex-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .ex-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px; margin: 0;
+  }
+  .ex-card > a { display: block; }
+  .ex-card img {
+    width: 100%; display: block; border-radius: 4px;
+    border: 1px solid var(--border-strong); box-shadow: var(--shadow);
+  }
+  @media (prefers-color-scheme: dark) { .ex-card img { filter: brightness(.93); } }
+  .ex-card h3 { font-size: 19px; margin: 18px 0 4px; }
+  .ex-card figcaption > p { font-size: 15px; color: var(--muted); margin-bottom: 14px; }
+  .ex-card .cta-row { margin-top: 0; }
+  .ex-card .btn { padding: 9px 16px; font-size: 14px; }
+
   /* tabs */
   .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
   .tab {
@@ -280,7 +297,7 @@
     .hero-grid { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 64px; }
     .paper-stack { width: min(100%, 380px); }
     .cards, .steps { grid-template-columns: 1fr 1fr; }
-    .ex-grid, .start-grid { grid-template-columns: 1fr; }
+    .ex-grid, .start-grid, .ex-cards { grid-template-columns: 1fr; }
   }
   @media (max-width: 620px) {
     .cards, .steps { grid-template-columns: 1fr; }
@@ -299,6 +316,7 @@
       <a href="#why-paper">Why paper</a>
       <a href="#how-it-works">How it works</a>
       <a href="#exercises">Exercises</a>
+      <a href="#examples">Examples</a>
       <a href="#your-ai">Use with your AI</a>
       <a href="#get-started">Get started</a>
       <a href="https://github.com/joernmht/langwich">GitHub ↗</a>
@@ -330,12 +348,13 @@
         </div>
       </div>
       <figure class="paper-stack">
-        <img class="sheet back" src="assets/worksheet-vocab.png" alt="" aria-hidden="true" loading="lazy">
-        <img class="sheet front" src="assets/worksheet-page1.png"
+        <img class="sheet back" src="assets/coffee-en-de-vocab.png" alt="" aria-hidden="true" loading="lazy">
+        <img class="sheet front" src="assets/coffee-en-de-page1.png"
              alt="First page of a generated worksheet: a German B1 reading text about coffee, followed by a fill-in-the-blanks exercise with a word bank.">
         <figcaption class="paper-caption sans">
           Real output — <code>examples/coffee_en_de.json</code> rendered to a
           print-ready A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
+          <a href="#examples">Two full examples below.</a>
         </figcaption>
       </figure>
     </div>
@@ -500,10 +519,57 @@
           </div>
         </div>
         <figure class="ex-side">
-          <img src="assets/worksheet-vocab.png" loading="lazy"
+          <img src="assets/coffee-en-de-vocab.png" loading="lazy"
                alt="Vocabulary reference page of a generated worksheet, listing German terms grouped by part of speech with translations, synonyms and antonyms.">
           <figcaption class="sans">Every worksheet ends with a vocabulary reference —
           grouped by part of speech, with synonyms and antonyms.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EXAMPLES ================= -->
+  <section id="examples">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow sans">See it on paper</p>
+        <h2>One topic. Two languages.</h2>
+        <p>The same coffee worksheet, generated twice: once for an English
+        speaker learning German, once for a German speaker learning French.
+        Instructions switch to the learner's native language automatically,
+        and every exercise adapts to what its text provides. Both are bundled
+        in the repository — render them yourself before involving any AI.</p>
+      </div>
+      <div class="ex-cards">
+        <figure class="ex-card">
+          <a href="examples/coffee_en_de.pdf">
+            <img src="assets/coffee-en-de-page1.png" loading="lazy"
+                 alt="First page of the English-to-German coffee worksheet: a B1 German reading text followed by a word-bank fill-in-the-blanks exercise with English instructions.">
+          </a>
+          <figcaption>
+            <h3>Coffee · EN → DE · B1</h3>
+            <p>For an English speaker learning German — 8 pages: reading text,
+            five exercise types, vocabulary and grammar reference, solutions.</p>
+            <div class="cta-row sans">
+              <a class="btn primary" href="examples/coffee_en_de.pdf">Full worksheet (PDF)</a>
+              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/coffee_en_de.json">Source JSON ↗</a>
+            </div>
+          </figcaption>
+        </figure>
+        <figure class="ex-card">
+          <a href="examples/coffee_de_fr.pdf">
+            <img src="assets/coffee-de-fr-page1.png" loading="lazy"
+                 alt="First page of the German-to-French coffee worksheet: the same topic with a French reading text and German instructions.">
+          </a>
+          <figcaption>
+            <h3>Kaffee · DE → FR · B1</h3>
+            <p>Für Deutschsprachige, die Französisch lernen — same topic, French
+            text, and every instruction in German.</p>
+            <div class="cta-row sans">
+              <a class="btn primary" href="examples/coffee_de_fr.pdf">Full worksheet (PDF)</a>
+              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/coffee_de_fr.json">Source JSON ↗</a>
+            </div>
+          </figcaption>
         </figure>
       </div>
     </div>
@@ -653,7 +719,7 @@ langwich --from-json data/astronomy_en_fr.json</pre>
         <h2>Five commands to your first worksheet</h2>
         <p class="start-note">Python 3.11 or newer and a single dependency
         (<a href="https://pypi.org/project/reportlab/">reportlab</a>). The repository includes
-        <span data-count="examples">2</span> complete, working examples, so you can render a
+        <span data-count="examples">3</span> complete, working examples, so you can render a
         worksheet before involving any AI at all.
         Then print <code class="mono">data/coffee.pdf</code> — black-and-white duplex is fine —
         and put your phone in another room.</p>

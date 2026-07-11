@@ -200,8 +200,9 @@ langwich/
 │   ├── render.py         # PDF rendering (ReportLab)
 │   └── cli.py            # CLI entry point
 ├── examples/
-│   ├── coffee_en_de.json # Complete coffee example (EN→DE, B1)
-│   └── film_de_fr.json   # Complete cinema example (DE→FR, B1)
+│   ├── coffee_en_de.json # Coffee example (EN→DE, B1)
+│   ├── coffee_de_fr.json # Same topic for German speakers learning French (DE→FR, B1)
+│   └── film_de_fr.json   # Cinema example (DE→FR, B1)
 ├── scripts/
 │   └── update_page_stats.py  # syncs exercise/example counts into docs/index.html
 ├── archive/              # Previous implementation (preserved for reference)

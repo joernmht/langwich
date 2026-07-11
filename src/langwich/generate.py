@@ -268,6 +268,16 @@ def _pick_blank_targets(
     """
     candidates = _blank_candidates(text)
 
+    # The reading text sits right above the first exercise, and its opening
+    # sentence is the most recognizable line of all. Skip it whenever the
+    # text offers enough other material.
+    all_sentences = _sentences(text)
+    if all_sentences:
+        opening = all_sentences[0]
+        other_sentences = {c[0] for c in candidates if c[0] != opening}
+        if len(other_sentences) >= count:
+            candidates = [c for c in candidates if c[0] != opening]
+
     def tier(c: tuple[str, str, VocabularyItem]) -> int:
         sentence_used = c[0] in session.used_sentences
         word_used = _clean_token(c[1]).lower() in session.used_words
@@ -295,6 +305,10 @@ def _pick_blank_targets(
             picked_words.add(word)
         if len(picked) >= count:
             break
+
+    # Don't mirror the text's sentence order — item 1 of the exercise
+    # should not be sentence 1 of the text printed above it.
+    random.shuffle(picked)
 
     for sentence, token, _ in picked:
         session.used_sentences.add(sentence)
@@ -388,6 +402,8 @@ def _pick_verb_targets(
     scan(allow_used=False)
     if len(results) < count:
         scan(allow_used=True)
+
+    random.shuffle(results)
 
     for sentence, _, _ in results:
         session.used_sentences.add(sentence)

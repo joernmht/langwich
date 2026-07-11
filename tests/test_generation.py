@@ -42,6 +42,13 @@ def _blanked_sentences(exercise) -> set[str]:
     return {item["sentence"] for item in exercise.items}
 
 
+def test_word_bank_skips_the_opening_sentence(graph, coffee):
+    # The reading text is printed right above the first exercise — its
+    # opening sentence must not reappear as an exercise item.
+    ex = generate_exercise(graph.nodes["fib_word_bank"], coffee, GenerationSession())
+    assert not any(item["sentence"].startswith("Jeden Morgen") for item in ex.items)
+
+
 def test_fib_variants_use_different_sentences(graph, coffee):
     session = GenerationSession()
     word_bank = generate_exercise(graph.nodes["fib_word_bank"], coffee, session)
