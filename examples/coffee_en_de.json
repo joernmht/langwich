@@ -27,6 +27,7 @@
       {"term": "das Fahrrad", "translation": "bicycle", "pos": "noun", "semantic_type": "other"},
       {"term": "die Laterne", "translation": "lamppost", "pos": "noun", "semantic_type": "other"},
       {"term": "das Fenster", "translation": "window", "pos": "noun", "semantic_type": "furniture"},
+      {"term": "die Frau", "translation": "woman", "pos": "noun", "antonym": "der Mann"},
       {"term": "die Straße", "translation": "street", "pos": "noun", "semantic_type": "other"},
       {"term": "die Ernte", "translation": "harvest", "pos": "noun", "semantic_type": "other"},
       {"term": "die Pause", "translation": "break, pause", "pos": "noun", "semantic_type": "time"},

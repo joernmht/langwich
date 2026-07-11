@@ -190,6 +190,9 @@ def _render_fib(ex: ExerciseInstance, styles: dict) -> list:
         bank_text = "   ".join(f"<b>{w}</b>" for w in ex.word_bank)
         elements.extend(_text_box(bank_text, styles, CONTENT_W))
 
+    if ex.context_text:
+        elements.extend(_text_box(ex.context_text, styles, CONTENT_W))
+
     for item in ex.items:
         text = f"<b>{item['number']}.</b>  {item['sentence']}"
         if "hint" in item:
@@ -229,10 +232,28 @@ def _render_picture(ex: ExerciseInstance, styles: dict) -> list:
             elements.append(Paragraph(
                 f"{prefix}{item['instruction']}", styles["item"]
             ))
-            if "Beschreibe" in item["instruction"]:
-                elements.extend(_writing_lines(5))
+            if item.get("lines"):
+                elements.extend(_writing_lines(item["lines"]))
         elif "text" in item:
             elements.extend(_text_box(item["text"], styles, CONTENT_W))
+
+    return elements
+
+
+def _render_media(ex: ExerciseInstance, styles: dict) -> list:
+    elements: list = []
+    elements.append(Paragraph(ex.title, styles["section"]))
+    elements.append(Paragraph(ex.instruction, styles["instruction"]))
+
+    if ex.context_text:
+        elements.extend(_text_box(f"<b>{ex.context_text}</b>", styles, CONTENT_W))
+
+    for item in ex.items:
+        elements.append(Paragraph(
+            f"<b>{item['number']}.</b>  {item['task']}", styles["item"]
+        ))
+        elements.extend(_writing_lines(item.get("lines", 1)))
+        elements.append(Spacer(1, 2 * mm))
 
     return elements
 
@@ -315,6 +336,7 @@ EXERCISE_RENDERERS = {
     "fib": _render_fib,
     "picture": _render_picture,
     "word_connections": _render_word_connections,
+    "media": _render_media,
 }
 
 
@@ -335,7 +357,6 @@ def _render_vocabulary_page(text: SourceText, styles: dict) -> list:
         by_pos.setdefault(v.pos, []).append(v)
 
     for pos, items in sorted(by_pos.items()):
-        elements.append(Paragraph(f"<b>{pos.upper()}</b>", styles["small"]))
         rows = []
         for v in items:
             extra = ""
@@ -356,7 +377,12 @@ def _render_vocabulary_page(text: SourceText, styles: dict) -> list:
             ("BOTTOMPADDING", (0, 0), (-1, -1), 1 * mm),
             ("LINEBELOW", (0, 0), (-1, -1), 0.2, BORDER),
         ]))
-        elements.append(t)
+        # Keep each part-of-speech group intact — a split table strands an
+        # orphan row alone on the next page. Groups longer than a page still
+        # split (KeepTogether degrades gracefully).
+        elements.append(KeepTogether([
+            Paragraph(f"<b>{pos.upper()}</b>", styles["small"]), t,
+        ]))
         elements.append(Spacer(1, 3 * mm))
 
     return elements
@@ -370,7 +396,10 @@ def _render_grammar_page(text: SourceText, styles: dict) -> list:
     elements.append(Paragraph("Grammar Reference", styles["section"]))
 
     for p in text.grammar.phenomena:
-        elements.append(Paragraph(f"<b>{p.name.title()}</b>", styles["body"]))
+        # Sentence case, not .title() — "passé composé" must not become
+        # "Passé Composé" and "il y a" not "Il Y A".
+        name = p.name[:1].upper() + p.name[1:]
+        elements.append(Paragraph(f"<b>{name}</b>", styles["body"]))
         elements.append(Paragraph(p.description, styles["instruction"]))
         for ex in p.examples:
             elements.append(Paragraph(f"• <i>{ex}</i>", styles["item"]))
@@ -400,6 +429,9 @@ def _render_reading_page(text: SourceText, styles: dict) -> list:
 # ---------------------------------------------------------------------------
 
 def _render_solutions(exercises: list[ExerciseInstance], styles: dict) -> list:
+    if not any(ex.solution for ex in exercises):
+        return []
+
     elements: list = []
     elements.append(Paragraph("Solutions", styles["section"]))
 
@@ -470,8 +502,8 @@ def render_worksheet(
     story.append(Spacer(1, 4 * mm))
 
     # Exercises
+    rendered_any = False
     for ex in exercises:
-        etype = ex.node_id.split("_")[0]
         # Map node_id prefix to exercise type key
         if ex.node_id.startswith("fib"):
             renderer = EXERCISE_RENDERERS["fib"]
@@ -479,22 +511,25 @@ def render_worksheet(
             renderer = EXERCISE_RENDERERS["picture"]
         elif ex.node_id.startswith("wc"):
             renderer = EXERCISE_RENDERERS["word_connections"]
+        elif ex.node_id.startswith("media"):
+            renderer = EXERCISE_RENDERERS["media"]
         else:
             continue
+        if rendered_any:
+            story.append(Spacer(1, 6 * mm))
         story.extend(renderer(ex, styles))
-        story.append(Spacer(1, 6 * mm))
+        rendered_any = True
 
-    # Vocabulary reference
-    story.append(PageBreak())
-    story.extend(_render_vocabulary_page(text, styles))
-
-    # Grammar reference
-    story.append(PageBreak())
-    story.extend(_render_grammar_page(text, styles))
-
-    # Solutions
-    story.append(PageBreak())
-    story.extend(_render_solutions(exercises, styles))
+    # Reference pages — only page-break into sections that have content,
+    # and never leave a trailing spacer that spills onto a blank page.
+    for section in (
+        _render_vocabulary_page(text, styles),
+        _render_grammar_page(text, styles),
+        _render_solutions(exercises, styles),
+    ):
+        if section:
+            story.append(PageBreak())
+            story.extend(section)
 
     # Build PDF
     doc = BaseDocTemplate(

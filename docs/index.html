@@ -334,8 +334,8 @@
         <img class="sheet front" src="assets/worksheet-page1.png"
              alt="First page of a generated worksheet: a German B1 reading text about coffee, followed by a fill-in-the-blanks exercise with a word bank.">
         <figcaption class="paper-caption sans">
-          Real output — <code>examples/coffee_en_de.json</code> rendered to a five-page
-          A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
+          Real output — <code>examples/coffee_en_de.json</code> rendered to a
+          print-ready A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
         </figcaption>
       </figure>
     </div>
@@ -435,18 +435,20 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow sans">What lands on the page</p>
-        <h2>One text. Eighteen kinds of exercise.</h2>
+        <h2>One text. <span data-count="exercise-types">21</span> kinds of exercise.</h2>
         <p>langwich is built on an <strong>exercise knowledge graph</strong>: every exercise type
         declares what it needs, what it produces and which exercises it feeds. From a single
-        source text it derives three exercise families, graded by difficulty from 1 to 5 —
-        plus vocabulary and grammar reference pages.</p>
+        source text it derives <span data-count="families">4</span> exercise families, graded
+        by difficulty from 1 to 5 — plus vocabulary and grammar reference pages.
+        (These numbers aren't hand-written, by the way — they're read from the graph
+        on every deploy.)</p>
       </div>
       <div class="ex-grid">
         <div>
           <div class="family">
             <div class="family-head">
               <h3>Fill in the Blanks</h3>
-              <span class="count sans">7 variants · difficulty 2–4</span>
+              <span class="count sans"><span data-count="fib-variants">7</span> variants · difficulty 2–4</span>
             </div>
             <p>Words vanish from the text. Hints range from a full word bank
             down to nothing at all.</p>
@@ -460,7 +462,7 @@
           <div class="family">
             <div class="family-head">
               <h3>Picture</h3>
-              <span class="count sans">6 variants · difficulty 1–5</span>
+              <span class="count sans"><span data-count="picture-variants">6</span> variants · difficulty 1–5</span>
             </div>
             <p>The text describes a scene; your AI can illustrate it. Then: name the colours,
             mark the objects, describe who is standing where.</p>
@@ -473,7 +475,7 @@
           <div class="family">
             <div class="family-head">
               <h3>Word Connections</h3>
-              <span class="count sans">5 variants · difficulty 1–4</span>
+              <span class="count sans"><span data-count="wc-variants">5</span> variants · difficulty 1–4</span>
             </div>
             <p>Vocabulary mined from the text, then paired and grouped —
             the classic connect-the-columns exercises.</p>
@@ -481,6 +483,19 @@
               <span class="tag">Translation</span><span class="tag">Category Grouping</span>
               <span class="tag">Synonyms</span><span class="tag">Antonyms</span>
               <span class="tag">Compounds</span>
+            </div>
+          </div>
+          <div class="family">
+            <div class="family-head">
+              <h3>Media &amp; Research</h3>
+              <span class="count sans"><span data-count="media-variants">3</span> variants · difficulty 2–3</span>
+            </div>
+            <p>The worksheet sends you hunting: find a documentary, an article,
+            a fact about the topic — in the target language. Deliberately without
+            links; the searching is part of the exercise.</p>
+            <div class="tags sans">
+              <span class="tag">Video Search</span><span class="tag">Article Search</span>
+              <span class="tag">Fact Hunt</span>
             </div>
           </div>
         </div>
@@ -573,6 +588,7 @@ nothing else, in exactly this structure:
         "term": "der Kaffee",
         "translation": "coffee",
         "pos": "noun",
+        "semantic_type": "drink",
         "synonym": null,
         "antonym": null
       }
@@ -593,8 +609,10 @@ Rules:
 - 20-30 vocabulary items, all taken from the text: mostly nouns and
   verbs, several adjectives, a few prepositions ("pos" is one of:
   noun, verb, adjective, adverb, preposition).
-- Include some colour words and position words so that the picture
-  exercises work.
+- "semantic_type" is one of: color, position, clothing, food, drink,
+  furniture, body, animal, profession, emotion, weather, time, other.
+  Include some colour words (semantic_type "color") and position
+  words (semantic_type "position") so that the picture exercises work.
 - Add synonyms and antonyms where they exist naturally, else null.
 - 2-4 grammar phenomena that genuinely occur in the text.</pre>
         </div>
@@ -635,7 +653,8 @@ langwich --from-json data/astronomy_en_fr.json</pre>
         <h2>Five commands to your first worksheet</h2>
         <p class="start-note">Python 3.11 or newer and a single dependency
         (<a href="https://pypi.org/project/reportlab/">reportlab</a>). The repository includes
-        a complete example, so you can render a worksheet before involving any AI at all.
+        <span data-count="examples">2</span> complete, working examples, so you can render a
+        worksheet before involving any AI at all.
         Then print <code class="mono">data/coffee.pdf</code> — black-and-white duplex is fine —
         and put your phone in another room.</p>
         <div class="cta-row sans">
@@ -652,7 +671,7 @@ pip install -e .
 <span class="c"># render the bundled example → data/coffee.pdf</span>
 langwich --from-json examples/coffee_en_de.json
 
-<span class="c"># list all 18 exercise types</span>
+<span class="c"># list all <span data-count="exercise-types">21</span> exercise types</span>
 langwich --list-exercises
 
 <span class="c"># or pick your own selection</span>

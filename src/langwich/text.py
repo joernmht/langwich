@@ -11,10 +11,20 @@ from dataclasses import dataclass, field
 from langwich.graph import (
     GrammarNode,
     GrammarPhenomenon,
+    SemanticType,
     VocabularyItem,
     VocabularyNode,
     NodeType,
 )
+
+
+def _parse_semantic_type(value: str | None) -> SemanticType:
+    if not value:
+        return SemanticType.OTHER
+    try:
+        return SemanticType(value)
+    except ValueError:
+        return SemanticType.OTHER
 
 
 @dataclass
@@ -95,15 +105,17 @@ class SourceText:
         vocab = None
         if "vocabulary" in data:
             vd = data["vocabulary"]
+            raw_items = vd if isinstance(vd, list) else vd.get("items", [])
             items = [
                 VocabularyItem(
                     term=it["term"],
                     translation=it["translation"],
                     pos=it["pos"],
+                    semantic_type=_parse_semantic_type(it.get("semantic_type")),
                     synonym=it.get("synonym"),
                     antonym=it.get("antonym"),
                 )
-                for it in vd.get("items", vd if isinstance(vd, list) else [])
+                for it in raw_items
             ]
             vocab = VocabularyNode(
                 id="vocab", name="Vocabulary", node_type=NodeType.RESOURCE, items=items
@@ -112,13 +124,14 @@ class SourceText:
         grammar = None
         if "grammar" in data:
             gd = data["grammar"]
+            raw_phenomena = gd if isinstance(gd, list) else gd.get("phenomena", [])
             phenomena = [
                 GrammarPhenomenon(
                     name=p["name"],
                     description=p["description"],
                     examples=p.get("examples", []),
                 )
-                for p in gd.get("phenomena", gd if isinstance(gd, list) else [])
+                for p in raw_phenomena
             ]
             grammar = GrammarNode(
                 id="grammar", name="Grammar", node_type=NodeType.RESOURCE,

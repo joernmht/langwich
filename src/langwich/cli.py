@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from langwich.generate import ExerciseInstance, generate_exercise
+from langwich.generate import ExerciseInstance, GenerationSession, generate_exercise
 from langwich.graph import ExerciseGraph, build_default_graph
 from langwich.render import render_worksheet
 from langwich.text import SourceText
@@ -30,7 +30,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--exercises", type=str, default=None,
         help="Comma-separated list of exercise node IDs to generate "
-        "(default: one of each type)",
+        "(default: fib_word_bank, pic_color_query, wc_translation, "
+        "wc_compound, media_video_search)",
     )
     parser.add_argument(
         "--output", "-o", type=Path, default=None,
@@ -65,15 +66,17 @@ def main(argv: list[str] | None = None) -> None:
             "pic_color_query",
             "wc_translation",
             "wc_compound",
+            "media_video_search",
         ]
 
     exercises: list[ExerciseInstance] = []
+    session = GenerationSession()
     for nid in node_ids:
         if nid not in graph.nodes:
             print(f"Warning: unknown exercise '{nid}', skipping", file=sys.stderr)
             continue
         node = graph.nodes[nid]
-        ex = generate_exercise(node, text)  # type: ignore[arg-type]
+        ex = generate_exercise(node, text, session)  # type: ignore[arg-type]
         if ex:
             exercises.append(ex)
         else:

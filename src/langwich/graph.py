@@ -13,7 +13,8 @@ GraphNode (base)
 └── ExerciseNode
     ├── FIB subclasses   — fill-in-blank variations
     ├── Picture subclasses — picture-interaction variations
-    └── WordConn subclasses — word-connection variations
+    ├── WordConn subclasses — word-connection variations
+    └── Media subclasses — link-free search & research tasks
 """
 
 from __future__ import annotations
@@ -35,6 +36,7 @@ class ExerciseType(str, Enum):
     FILL_IN_BLANKS = "fib"
     PICTURE_INTERACTION = "picture"
     WORD_CONNECTIONS = "word_connections"
+    MEDIA = "media"
 
 
 class LearningFocus(str, Enum):
@@ -48,6 +50,8 @@ class LearningFocus(str, Enum):
     MORPHOLOGY = "morphology"
     READING_COMPREHENSION = "reading_comprehension"
     SPELLING = "spelling"
+    LISTENING = "listening"
+    RESEARCH = "research"
 
 
 class SemanticType(str, Enum):
@@ -200,6 +204,9 @@ class ExerciseNode(GraphNode):
     # WordConnections-specific
     connection_type: str | None = None
 
+    # Media-specific
+    media_kind: str | None = None
+
     combinable_with: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -219,6 +226,7 @@ class ExerciseNode(GraphNode):
             "blank_target": self.blank_target,
             "required_elements": self.required_elements,
             "connection_type": self.connection_type,
+            "media_kind": self.media_kind,
             "combinable_with": self.combinable_with,
             "example": self.example,
         })
@@ -678,8 +686,75 @@ def build_default_graph() -> ExerciseGraph:
         ),
     ]
 
+    # ── Media & Research ──────────────────────────────────────────────
+    # Deliberately link-free: URLs rot, and typing them off paper is
+    # miserable. Each task is a guided *search* — finding material in the
+    # target language is part of the exercise.
+    media_nodes = [
+        ExerciseNode(
+            id="media_video_search",
+            name="Media: Video Search",
+            exercise_type=ExerciseType.MEDIA,
+            description="Search task: find a short video or documentary about the "
+            "topic in the target language, watch it, and record title, source, "
+            "length, new words, and one new fact. No links by design — "
+            "finding the material is part of the task.",
+            difficulty=2,
+            cefr_range=("A2", "C2"),
+            learning_focus=[LearningFocus.LISTENING, LearningFocus.VOCABULARY],
+            pre_knowledge=["basic listening comprehension"],
+            estimated_minutes=15,
+            media_kind="video",
+            combinable_with=["media_fact_hunt", "wc_translation"],
+            example={
+                "search_terms": ["Kaffee Dokumentation", "Kaffee Anbau"],
+                "tasks": ["Title of the video", "Three new words you heard",
+                          "One fact that is not in the text"],
+            },
+        ),
+        ExerciseNode(
+            id="media_article_search",
+            name="Media: Article Search",
+            exercise_type=ExerciseType.MEDIA,
+            description="Search task: find an article or encyclopedia entry about "
+            "the topic in the target language and mine it — headline, source, "
+            "key words, and what it adds beyond the worksheet text.",
+            difficulty=3,
+            cefr_range=("B1", "C2"),
+            learning_focus=[LearningFocus.READING_COMPREHENSION, LearningFocus.RESEARCH],
+            pre_knowledge=["reading comprehension in target language"],
+            estimated_minutes=15,
+            media_kind="article",
+            combinable_with=["media_fact_hunt", "fib_no_hint"],
+            example={
+                "search_terms": ["Kaffee Artikel", "Kaffee Röstung"],
+                "tasks": ["Headline and source", "Three key words with translation",
+                          "Two facts that are new compared to the text"],
+            },
+        ),
+        ExerciseNode(
+            id="media_fact_hunt",
+            name="Media: Fact Hunt",
+            exercise_type=ExerciseType.MEDIA,
+            description="Research task: for selected vocabulary from the text, "
+            "find one concrete piece of information each (any source in the "
+            "target language) and note where it was found.",
+            difficulty=3,
+            cefr_range=("A2", "C2"),
+            learning_focus=[LearningFocus.RESEARCH, LearningFocus.VOCABULARY],
+            pre_knowledge=["basic reading comprehension"],
+            estimated_minutes=10,
+            media_kind="research",
+            combinable_with=["media_video_search", "media_article_search"],
+            example={
+                "tasks": ['Find one piece of information about "die Röstung".',
+                          'Find one piece of information about "die Ernte".'],
+            },
+        ),
+    ]
+
     # Register all exercise nodes
-    for node in fib_nodes + pic_nodes + wc_nodes:
+    for node in fib_nodes + pic_nodes + wc_nodes + media_nodes:
         g.add_node(node)
 
     # ── Edges ─────────────────────────────────────────────────────────
@@ -711,5 +786,14 @@ def build_default_graph() -> ExerciseGraph:
                      "synonyms and antonyms pair naturally"))
     g.add_edge(Edge("fib_base_form", "fib_word_bank", EdgeType.COMBINES_WITH,
                      "base form + word bank scaffolds difficulty"))
+
+    # Media: found material feeds back into vocabulary work
+    g.add_edge(Edge("media_video_search", "wc_translation", EdgeType.FEEDS_VOCABULARY_TO,
+                     "new words heard in the video become translation pairs"))
+    g.add_edge(Edge("media_article_search", "wc_translation", EdgeType.FEEDS_VOCABULARY_TO,
+                     "key words from the article become translation pairs"))
+    g.add_edge(Edge("media_video_search", "media_fact_hunt", EdgeType.COMBINES_WITH,
+                     "watch first, then hunt for details"))
+    g.add_edge(Edge("media_article_search", "media_fact_hunt", EdgeType.COMBINES_WITH))
 
     return g
