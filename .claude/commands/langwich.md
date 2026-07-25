@@ -93,7 +93,28 @@ Or describe your level in your own words (e.g. "I'm a total beginner").
 
 Accept free-form descriptions and map them to the closest CEFR level.
 
-## Step 5 — Learning path
+## Step 5 — Device & colour output (IMPORTANT — never assume colour)
+
+You do not know whether the user's device or printer can display colour. Colour tasks are only included when the user **actively accepts** them.
+
+```
+Where will you use the worksheet?
+
+1. E-paper / e-ink device — black and white
+2. Black-and-white printer
+3. Colour printer or colour screen — I actively want colour tasks
+
+Or describe your setup.
+```
+
+Default to monochrome. Only when the user explicitly picks colour (option 3 or a clear free-text statement):
+- colour-dependent exercise types may be included,
+- pass `--allow-color` to the CLI,
+- image prompts may ask for colour.
+
+Otherwise assume black-and-white: skip colour-dependent exercises and keep all image prompts high-contrast black-and-white (bold outlines, solid blacks, no fine grey gradients — fine shading dithers badly on e-paper).
+
+## Step 6 — Learning path
 
 Present the built-in learning paths and let the user choose:
 
@@ -109,9 +130,9 @@ Which learning path would you like?
 Or describe your own preference (e.g. "mostly reading and writing, skip drawing").
 ```
 
-If the user picks a named path, use `--path <name>`. If they describe a custom preference, build a custom exercise selection in Step 7.
+If the user picks a named path, use `--path <name>`. If they describe a custom preference, build a custom exercise selection in Step 8.
 
-## Step 6 — Grammar focus (IMPORTANT — must produce real content)
+## Step 7 — Grammar focus (IMPORTANT — must produce real content)
 
 Suggest 2–4 grammar topics appropriate for the user's CEFR level and target language. For example:
 
@@ -136,7 +157,7 @@ Be flexible — accept any grammar topic the user suggests, even if not in the t
 
 **NEVER** leave the grammar content as just a topic name, a placeholder, or an empty string. The grammar page on the worksheet will show whatever you put in `content` — if you leave it empty, the student gets a useless blank page.
 
-## Step 7 — Exercise selection
+## Step 8 — Exercise selection
 
 Present the available exercise types and let the user choose which ones to include and how many items each. Show a numbered list like this:
 
@@ -153,11 +174,11 @@ Present the available exercise types and let the user choose which ones to inclu
 
 Ask: "Which exercises would you like? You can pick by number (e.g. 1, 2, 5) and optionally adjust the number of items (e.g. '1: 15, 5: 6'). Or just say 'all' for the full set."
 
-If the user says "all" or doesn't have a preference, use the learning path chosen in Step 5. Otherwise, build a custom `LearningPath` from their selections. Always include Vocabulary Matching as the first exercise.
+If the user says "all" or doesn't have a preference, use the learning path chosen in Step 6. Otherwise, build a custom `LearningPath` from their selections. Always include Vocabulary Matching as the first exercise.
 
 When building a custom path, map the user's choices to a `--custom-exercises` CLI argument as a comma-separated list of `type:count` pairs. For example: `--custom-exercises vocab_matching:15,reading_comprehension:4,fill_blanks:10`
 
-## Step 8 — Confirm and generate
+## Step 9 — Confirm and generate
 
 Show a clear summary of what you collected:
 
@@ -166,6 +187,7 @@ Mother tongue  : <source_lang>
 Target language: <target_lang>
 Topics         : <domain1>, <domain2>, ...
 CEFR level     : <level>
+Colour output  : <black-and-white (default) or colour (actively accepted)>
 Learning path  : <path_name>
 Grammar focus  : <topic or "none">
 Exercises      : <exercise1> (<count>), <exercise2> (<count>), ...
@@ -306,6 +328,15 @@ When the user said "skip": omit the `grammar` key entirely from the JSON.
 - Write questions in the **source language** (the learner's native language) so they understand what is being asked.
 - Do NOT use generic questions like "What is the main topic?" — every question must reference specific content from the passage.
 
+### Guidelines for pictures (make the worksheet visual)
+
+The worksheet design is picture-forward: the picture spans the full content width and takes all the page height its task leaves free. Make it count.
+
+- Always include a `picture_scene` when the user selected any picture exercise: a `description` (English image-generation prompt), the visual `elements` that must appear, and the `paragraph_index` of the paragraph that describes the scene.
+- **High contrast is mandatory in the prompt.** Unless the user actively accepted colour in Step 5, the image prompt must ask for high-contrast black-and-white artwork: bold outlines, solid blacks, no fine grey gradients or soft shading. (The renderer appends this automatically, but write the scene description so it works in black-and-white — strong shapes, clear silhouettes, no scenes that only work through colour.)
+- **Prefer real open-access images.** Search Wikimedia Commons (https://commons.wikimedia.org) or Openverse (https://openverse.org) for a public-domain or CC-licensed photo/illustration matching the scene, and put its direct file URL into `picture_scene.image` with the licence attribution in `picture_scene.image_credit`. The renderer embeds it full-width and converts it to high-contrast grayscale for monochrome devices. If no fitting open-access image exists, leave `image` out — the worksheet then shows a full-page placeholder with the generation prompt.
+- Choose images with a clear main subject and good tonal contrast; busy low-contrast photos become grey mush on e-paper.
+
 ### Guidelines for the exercises section (YOU generate all content)
 
 The `exercises` object contains pre-generated content for every exercise the user chose. The Python code renders this content directly — there are no Python generator scripts.
@@ -386,9 +417,12 @@ langwich --from-json ./data/<domain>_<source>_<target>.json \
 ```
 
 Add these flags as needed:
-- `--no-vocab-page` — if the user opted out of the vocabulary reference page
+- `--allow-color` — ONLY if the user actively accepted colour output in Step 5
+- `--image <path-or-url>` / `--image-credit "<attribution>"` — to embed an open-access image as the worksheet picture
 - `--no-grammar-page` — if the user skipped the grammar topic
 - `--custom-exercises vocab_matching:15,reading_comprehension:4,...` — if the user selected specific exercises
+
+Layout notes (no flags needed): each task gets its own page, and the vocabulary needed on a page is repeated small and grey along its bottom edge — there is no separate vocabulary reference page.
 
 Report the path of every generated PDF to the user and suggest they open it with any PDF viewer.
 
