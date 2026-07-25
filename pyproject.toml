@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "reportlab>=4.1",
+    "weasyprint>=61",
 ]
 
 [project.optional-dependencies]

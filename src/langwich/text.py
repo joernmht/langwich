@@ -33,6 +33,8 @@ class PictureScene:
     description: str  # English prompt for image generation
     elements: list[str]  # Visual elements that must appear
     paragraph_index: int = 0  # Which paragraph describes the scene
+    image: str | None = None  # Local path or URL of an image to embed
+    image_credit: str | None = None  # Attribution line for open-access images
 
 
 @dataclass
@@ -85,6 +87,10 @@ class SourceText:
                 "elements": self.picture_scene.elements,
                 "paragraph_index": self.picture_scene.paragraph_index,
             }
+            if self.picture_scene.image:
+                d["picture_scene"]["image"] = self.picture_scene.image
+            if self.picture_scene.image_credit:
+                d["picture_scene"]["image_credit"] = self.picture_scene.image_credit
         if self.vocabulary:
             d["vocabulary"] = self.vocabulary.to_dict()
         if self.grammar:
@@ -100,6 +106,8 @@ class SourceText:
                 description=ps["description"],
                 elements=ps["elements"],
                 paragraph_index=ps.get("paragraph_index", 0),
+                image=ps.get("image"),
+                image_credit=ps.get("image_credit"),
             )
 
         vocab = None

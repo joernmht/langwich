@@ -17,6 +17,11 @@ from langwich.graph import ExerciseGraph, build_default_graph
 from langwich.render import render_worksheet
 from langwich.text import SourceText
 
+# Exercise types that only work with colour output. They are skipped unless
+# the user actively accepts colour with --allow-color — the device or
+# printer may well be black-and-white.
+COLOR_EXERCISES = {"pic_color_query"}
+
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
@@ -30,12 +35,36 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--exercises", type=str, default=None,
         help="Comma-separated list of exercise node IDs to generate "
-        "(default: fib_word_bank, pic_color_query, wc_translation, "
+        "(default: fib_word_bank, pic_object_naming, wc_translation, "
         "wc_compound, media_video_search)",
     )
     parser.add_argument(
         "--output", "-o", type=Path, default=None,
         help="Output PDF path (default: data/<topic>.pdf)",
+    )
+    parser.add_argument(
+        "--allow-color", action="store_true",
+        help="Actively accept colour output: enables colour exercise types "
+        "and keeps embedded images in colour. Without this flag a "
+        "monochrome device/printer is assumed — colour exercises are "
+        "skipped and images are converted to high-contrast grayscale.",
+    )
+    parser.add_argument(
+        "--image", type=str, default=None,
+        help="Local path or URL of an (open-access) image to embed as the "
+        "worksheet picture, overriding picture_scene.image from the JSON",
+    )
+    parser.add_argument(
+        "--image-credit", type=str, default=None,
+        help="Attribution line printed under the embedded image "
+        "(e.g. 'Wikimedia Commons, CC BY-SA 4.0, <author>')",
+    )
+    parser.add_argument(
+        "--engine", choices=["html", "reportlab"], default="html",
+        help="Rendering engine. 'html' (default) builds an HTML worksheet "
+        "and converts it to PDF with WeasyPrint, writing the .html next to "
+        "the PDF; falls back to 'reportlab' automatically when WeasyPrint "
+        "or its system libraries are missing.",
     )
     parser.add_argument(
         "--list-exercises", action="store_true",
@@ -57,13 +86,18 @@ def main(argv: list[str] | None = None) -> None:
         data = json.load(f)
     text = SourceText.from_dict(data)
 
+    if args.image and text.picture_scene:
+        text.picture_scene.image = args.image
+    if args.image_credit and text.picture_scene:
+        text.picture_scene.image_credit = args.image_credit
+
     # Pick exercises
     if args.exercises:
         node_ids = [s.strip() for s in args.exercises.split(",")]
     else:
         node_ids = [
             "fib_word_bank",
-            "pic_color_query",
+            "pic_object_naming",
             "wc_translation",
             "wc_compound",
             "media_video_search",
@@ -74,6 +108,14 @@ def main(argv: list[str] | None = None) -> None:
     for nid in node_ids:
         if nid not in graph.nodes:
             print(f"Warning: unknown exercise '{nid}', skipping", file=sys.stderr)
+            continue
+        if nid in COLOR_EXERCISES and not args.allow_color:
+            print(
+                f"Warning: skipping colour exercise '{nid}' — a monochrome "
+                "device/printer is assumed. Pass --allow-color to actively "
+                "accept colour tasks.",
+                file=sys.stderr,
+            )
             continue
         node = graph.nodes[nid]
         ex = generate_exercise(node, text, session)  # type: ignore[arg-type]
@@ -88,7 +130,21 @@ def main(argv: list[str] | None = None) -> None:
 
     # Render
     output = args.output or Path("data") / f"{text.topic}.pdf"
-    result = render_worksheet(text, exercises, output)
+    monochrome = not args.allow_color
+    if args.engine == "html":
+        try:
+            from langwich.html_render import render_worksheet_html
+
+            result = render_worksheet_html(text, exercises, output,
+                                           monochrome=monochrome)
+            print(f"Worksheet generated: {result} "
+                  f"(HTML: {output.with_suffix('.html')})")
+            return
+        except (ImportError, OSError) as exc:
+            print(f"Warning: HTML engine unavailable ({exc}); "
+                  "falling back to the ReportLab renderer",
+                  file=sys.stderr)
+    result = render_worksheet(text, exercises, output, monochrome=monochrome)
     print(f"Worksheet generated: {result}")
 
 

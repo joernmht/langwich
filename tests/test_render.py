@@ -26,7 +26,22 @@ ALL_EXERCISES = ",".join([
 
 def _page_count(pdf_path: Path) -> int:
     data = pdf_path.read_bytes()
-    return data.count(b"/Type /Page") - data.count(b"/Type /Pages")
+    count = data.count(b"/Type /Page") - data.count(b"/Type /Pages")
+    if count > 0:
+        return count
+    # WeasyPrint stores page objects inside compressed object streams —
+    # decompress them and read /Count off the page tree.
+    import re
+    import zlib
+    counts = []
+    for m in re.finditer(rb"stream\r?\n(.*?)endstream", data, re.S):
+        try:
+            blob = zlib.decompress(m.group(1).rstrip(b"\r\n"))
+        except zlib.error:
+            continue
+        counts += [int(c) for c in
+                   re.findall(rb"/Type /Pages[^>]*/Count (\d+)", blob)]
+    return max(counts, default=0)
 
 
 @pytest.mark.parametrize("example", [
@@ -37,6 +52,7 @@ def test_examples_render_end_to_end(tmp_path, example):
     main([
         "--from-json", str(EXAMPLES / example),
         "--exercises", ALL_EXERCISES,
+        "--allow-color",
         "-o", str(out),
     ])
     assert out.exists()
@@ -48,6 +64,70 @@ def test_default_selection_renders(tmp_path):
     out = tmp_path / "default.pdf"
     main(["--from-json", str(EXAMPLES / "coffee_en_de.json"), "-o", str(out)])
     assert out.exists()
+
+
+def test_one_task_per_page(tmp_path):
+    # 5 exercises → at least reading page + one page per task.
+    exercises = "fib_word_bank,fib_first_letter,wc_translation,wc_synonym,wc_compound"
+    out = tmp_path / "one_per_page.pdf"
+    main([
+        "--from-json", str(EXAMPLES / "coffee_en_de.json"),
+        "--exercises", exercises,
+        "-o", str(out),
+    ])
+    assert _page_count(out) >= 1 + len(exercises.split(","))
+
+
+def test_color_exercise_skipped_without_allow_color(tmp_path, capsys):
+    out = tmp_path / "no_color.pdf"
+    main([
+        "--from-json", str(EXAMPLES / "coffee_en_de.json"),
+        "--exercises", "pic_color_query,fib_word_bank",
+        "-o", str(out),
+    ])
+    assert out.exists()
+    assert "colour exercise 'pic_color_query'" in capsys.readouterr().err
+
+
+def test_html_engine_writes_html_and_pdf(tmp_path):
+    pytest.importorskip("weasyprint")
+    out = tmp_path / "html_engine.pdf"
+    main(["--from-json", str(EXAMPLES / "coffee_en_de.json"), "-o", str(out)])
+    html_out = out.with_suffix(".html")
+    assert out.exists() and html_out.exists()
+    content = html_out.read_text(encoding="utf-8")
+    # one section per task + cover + references
+    assert content.count('class="page task"') >= 4
+    assert 'class="vocab"' in content  # per-page vocabulary bands
+
+
+def test_reportlab_engine_still_works(tmp_path):
+    out = tmp_path / "reportlab.pdf"
+    main([
+        "--from-json", str(EXAMPLES / "coffee_en_de.json"),
+        "--engine", "reportlab",
+        "-o", str(out),
+    ])
+    assert out.exists()
+    assert not out.with_suffix(".html").exists()
+
+
+def test_local_image_is_embedded(tmp_path):
+    from PIL import Image as PILImage
+
+    img_path = tmp_path / "scene.png"
+    PILImage.new("RGB", (640, 480), (200, 30, 30)).save(img_path)
+
+    out = tmp_path / "with_image.pdf"
+    main([
+        "--from-json", str(EXAMPLES / "coffee_en_de.json"),
+        "--exercises", "pic_object_naming",
+        "--image", str(img_path),
+        "--image-credit", "Test image, public domain",
+        "-o", str(out),
+    ])
+    assert out.exists()
+    assert out.stat().st_size > 5_000
 
 
 def test_bundled_examples_parse():
