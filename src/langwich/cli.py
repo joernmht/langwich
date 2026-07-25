@@ -60,6 +60,13 @@ def main(argv: list[str] | None = None) -> None:
         "(e.g. 'Wikimedia Commons, CC BY-SA 4.0, <author>')",
     )
     parser.add_argument(
+        "--engine", choices=["html", "reportlab"], default="html",
+        help="Rendering engine. 'html' (default) builds an HTML worksheet "
+        "and converts it to PDF with WeasyPrint, writing the .html next to "
+        "the PDF; falls back to 'reportlab' automatically when WeasyPrint "
+        "or its system libraries are missing.",
+    )
+    parser.add_argument(
         "--list-exercises", action="store_true",
         help="List all available exercise types and exit",
     )
@@ -123,8 +130,21 @@ def main(argv: list[str] | None = None) -> None:
 
     # Render
     output = args.output or Path("data") / f"{text.topic}.pdf"
-    result = render_worksheet(text, exercises, output,
-                              monochrome=not args.allow_color)
+    monochrome = not args.allow_color
+    if args.engine == "html":
+        try:
+            from langwich.html_render import render_worksheet_html
+
+            result = render_worksheet_html(text, exercises, output,
+                                           monochrome=monochrome)
+            print(f"Worksheet generated: {result} "
+                  f"(HTML: {output.with_suffix('.html')})")
+            return
+        except (ImportError, OSError) as exc:
+            print(f"Warning: HTML engine unavailable ({exc}); "
+                  "falling back to the ReportLab renderer",
+                  file=sys.stderr)
+    result = render_worksheet(text, exercises, output, monochrome=monochrome)
     print(f"Worksheet generated: {result}")
 
 

@@ -54,7 +54,7 @@ BORDER = colors.HexColor("#c9cdd3")
 BG_LIGHT = colors.HexColor("#f2f3f5")
 
 PAGE_W, PAGE_H = A4
-MARGIN = 2 * cm
+MARGIN = 1.4 * cm
 CONTENT_W = PAGE_W - 2 * MARGIN
 
 # Vertical geometry. Task pages reserve a band above the bottom margin for
