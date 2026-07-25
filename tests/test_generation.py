@@ -308,3 +308,31 @@ def test_edges_reference_known_nodes(graph):
     for edge in graph.edges:
         assert edge.source in graph.nodes
         assert edge.target in graph.nodes
+
+
+# ---------------------------------------------------------------------------
+# Word bank casing: sentence-initial capitals must not leak into options
+# ---------------------------------------------------------------------------
+
+def test_word_bank_drops_sentence_initial_capitalization(graph, coffee):
+    # "Vor ihr steht eine weiße Tasse..." blanks sentence-initial "Vor",
+    # whose vocabulary entry is lowercase ("vor") — the bank must show
+    # "vor". Nouns ("Frau", "Milchschaum") keep their capital.
+    found_lower_vor = False
+    for seed in range(10):
+        import random
+        random.seed(seed)
+        ex = generate_exercise(
+            graph.nodes["fib_word_bank"], coffee, GenerationSession()
+        )
+        assert ex is not None
+        assert "Vor" not in ex.word_bank
+        if "vor" in ex.word_bank:
+            found_lower_vor = True
+        stems = {v.term.split()[-1].lower(): v.term.split()[-1]
+                 for v in coffee.vocabulary.items}
+        for word in ex.word_bank:
+            stem = stems.get(word.lower())
+            if stem and stem[:1].isupper():
+                assert word[:1].isupper(), f"noun '{word}' lost its capital"
+    assert found_lower_vor

@@ -414,6 +414,19 @@ def _pick_verb_targets(
 # FIB generators
 # ---------------------------------------------------------------------------
 
+def _option_case(token_clean: str, vocab_item: VocabularyItem) -> str:
+    """Casing for a token shown as an option (word bank, multiple choice).
+
+    Sentence-initial capitalization must not leak into the options — it
+    would give the blank's position away. The vocabulary entry decides:
+    a lowercase entry ('vor') lowercases the token, while nouns keep
+    their capital ('die Frau' → 'Frau')."""
+    stem = _strip_article(vocab_item.term)
+    if token_clean[:1].isupper() and stem[:1].islower():
+        return token_clean[0].lower() + token_clean[1:]
+    return token_clean
+
+
 def _generate_fib(
     node: ExerciseNode, text: SourceText, session: GenerationSession
 ) -> ExerciseInstance | None:
@@ -437,13 +450,13 @@ def _generate_fib(
             item["hint"] = clean[0] + "______"
         elif node.hint_type == "multiple_choice":
             distractors = _get_distractors(clean, text, pos=vocab_item.pos)
-            options = [clean] + distractors[:2]
+            options = [_option_case(clean, vocab_item)] + distractors[:2]
             random.shuffle(options)
             item["choices"] = options
         elif node.hint_type == "translation":
             item["hint"] = f"({vocab_item.translation})"
 
-        bank_words.append(clean)
+        bank_words.append(_option_case(clean, vocab_item))
         items.append(item)
         solutions.append({"number": i, "answer": clean})
 
