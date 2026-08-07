@@ -257,6 +257,12 @@ The landing page reads its exercise counts from the graph (`scripts/update_page_
 
 ---
 
+## AI disclaimer
+
+This repository was developed with substantial assistance from AI coding tools
+(primarily Anthropic's Claude). Code, documentation and results have been
+reviewed by the author, who takes full responsibility for the content.
+
 ## License
 
 MIT
