@@ -1,0 +1,754 @@
+{
+  "schema": "langwich/3",
+  "title": "Fünf Tage im Café Lindner",
+  "standfirst": "Lena has five days to earn the right to make Herr Novak's cappuccino. Follow her week — and find out where your morning coffee comes from.",
+  "source_lang": "en",
+  "target_lang": "de",
+  "cefr_level": "B1",
+  "topic": "coffee",
+  "frame": "episode",
+  "series": {
+    "id": "lena-in-wien",
+    "title": "Lena in Wien",
+    "episode": 1,
+    "next": "Nächste Folge: Lenas Onkel ruft aus Triest an. Seine Espressobar braucht dringend Hilfe …",
+    "review": []
+  },
+  "story": {
+    "logline": "Lena, a British student on a gap year in Vienna, has one week to learn enough about coffee to serve the café's pickiest regular.",
+    "setting": "Café Lindner, a traditional coffee house in Vienna, Monday to Friday",
+    "characters": [
+      {
+        "id": "lena",
+        "name": "Lena",
+        "role": "23, from Manchester, a gap year in Vienna"
+      },
+      {
+        "id": "berger",
+        "name": "Frau Berger",
+        "role": "owner of Café Lindner, strict but kind"
+      },
+      {
+        "id": "novak",
+        "name": "Herr Novak",
+        "role": "a regular for forty years"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Montag – Der erste Tag",
+        "beat": "setup",
+        "text": "Es ist Montag, sieben Uhr morgens. Lena steht zum ersten Mal hinter der Theke im Café Lindner in Wien. Sie ist nervös, denn am Fenster sitzt schon Herr Novak, der älteste Stammgast. Seit vierzig Jahren trinkt er hier jeden Morgen einen Cappuccino.\n\nDie Chefin, Frau Berger, gibt Lena eine Schürze. „Am Freitag machst du Herrn Novaks Cappuccino“, sagt sie. „Aber vorher musst du verstehen, woher unser Kaffee kommt.“",
+        "translation": "It's Monday, seven o'clock in the morning. Lena is standing behind the counter of Café Lindner in Vienna for the first time. She is nervous, because Herr Novak, the oldest regular, is already sitting by the window. For forty years he has been drinking a cappuccino here every morning.\n\nThe boss, Frau Berger, gives Lena an apron. \"On Friday you'll make Herr Novak's cappuccino,\" she says. \"But first you have to understand where our coffee comes from.\""
+      },
+      {
+        "id": "s2",
+        "heading": "Dienstag – Die Reise der Bohne",
+        "beat": "development",
+        "text": "Am Dienstag öffnet Frau Berger einen großen Sack aus Jute. „Diese Bohnen kommen aus Äthiopien“, erklärt sie. „Kaffee wächst vor allem in tropischen Ländern nahe dem Äquator, zum Beispiel in Brasilien, Kolumbien oder Vietnam. Dort ernten die Bauern die roten Kaffeekirschen oft von Hand und trocknen sie in der Sonne.“\n\nLena riecht an den grünen Bohnen. „Die riechen ja wie Heu!“ Frau Berger lacht. „Genau. Warte bis morgen.“",
+        "translation": "On Tuesday Frau Berger opens a big jute sack. \"These beans come from Ethiopia,\" she explains. \"Coffee grows mainly in tropical countries near the equator, for example in Brazil, Colombia or Vietnam. There the farmers often pick the red coffee cherries by hand and dry them in the sun.\"\n\nLena smells the green beans. \"They smell like hay!\" Frau Berger laughs. \"Exactly. Wait until tomorrow.\""
+      },
+      {
+        "id": "s3",
+        "heading": "Mittwoch – Viel zu dunkel!",
+        "beat": "complication",
+        "text": "In der kleinen Rösterei hinter dem Café werden die Bohnen geröstet. Erst jetzt entsteht der typische Kaffeeduft. „Die Röstung bestimmt den Geschmack“, erklärt Frau Berger. „Eine helle Röstung schmeckt fruchtig und ein bisschen säuerlich, eine dunkle Röstung ist kräftig und bitter.“\n\nDa klingelt vorne das Telefon, und Lena bleibt allein bei der Maschine. Sie wartet und wartet … Als Frau Berger zurückkommt, sind die Bohnen fast schwarz. Der Kaffee schmeckt furchtbar bitter. Lena ist enttäuscht.",
+        "translation": "In the small roastery behind the café the beans are roasted. Only now does the typical smell of coffee appear. \"The roast determines the taste,\" Frau Berger explains. \"A light roast tastes fruity and a little sour, a dark roast is strong and bitter.\"\n\nJust then the phone rings at the front, and Lena is left alone with the machine. She waits and waits … When Frau Berger comes back, the beans are almost black. The coffee tastes terribly bitter. Lena is disappointed."
+      },
+      {
+        "id": "s4",
+        "heading": "Freitag – Der Test",
+        "beat": "resolution",
+        "text": "Am Freitag hat Lena eine helle Röstung vorbereitet. Herr Novak setzt sich wie immer ans Fenster. „Einen Cappuccino, bitte.“ Lenas Hände zittern, aber der Milchschaum gelingt: Er hat die Form eines Blattes. Herr Novak trinkt, sagt nichts – und lächelt dann. „Kaffee ist mehr als ein Getränk“, sagt er. „Er bringt Menschen zusammen.“\n\nNach der Schicht sitzt Lena selbst am Fenster. Vor ihr steht eine weiße Tasse, daneben liegt ein Stück Apfelstrudel auf einem Teller. Draußen lehnt ihr Fahrrad an einer Laterne. Das ist die schönste Pause der Woche.",
+        "translation": "On Friday Lena has prepared a light roast. Herr Novak sits down by the window as always. \"A cappuccino, please.\" Lena's hands are shaking, but the milk foam turns out well: it has the shape of a leaf. Herr Novak drinks, says nothing – and then smiles. \"Coffee is more than a drink,\" he says. \"It brings people together.\"\n\nAfter her shift Lena sits by the window herself. In front of her there is a white cup, next to it a piece of apple strudel on a plate. Outside, her bicycle is leaning against a lamppost. It's the best break of the week.",
+        "picture": {
+          "svg": "<svg viewBox=\"0 -8 178 92\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <defs>\n    <clipPath id=\"glass\"><rect x=\"96.5\" y=\"19.2\" width=\"75\" height=\"40.3\"/></clipPath>\n  </defs>\n\n  <!-- room: wainscot + floor -->\n  <line x1=\"0\" y1=\"60\" x2=\"94\" y2=\"60\" stroke-width=\".3\"/>\n  <line x1=\"0\" y1=\"79\" x2=\"178\" y2=\"79\" stroke-width=\".45\"/>\n\n  <!-- framed picture (coffee bean) -->\n  <rect x=\"5\" y=\"8\" width=\"15\" height=\"18\" stroke-width=\".5\" fill=\"#fff\"/>\n  <rect x=\"7\" y=\"10\" width=\"11\" height=\"14\" stroke-width=\".25\"/>\n  <ellipse cx=\"12.5\" cy=\"17\" rx=\"3\" ry=\"4.2\" stroke-width=\".5\" transform=\"rotate(-25 12.5 17)\"/>\n  <path d=\"M13.7,13.4 C11.6,15.4 13.6,18.4 11.3,20.6\" stroke-width=\".45\"/>\n\n  <!-- pendant lamp -->\n  <line x1=\"66\" y1=\"-8\" x2=\"66\" y2=\"9.5\" stroke-width=\".35\"/>\n  <path d=\"M58.6,17 L73.4,17 L69.6,9.5 L62.4,9.5 Z\" fill=\"#000\" stroke-width=\".4\"/>\n  <path d=\"M64.2,17.1 Q66,19.2 67.8,17.1\" stroke-width=\".35\"/>\n\n  <!-- window -->\n  <rect x=\"94\" y=\"6\" width=\"80\" height=\"56\" stroke-width=\".6\" fill=\"#fff\"/>\n  <rect x=\"96.5\" y=\"8.5\" width=\"75\" height=\"51\" stroke-width=\".3\"/>\n  <line x1=\"96.5\" y1=\"18\" x2=\"171.5\" y2=\"18\" stroke-width=\".3\"/>\n  <line x1=\"96.5\" y1=\"19.2\" x2=\"171.5\" y2=\"19.2\" stroke-width=\".3\"/>\n  <line x1=\"122\" y1=\"19.2\" x2=\"122\" y2=\"59.5\" stroke-width=\".3\"/>\n  <line x1=\"123.2\" y1=\"19.2\" x2=\"123.2\" y2=\"59.5\" stroke-width=\".3\"/>\n\n  <!-- the street, through the glass -->\n  <g clip-path=\"url(#glass)\">\n    <line x1=\"96\" y1=\"24\" x2=\"172\" y2=\"24\" stroke-width=\".3\"/>\n    <line x1=\"96\" y1=\"25.3\" x2=\"172\" y2=\"25.3\" stroke-width=\".3\"/>\n    <g stroke-width=\".3\">\n      <rect x=\"99.5\" y=\"28\" width=\"7\" height=\"10\"/><line x1=\"99.5\" y1=\"33\" x2=\"106.5\" y2=\"33\"/>\n      <rect x=\"127\" y=\"28\" width=\"7\" height=\"10\"/><line x1=\"127\" y1=\"33\" x2=\"134\" y2=\"33\"/>\n      <rect x=\"143\" y=\"28\" width=\"7\" height=\"10\"/><line x1=\"143\" y1=\"33\" x2=\"150\" y2=\"33\"/>\n      <rect x=\"164\" y=\"28\" width=\"7\" height=\"10\"/><line x1=\"164\" y1=\"33\" x2=\"171\" y2=\"33\"/>\n    </g>\n    <line x1=\"96\" y1=\"45\" x2=\"172\" y2=\"45\" stroke-width=\".35\"/>\n    <line x1=\"96\" y1=\"47.5\" x2=\"172\" y2=\"47.5\" stroke-width=\".35\"/>\n    <!-- cobblestones -->\n    <g stroke-width=\".25\">\n      <path d=\"M97,51 q1.6,-1.2 3.2,0 M101.5,51 q1.6,-1.2 3.2,0 M106,51 q1.6,-1.2 3.2,0 M110.5,51 q1.6,-1.2 3.2,0 M115,51 q1.6,-1.2 3.2,0 M119.5,51 q1.6,-1.2 3.2,0 M124,51 q1.6,-1.2 3.2,0 M128.5,51 q1.6,-1.2 3.2,0 M133,51 q1.6,-1.2 3.2,0 M164.5,51 q1.6,-1.2 3.2,0 M169,51 q1.6,-1.2 3.2,0\"/>\n      <path d=\"M99.2,54.5 q1.6,-1.2 3.2,0 M103.7,54.5 q1.6,-1.2 3.2,0 M108.2,54.5 q1.6,-1.2 3.2,0 M112.7,54.5 q1.6,-1.2 3.2,0 M117.2,54.5 q1.6,-1.2 3.2,0 M121.7,54.5 q1.6,-1.2 3.2,0 M126.2,54.5 q1.6,-1.2 3.2,0 M130.7,54.5 q1.6,-1.2 3.2,0 M162.2,54.5 q1.6,-1.2 3.2,0 M166.7,54.5 q1.6,-1.2 3.2,0\"/>\n      <path d=\"M97,58 q1.6,-1.2 3.2,0 M101.5,58 q1.6,-1.2 3.2,0 M106,58 q1.6,-1.2 3.2,0 M110.5,58 q1.6,-1.2 3.2,0 M115,58 q1.6,-1.2 3.2,0 M119.5,58 q1.6,-1.2 3.2,0 M124,58 q1.6,-1.2 3.2,0 M128.5,58 q1.6,-1.2 3.2,0 M164.5,58 q1.6,-1.2 3.2,0 M169,58 q1.6,-1.2 3.2,0\"/>\n    </g>\n    <!-- tree -->\n    <path d=\"M112.6,45 L112.6,34\" stroke-width=\".7\"/>\n    <path d=\"M106.2,31.5 C104.2,27.5 107.8,23.4 111.2,24.6 C112.8,21.2 118.2,22 118.4,26 C121.6,27 121,32.2 117.6,32.8 C116.4,35.4 108.8,35.6 106.2,31.5 Z\" stroke-width=\".4\" fill=\"#fff\"/>\n    <!-- lamppost -->\n    <line x1=\"160\" y1=\"59.5\" x2=\"160\" y2=\"29\" stroke-width=\".9\"/>\n    <path d=\"M158.4,59.5 L158.9,56.8 L161.1,56.8 L161.6,59.5 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M157.2,22.4 L162.8,22.4 L161.8,28.6 L158.2,28.6 Z\" fill=\"#fff\" stroke-width=\".45\"/>\n    <path d=\"M156.6,22.6 L160,19.6 L163.4,22.6 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <line x1=\"158\" y1=\"28.8\" x2=\"162\" y2=\"28.8\" stroke-width=\".6\"/>\n    <!-- bicycle, leaning on the post -->\n    <g stroke-width=\".45\">\n      <circle cx=\"138.5\" cy=\"53\" r=\"6\"/>\n      <circle cx=\"154\" cy=\"53\" r=\"6\"/>\n      <circle cx=\"138.5\" cy=\"53\" r=\".6\" fill=\"#000\"/>\n      <circle cx=\"154\" cy=\"53\" r=\".6\" fill=\"#000\"/>\n    </g>\n    <path d=\"M138.5,53 L144,44.2 L145.8,53 Z M144,44.2 L152.3,44.6 L145.8,53 M152.3,44.6 L154,53\" stroke-width=\".85\"/>\n    <path d=\"M143.8,44.2 L143.4,42.8 M141.6,42.6 L145.4,42.6 M152.3,44.6 L151.6,41.8 L154.6,41.2\" stroke-width=\".85\"/>\n    <circle cx=\"145.8\" cy=\"53\" r=\"1.1\" stroke-width=\".4\" fill=\"#fff\"/>\n  </g>\n\n  <!-- sill + panel under the window -->\n  <rect x=\"91\" y=\"62\" width=\"86\" height=\"2.5\" stroke-width=\".5\" fill=\"#fff\"/>\n  <rect x=\"97\" y=\"67\" width=\"74\" height=\"9.5\" stroke-width=\".3\"/>\n\n  <!-- bentwood chair -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M24.4,56 C22.6,47 22.4,40.6 24.8,36.4 C26.8,33.2 30.2,34.8 29.4,39\" fill=\"none\"/>\n    <line x1=\"25.4\" y1=\"57.4\" x2=\"23.4\" y2=\"79\"/>\n    <line x1=\"37.2\" y1=\"57.4\" x2=\"39.2\" y2=\"79\"/>\n    <line x1=\"29.6\" y1=\"58\" x2=\"30\" y2=\"79\"/>\n    <ellipse cx=\"31\" cy=\"70.5\" rx=\"5.8\" ry=\"1\" stroke-width=\".35\" fill=\"none\"/>\n  </g>\n\n  <!-- the woman -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <!-- back leg -->\n    <path d=\"M41.6,59.3 L42.7,77.4 L45.3,77.4 L44.9,59.3 Z\"/>\n    <path d=\"M42.3,77.3 L47.6,77.3 Q49,77.5 49,79 L42.3,79 Z\" fill=\"#000\"/>\n    <!-- chair seat (in front of the back leg, behind the body) -->\n    <ellipse cx=\"31\" cy=\"56.6\" rx=\"8.2\" ry=\"1.7\"/>\n    <!-- torso -->\n    <path d=\"M29.6,37.2 C30.3,34.6 32.8,33.5 35.6,33.5 C38.4,33.5 40.9,34.6 41.5,37.2 L42.4,55.6 L29.4,55.6 Z\"/>\n    <path d=\"M33.2,33.9 Q35.6,36 38,33.9\" stroke-width=\".35\" fill=\"none\"/>\n    <!-- thigh -->\n    <path d=\"M30,55.4 L47.4,55.4 Q49.3,55.6 49.3,57.5 Q49.3,59.5 47.4,59.5 L30,59.5 Z\"/>\n    <!-- front leg -->\n    <path d=\"M45.1,59.2 L46.5,77.4 L49.3,77.4 L48.9,59.2 Z\"/>\n    <path d=\"M46,77.3 L51.6,77.3 Q53.1,77.5 53.1,79 L46,79 Z\" fill=\"#000\"/>\n    <!-- arm to the cup -->\n    <path d=\"M38.8,36.4 C41.6,38.6 43.4,42.6 44.2,46.8 L49.6,47 L49.6,49.3 L42.9,49.6 C41.6,45.6 40,42 38,39.2 Z\"/>\n    <!-- head -->\n    <line x1=\"35.6\" y1=\"31\" x2=\"35.6\" y2=\"33.6\"/>\n    <circle cx=\"36\" cy=\"27\" r=\"4.6\"/>\n    <path d=\"M31.6,28.4 C30.8,23 35.2,21.2 38.8,22.4 C40.2,22.9 40.8,23.9 40.7,25 C38,24.2 35,24.9 33.8,28.8 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <circle cx=\"31.9\" cy=\"24\" r=\"2.1\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M40.4,27.4 L41.4,28.6 L40.5,28.9\" stroke-width=\".35\" fill=\"none\"/>\n  </g>\n\n  <!-- café table -->\n  <g stroke-width=\".6\" fill=\"#fff\">\n    <rect x=\"66.9\" y=\"55\" width=\"2.2\" height=\"21.6\" stroke-width=\".45\"/>\n    <path d=\"M57.6,79 Q68,73.6 78.4,79\" fill=\"none\"/>\n    <path d=\"M44,52 L44,53.3 A24,3.6 0 0 0 92,53.3 L92,52\"/>\n    <ellipse cx=\"68\" cy=\"52\" rx=\"24\" ry=\"3.6\"/>\n  </g>\n\n  <!-- cup on saucer, in front of her -->\n  <g stroke-width=\".5\" fill=\"#fff\">\n    <ellipse cx=\"56\" cy=\"51.7\" rx=\"6.6\" ry=\"1.35\"/>\n    <path d=\"M51.6,46.8 C48.9,46.8 48.9,50 52,49.8\" fill=\"none\"/>\n    <path d=\"M51,45.5 L61,45.5 L59.8,50.9 Q56,52 52.2,50.9 Z\"/>\n    <ellipse cx=\"56\" cy=\"45.5\" rx=\"5\" ry=\"1\"/>\n    <path d=\"M55,45.6 q1,-.7 2,0 q-1,.6 -2,0\" stroke-width=\".25\"/>\n    <path d=\"M54.4,43.4 c-1,-1.5 1,-2.4 0,-3.9 M57.6,43.4 c-1,-1.5 1,-2.4 0,-3.9\" stroke-width=\".3\" fill=\"none\"/>\n  </g>\n\n  <!-- apple strudel on a plate, next to the cup -->\n  <g stroke-width=\".5\" fill=\"#fff\">\n    <ellipse cx=\"76\" cy=\"51.9\" rx=\"9\" ry=\"1.8\"/>\n    <ellipse cx=\"76\" cy=\"51.6\" rx=\"6\" ry=\"1\" stroke-width=\".25\"/>\n    <path d=\"M70,51.5 L70.4,47.6 Q71.3,46 73.6,45.8 L80.6,46.3 Q82.4,46.8 82.1,48.6 L81.6,51.5 Z\"/>\n    <ellipse cx=\"71.7\" cy=\"48.9\" rx=\"1.4\" ry=\"1.9\" stroke-width=\".35\"/>\n    <ellipse cx=\"71.8\" cy=\"49\" rx=\".6\" ry=\".85\" stroke-width=\".3\"/>\n    <g fill=\"#000\" stroke=\"none\">\n      <circle cx=\"74.6\" cy=\"46.9\" r=\".22\"/><circle cx=\"76.6\" cy=\"46.6\" r=\".22\"/>\n      <circle cx=\"78.4\" cy=\"47.1\" r=\".22\"/><circle cx=\"80.1\" cy=\"46.9\" r=\".22\"/>\n      <circle cx=\"75.8\" cy=\"47.8\" r=\".22\"/><circle cx=\"79.3\" cy=\"48\" r=\".22\"/>\n    </g>\n  </g>\n\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"46.2\" y1=\"24.9\" x2=\"41.6\" y2=\"26.2\"/>\n    <line x1=\"49.9\" y1=\"41.6\" x2=\"52.6\" y2=\"44.8\"/>\n    <line x1=\"78.2\" y1=\"40.9\" x2=\"77.2\" y2=\"45.6\"/>\n    <line x1=\"87.5\" y1=\"47.7\" x2=\"83.6\" y2=\"50.9\"/>\n    <line x1=\"134.4\" y1=\"41.2\" x2=\"140.4\" y2=\"46.4\"/>\n    <line x1=\"166.9\" y1=\"27\" x2=\"163.2\" y2=\"25.8\"/>\n  </g>\n</svg>",
+          "caption": "Nach der Schicht: Lena am Fenster",
+          "prompt": "Black-and-white line drawing of a Viennese coffee house interior: a young woman sits at a small round table by a large window; in front of her a cup of cappuccino and a plate with a slice of apple strudel; outside the window a cobblestone street, a bicycle leaning against a street lamp. Bold clean outlines, no grey shading.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "die Frau",
+              "x": 0.274,
+              "y": 0.35
+            },
+            {
+              "n": 2,
+              "term": "die Tasse",
+              "x": 0.271,
+              "y": 0.513
+            },
+            {
+              "n": 3,
+              "term": "der Apfelstrudel",
+              "x": 0.442,
+              "y": 0.499
+            },
+            {
+              "n": 4,
+              "term": "der Teller",
+              "x": 0.506,
+              "y": 0.585
+            },
+            {
+              "n": 5,
+              "term": "das Fahrrad",
+              "x": 0.743,
+              "y": 0.513
+            },
+            {
+              "n": 6,
+              "term": "die Laterne",
+              "x": 0.954,
+              "y": 0.387
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s2",
+      "text": "Die Kaffeepflanze stammt ursprünglich aus Äthiopien. Heute ist Brasilien der größte Kaffeeproduzent der Welt."
+    },
+    {
+      "id": "f2",
+      "scene": "s3",
+      "text": "In Deutschland trinken viele Menschen am liebsten Filterkaffee, in Italien ist der Espresso König. Und in Wien? Dort bestellt man gern eine Melange – ähnlich wie ein Cappuccino."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "die Bohne",
+      "wachsen",
+      "ernten",
+      "trocknen",
+      "rösten",
+      "die Röstung",
+      "der Geschmack",
+      "bitter",
+      "der Milchschaum",
+      "der Stammgast"
+    ],
+    "items": [
+      {
+        "term": "die Theke",
+        "translation": "counter",
+        "pos": "noun",
+        "plural": "die Theken"
+      },
+      {
+        "term": "nervös",
+        "translation": "nervous",
+        "pos": "adjective"
+      },
+      {
+        "term": "der Stammgast",
+        "translation": "regular (customer)",
+        "pos": "noun",
+        "plural": "die Stammgäste"
+      },
+      {
+        "term": "die Chefin",
+        "translation": "boss (female)",
+        "pos": "noun",
+        "plural": "die Chefinnen"
+      },
+      {
+        "term": "die Schürze",
+        "translation": "apron",
+        "pos": "noun",
+        "plural": "die Schürzen"
+      },
+      {
+        "term": "verstehen",
+        "translation": "to understand",
+        "pos": "verb",
+        "forms": "versteht, verstand, hat verstanden"
+      },
+      {
+        "term": "der Sack",
+        "translation": "sack",
+        "pos": "noun",
+        "plural": "die Säcke"
+      },
+      {
+        "term": "die Bohne",
+        "translation": "bean",
+        "pos": "noun",
+        "plural": "die Bohnen"
+      },
+      {
+        "term": "wachsen",
+        "translation": "to grow",
+        "pos": "verb",
+        "forms": "wächst, wuchs, ist gewachsen"
+      },
+      {
+        "term": "tropisch",
+        "translation": "tropical",
+        "pos": "adjective"
+      },
+      {
+        "term": "der Äquator",
+        "translation": "equator",
+        "pos": "noun"
+      },
+      {
+        "term": "ernten",
+        "translation": "to harvest, to pick",
+        "pos": "verb"
+      },
+      {
+        "term": "die Kaffeekirsche",
+        "translation": "coffee cherry",
+        "pos": "noun",
+        "plural": "die Kaffeekirschen"
+      },
+      {
+        "term": "trocknen",
+        "translation": "to dry",
+        "pos": "verb"
+      },
+      {
+        "term": "riechen",
+        "translation": "to smell",
+        "pos": "verb",
+        "forms": "riecht, roch, hat gerochen"
+      },
+      {
+        "term": "das Heu",
+        "translation": "hay",
+        "pos": "noun"
+      },
+      {
+        "term": "die Rösterei",
+        "translation": "roastery",
+        "pos": "noun",
+        "plural": "die Röstereien"
+      },
+      {
+        "term": "rösten",
+        "translation": "to roast",
+        "pos": "verb"
+      },
+      {
+        "term": "der Duft",
+        "translation": "smell, aroma",
+        "pos": "noun",
+        "plural": "die Düfte"
+      },
+      {
+        "term": "die Röstung",
+        "translation": "roast",
+        "pos": "noun",
+        "plural": "die Röstungen"
+      },
+      {
+        "term": "der Geschmack",
+        "translation": "taste, flavour",
+        "pos": "noun"
+      },
+      {
+        "term": "fruchtig",
+        "translation": "fruity",
+        "pos": "adjective"
+      },
+      {
+        "term": "säuerlich",
+        "translation": "slightly sour",
+        "pos": "adjective"
+      },
+      {
+        "term": "kräftig",
+        "translation": "strong, full-bodied",
+        "pos": "adjective"
+      },
+      {
+        "term": "bitter",
+        "translation": "bitter",
+        "pos": "adjective"
+      },
+      {
+        "term": "enttäuscht",
+        "translation": "disappointed",
+        "pos": "adjective"
+      },
+      {
+        "term": "vorbereiten",
+        "translation": "to prepare",
+        "pos": "verb",
+        "forms": "bereitet vor, hat vorbereitet"
+      },
+      {
+        "term": "zittern",
+        "translation": "to shake, to tremble",
+        "pos": "verb"
+      },
+      {
+        "term": "der Milchschaum",
+        "translation": "milk foam",
+        "pos": "noun"
+      },
+      {
+        "term": "gelingen",
+        "translation": "to turn out well",
+        "pos": "verb",
+        "forms": "gelingt, gelang, ist gelungen"
+      },
+      {
+        "term": "das Getränk",
+        "translation": "drink",
+        "pos": "noun",
+        "plural": "die Getränke"
+      },
+      {
+        "term": "die Schicht",
+        "translation": "shift",
+        "pos": "noun",
+        "plural": "die Schichten"
+      },
+      {
+        "term": "die Frau",
+        "translation": "woman",
+        "pos": "noun",
+        "plural": "die Frauen"
+      },
+      {
+        "term": "die Tasse",
+        "translation": "cup",
+        "pos": "noun",
+        "plural": "die Tassen"
+      },
+      {
+        "term": "der Apfelstrudel",
+        "translation": "apple strudel",
+        "pos": "noun"
+      },
+      {
+        "term": "der Teller",
+        "translation": "plate",
+        "pos": "noun",
+        "plural": "die Teller"
+      },
+      {
+        "term": "das Fahrrad",
+        "translation": "bicycle",
+        "pos": "noun",
+        "plural": "die Fahrräder"
+      },
+      {
+        "term": "lehnen",
+        "translation": "to lean",
+        "pos": "verb"
+      },
+      {
+        "term": "die Laterne",
+        "translation": "street lamp",
+        "pos": "noun",
+        "plural": "die Laternen"
+      },
+      {
+        "term": "die Pause",
+        "translation": "break",
+        "pos": "noun",
+        "plural": "die Pausen"
+      },
+      {
+        "term": "mahlen",
+        "translation": "to grind",
+        "pos": "verb",
+        "forms": "mahlt, mahlte, hat gemahlen"
+      },
+      {
+        "term": "servieren",
+        "translation": "to serve",
+        "pos": "verb"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "The passive with werden",
+      "scene": "s3",
+      "explanation": "When the action matters more than who does it, German uses werden + past participle. Perfect for describing a process, like the journey of a coffee bean.",
+      "rule": "werden (conjugated) … Partizip II (at the end)",
+      "table": {
+        "head": [
+          "",
+          "werden",
+          "… Partizip II"
+        ],
+        "rows": [
+          [
+            "ich",
+            "werde",
+            "… gefragt"
+          ],
+          [
+            "du",
+            "wirst",
+            "… gefragt"
+          ],
+          [
+            "er / sie / es",
+            "wird",
+            "… geröstet"
+          ],
+          [
+            "wir",
+            "werden",
+            "… gefragt"
+          ],
+          [
+            "ihr",
+            "werdet",
+            "… gefragt"
+          ],
+          [
+            "sie / Sie",
+            "werden",
+            "… geröstet"
+          ]
+        ]
+      },
+      "examples": [
+        "In der Rösterei werden die Bohnen geröstet.",
+        "Die Kaffeekirschen werden oft von Hand geerntet."
+      ]
+    },
+    {
+      "id": "g2",
+      "name": "Compound nouns",
+      "explanation": "German glues nouns together into one word. The last part decides the article.",
+      "rule": "die Milch + der Schaum = der Milchschaum",
+      "examples": [
+        "der Apfel + der Strudel = der Apfelstrudel"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Words you'll need this week",
+      "instruction": "Match each German word to its English meaning. Write the letter in the box.",
+      "pairs": [
+        {
+          "left": "die Bohne",
+          "right": "bean"
+        },
+        {
+          "left": "wachsen",
+          "right": "to grow"
+        },
+        {
+          "left": "ernten",
+          "right": "to harvest"
+        },
+        {
+          "left": "trocknen",
+          "right": "to dry"
+        },
+        {
+          "left": "rösten",
+          "right": "to roast"
+        },
+        {
+          "left": "der Geschmack",
+          "right": "taste, flavour"
+        },
+        {
+          "left": "der Milchschaum",
+          "right": "milk foam"
+        },
+        {
+          "left": "der Stammgast",
+          "right": "regular customer"
+        }
+      ],
+      "extra": [
+        "to smell",
+        "cup"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "questions",
+      "stage": "warm_up",
+      "title": "Make a guess",
+      "instruction": "Lena has five days before her big test. What could go wrong? Write one idea — in English or in German. You will check your guess at the end.",
+      "items": [
+        {
+          "question": "Meine Idee:",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Lena's first morning",
+      "items": [
+        {
+          "statement": "Lena arbeitet schon seit einem Jahr im Café Lindner.",
+          "answer": false,
+          "correction": "Es ist ihr erster Tag im Café."
+        },
+        {
+          "statement": "Herr Novak trinkt seit vierzig Jahren jeden Morgen einen Cappuccino im Café.",
+          "answer": true
+        },
+        {
+          "statement": "Lena soll am Montag Herrn Novaks Cappuccino machen.",
+          "answer": false,
+          "correction": "Sie soll ihn am Freitag machen."
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "questions",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "The journey of the bean",
+      "items": [
+        {
+          "question": "Wo wächst Kaffee?",
+          "answer": "Vor allem in tropischen Ländern nahe dem Äquator, zum Beispiel in Brasilien, Kolumbien oder Vietnam.",
+          "lines": 2
+        },
+        {
+          "question": "Was machen die Bauern mit den Kaffeekirschen?",
+          "answer": "Sie ernten sie oft von Hand und trocknen sie in der Sonne.",
+          "lines": 2
+        },
+        {
+          "question": "Warum ist Lena überrascht, als sie an den Bohnen riecht?",
+          "answer": "Die grünen Bohnen riechen nicht nach Kaffee, sondern wie Heu.",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s3",
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Frau Berger's notebook",
+      "instruction": "Frau Berger writes down how a bean becomes a cappuccino. Complete her notes with werden + past participle.",
+      "items": [
+        "Zuerst {{werden::werden}} die Kaffeekirschen von Hand {{geerntet::ernten}}.",
+        "Dann {{werden::werden}} sie in der Sonne {{getrocknet::trocknen}}.",
+        "Im Café Lindner {{werden::werden}} die Bohnen jeden Mittwoch {{geröstet::rösten}}.",
+        "Danach {{wird::werden}} der Kaffee frisch {{gemahlen::mahlen}}.",
+        "Zum Schluss {{wird::werden}} der Cappuccino mit Milchschaum {{serviert::servieren}}."
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s3",
+      "hint": "word_bank",
+      "title": "Thursday: a second chance",
+      "instruction": "What happens on Thursday? Fill the gaps with words from the box. Three words are left over.",
+      "text": "Am Donnerstag probiert Frau Berger Lenas Kaffee. „Viel zu {{bitter}}!“, sagt sie. „Die Bohnen waren zu lange in der Maschine. Morgen machst du eine helle {{Röstung}}. Die schmeckt {{fruchtig}} und nicht so stark – so mag es unser {{Stammgast}}.“ Lena schreibt alles in ihr Heft. Am Abend übt sie den {{Milchschaum}}: einmal, zweimal, zehnmal. Der {{Geschmack}} ist jetzt das Wichtigste für sie.",
+      "distractors": [
+        "trocknen",
+        "Laterne",
+        "Äquator"
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s4",
+      "title": "The test",
+      "items": [
+        {
+          "question": "Wie reagiert Herr Novak auf Lenas Cappuccino?",
+          "options": [
+            "Er schickt ihn zurück.",
+            "Er trinkt, schweigt und lächelt dann.",
+            "Er bestellt lieber einen Espresso."
+          ],
+          "answer": "Er trinkt, schweigt und lächelt dann."
+        },
+        {
+          "question": "Welche Form hat der Milchschaum?",
+          "options": [
+            "ein Herz",
+            "ein Blatt",
+            "eine Tasse"
+          ],
+          "answer": "ein Blatt"
+        },
+        {
+          "question": "Was ist Kaffee für Herrn Novak?",
+          "options": [
+            "nur ein Getränk",
+            "etwas, das Menschen zusammenbringt",
+            "zu teuer"
+          ],
+          "answer": "etwas, das Menschen zusammenbringt"
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "word_building",
+      "stage": "form",
+      "scene": "s4",
+      "grammar": "g2",
+      "title": "Words made of words",
+      "instruction": "Put the parts together and write the new word with its article. The last part decides the article.",
+      "items": [
+        {
+          "parts": [
+            "der Kaffee",
+            "die Kirsche"
+          ],
+          "answer": "die Kaffeekirsche"
+        },
+        {
+          "parts": [
+            "die Milch",
+            "der Schaum"
+          ],
+          "answer": "der Milchschaum"
+        },
+        {
+          "parts": [
+            "der Stamm",
+            "der Gast"
+          ],
+          "answer": "der Stammgast"
+        },
+        {
+          "parts": [
+            "der Apfel",
+            "der Strudel"
+          ],
+          "answer": "der Apfelstrudel"
+        },
+        {
+          "parts": [
+            "fahren",
+            "das Rad"
+          ],
+          "answer": "das Fahrrad"
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Lena's break",
+      "instruction": "This is Lena after her shift. Write the German word for each number — with der, die or das.",
+      "bank": true
+    },
+    {
+      "id": "t10",
+      "kind": "questions",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Where is everything?",
+      "instruction": "Look at the picture and answer with vor, neben, auf or an.",
+      "items": [
+        {
+          "question": "Wo steht die Tasse?",
+          "answer": "Die Tasse steht vor Lena auf dem Tisch.",
+          "lines": 1
+        },
+        {
+          "question": "Wo liegt der Apfelstrudel?",
+          "answer": "Er liegt auf einem Teller neben der Tasse.",
+          "lines": 1
+        },
+        {
+          "question": "Wo steht das Fahrrad?",
+          "answer": "Es lehnt draußen an einer Laterne.",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "kind": "order_events",
+      "stage": "gist",
+      "title": "Lena's week in order",
+      "events": [
+        "Frau Berger gibt Lena eine Schürze.",
+        "Lena riecht an den grünen Bohnen.",
+        "Die Bohnen werden fast schwarz.",
+        "Herr Novak lächelt.",
+        "Lena macht eine Pause am Fenster."
+      ]
+    },
+    {
+      "id": "t12",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Friday night: Lena texts her mum",
+      "instruction": "Lena writes to her mum in Manchester about her week. Write her message in German.",
+      "prompt": "What happened on Monday, Tuesday and Wednesday? How did the test go on Friday? How does Lena feel now?",
+      "starter": "Liebe Mama, was für eine Woche! Am Montag …",
+      "must_use": [
+        "die Bohne",
+        "ernten",
+        "die Röstung",
+        "bitter",
+        "der Geschmack",
+        "der Milchschaum",
+        "der Stammgast"
+      ],
+      "min_words": 60,
+      "max_words": 90,
+      "lines": 10,
+      "model_answer": "Liebe Mama, was für eine Woche! Am Montag war ich sehr nervös, denn Herr Novak, unser ältester Stammgast, saß schon am Fenster. Am Dienstag habe ich gelernt, dass die Bauern die Kaffeekirschen oft von Hand ernten. Die grünen Bohnen riechen wie Heu! Am Mittwoch war meine Röstung viel zu dunkel und der Kaffee war furchtbar bitter. Aber am Freitag hat alles geklappt: Der Milchschaum hatte die Form eines Blattes, und Herr Novak hat gelächelt. Jetzt weiß ich: Der Geschmack kommt von der Röstung. Liebe Grüße, Lena"
+    },
+    {
+      "id": "t13",
+      "kind": "questions",
+      "stage": "production",
+      "title": "And you?",
+      "instruction": "Answer in German. Then look back at your guess from the start: were you right?",
+      "items": [
+        {
+          "question": "Wann ist Kaffee (oder Tee) für dich eine kleine Pause vom Alltag? Schreib 2–3 Sätze.",
+          "lines": 4
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "kind": "media_search",
+      "stage": "epilogue",
+      "title": "Frau Berger's homework",
+      "instruction": "Find a short German video about roasting coffee. There is deliberately no link — searching in German is part of the task.",
+      "media": "video",
+      "queries": [
+        "Kaffee rösten",
+        "Kaffeerösterei Wien",
+        "Kaffee ernten von Hand"
+      ],
+      "questions": [
+        "Notiere drei neue Wörter mit Artikel.",
+        "Was erklärt das Video, das Frau Berger Lena nicht erzählt hat?"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-"""The landing page's data-count numbers must match the exercise graph."""
+"""The landing page's data-count numbers must match the code."""
 
 from __future__ import annotations
 
@@ -34,6 +34,8 @@ def test_index_html_has_all_count_markers():
     assert keys == set(script.compute_stats().keys())
 
 
-def test_all_bundled_examples_are_counted():
+def test_every_bundled_example_is_valid_and_counted():
     script = _load_script()
-    assert script.compute_stats()["examples"] == 3
+    examples = list((REPO_ROOT / "examples").glob("*.json"))
+    assert examples
+    assert script.compute_stats()["examples"] == len(examples)

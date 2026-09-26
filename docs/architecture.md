@@ -1,126 +1,178 @@
-# langwich — Architecture Documentation
+# langwich 3 — Architecture
 
-## Overview
-
-langwich is a modular Python system that generates language learning worksheets as PDFs. It is designed around three independent subsystems connected by a per-domain SQLite database:
-
-1. **Mining Pipeline** — discovers and extracts vocabulary from open-access sources
-2. **Learning Paths** — defines configurable exercise sequences
-3. **Worksheet Generator** — assembles exercises and renders styled PDFs
-
----
-
-## Design Principles
-
-- **Domain isolation**: Each domain+language combination gets its own SQLite file, keeping databases small, portable, and version-control-friendly.
-- **Rule-first classification**: CEFR levels are assigned via frequency lists before falling back to LLM inference, minimising cost and latency.
-- **Open-access bias**: The mining pipeline prioritises openly licensed scientific and educational content.
-- **E-paper optimised**: The PDF renderer uses high-contrast, minimal-colour design suitable for e-ink displays.
-- **Extensibility**: New sources, exercises, and learning paths can be added without modifying core code.
-
----
-
-## Module Architecture
-
-### Database Layer (`langwich.db`)
-
-The database layer uses SQLAlchemy ORM with per-domain SQLite files.
-
-**Key entities:**
-- `DomainMeta` — one record per database, storing domain name, language pair, and timestamps
-- `VocabularyEntry` — individual terms with CEFR level, POS tag, frequency score, and translations
-- `PhraseEntry` — example sentences linked to vocabulary entries via a many-to-many association
-- `DomainDatabase` — manager class that handles DB lifecycle, CRUD, and querying
-
-**Schema relationships:**
-- DomainMeta 1:N VocabularyEntry
-- DomainMeta 1:N PhraseEntry
-- VocabularyEntry M:N PhraseEntry (via `vocab_phrase_link`)
-
-### Mining Pipeline (`langwich.mining`)
-
-The pipeline runs in seven stages:
-
-| Stage | Module | Description |
-|-------|--------|-------------|
-| 1. Source Discovery | `sources/*.py` | Query Wikipedia, arXiv, OpenAlex, YouTube for domain-relevant documents |
-| 2. Text Extraction | `sources/*.py` | Fetch full text via source APIs, strip markup |
-| 3. NLP Processing | `nlp/tokenizer.py` | SpaCy tokenisation, lemmatisation, POS tagging |
-| 4. Vocab Extraction | `pipeline.py` | Collect unique lemmas, calculate frequency scores |
-| 4b. Phrase Extraction | `nlp/phrase_extractor.py` | Select well-formed example sentences |
-| 5. CEFR Classification | `nlp/cefr_classifier.py` | Rule-based lookup, then LLM fallback via scads.ai |
-| 6. Domain Tagging | `domain_tagger.py` | Score and filter by domain relevance |
-| 7. DB Storage | `pipeline.py` → `db/` | Upsert terms and phrases to SQLite |
-
-**CEFR Classification Strategy:**
-1. Look up lemma in bundled frequency lists (Oxford 5000, English Profile, Kelly list)
-2. If found → assign level with method `FREQUENCY_LIST`
-3. If not found → call scads.ai with a structured classification prompt
-4. If LLM response is valid JSON → assign level with method `LLM_FALLBACK`
-5. If all else fails → assign `UNKNOWN` for manual review
-
-### Learning Paths (`langwich.paths`)
-
-Paths are ordered lists of `PathStep` objects. Each step specifies an exercise type and optional configuration. A vocabulary page is always ensured as the first step.
-
-**Built-in paths:**
-- Vocabulary Focus — term-heavy (matching, synonyms, fill-blanks, translation)
-- Reading First — comprehension-led (passage, then vocabulary consolidation)
-- Balanced — mix of receptive and productive exercises
-- Production — emphasises creative writing and summaries
-- Multimedia — incorporates YouTube video tasks
-
-Paths support serialisation to/from JSON for user customisation and curriculum design.
-
-### Exercises (`langwich.exercises`)
-
-Each exercise is a class that implements two methods:
-- `generate(vocabulary, phrases, level)` → `ExerciseContent` (data model)
-- `render(content)` → `list[Flowable]` (ReportLab PDF elements)
-
-**Exercise types:**
-- VocabMatching — match terms to translations
-- FillBlanks — complete sentences with missing words
-- Synonyms — identify words with similar meanings
-- Translation — translate sentences between languages
-- ReadingComprehension — read a passage and answer questions
-- CreativeWriting — open-ended writing prompts
-- TextSummary — summarise a passage
-- YouTubeTask — video comprehension with QR code/URL
-- DrawingTask — sketch/diagram response area
-
-### Rendering (`langwich.rendering`)
-
-The PDF engine uses ReportLab with a Cupertino-style design system:
-- `styles.py` — typography (Helvetica family), colour palette, spacing scale
-- `components.py` — reusable elements (info boxes, writing lines, drawing areas)
-- `pdf_renderer.py` — assembles the full document with headers, footers, and page numbers
-
-### Generator (`langwich.generator`)
-
-`WorksheetGenerator` is the top-level orchestrator:
-1. Loads vocabulary and phrases from the domain database
-2. Iterates through the learning path steps
-3. Instantiates the appropriate exercise class for each step
-4. Generates content and renders flowables
-5. Passes all flowables to `PDFRenderer` for final PDF assembly
-
----
-
-## Configuration
-
-All settings are managed via Pydantic Settings with `.env` file support:
-- `ScadsConfig` — LLM API endpoint, model, temperature
-- `MiningConfig` — rate limits, timeouts, max sources
-- `PDFConfig` — page dimensions, margins, output directory
-- `AppConfig` — aggregates all sub-configs
-
----
-
-## Data Flow Summary
+langwich turns a short **story** into a printable worksheet for e-paper and
+black-and-white print. The story, the facts woven into it and every task item
+are written by an LLM — Claude, ChatGPT, Gemini or a model running locally.
+Python never invents learner-facing content: it **checks**, **orders**,
+**lays out** and **renders**.
 
 ```
-Open Sources → Mining Pipeline → SQLite DB → Worksheet Generator → PDF
+                ┌───────────────────┐
+ learner's  ──▶ │ langwich prompt   │ ──▶ authoring prompt ──▶ any LLM (optionally
+ wishes         └───────────────────┘                        with an attached photo)
+                                                                   │
+                                                                   ▼
+                ┌───────────────────┐   issues  ┌──────────────────────────┐
+                │ langwich validate │ ◀──────── │ worksheet.json (langwich/3)│
+                └───────────────────┘ ────────▶ └──────────────────────────┘
+                  repair prompt (--prompt)                 │
+                                                           ▼
+          plan.py (lesson arc, seeded shuffles) ──▶ render/ (HTML + print CSS) ──▶ WeasyPrint ──▶ PDF
 ```
 
-The mining pipeline and worksheet generation are decoupled by the database. You can mine vocabulary once and generate many different worksheets from the same database using different paths and levels.
+## Principles
+
+1. **The LLM writes, Python arranges.** No heuristic text slicing. If a task
+   needs an item, the JSON contains it — with its answer.
+2. **A story, not an essay.** Scenes with a protagonist, a goal, a complication
+   and a resolution. True facts travel inside the story and in "Did you know?"
+   sidebars.
+3. **A lesson arc.** Before you read → scene by scene (gist → detail → form →
+   practice → picture) → your turn (production) → take it further.
+4. **Deterministic.** The same JSON (and seed) always renders the same sheet;
+   the task page and the answer key share every shuffle.
+5. **E-paper first.** Monochrome, high contrast, bundled open-licence fonts,
+   writing space sized for handwriting, an A4 and an e-paper page size.
+6. **Any LLM.** `langwich prompt` prints a self-contained authoring prompt;
+   `langwich validate --prompt` prints a repair prompt. Nothing depends on a
+   particular vendor, so a local model works.
+
+## The contract (`langwich/3`)
+
+Defined once in [`src/langwich/model.py`](../src/langwich/model.py) (pydantic);
+`langwich schema` prints it as JSON Schema. Top level:
+
+| Field | Language | Purpose |
+|---|---|---|
+| `schema` | — | always `"langwich/3"` |
+| `title`, `standfirst` | target / source | cover |
+| `source_lang`, `target_lang`, `cefr_level`, `topic`, `frame` | — | metadata |
+| `series` | mixed | episode number, "previously", teaser, review words |
+| `story` | | `logline` (source), `setting`, `characters[]`, `scenes[]` |
+| `story.scenes[]` | target | `id`, `heading`, `beat`, `text`, `translation` (source), `picture` |
+| `picture` | | `image` (path/URL) **or** `svg` (LLM line art), `labels[{n, term, x, y}]`, `prompt` (never printed) |
+| `facts[]` | target | true, checkable facts shown as sidebars next to a scene |
+| `vocabulary` | | `target[]` (6–15 key words) + `items[]` (term, translation, pos, plural, forms) |
+| `grammar[]` | source + target | explanation, rule, table, examples; shown beside the task that practises it |
+| `tasks[]` | source (titles, instructions) + target (items) | one of 13 kinds, each with a `stage` |
+| `ui` | source | furniture strings for languages without built-in labels |
+
+### Task kinds
+
+| kind | learner does | key fields |
+|---|---|---|
+| `match` | match left to right (letters in boxes) | `pairs[{left,right}]`, `extra[]` |
+| `true_false` | tick, correct false ones | `items[{statement, answer, correction}]` |
+| `multiple_choice` | tick one option | `items[{question, options[], answer}]` |
+| `order_events` | number events in story order | `events[]` (correct order) |
+| `questions` | answer in writing | `items[{question, answer, lines}]` |
+| `cloze` | fill gaps | `text` or `items[]` with `{{answer\|alt::hint}}`, `hint`, `distractors[]` |
+| `transform` | rewrite sentences | `items[{prompt, cue, answer}]` |
+| `word_building` | combine parts | `items[{parts[], answer}]` |
+| `label` | name numbered objects in a scene picture | `scene`, `bank` |
+| `writing` | write a text | `prompt`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
+| `dialogue` | fill or write dialogue lines | `lines[{speaker, text \| cue, answer}]`, `bank` |
+| `media_search` | search online in the target language | `media`, `queries[]`, `questions[]` |
+| `draw` | draw and label | `prompt`, `labels[]` |
+
+Stages: `warm_up`, `gist`, `detail`, `form`, `practice`, `picture`,
+`production`, `epilogue`.
+
+### Gap markup
+
+`{{geröstet}}`, alternatives `{{schwarz|ohne Milch}}`, hint `{{geröstet::rösten}}`.
+The first answer goes into the answer key and the word bank. See
+[`markup.py`](../src/langwich/markup.py).
+
+## Modules
+
+| Module | Responsibility | Public interface |
+|---|---|---|
+| `model.py` | the contract, loading with friendly errors | `Worksheet`, `load_worksheet(path)`, `worksheet_from_dict(d)`, `ContractError`, `json_schema()` |
+| `markup.py` | gap parsing | `split`, `gaps`, `fill`, `Gap` |
+| `locale.py` | page furniture strings (en, de, fr, es, it, pt) | `t(key, lang, overrides, **fmt)`, `endonym(code)`, `missing_keys` |
+| `plan.py` | lesson arc, glosses, sidebars, seeded shuffles | `plan(ws, seed=None) -> Plan`, `PlannedTask`, `SceneBlock` |
+| `validate.py` | semantic checks beyond the schema | `validate(ws, base_dir) -> Report`, `check_file(path) -> Report`, `Issue`, `Report` |
+| `answers.py` | renderer-neutral answer key | `answer_key(pt, ws) -> list[str]` |
+| `images.py` | load / convert / embed pictures, never crash | `prepare_picture(picture, base_dir, monochrome) -> PreparedPicture \| None` |
+| `render/` | HTML + CSS, fonts, PDF via WeasyPrint | `RenderOptions`, `RenderResult`, `render_worksheet(ws, out_pdf, options)`, `build_html(ws, options)` |
+| `prompt.py` | authoring and repair prompts for any LLM | `PromptOptions`, `build_prompt(opts)`, `repair_prompt(report, json_text)` |
+| `series.py` | context for the next episode | `continuation(prev_ws) -> Continuation` |
+| `profile.py` | remembered defaults (`.langwich/profile.json`) | `load_profile()`, `save_profile()` |
+| `cli.py` | `render`, `validate`, `schema`, `prompt`, `kinds` | `main(argv)` |
+
+## The lesson arc (`plan.py`)
+
+1. **Before you read** — all `warm_up` tasks, in JSON order.
+2. **Scene by scene** — the scene text (with glosses in the side column and
+   fact sidebars), then the tasks anchored to it: a task belongs to the *last*
+   scene it references; tasks without a scene follow the last scene. Within a
+   scene tasks are sorted by stage (`gist`, `detail`, `form`, `practice`,
+   `picture`), then JSON order.
+3. **Your turn** — all `production` tasks.
+4. **Take it further** — all `epilogue` tasks.
+5. **Back matter** — word list, unattached grammar, solutions, translations,
+   the series teaser.
+
+**Glosses** are vocabulary items found in a scene that no task tests (target
+words, match pairs, labels, gap answers and word-building answers are never
+glossed — a gloss there would be the answer).
+
+**Grammar sidebars** sit beside the first task that references the grammar
+point, else beside the first form/practice task of its scene, else beside its
+scene, else in the back matter.
+
+## Validation (`validate.py`)
+
+Errors block rendering; warnings are printed (and fail with `--strict`).
+
+Errors: contract violations; duplicate ids; unknown scene / grammar
+references; target words missing from `vocabulary.items`; same source and
+target language; cloze items without gaps; missing gap hints for
+`base_form`/`translation`; unbalanced `{{ }}`; gap markup inside the story;
+label tasks on a scene without picture labels; duplicate label numbers;
+labels without positions on a visual picture (unless `numbers_in_image`);
+duplicate match partners; duplicate events; dialogues with nothing to do;
+`min_words > max_words`.
+
+Warnings: no production task; no gist/detail task; fewer than 2 or more than 7
+scenes; story length outside the CEFR range; target set size outside 5–15;
+target words used in fewer than two tasks or absent from the story; practice
+items that copy story sentences; no facts; no characters; unused series review
+words; missing `previously` for episode ≥ 2; unknown `ui` keys; missing furniture
+strings for a source language without built-in labels; nouns without article
+in languages that have articles; image files that cannot be found; label tasks
+that fall back to "draw and label" because the picture has no image or svg.
+
+## Rendering (`render/`)
+
+HTML with print CSS, converted by WeasyPrint. Fonts ship in
+`src/langwich/fonts/` (SIL OFL): **Literata** for target-language text,
+**Atkinson Hyperlegible Next** for instructions and furniture.
+
+* A4 (`margin: 18mm 12mm 15mm 20mm`) or e-paper (`157.8 × 210.4 mm`, single
+  column, side notes flow below the text).
+* Running header: target-language title (italic) · `English → Deutsch · B1`;
+  footer: `langwich` · `n / N`.
+* Flowing tasks (`break-inside: avoid`); `--one-task-per-page` restores one task
+  per page for annotation-heavy e-paper use.
+* Scene: heading, paragraphs in a 120 mm column, glosses in a 52 mm side column,
+  glossed words underlined; fact and grammar sidebars in the side column.
+* Tasks: solid numbered square, 13 pt title, 11 pt black instruction, hanging
+  numbers, solid blanks sized to the longest answer (uniform per task), solid
+  9 mm writing lines, framed word box.
+* Pictures: 1 pt frame, full content width, 6 mm solid black numbered markers
+  at the label positions; without image/svg a label task becomes "draw and
+  label". The image prompt is never printed — it is returned to the CLI and
+  written as an HTML comment.
+* Raster images are converted to high-contrast greyscale unless colour is
+  accepted (`--allow-color`); SVG is embedded as is. Unreadable images produce
+  a warning, never a crash.
+* Solutions: appended (default), a separate `<name>-solutions.pdf`, or none.
+
+## Why no heuristic fallback?
+
+langwich 2 cut sentences out of a text and blanked words. The result tested
+memory rather than language, drew the same sentences every time, gave answers
+away and could not tell a story. Writing tasks is exactly what language models
+are good at; checking and typesetting them is what code is good at.
