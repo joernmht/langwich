@@ -1,3 +1,7 @@
-"""langwich – graph-based language learning worksheet generator."""
+"""langwich – story-driven language-learning worksheets for e-paper and print.
 
-__version__ = "0.2.0"
+Any LLM writes the story and the tasks as ``langwich/3`` JSON (see
+:mod:`langwich.model`); langwich validates, arranges and typesets them.
+"""
+
+__version__ = "3.0.0"

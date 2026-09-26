@@ -4,24 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "langwich"
-version = "0.1.0"
-description = "Automated language learning worksheet generator for e-paper and print"
+version = "3.0.0"
+description = "Story-driven language-learning worksheets for e-paper and print — written by any LLM, typeset by langwich"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 authors = [
     {name = "langwich contributors"}
 ]
+keywords = ["language learning", "worksheets", "e-paper", "LLM", "PDF"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Education",
 ]
 dependencies = [
-    "reportlab>=4.1",
     "weasyprint>=61",
+    "pydantic>=2.6",
+    "pillow>=10",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +31,7 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
     "ruff>=0.3",
+    "pymupdf>=1.23",
     "mypy>=1.8",
 ]
 
@@ -38,10 +41,18 @@ langwich = "langwich.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+langwich = ["fonts/*.ttf", "fonts/*.txt", "schema/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
+files = ["src/langwich"]
+ignore_missing_imports = true

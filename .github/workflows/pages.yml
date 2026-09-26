@@ -29,7 +29,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Sync live counts from the exercise graph
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the contract dependencies
+        run: pip install "pydantic>=2.6"
+      - name: Sync live counts from the langwich/3 contract
         run: python3 scripts/update_page_stats.py
       - name: Configure Pages
         uses: actions/configure-pages@v5

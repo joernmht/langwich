@@ -15,6 +15,15 @@ from collections.abc import Mapping
 
 STRINGS: dict[str, dict[str, str]] = {
     "en": {
+        "pos.noun": "Nouns",
+        "pos.verb": "Verbs",
+        "pos.adjective": "Adjectives",
+        "pos.adverb": "Adverbs",
+        "pos.preposition": "Prepositions",
+        "pos.conjunction": "Conjunctions",
+        "pos.pronoun": "Pronouns",
+        "pos.phrase": "Phrases",
+        "pos.other": "Other words",
         "scene": "Scene",
         "translation": "Translation",
         "open_answer": "Answers will vary.",
@@ -77,6 +86,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.draw.instruction": "Draw and label.",
     },
     "de": {
+        "pos.noun": "Nomen",
+        "pos.verb": "Verben",
+        "pos.adjective": "Adjektive",
+        "pos.adverb": "Adverbien",
+        "pos.preposition": "Präpositionen",
+        "pos.conjunction": "Konjunktionen",
+        "pos.pronoun": "Pronomen",
+        "pos.phrase": "Wendungen",
+        "pos.other": "Weitere Wörter",
         "scene": "Szene",
         "translation": "Übersetzung",
         "open_answer": "Individuelle Lösungen.",
@@ -139,6 +157,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.draw.instruction": "Zeichne und beschrifte.",
     },
     "fr": {
+        "pos.noun": "Noms",
+        "pos.verb": "Verbes",
+        "pos.adjective": "Adjectifs",
+        "pos.adverb": "Adverbes",
+        "pos.preposition": "Prépositions",
+        "pos.conjunction": "Conjonctions",
+        "pos.pronoun": "Pronoms",
+        "pos.phrase": "Expressions",
+        "pos.other": "Autres mots",
         "scene": "Scène",
         "translation": "Traduction",
         "open_answer": "Réponses libres.",
@@ -201,6 +228,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.draw.instruction": "Dessine et légende.",
     },
     "es": {
+        "pos.noun": "Sustantivos",
+        "pos.verb": "Verbos",
+        "pos.adjective": "Adjetivos",
+        "pos.adverb": "Adverbios",
+        "pos.preposition": "Preposiciones",
+        "pos.conjunction": "Conjunciones",
+        "pos.pronoun": "Pronombres",
+        "pos.phrase": "Expresiones",
+        "pos.other": "Otras palabras",
         "scene": "Escena",
         "translation": "Traducción",
         "open_answer": "Respuestas libres.",
@@ -263,6 +299,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.draw.instruction": "Dibuja y rotula.",
     },
     "it": {
+        "pos.noun": "Nomi",
+        "pos.verb": "Verbi",
+        "pos.adjective": "Aggettivi",
+        "pos.adverb": "Avverbi",
+        "pos.preposition": "Preposizioni",
+        "pos.conjunction": "Congiunzioni",
+        "pos.pronoun": "Pronomi",
+        "pos.phrase": "Espressioni",
+        "pos.other": "Altre parole",
         "scene": "Scena",
         "translation": "Traduzione",
         "open_answer": "Risposte libere.",
@@ -325,6 +370,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.draw.instruction": "Disegna e scrivi i nomi.",
     },
     "pt": {
+        "pos.noun": "Substantivos",
+        "pos.verb": "Verbos",
+        "pos.adjective": "Adjetivos",
+        "pos.adverb": "Advérbios",
+        "pos.preposition": "Preposições",
+        "pos.conjunction": "Conjunções",
+        "pos.pronoun": "Pronomes",
+        "pos.phrase": "Expressões",
+        "pos.other": "Outras palavras",
         "scene": "Cena",
         "translation": "Tradução",
         "open_answer": "Respostas livres.",
@@ -414,7 +468,14 @@ def t(key: str, lang: str, overrides: Mapping[str, str] | None = None, **fmt: ob
         text = STRINGS.get(base_lang(lang), {}).get(key)
     if text is None:
         text = STRINGS["en"][key]
-    return text.format(**fmt) if fmt else text
+    if not fmt:
+        return text
+    try:
+        return text.format(**fmt)
+    except (KeyError, IndexError, ValueError):
+        # an override with stray or unknown {placeholders}: use the built-in text
+        builtin = STRINGS.get(base_lang(lang), {}).get(key) or STRINGS["en"][key]
+        return builtin.format(**fmt)
 
 
 def endonym(code: str) -> str:

@@ -1,0 +1,722 @@
+{
+  "schema": "langwich/3",
+  "title": "Mila à Lyon : Un samedi à la Croix-Rousse",
+  "standfirst": "Mila hat einen freien Samstag in Lyon: Markt, eine geheime Abkürzung und ein Abendessen im Bouchon. Lies mit – und entdecke, was die Lyoner Traboules mit Seide zu tun haben.",
+  "source_lang": "de",
+  "target_lang": "fr",
+  "cefr_level": "A2",
+  "topic": "lyon",
+  "frame": "episode",
+  "series": {
+    "id": "mila-a-lyon",
+    "title": "Mila à Lyon",
+    "episode": 2,
+    "previously": "Mila, une étudiante autrichienne, est arrivée à Lyon pour un semestre Erasmus. Elle a trouvé une chambre chez Karim, un étudiant en cuisine.",
+    "next": "La semaine prochaine : c'est le 8 décembre, et toute la ville s'illumine. Mila découvre la Fête des Lumières …",
+    "review": [
+      "le colocataire",
+      "habiter"
+    ]
+  },
+  "story": {
+    "logline": "Mila, Erasmus-Studentin aus Graz, will an einem Samstag ganz allein ihr neues Viertel erkunden – aber ihr Mitbewohner Karim kennt angeblich eine Abkürzung.",
+    "setting": "Lyon, Stadtteil Croix-Rousse, ein Samstag im November",
+    "characters": [
+      {
+        "id": "mila",
+        "name": "Mila",
+        "role": "22, aus Graz, Erasmus-Semester in Lyon"
+      },
+      {
+        "id": "karim",
+        "name": "Karim",
+        "role": "ihr Mitbewohner, studiert Kochen"
+      },
+      {
+        "id": "roux",
+        "name": "Madame Roux",
+        "role": "hat einen Marktstand an der Croix-Rousse"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Samedi matin au marché",
+        "beat": "setup",
+        "text": "C'est samedi matin. Mila habite à Lyon depuis un mois. Aujourd'hui, elle va au marché de la Croix-Rousse avec son colocataire Karim. Il y a beaucoup de monde, et ça sent bon le pain chaud.\n\nMila s'arrête devant le stand de Madame Roux. Sous un grand parasol, il y a des tomates, des fraises et un gros fromage. « Un kilo de tomates, s'il vous plaît », dit Mila. Madame Roux pose les tomates sur la balance. « Deux euros cinquante. Et avec ça ? » Mila montre le fromage : « Un morceau de saint-marcellin, aussi ! » Elle met tout dans son panier.",
+        "translation": "Es ist Samstagmorgen. Mila wohnt seit einem Monat in Lyon. Heute geht sie mit ihrem Mitbewohner Karim auf den Markt der Croix-Rousse. Es ist viel los, und es riecht gut nach warmem Brot.\n\nMila bleibt vor dem Stand von Madame Roux stehen. Unter einem großen Sonnenschirm liegen Tomaten, Erdbeeren und ein großer Käse. „Ein Kilo Tomaten, bitte“, sagt Mila. Madame Roux legt die Tomaten auf die Waage. „Zwei Euro fünfzig. Sonst noch etwas?“ Mila zeigt auf den Käse: „Ein Stück Saint-Marcellin, auch!“ Sie packt alles in ihren Korb.",
+        "picture": {
+          "svg": "<svg viewBox=\"0 0 160 100\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <!-- ground -->\n  <line x1=\"0\" y1=\"92\" x2=\"160\" y2=\"92\" stroke-width=\".5\"/>\n  <!-- parasol: pole behind everything, canopy with ribs and scallops -->\n  <line x1=\"80\" y1=\"14\" x2=\"80\" y2=\"56\" stroke-width=\".9\"/>\n  <path d=\"M20,32 Q80,-4 140,32 Z\" stroke-width=\".7\" fill=\"#fff\"/>\n  <path d=\"M80,14 L35,32 M80,14 L50,32 M80,14 L65,32 M80,14 L95,32 M80,14 L110,32 M80,14 L125,32\" stroke-width=\".35\"/>\n  <path d=\"M20,32 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0 q7.5,5 15,0\" stroke-width=\".6\" fill=\"#fff\"/>\n  <circle cx=\"80\" cy=\"13\" r=\"1.2\" fill=\"#000\" stroke-width=\".3\"/>\n  <!-- table with cloth -->\n  <path d=\"M26,61 L26,90 M134,61 L134,90\" stroke-width=\".7\"/>\n  <rect x=\"22\" y=\"56\" width=\"116\" height=\"5\" stroke-width=\".7\" fill=\"#fff\"/>\n  <path d=\"M24,61 L136,61 L134.5,80 L25.5,80 Z\" stroke-width=\".6\" fill=\"#fff\"/>\n  <path d=\"M45,61 L44.5,80 M65,61 L65,80 M95,61 L95,80 M115,61 L115.5,80\" stroke-width=\".3\"/>\n  <!-- crate of tomatoes -->\n  <rect x=\"30\" y=\"47\" width=\"30\" height=\"9\" stroke-width=\".6\" fill=\"#fff\"/>\n  <line x1=\"30\" y1=\"51.5\" x2=\"60\" y2=\"51.5\" stroke-width=\".3\"/>\n  <g stroke-width=\".5\" fill=\"#fff\">\n    <circle cx=\"37.8\" cy=\"39\" r=\"3.3\"/><circle cx=\"44.5\" cy=\"39\" r=\"3.3\"/><circle cx=\"51.2\" cy=\"39\" r=\"3.3\"/>\n    <circle cx=\"34.5\" cy=\"44\" r=\"3.3\"/><circle cx=\"41.2\" cy=\"44\" r=\"3.3\"/><circle cx=\"47.9\" cy=\"44\" r=\"3.3\"/><circle cx=\"54.6\" cy=\"44\" r=\"3.3\"/>\n  </g>\n  <path d=\"M37.8,35.7 l0,-1 M44.5,35.7 l0,-1 M51.2,35.7 l0,-1 M34.5,40.7 l.6,-.9 M41.2,40.7 l.6,-.9 M47.9,40.7 l.6,-.9 M54.6,40.7 l.6,-.9\" stroke-width=\".4\"/>\n  <!-- scale -->\n  <path d=\"M70,56 L90,56 L87,50 L73,50 Z\" stroke-width=\".6\" fill=\"#fff\"/>\n  <line x1=\"80\" y1=\"40.5\" x2=\"80\" y2=\"39\" stroke-width=\".6\"/>\n  <ellipse cx=\"80\" cy=\"38.6\" rx=\"9\" ry=\"1.6\" stroke-width=\".6\" fill=\"#fff\"/>\n  <circle cx=\"80\" cy=\"45.3\" r=\"4.6\" stroke-width=\".6\" fill=\"#fff\"/>\n  <path d=\"M80,45.3 L82.6,42.4\" stroke-width=\".5\"/>\n  <path d=\"M76.3,42.6 l.7,.5 M80,41.3 l0,.8 M83.7,42.6 l-.7,.5\" stroke-width=\".3\"/>\n  <!-- cheese wheel with a cut -->\n  <path d=\"M99,48 L99,54 A13,3.2 0 0 0 125,54 L125,48\" stroke-width=\".6\" fill=\"#fff\"/>\n  <ellipse cx=\"112\" cy=\"48\" rx=\"13\" ry=\"3.2\" stroke-width=\".6\" fill=\"#fff\"/>\n  <path d=\"M112,48 L122.4,49.9 L122.4,55.9\" stroke-width=\".45\"/>\n  <circle cx=\"106\" cy=\"52.5\" r=\".7\" stroke-width=\".3\"/><circle cx=\"116\" cy=\"53.4\" r=\".6\" stroke-width=\".3\"/>\n  <!-- basket with a baguette -->\n  <path d=\"M137.5,79 L141.5,66\" stroke-width=\"2.6\"/>\n  <path d=\"M137.5,79 L141.5,66\" stroke-width=\"1.5\" stroke=\"#fff\"/>\n  <path d=\"M138.9,74.5 l1.2,-.4 M139.9,71.2 l1.2,-.4 M140.9,68 l1.2,-.4\" stroke-width=\".3\"/>\n  <path d=\"M122,80 L146,80 L143,92 L125,92 Z\" stroke-width=\".6\" fill=\"#fff\"/>\n  <path d=\"M124,80 Q134,68 144,80\" stroke-width=\".6\"/>\n  <path d=\"M123,84 L145,84 M124,88 L144,88 M128,80 L128.6,92 M134,80 L134,92 M140,80 L139.4,92\" stroke-width=\".3\"/>\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"127.4\" y1=\"14.2\" x2=\"121.5\" y2=\"22.6\"/>\n    <line x1=\"95.4\" y1=\"42.1\" x2=\"84.9\" y2=\"44.4\"/>\n    <line x1=\"20.8\" y1=\"40.6\" x2=\"31.2\" y2=\"42.8\"/>\n    <line x1=\"128.4\" y1=\"40.8\" x2=\"123.4\" y2=\"46.7\"/>\n    <line x1=\"150.3\" y1=\"73.8\" x2=\"145.2\" y2=\"79.4\"/>\n  </g>\n</svg>",
+          "caption": "Le stand de Madame Roux",
+          "credit": "Illustration: langwich",
+          "labels": [
+            {
+              "n": 1,
+              "term": "le parasol",
+              "x": 0.8125,
+              "y": 0.12
+            },
+            {
+              "n": 2,
+              "term": "la balance",
+              "x": 0.6125,
+              "y": 0.41
+            },
+            {
+              "n": 3,
+              "term": "les tomates",
+              "x": 0.1125,
+              "y": 0.4
+            },
+            {
+              "n": 4,
+              "term": "le fromage",
+              "x": 0.8212,
+              "y": 0.39
+            },
+            {
+              "n": 5,
+              "term": "le panier",
+              "x": 0.955,
+              "y": 0.715
+            }
+          ]
+        }
+      },
+      {
+        "id": "s2",
+        "heading": "Perdus dans la traboule",
+        "beat": "complication",
+        "text": "Après le marché, Karim a une idée. « Je connais un raccourci ! » Il ouvre une vieille porte en bois, et ils entrent dans un couloir sombre. C'est une traboule, un passage secret entre deux rues.\n\nIls montent un escalier, tournent à gauche, puis à droite … et soudain, ils ne savent plus où ils sont. « On est perdus », dit Mila en riant. Une vieille dame passe avec son chien. Elle leur montre le chemin vers la rue.",
+        "translation": "Nach dem Markt hat Karim eine Idee. „Ich kenne eine Abkürzung!“ Er öffnet eine alte Holztür, und sie gehen in einen dunklen Gang. Das ist eine Traboule, ein geheimer Durchgang zwischen zwei Straßen.\n\nSie steigen eine Treppe hinauf, biegen links ab, dann rechts … und plötzlich wissen sie nicht mehr, wo sie sind. „Wir haben uns verlaufen“, sagt Mila lachend. Eine alte Dame kommt mit ihrem Hund vorbei. Sie zeigt ihnen den Weg zur Straße.",
+        "picture": {
+          "prompt": "Black-and-white line drawing of a narrow vaulted passage inside an old Lyon building: a heavy wooden door, a spiral staircase, an old lady walking a small dog. Clean outlines, no grey shading.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "la porte"
+            },
+            {
+              "n": 2,
+              "term": "l'escalier"
+            },
+            {
+              "n": 3,
+              "term": "le chien"
+            }
+          ]
+        }
+      },
+      {
+        "id": "s3",
+        "heading": "Le dîner au bouchon",
+        "beat": "resolution",
+        "text": "Le soir, Mila et Karim vont dans un bouchon, un petit restaurant lyonnais. Les nappes sont rouges et blanches, et le serveur parle très vite. Mila commande une salade lyonnaise, Karim prend des quenelles.\n\nÀ la fin du repas, Mila demande l'addition. « Alors, cette journée ? » demande Karim. Mila sourit : « Délicieuse. Et la prochaine fois, c'est moi qui choisis le chemin ! »",
+        "translation": "Am Abend gehen Mila und Karim in ein Bouchon, ein kleines Lyoner Restaurant. Die Tischdecken sind rot-weiß, und der Kellner spricht sehr schnell. Mila bestellt einen Lyoner Salat, Karim nimmt Quenelles.\n\nAm Ende des Essens verlangt Mila die Rechnung. „Na, wie war der Tag?“, fragt Karim. Mila lächelt: „Köstlich. Und nächstes Mal suche ich den Weg aus!“"
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s1",
+      "text": "Le marché de la Croix-Rousse a lieu tous les matins sauf le lundi, sur le boulevard de la Croix-Rousse. C'est l'un des plus grands marchés de Lyon."
+    },
+    {
+      "id": "f2",
+      "scene": "s2",
+      "title": "Les traboules",
+      "text": "Les traboules traversent les immeubles d'une rue à l'autre. Au XIXe siècle, les canuts – les ouvriers de la soie – les utilisaient pour transporter la soie à l'abri de la pluie.",
+      "source": "Office de tourisme de Lyon"
+    },
+    {
+      "id": "f3",
+      "scene": "s3",
+      "text": "Un bouchon est un petit restaurant typique de Lyon. On y mange de la cuisine lyonnaise traditionnelle, par exemple des quenelles ou une salade lyonnaise."
+    },
+    {
+      "id": "f4",
+      "text": "Lyon est la troisième ville de France par sa population, après Paris et Marseille."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "le marché",
+      "la balance",
+      "le fromage",
+      "le panier",
+      "le raccourci",
+      "l'escalier",
+      "le chemin",
+      "commander",
+      "l'addition",
+      "délicieux"
+    ],
+    "items": [
+      {
+        "term": "habiter",
+        "translation": "wohnen",
+        "pos": "verb"
+      },
+      {
+        "term": "le marché",
+        "translation": "der Markt",
+        "pos": "noun",
+        "plural": "les marchés"
+      },
+      {
+        "term": "le colocataire",
+        "translation": "der Mitbewohner",
+        "pos": "noun",
+        "plural": "les colocataires"
+      },
+      {
+        "term": "le stand",
+        "translation": "der Stand",
+        "pos": "noun"
+      },
+      {
+        "term": "le parasol",
+        "translation": "der Sonnenschirm",
+        "pos": "noun"
+      },
+      {
+        "term": "la tomate",
+        "translation": "die Tomate",
+        "pos": "noun",
+        "plural": "les tomates"
+      },
+      {
+        "term": "les tomates",
+        "translation": "die Tomaten",
+        "pos": "noun"
+      },
+      {
+        "term": "la fraise",
+        "translation": "die Erdbeere",
+        "pos": "noun",
+        "plural": "les fraises"
+      },
+      {
+        "term": "le fromage",
+        "translation": "der Käse",
+        "pos": "noun"
+      },
+      {
+        "term": "la balance",
+        "translation": "die Waage",
+        "pos": "noun"
+      },
+      {
+        "term": "le morceau",
+        "translation": "das Stück",
+        "pos": "noun",
+        "plural": "les morceaux"
+      },
+      {
+        "term": "le panier",
+        "translation": "der Korb",
+        "pos": "noun"
+      },
+      {
+        "term": "acheter",
+        "translation": "kaufen",
+        "pos": "verb",
+        "forms": "j'achète, j'ai acheté"
+      },
+      {
+        "term": "le raccourci",
+        "translation": "die Abkürzung",
+        "pos": "noun"
+      },
+      {
+        "term": "la porte",
+        "translation": "die Tür",
+        "pos": "noun"
+      },
+      {
+        "term": "le couloir",
+        "translation": "der Gang, der Flur",
+        "pos": "noun"
+      },
+      {
+        "term": "sombre",
+        "translation": "dunkel",
+        "pos": "adjective"
+      },
+      {
+        "term": "l'escalier",
+        "translation": "die Treppe",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "tourner",
+        "translation": "abbiegen",
+        "pos": "verb"
+      },
+      {
+        "term": "perdu",
+        "translation": "verloren; verlaufen",
+        "pos": "adjective"
+      },
+      {
+        "term": "le chien",
+        "translation": "der Hund",
+        "pos": "noun"
+      },
+      {
+        "term": "le chemin",
+        "translation": "der Weg",
+        "pos": "noun"
+      },
+      {
+        "term": "le serveur",
+        "translation": "der Kellner",
+        "pos": "noun"
+      },
+      {
+        "term": "la nappe",
+        "translation": "die Tischdecke",
+        "pos": "noun"
+      },
+      {
+        "term": "commander",
+        "translation": "bestellen",
+        "pos": "verb"
+      },
+      {
+        "term": "l'addition",
+        "translation": "die Rechnung",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "délicieux",
+        "translation": "köstlich",
+        "pos": "adjective",
+        "forms": "délicieuse"
+      },
+      {
+        "term": "choisir",
+        "translation": "wählen, aussuchen",
+        "pos": "verb",
+        "forms": "je choisis, j'ai choisi"
+      },
+      {
+        "term": "la soie",
+        "translation": "die Seide",
+        "pos": "noun"
+      },
+      {
+        "term": "le tire-bouchon",
+        "translation": "der Korkenzieher",
+        "pos": "noun"
+      },
+      {
+        "term": "le porte-monnaie",
+        "translation": "der Geldbeutel",
+        "pos": "noun"
+      },
+      {
+        "term": "le chou-fleur",
+        "translation": "der Blumenkohl",
+        "pos": "noun"
+      },
+      {
+        "term": "s'il vous plaît",
+        "translation": "bitte",
+        "pos": "phrase"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Passé composé mit avoir und être",
+      "scene": "s2",
+      "explanation": "Das passé composé erzählt, was passiert ist. Die meisten Verben bilden es mit avoir. Verben der Bewegung wie aller, entrer oder passer nehmen être – dann passt sich das Partizip an.",
+      "rule": "avoir / être + participe passé",
+      "table": {
+        "head": [
+          "",
+          "avoir",
+          "être"
+        ],
+        "rows": [
+          [
+            "je",
+            "j'ai acheté",
+            "je suis entré(e)"
+          ],
+          [
+            "tu",
+            "tu as acheté",
+            "tu es entré(e)"
+          ],
+          [
+            "il / elle",
+            "il a acheté",
+            "elle est entrée"
+          ],
+          [
+            "nous",
+            "nous avons acheté",
+            "nous sommes entré(e)s"
+          ],
+          [
+            "ils / elles",
+            "ils ont acheté",
+            "elles sont entrées"
+          ]
+        ]
+      },
+      "examples": [
+        "Le marchand a vendu ses poires.",
+        "Les touristes sont arrivés en retard."
+      ]
+    },
+    {
+      "id": "g2",
+      "name": "Mengen mit de",
+      "explanation": "Nach Mengenangaben steht nur de (vor Vokal d') – ohne Artikel.",
+      "rule": "un kilo / un morceau / une bouteille + de + Nomen",
+      "examples": [
+        "un kilo de tomates",
+        "un morceau de fromage",
+        "une carafe d'eau"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Wörter für den Samstag",
+      "instruction": "Ordne die französischen Wörter den deutschen zu. Zwei deutsche Wörter bleiben übrig.",
+      "pairs": [
+        {
+          "left": "le marché",
+          "right": "der Markt"
+        },
+        {
+          "left": "la balance",
+          "right": "die Waage"
+        },
+        {
+          "left": "le fromage",
+          "right": "der Käse"
+        },
+        {
+          "left": "le panier",
+          "right": "der Korb"
+        },
+        {
+          "left": "le chemin",
+          "right": "der Weg"
+        },
+        {
+          "left": "commander",
+          "right": "bestellen"
+        },
+        {
+          "left": "l'addition",
+          "right": "die Rechnung"
+        }
+      ],
+      "extra": [
+        "die Treppe",
+        "der Kellner"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Mila auf dem Markt",
+      "items": [
+        {
+          "statement": "Mila habite à Lyon depuis un an.",
+          "answer": false,
+          "correction": "Elle habite à Lyon depuis un mois."
+        },
+        {
+          "statement": "Mila va au marché avec Karim.",
+          "answer": true
+        },
+        {
+          "statement": "Mila achète un kilo de fraises.",
+          "answer": false,
+          "correction": "Elle achète un kilo de tomates."
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s1",
+      "title": "Am Stand von Madame Roux",
+      "instruction": "Schreibe zu jeder Nummer das französische Wort – mit le, la, l' oder les.",
+      "bank": true
+    },
+    {
+      "id": "t4",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s1",
+      "hint": "word_bank",
+      "title": "Milas Einkaufszettel",
+      "instruction": "Ergänze den Text mit Wörtern aus dem Kasten. Zwei Wörter bleiben übrig.",
+      "text": "Le samedi, Mila fait ses courses au {{marché}}. Elle aime le stand de Madame Roux, parce que tout est frais.\n\nMadame Roux met les tomates sur la {{balance}} et dit le prix. Mila prend aussi un morceau de {{fromage}}. Enfin, elle range ses courses dans son {{panier}}.",
+      "distractors": [
+        "chemin",
+        "addition"
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "In der Traboule",
+      "items": [
+        {
+          "question": "Qu'est-ce qu'une traboule ?",
+          "options": [
+            "un passage entre deux rues",
+            "un petit restaurant",
+            "une vieille porte"
+          ],
+          "answer": "un passage entre deux rues"
+        },
+        {
+          "question": "Qui aide Mila et Karim ?",
+          "options": [
+            "le serveur",
+            "une vieille dame",
+            "Madame Roux"
+          ],
+          "answer": "une vieille dame"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s2",
+      "title": "Der geheime Gang",
+      "bank": true
+    },
+    {
+      "id": "t7",
+      "kind": "transform",
+      "stage": "form",
+      "scene": "s2",
+      "grammar": "g1",
+      "title": "Was ist passiert?",
+      "instruction": "Karim erzählt am Abend von seinem Tag. Schreibe die Sätze im passé composé.",
+      "items": [
+        {
+          "prompt": "Mila achète des tomates.",
+          "cue": "passé composé",
+          "answer": "Mila a acheté des tomates."
+        },
+        {
+          "prompt": "Karim ouvre la porte.",
+          "cue": "passé composé",
+          "answer": "Karim a ouvert la porte."
+        },
+        {
+          "prompt": "Ils entrent dans la traboule.",
+          "cue": "passé composé",
+          "answer": "Ils sont entrés dans la traboule."
+        },
+        {
+          "prompt": "Une dame passe avec son chien.",
+          "cue": "passé composé",
+          "answer": "Une dame est passée avec son chien."
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s2",
+      "hint": "first_letter",
+      "title": "Wörter aus dem Gang",
+      "items": [
+        "Derrière la vieille {{porte}}, il fait très sombre.",
+        "Pour aller en haut, il faut prendre l'{{escalier}}.",
+        "Sans carte, on ne trouve pas le {{chemin}}.",
+        "Karim connaît un {{raccourci}}, mais il ne marche pas !"
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "questions",
+      "stage": "detail",
+      "scene": "s3",
+      "title": "Im Bouchon",
+      "instruction": "Antworte auf Französisch, in ganzen Sätzen.",
+      "items": [
+        {
+          "question": "Qu'est-ce qu'un bouchon ?",
+          "answer": "C'est un petit restaurant lyonnais.",
+          "lines": 1
+        },
+        {
+          "question": "Qu'est-ce que Mila commande ?",
+          "answer": "Elle commande une salade lyonnaise.",
+          "lines": 1
+        },
+        {
+          "question": "Qui choisit le chemin la prochaine fois ?",
+          "answer": "Mila choisit le chemin.",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "kind": "dialogue",
+      "stage": "practice",
+      "scene": "s3",
+      "bank": true,
+      "title": "Bestellen wie Mila",
+      "instruction": "Ergänze die Lücken mit Wörtern aus dem Kasten. Schreibe Milas Antworten selbst.",
+      "lines": [
+        {
+          "speaker": "Le serveur",
+          "text": "Bonsoir ! Vous avez {{choisi}} ?"
+        },
+        {
+          "speaker": "Mila",
+          "text": "Oui. Je voudrais une {{salade}} lyonnaise, s'il vous plaît."
+        },
+        {
+          "speaker": "Le serveur",
+          "text": "Très bien. Et comme boisson ?"
+        },
+        {
+          "speaker": "Mila",
+          "cue": "Bestelle eine Karaffe Wasser.",
+          "answer": "Une carafe d'eau, s'il vous plaît."
+        },
+        {
+          "speaker": "Le serveur",
+          "text": "Et pour monsieur ?"
+        },
+        {
+          "speaker": "Karim",
+          "text": "Les {{quenelles}}, s'il vous plaît."
+        },
+        {
+          "speaker": "Le serveur",
+          "text": "Et alors, c'était {{délicieux}} ?"
+        },
+        {
+          "speaker": "Mila",
+          "cue": "Frag am Ende nach der Rechnung.",
+          "answer": "L'addition, s'il vous plaît !"
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "kind": "order_events",
+      "stage": "gist",
+      "title": "Milas Samstag",
+      "events": [
+        "Mila et Karim vont au marché.",
+        "Madame Roux pèse les tomates.",
+        "Karim ouvre une vieille porte.",
+        "Une dame leur montre le chemin.",
+        "Mila demande l'addition."
+      ]
+    },
+    {
+      "id": "t12",
+      "kind": "word_building",
+      "stage": "form",
+      "scene": "s3",
+      "title": "Zusammengesetzte Wörter",
+      "instruction": "Bilde das zusammengesetzte Nomen mit Artikel. Tipp: Es hat einen Bindestrich.",
+      "items": [
+        {
+          "parts": [
+            "tirer",
+            "le bouchon"
+          ],
+          "answer": "le tire-bouchon"
+        },
+        {
+          "parts": [
+            "porter",
+            "la monnaie"
+          ],
+          "answer": "le porte-monnaie"
+        },
+        {
+          "parts": [
+            "le chou",
+            "la fleur"
+          ],
+          "answer": "le chou-fleur"
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Eine Postkarte an Oma",
+      "instruction": "Mila schreibt ihrer Oma in Graz eine Postkarte – auf Französisch, denn die Oma lernt auch.",
+      "prompt": "Was hat Mila auf dem Markt gekauft? Wo haben sich die beiden verlaufen? Wie war das Essen?",
+      "starter": "Chère Mamie, samedi, je suis allée …",
+      "must_use": [
+        "le marché",
+        "acheter",
+        "le chemin",
+        "délicieux"
+      ],
+      "min_words": 40,
+      "max_words": 60,
+      "model_answer": "Chère Mamie, samedi, je suis allée au marché de la Croix-Rousse avec Karim. J'ai acheté des tomates et du fromage. Après, Karim a pris un raccourci et nous nous sommes perdus dans une traboule ! Une vieille dame nous a montré le chemin. Le soir, nous avons mangé dans un bouchon. C'était délicieux ! Bisous, Mila"
+    },
+    {
+      "id": "t14",
+      "kind": "media_search",
+      "stage": "epilogue",
+      "title": "Lyon im Video",
+      "instruction": "Suche ein kurzes französisches Video über Lyon. Es gibt absichtlich keinen Link – das Suchen gehört zur Aufgabe.",
+      "media": "video",
+      "queries": [
+        "traboules Lyon",
+        "bouchon lyonnais",
+        "marché de la Croix-Rousse"
+      ],
+      "questions": [
+        "Note trois mots nouveaux avec leur article.",
+        "Qu'est-ce qu'on mange dans un bouchon ?"
+      ]
+    },
+    {
+      "id": "t15",
+      "kind": "draw",
+      "stage": "epilogue",
+      "title": "Milas Weg",
+      "prompt": "Zeichne einen Plan von Milas Samstag: Wo ist der Markt, wo die Traboule, wo das Bouchon? Beschrifte deinen Plan.",
+      "labels": [
+        "le marché",
+        "la traboule",
+        "le bouchon",
+        "la rue"
+      ]
+    }
+  ]
+}

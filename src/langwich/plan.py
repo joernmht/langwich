@@ -46,14 +46,42 @@ Phase = Literal["before", "story", "your_turn", "further"]
 
 _STAGE_RANK = {s: i for i, s in enumerate(STAGES)}
 
-_ARTICLES = (
-    "der ", "die ", "das ", "den ", "dem ", "des ", "ein ", "eine ",
-    "le ", "la ", "les ", "l'", "l’", "un ", "une ", "des ",
-    "el ", "los ", "las ", "una ", "unos ", "unas ",
-    "il ", "lo ", "gli ", "i ", "uno ",
-    "o ", "a ", "os ", "as ", "um ", "uma ",
-    "the ", "an ", "de ", "het ", "een ",
-    "to ",
+#: Articles (and the English infinitive marker) stripped before matching a
+#: vocabulary term against running text, per target language.
+ARTICLES: dict[str, tuple[str, ...]] = {
+    "de": ("der ", "die ", "das ", "den ", "dem ", "des ", "ein ", "eine ", "einen "),
+    "fr": ("le/la ", "le ", "la ", "les ", "l'", "l’", "un ", "une ", "des ", "du "),
+    "es": ("el/la ", "el ", "la ", "los ", "las ", "un ", "una ", "unos ", "unas "),
+    "it": ("il ", "lo ", "la ", "l'", "l’", "i ", "gli ", "le ", "un ", "uno ", "una ", "un'"),
+    "pt": ("o ", "a ", "os ", "as ", "um ", "uma ", "uns ", "umas "),
+    "en": ("the ", "a ", "an ", "to "),
+    "nl": ("de ", "het ", "een "),
+}
+# Without a known language only unambiguous articles are stripped ('de',
+# 'a', 'o', 'i' are also prepositions or words in other languages).
+_SAFE_ARTICLES: tuple[str, ...] = tuple(dict.fromkeys(
+    a for arts in ARTICLES.values() for a in arts if a not in ("de ", "a ", "o ", "i ", "as ")
+))
+
+_REFLEXIVE_PREFIXES = ("s'", "s’", "se ", "sich ")
+
+#: Infinitive endings stripped to get a verb stem that also finds
+#: conjugated forms ('trocknen' -> 'trockn' finds 'trocknet').
+_VERB_ENDINGS: dict[str, tuple[str, ...]] = {
+    "de": ("en", "n"),
+    "fr": ("oir", "er", "ir", "re"),
+    "es": ("arse", "erse", "irse", "ar", "er", "ir"),
+    "pt": ("ar", "er", "ir"),
+    "it": ("are", "ere", "ire", "rre"),
+}
+
+_PRONOUNS_AND_AUXILIARIES = re.compile(
+    r"^(?:(?:ich|du|er|sie|es|wir|ihr|je|j'|j’|tu|il|elle|on|nous|vous|ils|elles|"
+    r"yo|tú|él|ella|usted|nosotros|vosotros|ellos|ellas|io|lui|lei|noi|voi|loro|"
+    r"eu|ele|ela|nós|eles|elas)\s+)?"
+    r"(?:(?:ist|hat|sind|haben|bin|habe|a|ai|as|ont|est|sont|suis|avons|avez|"
+    r"ha|he|has|han|hemos|habéis|è|sono|ho|hanno|abbiamo|tem|têm|foi)\s+)?",
+    re.IGNORECASE,
 )
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -157,87 +185,137 @@ def _shuffle_not_identity(values: list, rng: random.Random) -> list:
     return out
 
 
-def strip_article(term: str) -> str:
+def strip_article(term: str, lang: str | None = None) -> str:
+    """The term without a leading article (language-aware when ``lang`` is given)."""
     low = term.lower()
-    for art in _ARTICLES:
+    articles = ARTICLES.get((lang or "").split("-")[0].lower(), _SAFE_ARTICLES)
+    for art in articles:
         if low.startswith(art) and len(term) > len(art):
             return term[len(art):].strip()
     return term.strip()
 
 
-def _norm(s: str) -> str:
-    return strip_article(s).casefold()
+def _norm(s: str, lang: str | None = None) -> str:
+    return strip_article(s, lang).casefold()
 
 
-def term_pattern(item: VocabItem) -> re.Pattern[str]:
-    """Regex that finds an occurrence of a vocabulary item in running text."""
-    alts: list[str] = []
-    stem = strip_article(item.term)
-    # The base form may be inflected in the text ('trocknen' -> 'trocknet'),
-    # so long stems match by prefix; plurals and listed forms are already
-    # surface forms and only get a short ending ('Tassen', not 'Tassenhalter').
-    if " " in stem:
-        alts.append(re.escape(stem))
-    elif len(stem) >= 6:
-        alts.append(re.escape(stem[: len(stem) - 2]) + r"\w{0,4}")
-    else:
-        alts.append(re.escape(stem) + r"\w{0,2}")
+_ACCENT_CLASSES = {
+    "e": "[eéèêë]", "a": "[aàâáã]", "i": "[iîïí]", "o": "[oôóõ]", "u": "[uùûúü]",
+}
+
+
+def _flex(stem: str, lang: str) -> str:
+    """Escaped stem; in Romance languages vowels also match their accented
+    variants, because inflection moves accents (complet -> complète)."""
+    if lang not in ("fr", "es", "it", "pt"):
+        return re.escape(stem)
+    return "".join(_ACCENT_CLASSES.get(ch.lower(), re.escape(ch)) for ch in stem)
+
+
+def _stem_alternative(stem: str, pos: str, lang: str) -> list[str]:
+    """Regex alternatives for the base form of a vocabulary item."""
+    if " " in stem or pos not in ("noun", "verb", "adjective"):
+        return [re.escape(stem)]  # phrases and function words: exact
+    if pos == "noun":
+        # nouns gain endings (Tassen, Bohnen, tomates) but never lose letters
+        return [re.escape(stem) + r"\w{0,3}"]
+    if pos == "adjective":
+        base = stem[:-1] if lang in ("fr", "es", "it", "pt") and stem[-1:] in "aeo" else stem
+        return [_flex(base, lang) + r"\w{0,3}"] if len(base) >= 3 else [re.escape(stem)]
+    # verbs
+    for prefix in _REFLEXIVE_PREFIXES:
+        if stem.lower().startswith(prefix):
+            stem = stem[len(prefix):]
+            break
+    endings = _VERB_ENDINGS.get(lang)
+    if endings is None:  # unknown language: a conservative prefix match
+        return [re.escape(stem[:-1]) + r"\w{0,4}"] if len(stem) >= 6 else [re.escape(stem)]
+    base = stem
+    for ending in endings:
+        if stem.lower().endswith(ending) and len(stem) - len(ending) >= 3:
+            base = stem[: len(stem) - len(ending)]
+            break
+    if base == stem:
+        return [re.escape(stem)]
+    alts = [_flex(base, lang) + r"\w{0,5}"]
+    if lang == "de":
+        alts.append("ge" + re.escape(base) + r"\w{0,3}")  # rösten -> geröstet
+    return alts
+
+
+def term_pattern(item: VocabItem, lang: str | None = None) -> re.Pattern[str]:
+    """Regex that finds an occurrence of a vocabulary item in running text.
+
+    Nouns match with short endings, verbs by stem (plus regular German
+    participles), adjectives with agreement endings, everything else
+    exactly. Plurals and listed irregular forms are matched as written.
+    """
+    code = (lang or "").split("-")[0].lower()
+    stem = strip_article(item.term, lang)
+    alts = _stem_alternative(stem, item.pos, code)
     forms: list[str] = []
     if item.plural:
-        forms.append(strip_article(item.plural))
+        forms.append(strip_article(item.plural, lang))
     if item.forms:
         forms.extend(f.strip() for f in re.split(r"[,;/]", item.forms) if f.strip())
     for w in forms:
-        w = re.sub(r"^(ist|hat|a|est|ha|è|é)\s+", "", w)  # 'ist gewachsen' -> 'gewachsen'
-        alts.append(re.escape(w) + (r"\w{0,2}" if " " not in w else ""))
+        w = _PRONOUNS_AND_AUXILIARIES.sub("", w).strip()  # 'il a disparu' -> 'disparu'
+        if not w:
+            continue
+        if " " in w or len(w) < 3:
+            alts.append(re.escape(w))  # 'ri' must not find 'rien'
+        else:
+            alts.append(re.escape(w) + r"\w{0,2}")
     return re.compile(r"(?<!\w)(?:" + "|".join(alts) + r")(?!\w)", re.IGNORECASE)
 
 
 def tested_terms(ws: Worksheet) -> set[str]:
     """Normalised words that some task asks the learner to produce or match.
     These are never glossed next to the story (the gloss would be the answer)."""
-    out: set[str] = {_norm(t) for t in ws.vocabulary.target}
+    lang = ws.target_lang
+    out: set[str] = {_norm(t, lang) for t in ws.vocabulary.target}
     for task in ws.tasks:
         if isinstance(task, MatchTask):
-            out.update(_norm(p.left) for p in task.pairs)
-            out.update(_norm(p.right) for p in task.pairs)
+            out.update(_norm(p.left, lang) for p in task.pairs)
+            out.update(_norm(p.right, lang) for p in task.pairs)
         elif isinstance(task, LabelTask):
             scene = ws.scene(task.scene)
             if scene and scene.picture:
-                out.update(_norm(lb.term) for lb in scene.picture.labels)
+                out.update(_norm(lb.term, lang) for lb in scene.picture.labels)
         elif isinstance(task, WordBuildingTask):
-            out.update(_norm(i.answer) for i in task.items)
+            out.update(_norm(i.answer, lang) for i in task.items)
         elif isinstance(task, ClozeTask):
             texts = [task.text] if task.text is not None else list(task.items or [])
             for text in texts:
-                out.update(_norm(g.answer) for g in markup.gaps(text))
+                out.update(_norm(g.answer, lang) for g in markup.gaps(text))
         elif isinstance(task, DialogueTask):
             for line in task.lines:
                 if line.text:
-                    out.update(_norm(g.answer) for g in markup.gaps(line.text))
+                    out.update(_norm(g.answer, lang) for g in markup.gaps(line.text))
     return out
 
 
-def _is_tested(item: VocabItem, tested: set[str]) -> bool:
-    stem = _norm(item.term)
+def _is_tested(item: VocabItem, tested: set[str], lang: str) -> bool:
+    stem = _norm(item.term, lang)
     if stem in tested:
         return True
     # an inflected answer ('geröstet', 'beliebte') still counts as the item
-    pat = term_pattern(item)
+    pat = term_pattern(item, lang)
     return any(pat.fullmatch(t) for t in tested)
 
 
 def _glosses(ws: Worksheet, tested: set[str]) -> dict[str, list[Gloss]]:
     per_scene: dict[str, list[Gloss]] = {s.id: [] for s in ws.story.scenes}
     used: set[str] = set()
-    candidates = [v for v in ws.vocabulary.items if not _is_tested(v, tested)]
+    lang = ws.target_lang
+    candidates = [v for v in ws.vocabulary.items if not _is_tested(v, tested, lang)]
     for scene in ws.story.scenes:
         found: list[tuple[int, Gloss]] = []
         for item in candidates:
             key = item.term.casefold()
             if key in used:
                 continue
-            m = term_pattern(item).search(scene.text)
+            m = term_pattern(item, lang).search(scene.text)
             if m:
                 found.append((m.start(), Gloss(item, m.group(0))))
             elif item.scene == scene.id:
@@ -274,10 +352,22 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
         n = len(task.pairs) + len(task.extra)
         pt.right_order = _shuffle_not_identity(list(range(n)), _rng(seed, task.id, "right"))
     elif isinstance(task, MultipleChoiceTask):
-        pt.option_orders = [
-            _shuffle_not_identity(item.options, _rng(seed, task.id, "options", str(i)))
-            for i, item in enumerate(task.items)
-        ]
+        # Shuffle each item's options, but never let the right answer sit in
+        # the same position three times in a row (a pattern learners spot).
+        orders: list[list[str]] = []
+        positions: list[int] = []
+        for i, item in enumerate(task.items):
+            rng = _rng(seed, task.id, "options", str(i))
+            order = _shuffle_not_identity(item.options, rng)
+            for _ in range(12):
+                pos = order.index(item.answer)
+                if len(positions) >= 2 and positions[-1] == positions[-2] == pos:
+                    order = _shuffle_not_identity(item.options, rng)
+                    continue
+                break
+            positions.append(order.index(item.answer))
+            orders.append(order)
+        pt.option_orders = orders
     elif isinstance(task, OrderEventsTask):
         pt.events = _shuffle_not_identity(task.events, _rng(seed, task.id, "events"))
     elif isinstance(task, ClozeTask) and task.hint == "word_bank":

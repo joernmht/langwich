@@ -425,9 +425,10 @@
       "id": "g2",
       "name": "Compound nouns",
       "explanation": "German glues nouns together into one word. The last part decides the article.",
-      "rule": "die Milch + der Schaum = der Milchschaum",
+      "rule": "das Haus + die Tür = die Haustür",
       "examples": [
-        "der Apfel + der Strudel = der Apfelstrudel"
+        "die Stadt + der Plan = der Stadtplan",
+        "der Kaffee + die Maschine = die Kaffeemaschine"
       ]
     }
   ],

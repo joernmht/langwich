@@ -503,12 +503,32 @@ def worksheet_from_dict(data: Any) -> Worksheet:
         raise ContractError(problems) from None
 
 
+def strip_code_fence(raw: str) -> str | None:
+    """The JSON inside a Markdown ```json … ``` fence (LLMs like to add one),
+    or ``None`` when the text is not fenced."""
+    text = raw.strip()
+    if not text.startswith("```"):
+        return None
+    body = text.splitlines()[1:]
+    if body and body[-1].strip().startswith("```"):
+        body = body[:-1]
+    return "\n".join(body)
+
+
 def load_worksheet(path: str | Path) -> Worksheet:
+    """Load and check a worksheet file; every failure is a :class:`ContractError`."""
     path = Path(path)
     try:
         raw = path.read_text(encoding="utf-8-sig")
     except FileNotFoundError:
         raise ContractError([("/", f"file not found: {path}")]) from None
+    except UnicodeDecodeError:
+        raise ContractError([("/", f"{path} is not UTF-8 text")]) from None
+    except OSError as exc:
+        raise ContractError([("/", f"cannot read {path}: {exc.strerror or exc}")]) from None
+    fenced = strip_code_fence(raw)
+    if fenced is not None:
+        raw = fenced
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
