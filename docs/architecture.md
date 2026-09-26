@@ -92,14 +92,14 @@ The first answer goes into the answer key and the word bank. See
 | `markup.py` | gap parsing | `split`, `gaps`, `fill`, `Gap` |
 | `locale.py` | page furniture strings (en, de, fr, es, it, pt) | `t(key, lang, overrides, **fmt)`, `endonym(code)`, `missing_keys` |
 | `plan.py` | lesson arc, glosses, sidebars, seeded shuffles | `plan(ws, seed=None) -> Plan`, `PlannedTask`, `SceneBlock` |
-| `validate.py` | semantic checks beyond the schema | `validate(ws, base_dir) -> Report`, `check_file(path) -> Report`, `Issue`, `Report` |
+| `validate.py` | semantic checks beyond the schema | `validate(ws, base_dir) -> Report`, `check_file(path) -> Report`, `Issue`, `Report`, `CHECKS` (every check code) |
 | `answers.py` | renderer-neutral answer key | `answer_key(pt, ws) -> list[str]` |
-| `images.py` | load / convert / embed pictures, never crash | `prepare_picture(picture, base_dir, monochrome) -> PreparedPicture \| None` |
+| `images.py` | load / convert / embed pictures, never crash | `prepare_picture(picture, base_dir, monochrome, warnings) -> PreparedPicture \| None` |
 | `render/` | HTML + CSS, fonts, PDF via WeasyPrint | `RenderOptions`, `RenderResult`, `render_worksheet(ws, out_pdf, options)`, `build_html(ws, options)` |
-| `prompt.py` | authoring and repair prompts for any LLM | `PromptOptions`, `build_prompt(opts)`, `repair_prompt(report, json_text)` |
-| `series.py` | context for the next episode | `continuation(prev_ws) -> Continuation` |
+| `prompt.py` | authoring and repair prompts for any LLM | `PromptOptions`, `build_prompt(opts)`, `repair_prompt(report, json_text)`, `MINI_EXAMPLE`, `field_reference()` |
+| `series.py` | context for the next episode | `continuation(prev_ws) -> Continuation`, `next_episode_filename(prev_path)` |
 | `profile.py` | remembered defaults (`.langwich/profile.json`) | `load_profile()`, `save_profile()` |
-| `cli.py` | `render`, `validate`, `schema`, `prompt`, `kinds` | `main(argv)` |
+| `cli.py` | `render`, `validate`, `schema`, `prompt`, `kinds` (also `python -m langwich`) | `main(argv)` |
 
 ## The lesson arc (`plan.py`)
 
@@ -124,25 +124,38 @@ scene, else in the back matter.
 
 ## Validation (`validate.py`)
 
-Errors block rendering; warnings are printed (and fail with `--strict`).
+Errors block rendering; warnings are printed (and fail with `--strict`). Every
+issue carries a stable code, a JSON-pointer location and a message written so
+that an LLM can fix it — `langwich validate FILE --prompt` wraps them into a
+repair prompt. The full list lives in `langwich.validate.CHECKS`.
 
-Errors: contract violations; duplicate ids; unknown scene / grammar
-references; target words missing from `vocabulary.items`; same source and
-target language; cloze items without gaps; missing gap hints for
-`base_form`/`translation`; unbalanced `{{ }}`; gap markup inside the story;
-label tasks on a scene without picture labels; duplicate label numbers;
-labels without positions on a visual picture (unless `numbers_in_image`);
-duplicate match partners; duplicate events; dialogues with nothing to do;
-`min_words > max_words`.
+Errors: contract violations (`contract`, `legacy-format`); duplicate ids;
+unknown scene / grammar references; target words missing from
+`vocabulary.items`; same source and target language; cloze items without gaps,
+empty gaps, missing gap hints for `base_form`/`translation`, unbalanced
+`{{ }}`, gap markup inside the story; label tasks on a scene without picture
+labels, duplicate label numbers, labels without positions on a visual picture
+(unless `numbers_in_image`); duplicate match partners; duplicate events;
+dialogues with nothing to do; `min_words > max_words`.
 
 Warnings: no production task; no gist/detail task; fewer than 2 or more than 7
-scenes; story length outside the CEFR range; target set size outside 5–15;
-target words used in fewer than two tasks or absent from the story; practice
-items that copy story sentences; no facts; no characters; unused series review
-words; missing `previously` for episode ≥ 2; unknown `ui` keys; missing furniture
-strings for a source language without built-in labels; nouns without article
-in languages that have articles; image files that cannot be found; label tasks
-that fall back to "draw and label" because the picture has no image or svg.
+scenes; story length outside the CEFR range; target set size outside 5–15,
+duplicate target words; target words used in fewer than two tasks or absent
+from the story; practice items that copy story sentences; cloze distractors
+that are also answers; grammar boxes that show the answers of the task beside
+them; no facts; no characters; unused series review words; missing
+`previously` for episode ≥ 2; unknown `ui` keys; missing furniture strings for
+a source language without built-in labels; nouns without article in languages
+that have articles; image files that cannot be found; label tasks that fall
+back to "draw and label"; dialogue word boxes without gaps; `{{…}}` in fields
+that print braces literally; a file wrapped in a Markdown code fence (the fence
+is stripped).
+
+**Word matching** (`plan.term_pattern`) is language- and part-of-speech-aware:
+nouns match with short endings, verbs by stem (plus regular German
+participles), adjectives with agreement endings (accent-tolerant in French,
+Spanish, Italian and Portuguese), phrases and function words exactly; plurals
+and listed irregular forms are matched as written.
 
 ## Rendering (`render/`)
 
@@ -150,14 +163,18 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
 `src/langwich/fonts/` (SIL OFL): **Literata** for target-language text,
 **Atkinson Hyperlegible Next** for instructions and furniture.
 
-* A4 (`margin: 18mm 12mm 15mm 20mm`) or e-paper (`157.8 × 210.4 mm`, single
-  column, side notes flow below the text).
+* A4 (`margin: 18mm 12mm 15mm 20mm`) or e-paper (`157.8 × 210.4 mm`, margins
+  10/8/10/8 mm, single column, side notes flow as boxed notes below the text).
 * Running header: target-language title (italic) · `English → Deutsch · B1`;
   footer: `langwich` · `n / N`.
-* Flowing tasks (`break-inside: avoid`); `--one-task-per-page` restores one task
-  per page for annotation-heavy e-paper use.
-* Scene: heading, paragraphs in a 120 mm column, glosses in a 52 mm side column,
-  glossed words underlined; fact and grammar sidebars in the side column.
+* Flowing tasks (`break-inside: avoid`); on e-paper long tasks may break between
+  items, except those that need everything in view (match, order events, label,
+  draw, tasks with a word box). `--one-task-per-page` restores one task per page
+  for annotation-heavy e-paper use.
+* Scene: heading, paragraphs in a 120 mm column, glosses in a 52 mm side column
+  beside the paragraph where the word first appears, glossed words underlined;
+  fact and grammar sidebars in the side column — what does not fit beside the
+  text moves into a band below the scene. Nothing is ever clipped.
 * Tasks: solid numbered square, 13 pt title, 11 pt black instruction, hanging
   numbers, solid blanks sized to the longest answer (uniform per task), solid
   9 mm writing lines, framed word box.
@@ -168,7 +185,9 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
 * Raster images are converted to high-contrast greyscale unless colour is
   accepted (`--allow-color`); SVG is embedded as is. Unreadable images produce
   a warning, never a crash.
-* Solutions: appended (default), a separate `<name>-solutions.pdf`, or none.
+* Solutions: appended (default, always on a new page), a separate
+  `<name>-solutions.pdf`, or none. The word list follows the series teaser
+  without a forced page break.
 
 ## Why no heuristic fallback?
 

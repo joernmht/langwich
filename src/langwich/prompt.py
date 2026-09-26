@@ -894,7 +894,8 @@ _GRAMMAR = """\
 "explanation" (1–3 sentences) in S, a compact "rule" ("<<ex_rule>>"), an optional
 small "table" (≤ 6 rows) and 2–3 "examples" from the story. Practise each point in a form task
 (cloze with base_form hints, transform or word_building) whose "grammar" is its id — the grammar
-box is printed beside that task."""
+box is printed beside that task, so its rule, table and examples must never contain that task's
+answers (use other words and sentences in the box)."""
 
 _ARC = """\
 ## 6. The lesson arc
