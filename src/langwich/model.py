@@ -41,11 +41,13 @@ CefrLevel = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
 CEFR_LEVELS: tuple[str, ...] = ("A1", "A2", "B1", "B2", "C1", "C2")
 
 Stage = Literal[
-    "warm_up", "gist", "detail", "form", "practice", "picture", "production", "epilogue",
+    "warm_up", "gist", "detail", "picture", "form", "practice", "production", "epilogue",
 ]
-#: Stages in lesson order. The planner sorts tasks by this rank.
+#: Stages in lesson order. The planner sorts tasks by this rank. Picture
+#: tasks come right after comprehension: they are about the scene just read,
+#: while form and practice items move the story on.
 STAGES: tuple[str, ...] = (
-    "warm_up", "gist", "detail", "form", "practice", "picture", "production", "epilogue",
+    "warm_up", "gist", "detail", "picture", "form", "practice", "production", "epilogue",
 )
 
 Beat = Literal["setup", "development", "complication", "climax", "resolution", "epilogue"]
@@ -370,6 +372,7 @@ class DialogueTask(_TaskBase):
     kind: Literal["dialogue"]
     lines: list[DialogueLine] = Field(min_length=2)
     bank: bool = False
+    distractors: list[str] = Field(default_factory=list, description="Extra word-bank words.")
 
 
 class MediaSearchTask(_TaskBase):

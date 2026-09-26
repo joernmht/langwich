@@ -103,6 +103,11 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "grammar-gives-away": ("warning", "a grammar box beside a task shows one of its answers"),
 }
 
+#: Problems in the user's environment (files, formats) rather than in the
+#: JSON: an LLM cannot fix them, so repair prompts leave them out and the CLI
+#: tells the user instead.
+ENVIRONMENT_CODES: frozenset[str] = frozenset({"image-not-found", "image-unreadable"})
+
 #: Total words across all scenes, per CEFR level.
 STORY_WORDS: dict[str, tuple[int, int]] = {
     "A1": (60, 200),

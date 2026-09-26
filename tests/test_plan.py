@@ -24,8 +24,8 @@ def test_arc_order_follows_stages_not_json_order():
     assert by_scene["s1"] == ["t3"]
     assert by_scene["s3"] == ["t5", "t6"]  # form before practice
     # the whole-story order task (gist, no scene) follows the last scene and
-    # comes before that scene's detail/form/picture tasks
-    assert by_scene["s4"] == ["t11", "t7", "t8", "t9", "t10"]
+    # comes before that scene's detail/picture/form tasks
+    assert by_scene["s4"] == ["t11", "t7", "t9", "t10", "t8"]
     assert [t.task.id for t in p.your_turn] == ["t12", "t13"]
     assert [t.task.id for t in p.further] == ["t14"]
     assert [t.number for t in p.tasks] == list(range(1, 15))

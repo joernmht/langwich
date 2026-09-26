@@ -6,7 +6,7 @@ The order is fixed by pedagogy, not by the order tasks appear in the JSON:
    make a prediction).
 2. **The story, scene by scene** — each scene is followed by the tasks
    anchored to it (the *last* scene a task references), sorted by stage:
-   ``gist`` → ``detail`` → ``form`` → ``practice`` → ``picture``. Tasks
+   ``gist`` → ``detail`` → ``picture`` → ``form`` → ``practice``. Tasks
    without a scene are whole-story tasks and follow the last scene.
 3. **Your turn** — every ``production`` task, always after the story.
 4. **Take it further** — ``epilogue`` tasks (e.g. in-story homework).
@@ -375,7 +375,7 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
         _rng(seed, task.id, "bank").shuffle(words)
         pt.bank = words
     elif isinstance(task, DialogueTask) and task.bank:
-        words = _dedupe([g.answer for g in _gaps_of(task)])
+        words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
         _rng(seed, task.id, "bank").shuffle(words)
         pt.bank = words
     elif isinstance(task, LabelTask) and task.bank:

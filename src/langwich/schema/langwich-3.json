@@ -79,9 +79,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -276,9 +276,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -360,6 +360,14 @@
           "default": false,
           "title": "Bank",
           "type": "boolean"
+        },
+        "distractors": {
+          "description": "Extra word-bank words.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Distractors",
+          "type": "array"
         }
       },
       "required": [
@@ -384,9 +392,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -712,9 +720,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -798,9 +806,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -909,9 +917,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -1034,9 +1042,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -1137,9 +1145,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -1381,9 +1389,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -1696,9 +1704,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -1832,9 +1840,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -2061,9 +2069,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
@@ -2164,9 +2172,9 @@
             "warm_up",
             "gist",
             "detail",
+            "picture",
             "form",
             "practice",
-            "picture",
             "production",
             "epilogue"
           ],
