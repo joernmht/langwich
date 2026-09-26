@@ -67,6 +67,7 @@ class FakePromptOptions:
     from_text: str | None = None
     from_legacy: dict | None = None
     continue_from: Worksheet | None = None
+    series: bool | None = None
     color: bool = False
     compact: bool = False
     notes: str | None = None
@@ -651,3 +652,26 @@ def test_real_repair_prompt(workdir: Path, capsys: pytest.CaptureFixture[str]) -
     path = write_json(workdir, "dup.json", data)
     assert main(["validate", "--prompt", str(path)]) == 1
     assert capsys.readouterr().out.strip()  # the wording belongs to prompt.py
+
+
+def test_prompt_series_and_device_flags(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["prompt", "--frame", "mystery", "--series", "--device", "color",
+                 "--save-profile"]) == 0
+    opts = fake_prompt.items[-1]
+    assert opts.series is True and opts.color is True
+    saved = json.loads((workdir / ".langwich" / "profile.json").read_text(encoding="utf-8"))
+    assert saved["device"] == "color"
+    assert main(["prompt", "--frame", "episode", "--no-series"]) == 0
+    assert fake_prompt.items[-1].series is False
+
+
+def test_prompt_continue_suggests_next_episode_file(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    prev = workdir / "lena_01_en_de.json"
+    prev.write_text((REPO_ROOT / "examples" / "lena_01_en_de.json").read_text(encoding="utf-8"),
+                    encoding="utf-8")
+    assert main(["prompt", "--continue", str(prev)]) == 0
+    assert "lena_02_en_de.json" in capsys.readouterr().err

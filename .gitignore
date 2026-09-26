@@ -132,3 +132,6 @@ data/*.tmp
 *.swp
 *.swo
 *~
+
+# langwich profile and scratch prompts (per user)
+.langwich/

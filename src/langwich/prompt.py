@@ -56,6 +56,9 @@ class PromptOptions:
     from_legacy: dict | None = None
     #: the previous episode of a series
     continue_from: Worksheet | None = None
+    #: start a series (episode 1 with a teaser): True / False; None = only
+    #: when the frame is "episode"
+    series: bool | None = None
     color: bool = False
     compact: bool = False
     notes: str | None = None
@@ -1279,7 +1282,8 @@ def _series_section(b: _Brief, values: Mapping[str, object]) -> str | None:
             "pickup": pickup, "topic_advice": topic_advice,
         }
         return _fill(_SERIES_NEXT, {**values, **extra})
-    if b.frame == "episode":
+    start_series = b.opts.series if b.opts.series is not None else b.frame == "episode"
+    if start_series:
         hint = f"{slugify(b.topic)}-series" if b.topic else "lena-in-wien"
         return _fill(_SERIES_FIRST, {**values, "series_id_hint": hint})
     return None

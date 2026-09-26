@@ -441,7 +441,13 @@ def _cmd_prompt(args: argparse.Namespace) -> int:
     level = _pick(args.level, prev.cefr_level if prev else None,
                   _from_legacy("cefr_level"), profile.get("level"), "B1")
     frame = _pick(args.frame, prev.frame if prev else None, profile.get("frame"))
-    color = args.color if args.color is not None else profile.get("color") is True
+    device = _pick(args.device, profile.get("device"))
+    if args.color is not None:
+        color = args.color
+    elif args.device is not None:
+        color = args.device == "color"
+    else:
+        color = profile.get("color") is True
     if source == target:
         _fail(f"source and target language are both '{source}'; --source is your own "
               "language, --target the one you are learning")
@@ -473,7 +479,8 @@ def _cmd_prompt(args: argparse.Namespace) -> int:
         source_lang=source, target_lang=target, level=level,
         topic=args.topic, frame=frame, scenes=args.scenes,
         image=image, from_text=from_text, from_legacy=legacy,
-        continue_from=prev, color=bool(color), compact=args.compact, notes=args.notes,
+        continue_from=prev, series=args.series, color=bool(color), compact=args.compact,
+        notes=args.notes,
     )
     text = build_prompt(opts)
     if not text.endswith("\n"):
@@ -495,12 +502,20 @@ def _cmd_prompt(args: argparse.Namespace) -> int:
         data.update(source_lang=source, target_lang=target, level=level, color=bool(color))
         if frame:
             data["frame"] = frame
+        if device:
+            data["device"] = device
         _err(f"Profile saved to {save_profile(data)}")
 
     attach = f", with the picture {args.image} attached," if args.image else ""
+    if prev is not None:
+        from langwich.series import next_episode_filename
+
+        target_file = str(next_episode_filename(args.continue_from))
+    else:
+        target_file = "data/story.json"
     _err(f"Next: give this prompt to your LLM{attach} and save the JSON it writes, e.g. as "
-         "data/story.json. Then run 'langwich validate data/story.json' and "
-         "'langwich render data/story.json'.")
+         f"{target_file}. Then run 'langwich validate {target_file}' and "
+         f"'langwich render {target_file}'.")
     return 0
 
 
@@ -585,6 +600,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help="write the next episode after this langwich/3 worksheet")
     p.add_argument("--color", action=argparse.BooleanOptionalAction, default=None,
                    help="allow colour in pictures (default: profile, else no)")
+    p.add_argument("--device", choices=("epaper", "print", "color"), default=None,
+                   help="where the sheet is used; saved with --save-profile (epaper also makes "
+                        "'render' default to --page epaper; color implies --color)")
+    p.add_argument("--series", action=argparse.BooleanOptionalAction, default=None,
+                   help="start a series: episode 1 with a teaser (default: only with "
+                        "--frame episode)")
     p.add_argument("--compact", action="store_true", help="a shorter prompt for small models")
     p.add_argument("--notes", default=None, metavar="TEXT", help="extra wishes for the LLM")
     p.add_argument("-o", "--output", metavar="FILE", help="write the prompt to FILE")

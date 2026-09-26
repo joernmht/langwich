@@ -503,3 +503,15 @@ def test_repair_prompt_with_a_real_report(tmp_path: Path):
     for issue in report.issues:
         assert issue.where in text
     assert "der Hafen" in text
+
+
+def test_series_switch_overrides_the_frame_default():
+    from langwich.prompt import PromptOptions, build_prompt
+
+    mystery_series = build_prompt(PromptOptions(topic="film", frame="mystery", series=True))
+    plain_mystery = build_prompt(PromptOptions(topic="film", frame="mystery"))
+    episode_without = build_prompt(PromptOptions(topic="tea", frame="episode", series=False))
+    episode_default = build_prompt(PromptOptions(topic="tea", frame="episode"))
+    marker = "film-series"
+    assert marker in mystery_series and marker not in plain_mystery
+    assert "tea-series" in episode_default and "tea-series" not in episode_without

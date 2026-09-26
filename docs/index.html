@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>langwich — AI-generated language worksheets for paper &amp; e-paper</title>
-<meta name="description" content="langwich turns any AI into a worksheet author. It writes a text at your level, mines it for vocabulary and grammar, builds exercises — and renders a clean, print-ready PDF. Then the screen goes off.">
+<title>langwich — story worksheets for paper &amp; e-paper, written by any AI</title>
+<meta name="description" content="langwich turns a short story into a language worksheet you work through with a pen. Any AI writes the story, the true facts woven into it and every task; langwich checks its work and typesets a calm PDF for e-paper and print.">
 <meta property="og:title" content="langwich — Screens generate. Paper teaches.">
-<meta property="og:description" content="AI-generated language worksheets for print and e-paper. Your AI writes the text, vocabulary and exercises; langwich renders the PDF.">
+<meta property="og:description" content="Story worksheets for language learners: any AI — even one on your own computer — writes the story and the tasks; langwich checks them and typesets a PDF for print and e-paper.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://joernmht.github.io/langwich/">
-<meta property="og:image" content="https://joernmht.github.io/langwich/assets/coffee-en-de-page1.png">
+<meta property="og:image" content="https://joernmht.github.io/langwich/assets/lena-01-page1.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='22' height='26' rx='2' fill='%23fdfaf3' stroke='%23274690' stroke-width='2'/%3E%3Cpath d='M10 10h12M10 15h12M10 20h7' stroke='%23274690' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M19 24l4-1-9 0z' fill='none'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -195,7 +195,7 @@
   .step p { font-size: 15.5px; color: var(--muted); }
   .step code {
     font-size: 13px; background: var(--accent-soft); color: var(--accent);
-    padding: 2px 6px; border-radius: 5px;
+    padding: 2px 6px; border-radius: 5px; white-space: nowrap;
   }
 
   /* exercises */
@@ -283,6 +283,7 @@
   /* get started */
   .start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
   .start-grid .codebox { margin: 0; }
+  .start-grid > * { min-width: 0; }
   .start-note { font-size: 15.5px; color: var(--muted); margin-top: 18px; }
 
   /* footer */
@@ -292,18 +293,66 @@
   .foot-row a:hover { color: var(--ink); }
   .ps { margin-top: 18px; font-size: 13.5px; color: var(--muted); font-style: italic; }
 
+  /* lesson arc: stages and task kinds */
+  .stages { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stage {
+    font-size: 11.5px; padding: 2px 9px; border-radius: 999px;
+    border: 1px solid var(--border-strong); color: var(--muted); background: var(--bg);
+  }
+  dl.kinds {
+    display: grid; grid-template-columns: 8.75rem 1fr;
+    gap: 9px 14px; align-items: baseline; font-size: 15px;
+  }
+  dl.kinds dt code {
+    font-size: 12.5px; padding: 3px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+  }
+  dl.kinds dd { color: var(--muted); }
+  .ex-side { position: sticky; top: 24px; }
+  .lesson-note { margin-top: 12px; max-width: 60em; font-size: 15.5px; color: var(--muted); }
+  .lesson-note strong { color: var(--ink); }
+
+  /* examples: a series card and a wide card span both columns */
+  .ex-card.series, .ex-card.wide { grid-column: 1 / -1; }
+  .series-head { max-width: 46em; margin-bottom: 4px; }
+  .series-head h3 { margin-top: 0; }
+  .series-head p { font-size: 15px; color: var(--muted); }
+  .episodes { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .episode { margin: 0; }
+  .episode > a { display: block; margin-top: 18px; }
+  .kicker {
+    font-size: 12px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--red); margin-top: 18px;
+  }
+  .ex-card h3 + .kicker, .series-head .kicker { margin-top: 0; }
+  .episode h4 { font-size: 18px; margin: 2px 0 4px; }
+  .episode figcaption > p { font-size: 15px; color: var(--muted); margin-bottom: 14px; }
+  .ex-card.wide {
+    display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 32px; align-items: center;
+  }
+  .ex-card.wide h3 { margin-top: 0; }
+  .ex-card code { font-size: 13px; white-space: nowrap; }
+  .tabpanel p code, .tabpanel li code { font-size: .86em; }
+  .tabpanel ul.plain { margin: 14px 0 14px 22px; }
+  .tabpanel ul.plain li { margin-bottom: 8px; max-width: 46em; }
+
   /* responsive */
   @media (max-width: 900px) {
     .hero-grid { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 64px; }
     .paper-stack { width: min(100%, 380px); }
     .cards, .steps { grid-template-columns: 1fr 1fr; }
-    .ex-grid, .start-grid, .ex-cards { grid-template-columns: 1fr; }
+    .ex-grid, .start-grid, .ex-cards, .ex-card.wide { grid-template-columns: 1fr; }
+    .ex-side { position: static; }
   }
   @media (max-width: 620px) {
     .cards, .steps { grid-template-columns: 1fr; }
     section { padding: 64px 0; }
     .tabpanel { padding: 22px 18px; }
     nav.links { gap: 14px; }
+    .episodes { grid-template-columns: 1fr; }
+    dl.kinds { grid-template-columns: 1fr; gap: 2px 0; }
+    dl.kinds dd { margin-bottom: 8px; }
   }
 </style>
 </head>
@@ -315,7 +364,7 @@
     <nav class="links sans" aria-label="Sections">
       <a href="#why-paper">Why paper</a>
       <a href="#how-it-works">How it works</a>
-      <a href="#exercises">Exercises</a>
+      <a href="#lesson">The lesson</a>
       <a href="#examples">Examples</a>
       <a href="#your-ai">Use with your AI</a>
       <a href="#get-started">Get started</a>
@@ -330,31 +379,32 @@
   <div class="hero">
     <div class="wrap hero-grid">
       <div>
-        <p class="eyebrow sans">AI-generated worksheets for print &amp; e-paper</p>
+        <p class="eyebrow sans">Story worksheets for print &amp; e-paper</p>
         <h1>Screens generate.<br><span class="alt">Paper teaches.</span></h1>
-        <p class="lede">langwich turns any AI into a worksheet author. It writes a short text
-        at your level, mines it for vocabulary and grammar, and builds exercises around it —
-        then renders everything into a clean, print-ready PDF.
-        You print it, sharpen a pencil, and switch the screen off.</p>
+        <p class="lede">langwich turns a short story into a language worksheet you work through
+        with a pen. Any AI — Claude, ChatGPT, Gemini, or one running on your own computer —
+        writes the story, weaves in true facts and builds every task around it. langwich checks
+        its work and typesets the lot for e-paper and print.
+        Then the screen goes off.</p>
         <div class="cta-row sans">
           <a class="btn primary" href="#get-started">Get started</a>
           <a class="btn ghost" href="https://github.com/joernmht/langwich">View on GitHub</a>
         </div>
         <div class="meta-row sans">
-          <span class="chip">Python 3.11+ · one dependency</span>
-          <span class="chip">Works with Claude, ChatGPT, Gemini &amp; local models</span>
-          <span class="chip">A4 PDF · e-paper friendly</span>
-          <span class="chip">MIT</span>
+          <span class="chip">Python 3.11+ · MIT</span>
+          <span class="chip">Claude, ChatGPT, Gemini &amp; local models</span>
+          <span class="chip">A4 or e-paper PDF</span>
+          <span class="chip">A photo can start the story</span>
         </div>
       </div>
       <figure class="paper-stack">
-        <img class="sheet back" src="assets/coffee-en-de-vocab.png" alt="" aria-hidden="true" loading="lazy">
-        <img class="sheet front" src="assets/coffee-en-de-page1.png"
-             alt="First page of a generated worksheet: a German B1 reading text about coffee, followed by a fill-in-the-blanks exercise with a word bank.">
+        <img class="sheet back" src="assets/lena-01-picture.png" alt="" aria-hidden="true" loading="lazy">
+        <img class="sheet front" src="assets/lena-01-page1.png"
+             alt="First page of a generated worksheet: the title “Fünf Tage im Café Lindner”, the characters, the route through the lesson and a first matching task with German words and English meanings.">
         <figcaption class="paper-caption sans">
-          Real output — <code>examples/coffee_en_de.json</code> rendered to a
-          print-ready A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
-          <a href="#examples">Two full examples below.</a>
+          Real output — <code>examples/lena_01_en_de.json</code>, episode&nbsp;1 of a series,
+          rendered to an A4 worksheet (EN&nbsp;→&nbsp;DE, level&nbsp;B1).
+          <a href="#examples">More examples below.</a>
         </figcaption>
       </figure>
     </div>
@@ -392,7 +442,7 @@
         <div class="card">
           <span class="glyph" aria-hidden="true">🌤️</span>
           <h3>Easy on eyes and sleep</h3>
-          <p>Clean A4 layouts made for print and e-paper: readable in full sunlight,
+          <p>Calm black-and-white pages made for print and e-paper: readable in full sunlight,
           and nothing glowing at your face at 11&nbsp;pm.</p>
         </div>
         <div class="card">
@@ -404,8 +454,8 @@
         <div class="card">
           <span class="glyph" aria-hidden="true">⚡</span>
           <h3>Screens where they shine</h3>
-          <p>Let the AI do what it’s good at — writing texts, picking vocabulary, building
-          exercises in seconds. Then take the paper somewhere the Wi-Fi can’t follow.</p>
+          <p>Let the AI do what it’s good at — telling a story, choosing the words, writing
+          the tasks in seconds. Then take the paper somewhere the Wi-Fi can’t follow.</p>
         </div>
       </div>
       <p class="footnote sans"><sup>†</sup> For instance Mueller &amp; Oppenheimer,
@@ -422,107 +472,125 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow sans">The workflow</p>
-        <h2>From prompt to printout in three steps</h2>
-        <p>langwich is deliberately split in two: an AI generates the <em>content</em>,
-        a small Python tool renders the <em>paper</em>. No API calls, no keys, no accounts.</p>
+        <h2>From an idea to a printout in three steps</h2>
+        <p>langwich is deliberately split in two: an AI writes every word, a small Python tool
+        checks it and sets it on paper. langwich itself calls no API and needs no key and
+        no account.</p>
       </div>
       <div class="steps">
         <div class="step">
-          <h3>Ask your AI</h3>
-          <p>“A B1 German worksheet about coffee, for an English speaker.”
-          Any assistant that can write JSON is qualified — Claude, ChatGPT, Gemini,
-          or the model running on your own laptop.</p>
+          <h3>Ask for a prompt</h3>
+          <p><code>langwich prompt --topic bread</code> prints a complete brief for the AI:
+          your languages and level, how to tell a story that carries true facts, the task
+          kinds and the JSON format. Have a photo? <code>--image photo.jpg</code> makes it
+          the starting point of the story.</p>
         </div>
         <div class="step">
-          <h3>It writes one JSON file</h3>
-          <p>A short text in the target language — the gold mine — plus its translation,
-          20–30 vocabulary items, grammar notes and a picture scene.
-          The format is documented in the
-          <a href="https://github.com/joernmht/langwich#json-format">README</a>.</p>
+          <h3>Let any AI write the story</h3>
+          <p>Paste the brief into Claude, ChatGPT, Gemini or a model on your own computer.
+          It answers with one JSON file: a story in scenes, true facts, vocabulary, grammar
+          notes and every task with its answers. With a photo attached, it places numbered
+          labels on it; without one, it can draw simple line art.</p>
         </div>
         <div class="step">
-          <h3>langwich renders the PDF</h3>
-          <p><code>langwich --from-json coffee_en_de.json</code> — exercises, vocabulary
-          reference and grammar page included. Print it, or send it to your e-reader.</p>
+          <h3>langwich checks and typesets</h3>
+          <p><code>langwich validate</code> catches slips and writes a repair prompt for the AI.
+          <code>langwich render</code> puts the tasks in lesson order and typesets the PDF —
+          A4 or e-paper, with the answers at the back. The format is documented in the
+          <a href="https://github.com/joernmht/langwich#the-json-contract-langwich3">README</a>.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ================= EXERCISES ================= -->
-  <section id="exercises" class="tinted">
+  <!-- ================= THE LESSON ================= -->
+  <section id="lesson" class="tinted">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow sans">What lands on the page</p>
-        <h2>One text. <span data-count="exercise-types">21</span> kinds of exercise.</h2>
-        <p>langwich is built on an <strong>exercise knowledge graph</strong>: every exercise type
-        declares what it needs, what it produces and which exercises it feeds. From a single
-        source text it derives <span data-count="families">4</span> exercise families, graded
-        by difficulty from 1 to 5 — plus vocabulary and grammar reference pages.
-        (These numbers aren't hand-written, by the way — they're read from the graph
-        on every deploy.)</p>
+        <h2>A lesson in every story</h2>
+        <p>Every worksheet follows the same arc through <span data-count="stages">8</span>
+        stages: warm up before you read, then scene by scene — read a little, work with it,
+        read on — then write something of your own and take it further. The AI picks from
+        <span data-count="task-kinds">13</span> kinds of task; langwich puts each one right after
+        the scene it belongs to. (These numbers aren’t hand-written, by the way — they’re read
+        from the code on every deploy.)</p>
       </div>
       <div class="ex-grid">
         <div>
           <div class="family">
             <div class="family-head">
-              <h3>Fill in the Blanks</h3>
-              <span class="count sans"><span data-count="fib-variants">7</span> variants · difficulty 2–4</span>
+              <h3>Before you read</h3>
+              <span class="stages sans"><span class="stage">warm_up</span></span>
             </div>
-            <p>Words vanish from the text. Hints range from a full word bank
-            down to nothing at all.</p>
-            <div class="tags sans">
-              <span class="tag">Word Bank</span><span class="tag">Multiple Choice</span>
-              <span class="tag">First Letter</span><span class="tag">Translation Hint</span>
-              <span class="tag">Full Translation</span><span class="tag">Base Form</span>
-              <span class="tag">No Hint</span>
-            </div>
+            <p>Meet the key words and make a guess about the story before its first line.</p>
+            <dl class="kinds sans">
+              <dt><code>match</code></dt><dd>Pair each word with its meaning; a few spare answers keep it honest.</dd>
+            </dl>
           </div>
           <div class="family">
             <div class="family-head">
-              <h3>Picture</h3>
-              <span class="count sans"><span data-count="picture-variants">6</span> variants · difficulty 1–5</span>
+              <h3>Scene by scene: what happened</h3>
+              <span class="stages sans"><span class="stage">gist</span><span class="stage">detail</span></span>
             </div>
-            <p>The text describes a scene; your AI can illustrate it. Then: name the colours,
-            mark the objects, describe who is standing where.</p>
-            <div class="tags sans">
-              <span class="tag">Color Query</span><span class="tag">Element Marking</span>
-              <span class="tag">Object Naming</span><span class="tag">Position Description</span>
-              <span class="tag">Picture Fill-in-Blanks</span><span class="tag">Scene Description</span>
-            </div>
+            <p>After each scene: first the main events, then a closer look at facts, reasons
+            and feelings.</p>
+            <dl class="kinds sans">
+              <dt><code>true_false</code></dt><dd>Tick true or false, and correct the false statements.</dd>
+              <dt><code>multiple_choice</code></dt><dd>Tick the one right answer.</dd>
+              <dt><code>order_events</code></dt><dd>Number the events in the order they happened.</dd>
+              <dt><code>questions</code></dt><dd>Answer in writing, on lines sized for handwriting.</dd>
+            </dl>
           </div>
           <div class="family">
             <div class="family-head">
-              <h3>Word Connections</h3>
-              <span class="count sans"><span data-count="wc-variants">5</span> variants · difficulty 1–4</span>
+              <h3>Scene by scene: the language</h3>
+              <span class="stages sans"><span class="stage">form</span><span class="stage">practice</span></span>
             </div>
-            <p>Vocabulary mined from the text, then paired and grouped —
-            the classic connect-the-columns exercises.</p>
-            <div class="tags sans">
-              <span class="tag">Translation</span><span class="tag">Category Grouping</span>
-              <span class="tag">Synonyms</span><span class="tag">Antonyms</span>
-              <span class="tag">Compounds</span>
-            </div>
+            <p>Notice the grammar the scene uses, then put the new words and forms into new
+            sentences. A grammar box sits beside the task that practises it.</p>
+            <dl class="kinds sans">
+              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
+              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
+              <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
+              <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation.</dd>
+            </dl>
           </div>
           <div class="family">
             <div class="family-head">
-              <h3>Media &amp; Research</h3>
-              <span class="count sans"><span data-count="media-variants">3</span> variants · difficulty 2–3</span>
+              <h3>Scene by scene: the picture</h3>
+              <span class="stages sans"><span class="stage">picture</span></span>
             </div>
-            <p>The worksheet sends you hunting: find a documentary, an article,
-            a fact about the topic — in the target language. Deliberately without
-            links; the searching is part of the exercise.</p>
-            <div class="tags sans">
-              <span class="tag">Video Search</span><span class="tag">Article Search</span>
-              <span class="tag">Fact Hunt</span>
-            </div>
+            <p>One scene has a picture — your photo, or simple line art the AI drew.</p>
+            <dl class="kinds sans">
+              <dt><code>label</code></dt><dd>Name the numbered objects in the scene picture.</dd>
+              <dt><code>draw</code></dt><dd>No picture? Draw the scene yourself and label it.</dd>
+            </dl>
           </div>
+          <div class="family">
+            <div class="family-head">
+              <h3>Your turn — and take it further</h3>
+              <span class="stages sans"><span class="stage">production</span><span class="stage">epilogue</span></span>
+            </div>
+            <p>Write about the story or about yourself, then go looking for more in the
+            language you are learning.</p>
+            <dl class="kinds sans">
+              <dt><code>writing</code></dt><dd>Write a text: a prompt, a first line, words to use, a word count — and a model answer at the back.</dd>
+              <dt><code>media_search</code></dt><dd>Search online in the target language: search terms instead of links, and what to find out.</dd>
+            </dl>
+          </div>
+          <p class="lesson-note sans">These are the usual places — any kind of task can sit at
+          any stage. <strong>Around the tasks:</strong> a cover with the characters and your
+          route through the sheet, glosses in the margin for words no task tests, “Did you
+          know?” boxes with true facts, grammar boxes beside the task that practises them.
+          <strong>At the back:</strong> a word list, the answers and a translation of every scene.</p>
         </div>
         <figure class="ex-side">
-          <img src="assets/coffee-en-de-vocab.png" loading="lazy"
-               alt="Vocabulary reference page of a generated worksheet, listing German terms grouped by part of speech with translations, synonyms and antonyms.">
-          <figcaption class="sans">Every worksheet ends with a vocabulary reference —
-          grouped by part of speech, with synonyms and antonyms.</figcaption>
+          <img src="assets/mercado-valencia-picture.png" loading="lazy"
+               alt="A worksheet page with a line drawing of a market stall: numbered markers on the awning, the scales, tomatoes, beans, oranges, rice, a basket and the stallholder, answer lines below and a word box.">
+          <figcaption class="sans">The picture stage in <em>La lista de la abuela Pepa</em>:
+          line art that came with the JSON, numbered where the AI placed its labels, and a word
+          box for the Spanish words.</figcaption>
         </figure>
       </div>
     </div>
@@ -533,41 +601,100 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow sans">See it on paper</p>
-        <h2>One topic. Two languages.</h2>
-        <p>The same coffee worksheet, generated twice: once for an English
-        speaker learning German, once for a German speaker learning French.
-        Instructions switch to the learner's native language automatically,
-        and every exercise adapts to what its text provides. Both are bundled
-        in the repository — render them yourself before involving any AI.</p>
+        <h2>Stories you can print today</h2>
+        <p>These worksheets come with the repository — render them yourself before involving
+        any AI. Each one wraps true facts in a made-up story, and every instruction is in the
+        learner’s own language.</p>
       </div>
       <div class="ex-cards">
+        <div class="ex-card series">
+          <div class="series-head">
+            <p class="kicker sans">A series</p>
+            <h3>Lena in Wien · EN → DE · B1</h3>
+            <p>Lena, 23, from Manchester, spends a gap year in Vienna, working at Café Lindner.
+            The episodes share their characters and end with a teaser for the next one; from
+            episode&nbsp;2 on, each opens with a “Previously” recap and brings back words from
+            before.</p>
+          </div>
+          <div class="episodes">
+            <figure class="episode">
+              <a href="examples/lena_01_en_de.pdf">
+                <img src="assets/lena-01-page1.png" loading="lazy"
+                     alt="First page of episode 1, “Fünf Tage im Café Lindner”: characters, the route through the lesson and a matching task.">
+              </a>
+              <figcaption>
+                <p class="kicker sans">Episode 1</p>
+                <h4>Fünf Tage im Café Lindner</h4>
+                <p>Five days to earn the right to make Herr Novak’s cappuccino — and to find out
+                where your morning coffee comes from.</p>
+                <div class="cta-row sans">
+                  <a class="btn primary" href="examples/lena_01_en_de.pdf">Worksheet (PDF)</a>
+                  <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/lena_01_en_de.json">Source JSON ↗</a>
+                </div>
+              </figcaption>
+            </figure>
+            <figure class="episode">
+              <a href="examples/lena_02_en_de.pdf">
+                <img src="assets/lena-02-page1.png" loading="lazy"
+                     alt="First page of episode 2, “Ein Capo in B für Signor Bruno”, with a “Previously” recap and the first tasks.">
+              </a>
+              <figcaption>
+                <p class="kicker sans">Episode 2</p>
+                <h4>Ein Capo in B für Signor Bruno</h4>
+                <p>Her uncle has broken his arm, and Trieste’s busiest weekend is coming. Can Lena
+                learn how the city orders its coffee in two days?</p>
+                <div class="cta-row sans">
+                  <a class="btn primary" href="examples/lena_02_en_de.pdf">Worksheet (PDF)</a>
+                  <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/lena_02_en_de.json">Source JSON ↗</a>
+                </div>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
         <figure class="ex-card">
-          <a href="examples/coffee_en_de.pdf">
-            <img src="assets/coffee-en-de-page1.png" loading="lazy"
-                 alt="First page of the English-to-German coffee worksheet: a B1 German reading text followed by a word-bank fill-in-the-blanks exercise with English instructions.">
+          <a href="examples/festival_lyon_de_fr.pdf">
+            <img src="assets/festival-lyon-page1.png" loading="lazy"
+                 alt="First page of “La bobine disparue”: a French mystery story with German instructions.">
           </a>
           <figcaption>
-            <h3>Coffee · EN → DE · B1</h3>
-            <p>For an English speaker learning German — 8 pages: reading text,
-            five exercise types, vocabulary and grammar reference, solutions.</p>
+            <h3>La bobine disparue · DE → FR · B1</h3>
+            <p>A mystery at the Festival Lumière in Lyon: two hours before a sold-out screening,
+            the film reel is gone. For German speakers learning French — so every instruction
+            is in German.</p>
             <div class="cta-row sans">
-              <a class="btn primary" href="examples/coffee_en_de.pdf">Full worksheet (PDF)</a>
-              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/coffee_en_de.json">Source JSON ↗</a>
+              <a class="btn primary" href="examples/festival_lyon_de_fr.pdf">Worksheet (PDF)</a>
+              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/festival_lyon_de_fr.json">Source JSON ↗</a>
             </div>
           </figcaption>
         </figure>
         <figure class="ex-card">
-          <a href="examples/coffee_de_fr.pdf">
-            <img src="assets/coffee-de-fr-page1.png" loading="lazy"
-                 alt="First page of the German-to-French coffee worksheet: the same topic with a French reading text and German instructions.">
+          <a href="examples/mercado_valencia_en_es.pdf">
+            <img src="assets/mercado-valencia-page1.png" loading="lazy"
+                 alt="First page of “La lista de la abuela Pepa”: a Spanish A2 story about shopping at a market, with English instructions.">
           </a>
           <figcaption>
-            <h3>Kaffee · DE → FR · B1</h3>
-            <p>Für Deutschsprachige, die Französisch lernen — same topic, French
-            text, and every instruction in German.</p>
+            <h3>La lista de la abuela Pepa · EN → ES · A2</h3>
+            <p>Emily has one job this Saturday: buy everything for Grandma Pepa’s Sunday paella
+            at Valencia’s Mercado Central — and only what’s on the list. What could go wrong?</p>
             <div class="cta-row sans">
-              <a class="btn primary" href="examples/coffee_de_fr.pdf">Full worksheet (PDF)</a>
-              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/coffee_de_fr.json">Source JSON ↗</a>
+              <a class="btn primary" href="examples/mercado_valencia_en_es.pdf">Worksheet (PDF)</a>
+              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/mercado_valencia_en_es.json">Source JSON ↗</a>
+            </div>
+          </figcaption>
+        </figure>
+        <figure class="ex-card wide">
+          <a href="examples/lena_01_en_de-epaper.pdf">
+            <img src="assets/lena-01-epaper-page1.png" loading="lazy"
+                 alt="The first page of episode 1 at e-reader size: a single column with larger type.">
+          </a>
+          <figcaption>
+            <h3>The same sheet on an e-reader</h3>
+            <p>With <code>--page epaper</code> every worksheet is set at 157.8 × 210.4&nbsp;mm in
+            a single column; notes from the margin move into boxes below the text. Add
+            <code>--one-task-per-page</code> for room to annotate, and
+            <code>--solutions separate</code> to keep the answers in a second file.</p>
+            <div class="cta-row sans">
+              <a class="btn primary" href="examples/lena_01_en_de-epaper.pdf">E-paper PDF</a>
             </div>
           </figcaption>
         </figure>
@@ -581,22 +708,22 @@
       <div class="section-head">
         <p class="eyebrow sans">Bring your own AI</p>
         <h2>Works with the AI you already use</h2>
-        <p>langwich calls no API and stores no key — the Python side only renders.
-        The content comes from whichever assistant you already use, pay for, or run locally.
-        Three ways in:</p>
+        <p>langwich calls no API and stores no key. The writing comes from whichever assistant
+        you already use, pay for, or run on your own computer. Four ways in:</p>
       </div>
 
       <div class="tabs sans" role="tablist" aria-label="Choose your AI">
         <button class="tab" id="tab-claude" role="tab" aria-selected="true" aria-controls="panel-claude">Claude Code</button>
-        <button class="tab" id="tab-chat" role="tab" aria-selected="false" aria-controls="panel-chat" tabindex="-1">ChatGPT, Gemini &amp; friends</button>
-        <button class="tab" id="tab-agents" role="tab" aria-selected="false" aria-controls="panel-agents" tabindex="-1">Coding agents &amp; automation</button>
+        <button class="tab" id="tab-chat" role="tab" aria-selected="false" aria-controls="panel-chat" tabindex="-1">ChatGPT, Gemini &amp; Claude.ai</button>
+        <button class="tab" id="tab-local" role="tab" aria-selected="false" aria-controls="panel-local" tabindex="-1">Local models</button>
+        <button class="tab" id="tab-auto" role="tab" aria-selected="false" aria-controls="panel-auto" tabindex="-1">Automation</button>
       </div>
 
       <div class="tabpanel" id="panel-claude" role="tabpanel" aria-labelledby="tab-claude">
-        <p>The repository ships a <code class="mono">/langwich</code> slash command.
-        Claude walks you through native language, target language, topic and CEFR level,
-        writes the JSON, and renders the PDF — all in one conversation. This is the
-        most comfortable way in.</p>
+        <p>The repository ships a <code class="mono">/langwich</code> slash command. Claude asks
+        for your languages and level once, suggests a few story ideas, writes the JSON, validates
+        and repairs it, looks over the language and the facts, and renders the PDF — all in one
+        conversation. This is the most comfortable way in.</p>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
           <pre>git clone https://github.com/joernmht/langwich
@@ -605,106 +732,125 @@ pip install -e .
 claude
 <span class="p">&gt;</span> /langwich</pre>
         </div>
-        <p class="hint sans">Works in the Claude Code CLI, the desktop app, and on claude.ai/code.</p>
+        <p class="hint sans">Add a topic, a photo path or “next episode” after
+        <code class="mono">/langwich</code>. Your defaults are kept in
+        <code class="mono">.langwich/profile.json</code>. Works in the Claude Code CLI, the
+        desktop app and on claude.ai/code.</p>
       </div>
 
       <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
-        <p>No terminal-based AI? Any chat assistant that can write JSON works —
-        ChatGPT, Gemini, Claude.ai, Le Chat, or a local model.</p>
+        <p>Any chat assistant that follows long instructions can write a worksheet — ChatGPT,
+        Gemini, Claude.ai, Le Chat. langwich prints the brief; you carry it over and bring the
+        JSON back.</p>
         <ol class="plain">
-          <li>Copy the prompt below into a new chat and edit the three <strong>About me</strong> lines.</li>
-          <li>Save the JSON it returns as <code class="mono">data/coffee_en_de.json</code> (the JSON only, no backticks).</li>
-          <li>Render it: <code class="mono">langwich --from-json data/coffee_en_de.json</code></li>
+          <li>Print the brief with your languages, level and topic.</li>
+          <li>Paste <code class="mono">prompt.txt</code> into a new chat, or attach the file.
+          Starting from a photo? Add <code class="mono">--image</code>, attach the photo as well,
+          and use a model that can see images.</li>
+          <li>Save the reply — one JSON object — as <code class="mono">data/tides_en_de.json</code>.</li>
+          <li>Check it. If langwich finds problems, paste the repair prompt into the same chat
+          and save the new reply over the file.</li>
+          <li>Typeset it.</li>
         </ol>
-        <div class="codebox tall">
+        <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
-          <pre>You are a language-learning content author for langwich
-(https://github.com/joernmht/langwich), a tool that renders
-worksheet PDFs from a JSON source file.
+          <pre><span class="c"># 1. the brief (with a photo: add --image harbour.jpg and attach harbour.jpg too)</span>
+langwich prompt --source en --target de --level B1 --topic tides -o prompt.txt
 
-About me — edit these three lines:
-  My native language:  English    (source_lang "en")
-  I am learning:       German     (target_lang "de")
-  Level and topic:     B1, "coffee"
+<span class="c"># 4. check the JSON the AI wrote; if there are problems, make a repair prompt</span>
+langwich validate data/tides_en_de.json
+langwich validate data/tides_en_de.json --prompt &gt; repair.txt
 
-Write my worksheet source. Reply with ONE json code block and
-nothing else, in exactly this structure:
-
-{
-  "title": "a title in the target language",
-  "content": "a coherent multi-paragraph text in the TARGET language
-    at my level (B1: 250-350 words). Informative and true - a small
-    essay, not filler. Exactly one paragraph must describe a concrete
-    visual scene. Separate paragraphs with blank lines.",
-  "translation": "the same text in my native language",
-  "source_lang": "en",
-  "target_lang": "de",
-  "cefr_level": "B1",
-  "topic": "coffee",
-  "picture_scene": {
-    "description": "an image-generation prompt for the scene paragraph,
-      in English",
-    "elements": ["4-8 visible objects with their colours, in the target
-      language, all of which appear in the text"],
-    "paragraph_index": 2
-  },
-  "vocabulary": {
-    "items": [
-      {
-        "term": "der Kaffee",
-        "translation": "coffee",
-        "pos": "noun",
-        "semantic_type": "drink",
-        "synonym": null,
-        "antonym": null
-      }
-    ]
-  },
-  "grammar": {
-    "phenomena": [
-      {
-        "name": "name of a grammar phenomenon",
-        "description": "one or two plain-language sentences about it",
-        "examples": ["a sentence taken from the text"]
-      }
-    ]
-  }
-}
-
-Rules:
-- 20-30 vocabulary items, all taken from the text: mostly nouns and
-  verbs, several adjectives, a few prepositions ("pos" is one of:
-  noun, verb, adjective, adverb, preposition).
-- "semantic_type" is one of: color, position, clothing, food, drink,
-  furniture, body, animal, profession, emotion, weather, time, other.
-  Include some colour words (semantic_type "color") and position
-  words (semantic_type "position") so that the picture exercises work.
-- Add synonyms and antonyms where they exist naturally, else null.
-- 2-4 grammar phenomena that genuinely occur in the text.</pre>
+<span class="c"># 5. typeset it → data/tides_en_de.pdf</span>
+langwich render data/tides_en_de.json</pre>
         </div>
+        <p class="hint sans">Add <code class="mono">--save-profile</code> once, and langwich
+        remembers your languages and level: next time <code class="mono">langwich prompt --topic
+        volcanoes</code> is enough.</p>
       </div>
 
-      <div class="tabpanel" id="panel-agents" role="tabpanel" aria-labelledby="tab-agents" hidden>
-        <p>Any coding agent — Cursor, Copilot, Codex CLI, Claude Code — can drive langwich
-        end-to-end, because the JSON format is documented in the repository itself.
-        One instruction is enough:</p>
+      <div class="tabpanel" id="panel-local" role="tabpanel" aria-labelledby="tab-local" hidden>
+        <p>No cloud at all: langwich works just as well with a model on your own computer — in
+        Ollama, LM Studio or llama.cpp. Small models do better with the shorter brief, and
+        langwich’s repair loop catches what they get wrong.</p>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
-          <pre>Read README.md and examples/coffee_en_de.json. Then write a worksheet
-source JSON for a B2 French worksheet about astronomy (my native
-language is English) to data/astronomy_en_fr.json and render it with:
-langwich --from-json data/astronomy_en_fr.json</pre>
+          <pre><span class="c"># a brief half as long, for models of 7–14B parameters</span>
+langwich prompt --compact --target es --level A2 --topic "a night market" -o prompt.txt
+
+<span class="c"># paste prompt.txt into the model's chat, save its answer, then check it</span>
+langwich validate data/night_market_en_es.json
+
+<span class="c"># problems? paste this repair prompt into the same chat, save the reply over the file</span>
+langwich validate data/night_market_en_es.json --prompt
+
+langwich render data/night_market_en_es.json</pre>
         </div>
-        <p>Agents that run headless can put fresh material on your desk every morning —
-        for example with Claude Code’s print mode from cron:</p>
+        <ul class="plain">
+          <li><strong>Context:</strong> the compact brief is about 3,500 tokens and a finished
+          worksheet another 6,000–12,000, so give the model at least 16k tokens of context — 32k
+          for the repair loop, which sends the whole JSON back. In Ollama:
+          <code class="mono">OLLAMA_CONTEXT_LENGTH=32768 ollama serve</code>; in LM Studio, the
+          context length you set when loading the model.</li>
+          <li><strong>Bigger is better:</strong> larger models tell better stories and can take the
+          full brief — leave out <code class="mono">--compact</code>.</li>
+          <li><strong>Photos</strong> need a vision model, such as Gemma&nbsp;3 or Qwen2.5-VL.</li>
+        </ul>
+      </div>
+
+      <div class="tabpanel" id="panel-auto" role="tabpanel" aria-labelledby="tab-auto" hidden>
+        <p>A fresh worksheet on your desk every morning. Claude Code’s print mode runs the whole
+        loop unattended — it only needs permission to run langwich and to write into
+        <code class="mono">data/</code>:</p>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
-          <pre><span class="c"># a fresh worksheet every morning at 06:30</span>
-30 6 * * *  cd ~/langwich &amp;&amp; claude -p "Read README.md, then generate \
-  a new B1 Spanish worksheet on a surprising topic and render it"</pre>
+          <pre>#!/bin/sh
+<span class="c"># ~/langwich/daily.sh: one new worksheet a day, saved as data/&lt;date&gt;.pdf</span>
+cd "$HOME/langwich" || exit 1
+day=$(date +%F)
+langwich prompt --target de --level B1 -o "data/$day-prompt.md"
+task="Read data/$day-prompt.md and write the worksheet it asks for to data/$day.json.
+Choose a topic that no other worksheet in data/ has used yet.
+Then run 'langwich validate data/$day.json' and fix what it reports until there are no errors.
+Finally run 'langwich render data/$day.json'."
+claude -p "$task" --allowedTools "Bash(langwich:*)" "Edit(data/**)"</pre>
         </div>
-        <p class="hint sans">Pair it with an e-paper device or a duplex printer and the day
-        starts with a worksheet instead of a feed.</p>
+        <p>Make it executable (<code class="mono">chmod +x ~/langwich/daily.sh</code>) and add
+        two lines with <code class="mono">crontab -e</code>. Cron starts with a bare
+        <code class="mono">PATH</code>, so name the folders that hold
+        <code class="mono">langwich</code> and <code class="mono">claude</code>
+        (<code class="mono">command -v langwich claude</code> shows them):</p>
+        <div class="codebox">
+          <button class="copy sans" type="button">Copy</button>
+          <pre>PATH=/usr/local/bin:/usr/bin:/bin:/home/you/.local/bin
+30 6 * * * $HOME/langwich/daily.sh &gt;&gt; $HOME/langwich/data/cron.log 2&gt;&amp;1</pre>
+        </div>
+        <p class="hint sans">The permissions are deliberately narrow:
+        <code class="mono">Bash(langwich:*)</code> lets Claude run langwich and nothing else,
+        <code class="mono">Edit(data/**)</code> lets it write only inside
+        <code class="mono">data/</code>; reading files needs no permission. Log in to Claude Code
+        once as the user the cron job runs as.</p>
+        <p>Rather stay offline? The same loop with a local model through Ollama — up to three
+        repair rounds, then render:</p>
+        <div class="codebox">
+          <button class="copy sans" type="button">Copy</button>
+          <pre>#!/bin/sh
+<span class="c"># ~/langwich/local.sh: the same with a local model (Ollama), fully offline</span>
+cd "$HOME/langwich" || exit 1
+day=$(date +%F)
+langwich prompt --compact --target de --level B1 -o "data/$day-prompt.md"
+ollama run gemma3:12b --format json &lt; "data/$day-prompt.md" &gt; "data/$day.json"
+for round in 1 2 3; do
+  langwich validate "data/$day.json" &amp;&amp; break
+  langwich validate "data/$day.json" --prompt | ollama run gemma3:12b --format json &gt; "data/$day-fixed.json"
+  mv "data/$day-fixed.json" "data/$day.json"
+done
+langwich render "data/$day.json"</pre>
+        </div>
+        <p class="hint sans">Any model you have pulled works in place of
+        <code class="mono">gemma3:12b</code>; <code class="mono">ollama run … --format json</code>
+        keeps its answer to pure JSON. Pair either script with an e-paper tablet or a duplex
+        printer, and the day starts with a worksheet instead of a feed.</p>
       </div>
     </div>
   </section>
@@ -716,16 +862,19 @@ langwich --from-json data/astronomy_en_fr.json</pre>
     <div class="wrap start-grid">
       <div>
         <p class="eyebrow sans">Get started</p>
-        <h2>Five commands to your first worksheet</h2>
-        <p class="start-note">Python 3.11 or newer and a single dependency
-        (<a href="https://pypi.org/project/reportlab/">reportlab</a>). The repository includes
-        <span data-count="examples">3</span> complete, working examples, so you can render a
-        worksheet before involving any AI at all.
-        Then print <code class="mono">data/coffee.pdf</code> — black-and-white duplex is fine —
-        and put your phone in another room.</p>
+        <h2>Four commands to your first worksheet</h2>
+        <p class="start-note">You need Python 3.11 or newer. PDFs are made with WeasyPrint,
+        which needs the Pango library from your system (<code class="mono">brew install
+        pango</code> on a Mac; the README has the steps for Linux and Windows).
+        The repository includes <span data-count="examples">4</span> complete worksheets, so you
+        can print one before involving any AI at all — black-and-white duplex is fine.</p>
+        <p class="start-note">Instructions are written in your language by the AI; langwich’s own
+        page labels are built in for <span data-count="ui-languages">6</span> languages (English,
+        German, French, Spanish, Italian, Portuguese), and for any other the AI writes those
+        too. Then put your phone in another room.</p>
         <div class="cta-row sans">
           <a class="btn primary" href="https://github.com/joernmht/langwich">Clone on GitHub</a>
-          <a class="btn ghost" href="https://github.com/joernmht/langwich#json-format">Read the JSON format</a>
+          <a class="btn ghost" href="https://github.com/joernmht/langwich#make-your-own-worksheet">Read the guide</a>
         </div>
       </div>
       <div class="codebox">
@@ -734,15 +883,20 @@ langwich --from-json data/astronomy_en_fr.json</pre>
 cd langwich
 pip install -e .
 
-<span class="c"># render the bundled example → data/coffee.pdf</span>
-langwich --from-json examples/coffee_en_de.json
+<span class="c"># render a bundled example → data/lena_01_en_de.pdf</span>
+langwich render examples/lena_01_en_de.json
 
-<span class="c"># list all <span data-count="exercise-types">21</span> exercise types</span>
-langwich --list-exercises
+<span class="c"># the same for an e-reader, answers in a second file</span>
+langwich render examples/lena_01_en_de.json \
+  --page epaper --solutions separate -o data/lena_epaper.pdf
 
-<span class="c"># or pick your own selection</span>
-langwich --from-json examples/coffee_en_de.json \
-  --exercises fib_word_bank,pic_color_query,wc_translation</pre>
+<span class="c"># your own story: a brief for any AI …</span>
+langwich prompt --target fr --level A2 \
+  --topic "a bakery in Lyon" -o prompt.txt
+
+<span class="c"># … then check and typeset the JSON it writes</span>
+langwich validate data/bakery_en_fr.json
+langwich render data/bakery_en_fr.json</pre>
       </div>
     </div>
   </section>
@@ -752,10 +906,10 @@ langwich --from-json examples/coffee_en_de.json \
 <footer>
   <div class="wrap">
     <div class="foot-row sans">
-      <span><strong>langwich</strong> — analogue language learning, generated by AI. MIT license.</span>
+      <span><strong>langwich</strong> — analogue language learning: written by AI, typeset for paper. MIT license.</span>
       <span>
         <a href="https://github.com/joernmht/langwich">GitHub</a> ·
-        <a href="https://github.com/joernmht/langwich#json-format">JSON format</a> ·
+        <a href="https://github.com/joernmht/langwich#the-json-contract-langwich3">JSON contract</a> ·
         <a href="#top">Back to top ↑</a>
       </span>
     </div>
