@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Sync live counts from the exercise graph into the landing page.
+"""Sync live counts from the code into the landing page.
 
 The landing page (docs/index.html) shows numbers that depend on the code:
-how many exercise subclasses exist, how many variants each family has, and
-how many bundled examples ship with the repository. Instead of hardcoding
-them, the page marks each number with ``data-count="<key>"`` and this
-script fills in the real values derived from ``build_default_graph()`` and
-``examples/*.json``.
+how many task kinds and lesson stages the langwich/3 contract defines, in how
+many languages the page furniture is built in, and how many bundled examples
+ship with the repository. Instead of hardcoding them, the page marks each
+number with ``data-count="<key>"`` and this script fills in the real values.
 
-Run it locally after adding exercise nodes or examples, or let CI run it —
-the Pages workflow executes it before deploying, so the published page
-always shows the current counts.
+Run it locally after changing the contract or adding examples, or let CI run
+it — the Pages workflow executes it before deploying.
 
 Usage:
     python3 scripts/update_page_stats.py           # rewrite docs/index.html
@@ -19,7 +17,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 from pathlib import Path
@@ -27,39 +24,31 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from langwich.graph import build_default_graph  # noqa: E402
-from langwich.text import SourceText  # noqa: E402
+from langwich.locale import BUILTIN_LANGUAGES  # noqa: E402
+from langwich.model import STAGES, TASK_KINDS, ContractError, load_worksheet  # noqa: E402
 
 INDEX_HTML = REPO_ROOT / "docs" / "index.html"
 EXAMPLES_DIR = REPO_ROOT / "examples"
 
 
 def count_examples() -> int:
-    """Bundled examples that actually load with the current schema."""
+    """Bundled examples that load as langwich/3 worksheets."""
     count = 0
     for path in sorted(EXAMPLES_DIR.glob("*.json")):
         try:
-            SourceText.from_dict(json.loads(path.read_text(encoding="utf-8")))
+            load_worksheet(path)
             count += 1
-        except Exception:
-            print(f"  warning: {path.name} does not parse as a SourceText, "
+        except ContractError:
+            print(f"  warning: {path.name} is not a valid langwich/3 worksheet, "
                   "not counted", file=sys.stderr)
     return count
 
 
 def compute_stats() -> dict[str, int]:
-    graph = build_default_graph()
-    exercises = graph.exercises()
-    by_family: dict[str, int] = {}
-    for node in exercises:
-        by_family[node.exercise_type.value] = by_family.get(node.exercise_type.value, 0) + 1
     return {
-        "exercise-types": len(exercises),
-        "families": len(by_family),
-        "fib-variants": by_family.get("fib", 0),
-        "picture-variants": by_family.get("picture", 0),
-        "wc-variants": by_family.get("word_connections", 0),
-        "media-variants": by_family.get("media", 0),
+        "task-kinds": len(TASK_KINDS),
+        "stages": len(STAGES),
+        "ui-languages": len(BUILTIN_LANGUAGES),
         "examples": count_examples(),
     }
 

@@ -1,0 +1,147 @@
+<svg viewBox="0 -8 178 92" xmlns="http://www.w3.org/2000/svg" stroke="#000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <defs>
+    <clipPath id="glass"><rect x="96.5" y="19.2" width="75" height="40.3"/></clipPath>
+  </defs>
+
+  <!-- room: wainscot + floor -->
+  <line x1="0" y1="60" x2="94" y2="60" stroke-width=".3"/>
+  <line x1="0" y1="79" x2="178" y2="79" stroke-width=".45"/>
+
+  <!-- framed picture (coffee bean) -->
+  <rect x="5" y="8" width="15" height="18" stroke-width=".5" fill="#fff"/>
+  <rect x="7" y="10" width="11" height="14" stroke-width=".25"/>
+  <ellipse cx="12.5" cy="17" rx="3" ry="4.2" stroke-width=".5" transform="rotate(-25 12.5 17)"/>
+  <path d="M13.7,13.4 C11.6,15.4 13.6,18.4 11.3,20.6" stroke-width=".45"/>
+
+  <!-- pendant lamp -->
+  <line x1="66" y1="-8" x2="66" y2="9.5" stroke-width=".35"/>
+  <path d="M58.6,17 L73.4,17 L69.6,9.5 L62.4,9.5 Z" fill="#000" stroke-width=".4"/>
+  <path d="M64.2,17.1 Q66,19.2 67.8,17.1" stroke-width=".35"/>
+
+  <!-- window -->
+  <rect x="94" y="6" width="80" height="56" stroke-width=".6" fill="#fff"/>
+  <rect x="96.5" y="8.5" width="75" height="51" stroke-width=".3"/>
+  <line x1="96.5" y1="18" x2="171.5" y2="18" stroke-width=".3"/>
+  <line x1="96.5" y1="19.2" x2="171.5" y2="19.2" stroke-width=".3"/>
+  <line x1="122" y1="19.2" x2="122" y2="59.5" stroke-width=".3"/>
+  <line x1="123.2" y1="19.2" x2="123.2" y2="59.5" stroke-width=".3"/>
+
+  <!-- the street, through the glass -->
+  <g clip-path="url(#glass)">
+    <line x1="96" y1="24" x2="172" y2="24" stroke-width=".3"/>
+    <line x1="96" y1="25.3" x2="172" y2="25.3" stroke-width=".3"/>
+    <g stroke-width=".3">
+      <rect x="99.5" y="28" width="7" height="10"/><line x1="99.5" y1="33" x2="106.5" y2="33"/>
+      <rect x="127" y="28" width="7" height="10"/><line x1="127" y1="33" x2="134" y2="33"/>
+      <rect x="143" y="28" width="7" height="10"/><line x1="143" y1="33" x2="150" y2="33"/>
+      <rect x="164" y="28" width="7" height="10"/><line x1="164" y1="33" x2="171" y2="33"/>
+    </g>
+    <line x1="96" y1="45" x2="172" y2="45" stroke-width=".35"/>
+    <line x1="96" y1="47.5" x2="172" y2="47.5" stroke-width=".35"/>
+    <!-- cobblestones -->
+    <g stroke-width=".25">
+      <path d="M97,51 q1.6,-1.2 3.2,0 M101.5,51 q1.6,-1.2 3.2,0 M106,51 q1.6,-1.2 3.2,0 M110.5,51 q1.6,-1.2 3.2,0 M115,51 q1.6,-1.2 3.2,0 M119.5,51 q1.6,-1.2 3.2,0 M124,51 q1.6,-1.2 3.2,0 M128.5,51 q1.6,-1.2 3.2,0 M133,51 q1.6,-1.2 3.2,0 M164.5,51 q1.6,-1.2 3.2,0 M169,51 q1.6,-1.2 3.2,0"/>
+      <path d="M99.2,54.5 q1.6,-1.2 3.2,0 M103.7,54.5 q1.6,-1.2 3.2,0 M108.2,54.5 q1.6,-1.2 3.2,0 M112.7,54.5 q1.6,-1.2 3.2,0 M117.2,54.5 q1.6,-1.2 3.2,0 M121.7,54.5 q1.6,-1.2 3.2,0 M126.2,54.5 q1.6,-1.2 3.2,0 M130.7,54.5 q1.6,-1.2 3.2,0 M162.2,54.5 q1.6,-1.2 3.2,0 M166.7,54.5 q1.6,-1.2 3.2,0"/>
+      <path d="M97,58 q1.6,-1.2 3.2,0 M101.5,58 q1.6,-1.2 3.2,0 M106,58 q1.6,-1.2 3.2,0 M110.5,58 q1.6,-1.2 3.2,0 M115,58 q1.6,-1.2 3.2,0 M119.5,58 q1.6,-1.2 3.2,0 M124,58 q1.6,-1.2 3.2,0 M128.5,58 q1.6,-1.2 3.2,0 M164.5,58 q1.6,-1.2 3.2,0 M169,58 q1.6,-1.2 3.2,0"/>
+    </g>
+    <!-- tree -->
+    <path d="M112.6,45 L112.6,34" stroke-width=".7"/>
+    <path d="M106.2,31.5 C104.2,27.5 107.8,23.4 111.2,24.6 C112.8,21.2 118.2,22 118.4,26 C121.6,27 121,32.2 117.6,32.8 C116.4,35.4 108.8,35.6 106.2,31.5 Z" stroke-width=".4" fill="#fff"/>
+    <!-- lamppost -->
+    <line x1="160" y1="59.5" x2="160" y2="29" stroke-width=".9"/>
+    <path d="M158.4,59.5 L158.9,56.8 L161.1,56.8 L161.6,59.5 Z" fill="#000" stroke-width=".3"/>
+    <path d="M157.2,22.4 L162.8,22.4 L161.8,28.6 L158.2,28.6 Z" fill="#fff" stroke-width=".45"/>
+    <path d="M156.6,22.6 L160,19.6 L163.4,22.6 Z" fill="#000" stroke-width=".3"/>
+    <line x1="158" y1="28.8" x2="162" y2="28.8" stroke-width=".6"/>
+    <!-- bicycle, leaning on the post -->
+    <g stroke-width=".45">
+      <circle cx="138.5" cy="53" r="6"/>
+      <circle cx="154" cy="53" r="6"/>
+      <circle cx="138.5" cy="53" r=".6" fill="#000"/>
+      <circle cx="154" cy="53" r=".6" fill="#000"/>
+    </g>
+    <path d="M138.5,53 L144,44.2 L145.8,53 Z M144,44.2 L152.3,44.6 L145.8,53 M152.3,44.6 L154,53" stroke-width=".85"/>
+    <path d="M143.8,44.2 L143.4,42.8 M141.6,42.6 L145.4,42.6 M152.3,44.6 L151.6,41.8 L154.6,41.2" stroke-width=".85"/>
+    <circle cx="145.8" cy="53" r="1.1" stroke-width=".4" fill="#fff"/>
+  </g>
+
+  <!-- sill + panel under the window -->
+  <rect x="91" y="62" width="86" height="2.5" stroke-width=".5" fill="#fff"/>
+  <rect x="97" y="67" width="74" height="9.5" stroke-width=".3"/>
+
+  <!-- bentwood chair -->
+  <g stroke-width=".55" fill="#fff">
+    <path d="M24.4,56 C22.6,47 22.4,40.6 24.8,36.4 C26.8,33.2 30.2,34.8 29.4,39" fill="none"/>
+    <line x1="25.4" y1="57.4" x2="23.4" y2="79"/>
+    <line x1="37.2" y1="57.4" x2="39.2" y2="79"/>
+    <line x1="29.6" y1="58" x2="30" y2="79"/>
+    <ellipse cx="31" cy="70.5" rx="5.8" ry="1" stroke-width=".35" fill="none"/>
+  </g>
+
+  <!-- the woman -->
+  <g stroke-width=".55" fill="#fff">
+    <!-- back leg -->
+    <path d="M41.6,59.3 L42.7,77.4 L45.3,77.4 L44.9,59.3 Z"/>
+    <path d="M42.3,77.3 L47.6,77.3 Q49,77.5 49,79 L42.3,79 Z" fill="#000"/>
+    <!-- chair seat (in front of the back leg, behind the body) -->
+    <ellipse cx="31" cy="56.6" rx="8.2" ry="1.7"/>
+    <!-- torso -->
+    <path d="M29.6,37.2 C30.3,34.6 32.8,33.5 35.6,33.5 C38.4,33.5 40.9,34.6 41.5,37.2 L42.4,55.6 L29.4,55.6 Z"/>
+    <path d="M33.2,33.9 Q35.6,36 38,33.9" stroke-width=".35" fill="none"/>
+    <!-- thigh -->
+    <path d="M30,55.4 L47.4,55.4 Q49.3,55.6 49.3,57.5 Q49.3,59.5 47.4,59.5 L30,59.5 Z"/>
+    <!-- front leg -->
+    <path d="M45.1,59.2 L46.5,77.4 L49.3,77.4 L48.9,59.2 Z"/>
+    <path d="M46,77.3 L51.6,77.3 Q53.1,77.5 53.1,79 L46,79 Z" fill="#000"/>
+    <!-- arm to the cup -->
+    <path d="M38.8,36.4 C41.6,38.6 43.4,42.6 44.2,46.8 L49.6,47 L49.6,49.3 L42.9,49.6 C41.6,45.6 40,42 38,39.2 Z"/>
+    <!-- head -->
+    <line x1="35.6" y1="31" x2="35.6" y2="33.6"/>
+    <circle cx="36" cy="27" r="4.6"/>
+    <path d="M31.6,28.4 C30.8,23 35.2,21.2 38.8,22.4 C40.2,22.9 40.8,23.9 40.7,25 C38,24.2 35,24.9 33.8,28.8 Z" fill="#000" stroke-width=".3"/>
+    <circle cx="31.9" cy="24" r="2.1" fill="#000" stroke-width=".3"/>
+    <path d="M40.4,27.4 L41.4,28.6 L40.5,28.9" stroke-width=".35" fill="none"/>
+  </g>
+
+  <!-- café table -->
+  <g stroke-width=".6" fill="#fff">
+    <rect x="66.9" y="55" width="2.2" height="21.6" stroke-width=".45"/>
+    <path d="M57.6,79 Q68,73.6 78.4,79" fill="none"/>
+    <path d="M44,52 L44,53.3 A24,3.6 0 0 0 92,53.3 L92,52"/>
+    <ellipse cx="68" cy="52" rx="24" ry="3.6"/>
+  </g>
+
+  <!-- cup on saucer, in front of her -->
+  <g stroke-width=".5" fill="#fff">
+    <ellipse cx="56" cy="51.7" rx="6.6" ry="1.35"/>
+    <path d="M51.6,46.8 C48.9,46.8 48.9,50 52,49.8" fill="none"/>
+    <path d="M51,45.5 L61,45.5 L59.8,50.9 Q56,52 52.2,50.9 Z"/>
+    <ellipse cx="56" cy="45.5" rx="5" ry="1"/>
+    <path d="M55,45.6 q1,-.7 2,0 q-1,.6 -2,0" stroke-width=".25"/>
+    <path d="M54.4,43.4 c-1,-1.5 1,-2.4 0,-3.9 M57.6,43.4 c-1,-1.5 1,-2.4 0,-3.9" stroke-width=".3" fill="none"/>
+  </g>
+
+  <!-- apple strudel on a plate, next to the cup -->
+  <g stroke-width=".5" fill="#fff">
+    <ellipse cx="76" cy="51.9" rx="9" ry="1.8"/>
+    <ellipse cx="76" cy="51.6" rx="6" ry="1" stroke-width=".25"/>
+    <path d="M70,51.5 L70.4,47.6 Q71.3,46 73.6,45.8 L80.6,46.3 Q82.4,46.8 82.1,48.6 L81.6,51.5 Z"/>
+    <ellipse cx="71.7" cy="48.9" rx="1.4" ry="1.9" stroke-width=".35"/>
+    <ellipse cx="71.8" cy="49" rx=".6" ry=".85" stroke-width=".3"/>
+    <g fill="#000" stroke="none">
+      <circle cx="74.6" cy="46.9" r=".22"/><circle cx="76.6" cy="46.6" r=".22"/>
+      <circle cx="78.4" cy="47.1" r=".22"/><circle cx="80.1" cy="46.9" r=".22"/>
+      <circle cx="75.8" cy="47.8" r=".22"/><circle cx="79.3" cy="48" r=".22"/>
+    </g>
+  </g>
+
+  <!-- leader lines for the numbered markers -->
+  <g stroke-width=".3">
+    <line x1="77.3" y1="9.4" x2="71.6" y2="12.4"/>
+    <line x1="49.9" y1="41.6" x2="52.6" y2="44.8"/>
+    <line x1="78.2" y1="40.9" x2="77.2" y2="45.6"/>
+    <line x1="87.5" y1="47.7" x2="83.6" y2="50.9"/>
+    <line x1="134.4" y1="41.2" x2="140.4" y2="46.4"/>
+    <line x1="166.9" y1="27" x2="163.2" y2="25.8"/>
+  </g>
+</svg>

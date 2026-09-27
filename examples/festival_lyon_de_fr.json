@@ -1,0 +1,909 @@
+{
+  "schema": "langwich/3",
+  "title": "La bobine disparue",
+  "standfirst": "Paula hilft beim Festival Lumière in Lyon. Zwei Stunden vor der ausverkauften Vorstellung ist die Filmrolle verschwunden – und ein einziges Wort bringt Paula auf die richtige Spur. Nebenbei erfährst du, was die Brüder Lumière mit Lyon zu tun haben.",
+  "source_lang": "de",
+  "target_lang": "fr",
+  "cefr_level": "B1",
+  "topic": "cinema",
+  "frame": "mystery",
+  "series": {
+    "id": "paula-a-lyon",
+    "title": "Paula à Lyon",
+    "episode": 1,
+    "next": "Prochain épisode : dans une traboule du Vieux-Lyon, un passage étroit à travers les maisons, Paula trouve une vieille lettre…",
+    "review": []
+  },
+  "story": {
+    "logline": "Paula, eine Studentin aus Köln, muss beim Festival Lumière in Lyon eine verschwundene Filmrolle finden, bevor um 20 Uhr die ausverkaufte Vorstellung beginnt.",
+    "setting": "Institut Lumière, Rue du Premier-Film, Lyon – ein Donnerstag im Oktober, 16 bis 20 Uhr",
+    "characters": [
+      {
+        "id": "paula",
+        "name": "Paula",
+        "role": "20, Studentin aus Köln, Freiwillige beim Festival Lumière"
+      },
+      {
+        "id": "karim",
+        "name": "Karim",
+        "role": "Filmvorführer im Institut Lumière"
+      },
+      {
+        "id": "faure",
+        "name": "Madame Faure",
+        "role": "leitet das Team der Freiwilligen"
+      },
+      {
+        "id": "theo",
+        "name": "Théo",
+        "role": "19, neuer Freiwilliger, sein erster Tag"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "16 heures – Dans la cabine",
+        "beat": "setup",
+        "text": "Paula, une étudiante de Cologne, était bénévole au Festival Lumière, qui a lieu chaque année en octobre à Lyon. Ce jeudi-là, elle aidait Karim, le projectionniste, dans la cabine de projection de l'Institut Lumière.\n\n« Tu sais où nous sommes ? a demandé Karim. Dans cette rue, il y avait l'usine de la famille Lumière. En 1895, Louis Lumière a filmé ici des ouvrières et des ouvriers qui sortaient de l'usine : c'est “La Sortie de l'usine Lumière à Lyon”, un des premiers films de l'histoire ! »\n\nLe soir même, ce film allait passer avec d'autres films Lumière, et la séance de 20 heures était complète. Karim a mis la bobine dans une boîte en métal. Dessus, il a écrit en grosses lettres : SORTIE.",
+        "translation": "Paula, eine Studentin aus Köln, war Freiwillige beim Festival Lumière, das jedes Jahr im Oktober in Lyon stattfindet. An jenem Donnerstag half sie Karim, dem Filmvorführer, im Vorführraum des Institut Lumière.\n\n„Weißt du, wo wir sind?“, fragte Karim. „In dieser Straße stand die Fabrik der Familie Lumière. 1895 hat Louis Lumière hier Arbeiterinnen und Arbeiter gefilmt, die aus der Fabrik kamen: ‚La Sortie de l'usine Lumière à Lyon‘ (‚Arbeiter verlassen die Lumière-Werke‘), einer der ersten Filme der Geschichte!“\n\nNoch am selben Abend sollte dieser Film mit anderen Lumière-Filmen laufen, und die Vorstellung um 20 Uhr war ausverkauft. Karim legte die Filmrolle in eine Metalldose. Darauf schrieb er in großen Buchstaben: SORTIE."
+      },
+      {
+        "id": "s2",
+        "heading": "18 heures – La boîte vide",
+        "beat": "complication",
+        "text": "À 18 heures, Karim a voulu préparer le projecteur. Mais la boîte n'était plus sur la table ! « La bobine a disparu ! a crié Karim. Sans elle, pas de séance ! »\n\nPaula a cherché partout : sous la table, derrière le projecteur, dans le couloir. Rien. Madame Faure, la responsable des bénévoles, est arrivée. « Tout à l'heure, Théo, le nouveau, rangeait la cabine, a-t-elle dit. Je l'ai vu avec une boîte dans les mains. » Paula a appelé Théo. Un téléphone a sonné… sur une chaise, dans la cabine ! Théo était parti chercher les programmes à l'imprimerie, sans son portable.",
+        "translation": "Um 18 Uhr wollte Karim den Projektor vorbereiten. Aber die Dose war nicht mehr auf dem Tisch! „Die Filmrolle ist verschwunden!“, rief Karim. „Ohne sie keine Vorstellung!“\n\nPaula suchte überall: unter dem Tisch, hinter dem Projektor, im Flur. Nichts. Madame Faure, die Leiterin der Freiwilligen, kam dazu. „Vorhin hat Théo, der Neue, den Vorführraum aufgeräumt“, sagte sie. „Ich habe ihn mit einer Dose in den Händen gesehen.“ Paula rief Théo an. Ein Handy klingelte … auf einem Stuhl im Vorführraum! Théo war losgegangen, um die Programmhefte in der Druckerei abzuholen – ohne sein Handy."
+      },
+      {
+        "id": "s3",
+        "heading": "19 heures – Sortie ?",
+        "beat": "climax",
+        "text": "Il était déjà 19 heures. Paula a regardé la table vide et a pensé au mot sur la boîte : SORTIE. Pour Karim, c'était le titre du film. Mais pour Théo ? Une sortie, c'est aussi une porte pour quitter la salle !\n\nElle a couru à la fenêtre de la cabine. En bas, quelqu'un venait d'allumer la lumière dans la salle, encore vide. Et là, par terre, à côté de la sortie de secours, il y avait une boîte en métal ! Paula est descendue très vite et elle l'a ouverte : la bobine était dedans.",
+        "translation": "Es war schon 19 Uhr. Paula sah auf den leeren Tisch und dachte an das Wort auf der Dose: SORTIE. Für Karim war das der Titel des Films. Aber für Théo? Eine „sortie“ ist doch auch ein Ausgang – eine Tür, durch die man den Saal verlässt!\n\nSie lief zum Fenster des Vorführraums. Unten hatte gerade jemand im noch leeren Saal das Licht eingeschaltet. Und dort, auf dem Boden, neben dem Notausgang, lag eine Metalldose! Paula lief schnell hinunter und öffnete sie: Die Filmrolle war darin."
+      },
+      {
+        "id": "s4",
+        "heading": "20 heures – La séance",
+        "beat": "resolution",
+        "text": "Peu avant 20 heures, Théo est revenu avec les programmes. Quand il a vu la boîte, il est devenu tout rouge. « Pardon ! Je rangeais la cabine quand j'ai vu cette boîte. Il y avait écrit SORTIE dessus, alors j'ai pensé qu'elle devait aller à la sortie ! » Karim a ri : « La prochaine fois, j'écris le titre en entier ! »\n\nÀ 20 heures, depuis la cabine, Paula regardait la salle pleine. La lumière s'est éteinte, le projecteur a démarré et, sur l'écran, les ouvrières et les ouvriers de 1895 sont sortis de l'usine, dans cette même rue. Paula a souri. Dans son carnet, elle a noté : « sortie = Ausgang… sauf sur les boîtes de Karim ! »",
+        "translation": "Kurz vor 20 Uhr kam Théo mit den Programmheften zurück. Als er die Dose sah, wurde er knallrot. „Entschuldigung! Ich war gerade dabei, den Vorführraum aufzuräumen, da habe ich diese Dose gesehen. Da stand SORTIE drauf, also dachte ich, sie muss zum Ausgang!“ Karim lachte: „Nächstes Mal schreibe ich den ganzen Titel!“\n\nUm 20 Uhr sah Paula vom Vorführraum aus in den vollen Saal. Das Licht ging aus, der Projektor lief an, und auf der Leinwand kamen die Arbeiterinnen und Arbeiter von 1895 aus der Fabrik – in genau dieser Straße. Paula lächelte. In ihr Notizbuch schrieb sie: „sortie = Ausgang … außer auf Karims Dosen!“",
+        "picture": {
+          "svg": "<svg viewBox=\"0 0 200 110\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n<defs><clipPath id=\"glass\"><rect x=\"66.5\" y=\"14.5\" width=\"101\" height=\"61\"/></clipPath></defs>\n<g clip-path=\"url(#glass)\">\n<path d=\"M82,0 L82,54 L152,54 L152,0\" stroke-width=\".4\"/>\n<path d=\"M82,54 L26,98.8 M152,54 L208,98.8\" stroke-width=\".4\"/>\n<path d=\"M82,14 L26,-5.2 M152,14 L208,-5.2\" stroke-width=\".4\"/>\n<rect x=\"88.8\" y=\"17.8\" width=\"56.4\" height=\"30.4\" stroke-width=\".55\" fill=\"#fff\"/>\n<rect x=\"90\" y=\"19\" width=\"54\" height=\"28\" stroke-width=\".3\"/>\n<path d=\"M83.5,15.5 Q84.3,33 83.5,51 M85.1,15.5 Q85.9,33 85.1,51 M86.7,15.5 Q87.5,33 86.7,51\" stroke-width=\".3\"/>\n<path d=\"M150.5,15.5 Q149.7,33 150.5,51 M148.9,15.5 Q148.1,33 148.9,51 M147.3,15.5 Q146.5,33 147.3,51\" stroke-width=\".3\"/>\n<g stroke-width=\".3\">\n<path d=\"M92,44.5 L142,44.5\"/>\n<path d=\"M95,44.5 L95,29 L139,29 L139,44.5\"/>\n<path d=\"M95,31 L139,31\"/>\n<path d=\"M109,44.5 L109,33.5 L125,33.5 L125,44.5\"/>\n<rect x=\"97.2\" y=\"34\" width=\"2.6\" height=\"4\"/>\n<rect x=\"101.2\" y=\"34\" width=\"2.6\" height=\"4\"/>\n<rect x=\"130.2\" y=\"34\" width=\"2.6\" height=\"4\"/>\n<rect x=\"134.2\" y=\"34\" width=\"2.6\" height=\"4\"/>\n</g>\n<g stroke-width=\".3\">\n<circle cx=\"111.5\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M111.5,39.3 L111.5,41.9 M111.5,40.1 L110.6,41.5 M111.5,41.9 L110.6,44.4 M111.5,41.9 L112.4,44.4\"/>\n<path d=\"M111,39.7 L110.4,43.2 L112.6,43.2 L112,39.7\" fill=\"#fff\"/>\n<circle cx=\"114.8\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M114.8,39.3 L114.8,41.9 M114.8,40.1 L115.7,41.5 M114.8,41.9 L113.9,44.4 M114.8,41.9 L115.7,44.4\"/>\n<path d=\"M114.2,39.7 L113.7,43.2 L115.9,43.2 L115.3,39.7\" fill=\"#fff\"/>\n<circle cx=\"118.6\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M118.6,39.3 L118.6,41.9 M118.6,40.1 L117.7,41.5 M118.6,41.9 L117.7,44.4 M118.6,41.9 L119.5,44.4\"/>\n<path d=\"M118,39.7 L117.5,43.2 L119.7,43.2 L119.1,39.7\" fill=\"#fff\"/>\n<circle cx=\"121.2\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M121.2,39.3 L121.2,41.9 M121.2,40.1 L122.1,41.5 M121.2,41.9 L120.3,44.4 M121.2,41.9 L122.1,44.4\"/>\n<path d=\"M120.7,39.7 L120.1,43.2 L122.3,43.2 L121.8,39.7\" fill=\"#fff\"/>\n<circle cx=\"106\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M106,39.3 L106,41.9 M106,40.1 L106.9,41.5 M106,41.9 L105.1,44.4 M106,41.9 L106.9,44.4\"/>\n<path d=\"M105.5,39.7 L104.9,43.2 L107.1,43.2 L106.5,39.7\" fill=\"#fff\"/>\n<circle cx=\"128.2\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M128.2,39.3 L128.2,41.9 M128.2,40.1 L127.3,41.5 M128.2,41.9 L127.3,44.4 M128.2,41.9 L129.1,44.4\"/>\n<path d=\"M127.6,39.7 L127.1,43.2 L129.3,43.2 L128.8,39.7\" fill=\"#fff\"/>\n<circle cx=\"131.8\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M131.8,39.3 L131.8,41.9 M131.8,40.1 L130.9,41.5 M131.8,41.9 L130.9,44.4 M131.8,41.9 L132.7,44.4\"/>\n<path d=\"M131.2,39.7 L130.7,43.2 L132.9,43.2 L132.4,39.7\" fill=\"#fff\"/>\n<circle cx=\"101.8\" cy=\"38.6\" r=\".75\" fill=\"#000\"/>\n<path d=\"M101.8,39.3 L101.8,41.9 M101.8,40.1 L102.7,41.5 M101.8,41.9 L100.9,44.4 M101.8,41.9 L102.7,44.4\"/>\n<path d=\"M101.2,39.7 L100.7,43.2 L102.9,43.2 L102.3,39.7\" fill=\"#fff\"/>\n</g>\n<path d=\"M153.8,40.2 L160.8,42.9 L160.8,61 L153.8,55.4 Z\" stroke-width=\".5\" fill=\"#fff\"/>\n<path d=\"M154.3,41.3 L160.2,43.8 L160.2,60.6 L154.3,55.8\" stroke-width=\".25\"/>\n<path d=\"M154.4,49.3 L160.1,52.8\" stroke-width=\".45\"/>\n<path d=\"M154.1,35.5 L160.4,37.2 L160.4,41 L154.1,38.8 Z\" stroke-width=\".4\" fill=\"#fff\"/>\n<circle cx=\"155.3\" cy=\"37.4\" r=\".3\" fill=\"#000\" stroke=\"none\"/>\n<path d=\"M155.3,37.7 L155,38.5 M155.1,38.1 L155.8,38 M156.6,37.8 L158.4,38.2 M157.8,37.6 L158.4,38.2 L157.7,38.6\" stroke-width=\".25\"/>\n<g stroke-width=\"0.4\" fill=\"#fff\"><circle cx=\"81.5\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"88.9\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"96.3\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"103.7\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"111.1\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"118.5\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"125.9\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"133.3\" cy=\"49.5\" r=\"1.7\"/><circle cx=\"140.7\" cy=\"49.5\" r=\"1.7\"/></g>\n<path d=\"M78.4,61.3 L78.4,51.5 Q78.4,49.9 80,49.9 L83,49.9 Q84.6,49.9 84.6,51.5 L84.6,61.3 M85.8,61.3 L85.8,51.5 Q85.8,49.9 87.4,49.9 L90.4,49.9 Q92,49.9 92,51.5 L92,61.3 M93.2,61.3 L93.2,51.5 Q93.2,49.9 94.8,49.9 L97.8,49.9 Q99.4,49.9 99.4,51.5 L99.4,61.3 M100.6,61.3 L100.6,51.5 Q100.6,49.9 102.2,49.9 L105.2,49.9 Q106.8,49.9 106.8,51.5 L106.8,61.3 M108,61.3 L108,51.5 Q108,49.9 109.6,49.9 L112.6,49.9 Q114.2,49.9 114.2,51.5 L114.2,61.3 M115.4,61.3 L115.4,51.5 Q115.4,49.9 117,49.9 L120,49.9 Q121.6,49.9 121.6,51.5 L121.6,61.3 M122.8,61.3 L122.8,51.5 Q122.8,49.9 124.4,49.9 L127.4,49.9 Q129,49.9 129,51.5 L129,61.3 M130.2,61.3 L130.2,51.5 Q130.2,49.9 131.8,49.9 L134.8,49.9 Q136.4,49.9 136.4,51.5 L136.4,61.3 M137.6,61.3 L137.6,51.5 Q137.6,49.9 139.2,49.9 L142.2,49.9 Q143.8,49.9 143.8,51.5 L143.8,61.3\" stroke-width=\"0.4\" fill=\"#fff\"/>\n<path d=\"M79.1,51.9 L83.9,51.9 M86.5,51.9 L91.3,51.9 M93.9,51.9 L98.7,51.9 M101.3,51.9 L106.1,51.9 M108.6,51.9 L113.5,51.9 M116,51.9 L120.9,51.9 M123.4,51.9 L128.3,51.9 M130.8,51.9 L135.7,51.9 M138.2,51.9 L143.1,51.9\" stroke-width=\"0.2\"/>\n<g stroke-width=\"0.4\" fill=\"#fff\"><circle cx=\"74.6\" cy=\"54\" r=\"2\"/><circle cx=\"83.5\" cy=\"54\" r=\"2\"/><circle cx=\"92.3\" cy=\"54\" r=\"2\"/><circle cx=\"101.1\" cy=\"54\" r=\"2\"/><circle cx=\"109.9\" cy=\"54\" r=\"2\"/><circle cx=\"118.8\" cy=\"54\" r=\"2\"/><circle cx=\"127.6\" cy=\"54\" r=\"2\"/><circle cx=\"136.4\" cy=\"54\" r=\"2\"/><circle cx=\"145.2\" cy=\"54\" r=\"2\"/></g>\n<path d=\"M70.9,68.2 L70.9,56.5 Q70.9,54.6 72.8,54.6 L76.4,54.6 Q78.3,54.6 78.3,56.5 L78.3,68.2 M79.7,68.2 L79.7,56.5 Q79.7,54.6 81.7,54.6 L85.3,54.6 Q87.2,54.6 87.2,56.5 L87.2,68.2 M88.6,68.2 L88.6,56.5 Q88.6,54.6 90.5,54.6 L94.1,54.6 Q96,54.6 96,56.5 L96,68.2 M97.4,68.2 L97.4,56.5 Q97.4,54.6 99.3,54.6 L102.9,54.6 Q104.8,54.6 104.8,56.5 L104.8,68.2 M106.2,68.2 L106.2,56.5 Q106.2,54.6 108.1,54.6 L111.7,54.6 Q113.6,54.6 113.6,56.5 L113.6,68.2 M115,68.2 L115,56.5 Q115,54.6 117,54.6 L120.6,54.6 Q122.5,54.6 122.5,56.5 L122.5,68.2 M123.9,68.2 L123.9,56.5 Q123.9,54.6 125.8,54.6 L129.4,54.6 Q131.3,54.6 131.3,56.5 L131.3,68.2 M132.7,68.2 L132.7,56.5 Q132.7,54.6 134.6,54.6 L138.2,54.6 Q140.1,54.6 140.1,56.5 L140.1,68.2 M141.5,68.2 L141.5,56.5 Q141.5,54.6 143.4,54.6 L147,54.6 Q148.9,54.6 148.9,56.5 L148.9,68.2\" stroke-width=\"0.4\" fill=\"#fff\"/>\n<path d=\"M71.7,56.9 L77.5,56.9 M80.6,56.9 L86.3,56.9 M89.4,56.9 L95.2,56.9 M98.2,56.9 L104,56.9 M107,56.9 L112.8,56.9 M115.9,56.9 L121.6,56.9 M124.7,56.9 L130.5,56.9 M133.5,56.9 L139.3,56.9 M142.3,56.9 L148.1,56.9\" stroke-width=\"0.2\"/>\n<g stroke-width=\"0.4\" fill=\"#fff\"><circle cx=\"66.5\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"77\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"87.6\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"98.1\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"108.6\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"119.1\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"129.6\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"140.1\" cy=\"59.4\" r=\"2.3\"/><circle cx=\"150.6\" cy=\"59.4\" r=\"2.3\"/></g>\n<path d=\"M62.1,76.2 L62.1,62.3 Q62.1,60 64.4,60 L68.7,60 Q70.9,60 70.9,62.3 L70.9,76.2 M72.6,76.2 L72.6,62.3 Q72.6,60 74.9,60 L79.2,60 Q81.5,60 81.5,62.3 L81.5,76.2 M83.1,76.2 L83.1,62.3 Q83.1,60 85.4,60 L89.7,60 Q92,60 92,62.3 L92,76.2 M93.6,76.2 L93.6,62.3 Q93.6,60 95.9,60 L100.2,60 Q102.5,60 102.5,62.3 L102.5,76.2 M104.2,76.2 L104.2,62.3 Q104.2,60 106.4,60 L110.7,60 Q113,60 113,62.3 L113,76.2 M114.7,76.2 L114.7,62.3 Q114.7,60 116.9,60 L121.2,60 Q123.5,60 123.5,62.3 L123.5,76.2 M125.2,76.2 L125.2,62.3 Q125.2,60 127.5,60 L131.7,60 Q134,60 134,62.3 L134,76.2 M135.7,76.2 L135.7,62.3 Q135.7,60 138,60 L142.3,60 Q144.5,60 144.5,62.3 L144.5,76.2 M146.2,76.2 L146.2,62.3 Q146.2,60 148.5,60 L152.8,60 Q155,60 155,62.3 L155,76.2\" stroke-width=\"0.4\" fill=\"#fff\"/>\n<path d=\"M63.1,62.8 L70,62.8 M73.6,62.8 L80.5,62.8 M84.1,62.8 L91,62.8 M94.6,62.8 L101.5,62.8 M105.1,62.8 L112,62.8 M115.6,62.8 L122.5,62.8 M126.2,62.8 L133,62.8 M136.7,62.8 L143.6,62.8 M147.2,62.8 L154.1,62.8\" stroke-width=\"0.2\"/>\n<g stroke-width=\"0.5\" fill=\"#fff\"><circle cx=\"56.2\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"68.9\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"81.6\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"94.2\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"106.9\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"119.5\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"132.2\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"144.8\" cy=\"66.2\" r=\"2.8\"/><circle cx=\"157.5\" cy=\"66.2\" r=\"2.8\"/></g>\n<path d=\"M50.9,86.4 L50.9,69.7 Q50.9,66.9 53.7,66.9 L58.8,66.9 Q61.6,66.9 61.6,69.7 L61.6,86.4 M63.6,86.4 L63.6,69.7 Q63.6,66.9 66.3,66.9 L71.5,66.9 Q74.2,66.9 74.2,69.7 L74.2,86.4 M76.2,86.4 L76.2,69.7 Q76.2,66.9 79,66.9 L84.1,66.9 Q86.9,66.9 86.9,69.7 L86.9,86.4 M88.9,86.4 L88.9,69.7 Q88.9,66.9 91.6,66.9 L96.8,66.9 Q99.5,66.9 99.5,69.7 L99.5,86.4 M101.5,86.4 L101.5,69.7 Q101.5,66.9 104.3,66.9 L109.4,66.9 Q112.2,66.9 112.2,69.7 L112.2,86.4 M114.2,86.4 L114.2,69.7 Q114.2,66.9 116.9,66.9 L122.1,66.9 Q124.8,66.9 124.8,69.7 L124.8,86.4 M126.9,86.4 L126.9,69.7 Q126.9,66.9 129.6,66.9 L134.8,66.9 Q137.5,66.9 137.5,69.7 L137.5,86.4 M139.5,86.4 L139.5,69.7 Q139.5,66.9 142.2,66.9 L147.4,66.9 Q150.1,66.9 150.1,69.7 L150.1,86.4 M152.2,86.4 L152.2,69.7 Q152.2,66.9 154.9,66.9 L160.1,66.9 Q162.8,66.9 162.8,69.7 L162.8,86.4\" stroke-width=\"0.5\" fill=\"#fff\"/>\n<path d=\"M52.1,70.3 L60.4,70.3 M64.8,70.3 L73,70.3 M77.4,70.3 L85.7,70.3 M90.1,70.3 L98.4,70.3 M102.7,70.3 L111,70.3 M115.4,70.3 L123.7,70.3 M128,70.3 L136.3,70.3 M140.7,70.3 L149,70.3 M153.3,70.3 L161.6,70.3\" stroke-width=\"0.3\"/>\n</g>\n<g stroke-width=\".3\" stroke-dasharray=\"1.4 1.1\">\n<path d=\"M63.5,61.5 L90,19\"/>\n<path d=\"M63.5,61.5 L90,47\"/>\n</g>\n<rect x=\"64\" y=\"12\" width=\"106\" height=\"66\" stroke-width=\".6\"/>\n<rect x=\"66.5\" y=\"14.5\" width=\"101\" height=\"61\" stroke-width=\".35\"/>\n<rect x=\"61\" y=\"78\" width=\"112\" height=\"3\" stroke-width=\".55\" fill=\"#fff\"/>\n<path d=\"M0,106 L200,106\" stroke-width=\".4\"/>\n<g stroke-width=\".5\" fill=\"#fff\">\n<rect x=\"175\" y=\"16\" width=\"21\" height=\"36\"/>\n</g>\n<g stroke-width=\".3\">\n<rect x=\"177\" y=\"18\" width=\"17\" height=\"32\"/>\n<path d=\"M179.5,21 L191.5,21 M181,23 L190,23\" stroke-width=\".6\"/>\n<rect x=\"180.5\" y=\"27\" width=\"8.5\" height=\"6.5\" rx=\".4\" fill=\"#fff\"/>\n<rect x=\"189\" y=\"28.8\" width=\"2.4\" height=\"2.8\"/>\n<circle cx=\"182.6\" cy=\"30.2\" r=\"1.1\"/>\n<path d=\"M182.6,30.2 L184.2,31.3 M184.2,31.3 L184.2,32.3\"/>\n<path d=\"M184.7,33.5 L181,45 M184.7,33.5 L184.7,45 M184.7,33.5 L188.4,45\"/>\n<path d=\"M179.5,47.3 L191.5,47.3\" stroke-width=\".25\"/>\n</g>\n<g stroke-width=\".55\" fill=\"#fff\">\n<rect x=\"72\" y=\"90\" width=\"118\" height=\"3.2\"/>\n<rect x=\"76\" y=\"93.2\" width=\"2.4\" height=\"12.8\"/>\n<rect x=\"183.6\" y=\"93.2\" width=\"2.4\" height=\"12.8\"/>\n</g>\n<g stroke-width=\".5\" fill=\"#fff\">\n<path d=\"M137,84.6 L137,89.2 A13,3 0 0 0 163,89.2 L163,84.6\"/>\n<ellipse cx=\"150\" cy=\"84.6\" rx=\"13\" ry=\"3\"/>\n<ellipse cx=\"150\" cy=\"85\" rx=\"11.7\" ry=\"2.4\" stroke-width=\".25\"/>\n</g>\n<path d=\"M145,88.5 L155,88.5 L155,91 L145,91 Z\" stroke-width=\".3\"/>\n<path d=\"M100,89.9 L104,86.4 L119,86.4 L115,89.9 Z\" stroke-width=\".45\" fill=\"#fff\"/>\n<path d=\"M107.5,89.9 L111.5,86.4\" stroke-width=\".3\"/>\n<path d=\"M120.5,89.6 L128.5,87.2\" stroke-width=\".8\"/>\n<g stroke-width=\".6\" fill=\"#fff\">\n<path d=\"M14,106 L40,106 L36,100.5 L18,100.5 Z\"/>\n<rect x=\"24\" y=\"80\" width=\"6\" height=\"20.5\"/>\n<rect x=\"9\" y=\"47\" width=\"6\" height=\"4\" />\n<rect x=\"7\" y=\"51\" width=\"17\" height=\"27\" rx=\"1.5\"/>\n</g>\n<path d=\"M11,56 L11,64 M14,56 L14,64 M17,56 L17,64 M20,56 L20,64\" stroke-width=\".35\"/>\n<path d=\"M7.5,46.5 L16.5,46.5\" stroke-width=\".6\"/>\n<g stroke-width=\".6\" fill=\"#fff\">\n<rect x=\"24\" y=\"48\" width=\"28\" height=\"32\" rx=\"2\"/>\n<rect x=\"52\" y=\"57.5\" width=\"8\" height=\"8\"/>\n<rect x=\"60\" y=\"56.5\" width=\"3.5\" height=\"10\" rx=\".6\"/>\n</g>\n<g stroke-width=\".4\" fill=\"#fff\">\n<circle cx=\"45\" cy=\"57\" r=\"3.2\"/><circle cx=\"45\" cy=\"57\" r=\".8\" fill=\"#000\"/>\n<circle cx=\"45\" cy=\"71\" r=\"3.2\"/><circle cx=\"45\" cy=\"71\" r=\".8\" fill=\"#000\"/>\n</g>\n<path d=\"M28,53 L36,53 M28,75 L36,75\" stroke-width=\".35\"/>\n<path d=\"M41,29 L41,48 M17.5,31 L26,48\" stroke-width=\"1.1\"/>\n<path d=\"M31.2,36 C30.2,41 30.6,45 32,48\" stroke-width=\".4\"/>\n<g stroke-width=\".55\" fill=\"#fff\"><circle cx=\"17.5\" cy=\"31\" r=\"10.5\"/></g>\n<circle cx=\"17.5\" cy=\"31\" r=\"9.2\" stroke-width=\".25\"/>\n<circle cx=\"17.5\" cy=\"25.1\" r=\"2.1\" stroke-width=\".35\"/>\n<circle cx=\"11.9\" cy=\"29.2\" r=\"2.1\" stroke-width=\".35\"/>\n<circle cx=\"14\" cy=\"35.8\" r=\"2.1\" stroke-width=\".35\"/>\n<circle cx=\"21\" cy=\"35.8\" r=\"2.1\" stroke-width=\".35\"/>\n<circle cx=\"23.1\" cy=\"29.2\" r=\"2.1\" stroke-width=\".35\"/>\n<circle cx=\"17.5\" cy=\"31\" r=\"1.4\" stroke-width=\".4\" fill=\"#fff\"/>\n<circle cx=\"17.5\" cy=\"31\" r=\".5\" fill=\"#000\" stroke=\"none\"/>\n<g stroke-width=\".55\" fill=\"#fff\"><circle cx=\"41\" cy=\"29\" r=\"12\"/></g>\n<circle cx=\"41\" cy=\"29\" r=\"10.7\" stroke-width=\".25\"/>\n<circle cx=\"41\" cy=\"22.3\" r=\"2.4\" stroke-width=\".35\"/>\n<circle cx=\"34.6\" cy=\"26.9\" r=\"2.4\" stroke-width=\".35\"/>\n<circle cx=\"37.1\" cy=\"34.4\" r=\"2.4\" stroke-width=\".35\"/>\n<circle cx=\"44.9\" cy=\"34.4\" r=\"2.4\" stroke-width=\".35\"/>\n<circle cx=\"47.4\" cy=\"26.9\" r=\"2.4\" stroke-width=\".35\"/>\n<circle cx=\"41\" cy=\"29\" r=\"1.6\" stroke-width=\".4\" fill=\"#fff\"/>\n<circle cx=\"41\" cy=\"29\" r=\".5\" fill=\"#000\" stroke=\"none\"/>\n</svg>",
+          "caption": "20 heures : la vue depuis la cabine de projection",
+          "prompt": "Black-and-white line drawing, view from inside a cinema projection booth: on the left a vintage 35 mm film projector with two reels, its lens pointing through a large window; through the window a full cinema hall seen from behind and above, rows of seats with the tops of the spectators' heads, a screen showing workers leaving a factory gate, side curtains, an emergency exit door with a small sign on the right-hand wall; on the booth wall a framed poster of an old film camera on a tripod; under the window a table with an open round film can and a notebook. Clean bold outlines, no grey shading, no text.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "un projecteur",
+              "x": 0.158,
+              "y": 0.6
+            },
+            {
+              "n": 2,
+              "term": "une bobine",
+              "x": 0.205,
+              "y": 0.264
+            },
+            {
+              "n": 3,
+              "term": "un écran",
+              "x": 0.585,
+              "y": 0.214
+            },
+            {
+              "n": 4,
+              "term": "un fauteuil",
+              "x": 0.408,
+              "y": 0.656
+            },
+            {
+              "n": 5,
+              "term": "une sortie de secours",
+              "x": 0.786,
+              "y": 0.273
+            },
+            {
+              "n": 6,
+              "term": "une affiche",
+              "x": 0.927,
+              "y": 0.355
+            },
+            {
+              "n": 7,
+              "term": "une boîte",
+              "x": 0.75,
+              "y": 0.786
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s1",
+      "title": "Le Festival Lumière",
+      "text": "Le Festival Lumière existe depuis 2009. Chaque année en octobre, le public vient à Lyon pour voir des films classiques, souvent restaurés. Le festival est organisé par l'Institut Lumière, dans le quartier de Monplaisir, où se trouvait l'usine de la famille Lumière."
+    },
+    {
+      "id": "f2",
+      "scene": "s2",
+      "title": "Le Cinématographe",
+      "text": "La famille Lumière fabriquait des plaques photographiques dans son usine de Lyon. En 1895, les frères Louis et Auguste Lumière ont présenté le Cinématographe : cet appareil pouvait filmer, mais aussi projeter les images sur un écran."
+    },
+    {
+      "id": "f3",
+      "scene": "s3",
+      "title": "Un film très court",
+      "text": "« La Sortie de l'usine Lumière à Lyon » dure moins d'une minute. Le film n'a pas de son : le cinéma parlant est arrivé dans les salles seulement à la fin des années 1920."
+    },
+    {
+      "id": "f4",
+      "scene": "s4",
+      "title": "28 décembre 1895",
+      "text": "Ce jour-là, à Paris, au Grand Café, dans le Salon indien, a eu lieu la première projection publique et payante du Cinématographe Lumière. Elle a été organisée par Antoine Lumière, le père de Louis et d'Auguste. Au programme : une dizaine de films très courts, dont « La Sortie de l'usine Lumière à Lyon »."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "la bénévole",
+      "le projectionniste",
+      "la cabine",
+      "la bobine",
+      "la séance",
+      "complet",
+      "disparaître",
+      "l'usine",
+      "l'ouvrier",
+      "la sortie"
+    ],
+    "items": [
+      {
+        "term": "la bénévole",
+        "translation": "die Freiwillige (ehrenamtliche Helferin)",
+        "pos": "noun",
+        "note": "m.: le bénévole"
+      },
+      {
+        "term": "avoir lieu",
+        "translation": "stattfinden",
+        "pos": "phrase",
+        "forms": "a lieu, a eu lieu"
+      },
+      {
+        "term": "le projectionniste",
+        "translation": "der Filmvorführer",
+        "pos": "noun",
+        "note": "f.: la projectionniste"
+      },
+      {
+        "term": "la cabine",
+        "translation": "die Kabine; hier: der Vorführraum",
+        "pos": "noun",
+        "note": "la cabine de projection"
+      },
+      {
+        "term": "l'usine",
+        "translation": "die Fabrik",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "l'ouvrier",
+        "translation": "der Arbeiter",
+        "pos": "noun",
+        "plural": "les ouvriers",
+        "note": "m.",
+        "forms": "f.: l'ouvrière"
+      },
+      {
+        "term": "passer",
+        "translation": "laufen (Film), gezeigt werden",
+        "pos": "verb",
+        "note": "un film passe = ein Film läuft"
+      },
+      {
+        "term": "la séance",
+        "translation": "die Vorstellung (im Kino)",
+        "pos": "noun"
+      },
+      {
+        "term": "complet",
+        "translation": "ausverkauft; voll",
+        "pos": "adjective",
+        "note": "f.: complète"
+      },
+      {
+        "term": "la bobine",
+        "translation": "die Filmrolle, die Spule",
+        "pos": "noun"
+      },
+      {
+        "term": "la boîte",
+        "translation": "die Dose, die Schachtel",
+        "pos": "noun"
+      },
+      {
+        "term": "dessus",
+        "translation": "darauf, obendrauf",
+        "pos": "adverb"
+      },
+      {
+        "term": "disparaître",
+        "translation": "verschwinden",
+        "pos": "verb",
+        "forms": "disparaît, a disparu"
+      },
+      {
+        "term": "crier",
+        "translation": "rufen, schreien",
+        "pos": "verb",
+        "scene": "s2"
+      },
+      {
+        "term": "le couloir",
+        "translation": "der Flur, der Gang",
+        "pos": "noun"
+      },
+      {
+        "term": "la responsable",
+        "translation": "die Leiterin, die Verantwortliche",
+        "pos": "noun",
+        "note": "m.: le responsable"
+      },
+      {
+        "term": "tout à l'heure",
+        "translation": "vorhin; gleich",
+        "pos": "phrase"
+      },
+      {
+        "term": "ranger",
+        "translation": "aufräumen",
+        "pos": "verb",
+        "note": "Imparfait: je rangeais"
+      },
+      {
+        "term": "sonner",
+        "translation": "klingeln",
+        "pos": "verb"
+      },
+      {
+        "term": "l'imprimerie",
+        "translation": "die Druckerei",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "le portable",
+        "translation": "das Handy",
+        "pos": "noun"
+      },
+      {
+        "term": "le programme",
+        "translation": "das Programm; das Programmheft",
+        "pos": "noun"
+      },
+      {
+        "term": "vide",
+        "translation": "leer",
+        "pos": "adjective"
+      },
+      {
+        "term": "le titre",
+        "translation": "der Titel",
+        "pos": "noun"
+      },
+      {
+        "term": "quitter",
+        "translation": "verlassen",
+        "pos": "verb"
+      },
+      {
+        "term": "courir",
+        "translation": "laufen, rennen",
+        "pos": "verb",
+        "forms": "court, a couru"
+      },
+      {
+        "term": "en bas",
+        "translation": "unten",
+        "pos": "phrase"
+      },
+      {
+        "term": "allumer",
+        "translation": "einschalten, anmachen (Licht)",
+        "pos": "verb",
+        "note": "venir de + Infinitiv = gerade etwas getan haben"
+      },
+      {
+        "term": "par terre",
+        "translation": "auf dem Boden",
+        "pos": "phrase"
+      },
+      {
+        "term": "la sortie de secours",
+        "translation": "der Notausgang",
+        "pos": "noun",
+        "plural": "les sorties de secours"
+      },
+      {
+        "term": "descendre",
+        "translation": "hinuntergehen",
+        "pos": "verb",
+        "forms": "descend, est descendu"
+      },
+      {
+        "term": "dedans",
+        "translation": "darin, drinnen",
+        "pos": "adverb"
+      },
+      {
+        "term": "revenir",
+        "translation": "zurückkommen",
+        "pos": "verb",
+        "forms": "revient, est revenu"
+      },
+      {
+        "term": "en entier",
+        "translation": "ganz, vollständig",
+        "pos": "phrase"
+      },
+      {
+        "term": "rire",
+        "translation": "lachen",
+        "pos": "verb",
+        "note": "Passé composé: il a ri",
+        "scene": "s4"
+      },
+      {
+        "term": "le spectateur",
+        "translation": "der Zuschauer",
+        "pos": "noun",
+        "note": "f.: la spectatrice"
+      },
+      {
+        "term": "s'éteindre",
+        "translation": "ausgehen (Licht)",
+        "pos": "verb",
+        "note": "la lumière s'est éteinte",
+        "scene": "s4"
+      },
+      {
+        "term": "démarrer",
+        "translation": "anlaufen, starten",
+        "pos": "verb"
+      },
+      {
+        "term": "l'écran",
+        "translation": "die Leinwand",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "sourire",
+        "translation": "lächeln",
+        "pos": "verb",
+        "forms": "sourit, a souri"
+      },
+      {
+        "term": "le carnet",
+        "translation": "das Notizbuch",
+        "pos": "noun"
+      },
+      {
+        "term": "sauf",
+        "translation": "außer",
+        "pos": "preposition"
+      },
+      {
+        "term": "le projecteur",
+        "translation": "der Projektor",
+        "pos": "noun"
+      },
+      {
+        "term": "le fauteuil",
+        "translation": "der Kinosessel",
+        "pos": "noun"
+      },
+      {
+        "term": "l'affiche",
+        "translation": "das Plakat",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "la sortie",
+        "translation": "der Ausgang; das Hinausgehen",
+        "pos": "noun",
+        "note": "von sortir"
+      },
+      {
+        "term": "la projection",
+        "translation": "die Vorführung, die Projektion",
+        "pos": "noun"
+      },
+      {
+        "term": "la réservation",
+        "translation": "die Reservierung",
+        "pos": "noun"
+      },
+      {
+        "term": "l'arrivée",
+        "translation": "die Ankunft",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "l'inventeur",
+        "translation": "der Erfinder",
+        "pos": "noun",
+        "note": "m.",
+        "forms": "f.: l'inventrice"
+      },
+      {
+        "term": "le visiteur",
+        "translation": "der Besucher",
+        "pos": "noun",
+        "note": "f.: la visiteuse"
+      },
+      {
+        "term": "le/la journaliste",
+        "translation": "der Journalist, die Journalistin",
+        "pos": "noun"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Passé composé oder Imparfait?",
+      "explanation": "Beide Zeiten erzählen Vergangenes. Das Imparfait malt den Hintergrund: Zustände, Beschreibungen und Handlungen, die gerade im Gang waren. Das Passé composé erzählt die einzelnen Ereignisse, die die Geschichte weiterbringen – oft nach soudain, tout à coup oder mit einer genauen Uhrzeit.",
+      "rule": "Imparfait: nous-Stamm + -ais, -ais, -ait, -ions, -iez, -aient · Passé composé: avoir/être + participe passé",
+      "table": {
+        "head": [
+          "",
+          "Imparfait – Hintergrund",
+          "Passé composé – Ereignis"
+        ],
+        "rows": [
+          [
+            "Wofür?",
+            "Zustand, Beschreibung, laufende Handlung",
+            "einzelnes, abgeschlossenes Ereignis"
+          ],
+          [
+            "Signalwörter",
+            "pendant que, d'habitude, toujours",
+            "soudain, tout à coup, à 20 heures"
+          ],
+          [
+            "Zusammen",
+            "Karim préparait le projecteur …",
+            "… quand le téléphone a sonné."
+          ],
+          [
+            "Bildung",
+            "ranger → nous rangeons → je rangeais",
+            "voir → j'ai vu · partir → elle est partie"
+          ]
+        ]
+      },
+      "examples": [
+        "Ce jeudi-là, Paula aidait Karim dans la cabine.",
+        "Paula a cherché partout."
+      ],
+      "scene": "s3"
+    },
+    {
+      "id": "g2",
+      "name": "Nomen mit Endungen",
+      "explanation": "Viele französische Nomen bestehen aus einem Verb (ohne -er, -ir oder -re) oder einem Nomen und einer Endung. Die Endung verrät oft das Genus: Nomen auf -tion und -ée sind fast immer weiblich (Ausnahmen: le musée, le lycée), Nomen auf -ie meistens auch. Personen auf -eur sind männlich (weiblich oft -euse oder -rice); -iste passt für Männer und Frauen. Vor einem Vokal oder stummen h wird le/la zu l' – dann hörst du das Genus nicht. Lern solche Nomen mit un oder une: une idée, un hôtel.",
+      "rule": "-tion, -ée, -ie → meist une · -eur (Person) → un · -iste → un/une",
+      "table": {
+        "head": [
+          "Wort",
+          "Endung",
+          "Nomen"
+        ],
+        "rows": [
+          [
+            "entrer",
+            "-ée",
+            "une entrée"
+          ],
+          [
+            "informer",
+            "-ation",
+            "une information"
+          ],
+          [
+            "vendre",
+            "-eur",
+            "un vendeur"
+          ],
+          [
+            "le piano",
+            "-iste",
+            "un/une pianiste"
+          ]
+        ]
+      },
+      "examples": [
+        "À l'entrée, un vendeur propose le programme du festival."
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Wörter für den Festivalabend",
+      "instruction": "Ordne jedem französischen Wort die deutsche Bedeutung zu. Schreib den Buchstaben in das Kästchen. Zwei Bedeutungen bleiben übrig.",
+      "pairs": [
+        {
+          "left": "la bénévole",
+          "right": "die Freiwillige"
+        },
+        {
+          "left": "le projectionniste",
+          "right": "der Filmvorführer"
+        },
+        {
+          "left": "la cabine",
+          "right": "der Vorführraum"
+        },
+        {
+          "left": "la bobine",
+          "right": "die Filmrolle"
+        },
+        {
+          "left": "la séance",
+          "right": "die Vorstellung"
+        },
+        {
+          "left": "complet",
+          "right": "ausverkauft"
+        },
+        {
+          "left": "disparaître",
+          "right": "verschwinden"
+        },
+        {
+          "left": "l'usine",
+          "right": "die Fabrik"
+        },
+        {
+          "left": "l'ouvrier",
+          "right": "der Arbeiter"
+        },
+        {
+          "left": "la sortie",
+          "right": "der Ausgang"
+        }
+      ],
+      "extra": [
+        "die Leinwand",
+        "die Eintrittskarte"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "questions",
+      "stage": "warm_up",
+      "title": "Was ist passiert?",
+      "instruction": "Die Geschichte heißt „La bobine disparue“. Zwei Stunden vor der Vorstellung ist die Filmrolle weg. Was glaubst du: Was ist passiert? Schreib eine Idee auf – auf Deutsch oder auf Französisch. Am Ende prüfst du, ob du recht hattest.",
+      "items": [
+        {
+          "question": "Mon idée :",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Ein Nachmittag im Vorführraum",
+      "instruction": "Richtig oder falsch? Kreuze an und verbessere die falschen Sätze.",
+      "items": [
+        {
+          "statement": "Paula vient de Lyon.",
+          "answer": false,
+          "correction": "Paula vient de Cologne."
+        },
+        {
+          "statement": "Le Festival Lumière a lieu tous les ans, en automne.",
+          "answer": true
+        },
+        {
+          "statement": "Autrefois, l'usine de la famille Lumière se trouvait dans la rue de l'Institut Lumière.",
+          "answer": true
+        },
+        {
+          "statement": "Pour la séance de 20 heures, il reste encore beaucoup de places.",
+          "answer": false,
+          "correction": "La séance de 20 heures est complète."
+        },
+        {
+          "statement": "Sur la boîte, Karim écrit le titre entier du film.",
+          "answer": false,
+          "correction": "Il écrit seulement « SORTIE »."
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "Die Dose ist weg!",
+      "instruction": "Kreuze die richtige Antwort an.",
+      "items": [
+        {
+          "question": "Pourquoi Karim crie-t-il ?",
+          "options": [
+            "Parce que la boîte avec le film n'est plus là.",
+            "Parce que la séance est annulée.",
+            "Parce que le projecteur ne marche plus."
+          ],
+          "answer": "Parce que la boîte avec le film n'est plus là."
+        },
+        {
+          "question": "Où Paula cherche-t-elle d'abord la boîte ?",
+          "options": [
+            "Dans la cabine et dans le couloir.",
+            "Dans la salle, près de l'écran.",
+            "Dans le bureau de Madame Faure."
+          ],
+          "answer": "Dans la cabine et dans le couloir."
+        },
+        {
+          "question": "Qui a vu Théo avec une boîte ?",
+          "options": [
+            "Karim",
+            "Madame Faure",
+            "Paula"
+          ],
+          "answer": "Madame Faure"
+        },
+        {
+          "question": "Pourquoi est-ce que personne ne peut parler à Théo ?",
+          "options": [
+            "Il a laissé son téléphone dans la cabine.",
+            "Il est rentré chez lui, malade.",
+            "Il travaille à la caisse et n'entend rien."
+          ],
+          "answer": "Il a laissé son téléphone dans la cabine."
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "word_building",
+      "stage": "form",
+      "scene": "s2",
+      "grammar": "g2",
+      "title": "Neue Nomen aus bekannten Wörtern",
+      "instruction": "Bilde aus Wort und Endung ein Nomen und schreib es mit un oder une. Passen beide Artikel, schreib beide: un/une …",
+      "items": [
+        {
+          "parts": [
+            "réserver",
+            "-ation"
+          ],
+          "answer": "une réservation"
+        },
+        {
+          "parts": [
+            "sortir",
+            "-ie"
+          ],
+          "answer": "une sortie"
+        },
+        {
+          "parts": [
+            "inventer",
+            "-eur"
+          ],
+          "answer": "un inventeur"
+        },
+        {
+          "parts": [
+            "arriver",
+            "-ée"
+          ],
+          "answer": "une arrivée"
+        },
+        {
+          "parts": [
+            "le journal",
+            "-iste"
+          ],
+          "answer": "un/une journaliste"
+        },
+        {
+          "parts": [
+            "visiter",
+            "-eur"
+          ],
+          "answer": "un visiteur"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "questions",
+      "stage": "detail",
+      "scene": "s3",
+      "title": "Ein Wort, zwei Bedeutungen",
+      "instruction": "Antworte auf Französisch in ganzen Sätzen.",
+      "items": [
+        {
+          "question": "Que veut dire le mot « SORTIE » pour Karim ? Et pour Théo ?",
+          "answer": "Pour Karim, c'est le titre du film « La Sortie de l'usine Lumière à Lyon ». Pour Théo, c'est la porte pour quitter la salle.",
+          "lines": 3
+        },
+        {
+          "question": "Pourquoi Paula court-elle à la fenêtre de la cabine ?",
+          "answer": "Elle pense que Théo a porté la boîte à la sortie de la salle. Depuis la cabine, elle peut voir toute la salle.",
+          "lines": 2
+        },
+        {
+          "question": "Où Paula trouve-t-elle la boîte ?",
+          "answer": "Dans la salle, par terre, à côté de la sortie de secours.",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": [
+        "s2",
+        "s3",
+        "s4"
+      ],
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Die Festivalzeitung berichtet",
+      "instruction": "Am nächsten Tag erzählt die Festivalzeitung, was passiert ist. Setz die Verben in Klammern ins Imparfait oder ins Passé composé.",
+      "text": "Jeudi, vers 18 heures, tout {{était::être}} encore calme dans la cabine de projection. Soudain, le projectionniste {{a remarqué::remarquer}} que la bobine n'était plus là ! Une jeune bénévole {{cherchait::chercher}} la boîte dans le couloir quand la responsable des bénévoles {{est arrivée::arriver}}. Tout à coup, la bénévole {{a compris::comprendre}} : le mot SORTIE avait deux sens ! À 20 heures précises, la séance {{a commencé::commencer}}. Dans la salle, les spectateurs ne {{savaient::savoir}} rien de cette aventure."
+    },
+    {
+      "id": "t8",
+      "kind": "order_events",
+      "stage": "gist",
+      "title": "Was ist wann passiert?",
+      "instruction": "Bring die Ereignisse in die Reihenfolge der Geschichte. Schreib 1, 2, 3 … in die Kästchen.",
+      "events": [
+        "Karim écrit « SORTIE » sur la boîte.",
+        "Karim remarque que la boîte a disparu.",
+        "Madame Faure raconte qu'elle a vu Théo avec une boîte.",
+        "Le portable de Théo sonne dans la cabine.",
+        "Paula trouve la boîte à côté de la sortie de secours.",
+        "Théo explique son erreur.",
+        "La lumière s'éteint dans la salle."
+      ],
+      "scene": [
+        "s1",
+        "s2",
+        "s3",
+        "s4"
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s4",
+      "hint": "word_bank",
+      "title": "Am nächsten Morgen",
+      "instruction": "Wie geht die Geschichte am nächsten Tag weiter? Ergänze die Lücken mit Wörtern aus dem Kasten. Drei Wörter bleiben übrig.",
+      "text": "Le lendemain matin, Paula est revenue à l'Institut Lumière. Madame Faure l'attendait avec des croissants : « Hier soir, le public a adoré la {{séance}} ! Et ce soir, c'est encore {{complet}}. » Dans la {{cabine}}, Karim a mis la {{bobine}} du jour sur le projecteur. Cette fois, il avait écrit le titre en entier sur la boîte. Théo, lui, montrait fièrement la {{sortie}} de secours à tout le monde. Paula a souri. Être {{bénévole}} au festival, c'était vraiment le plus beau des cours de français !",
+      "distractors": [
+        "table",
+        "rue",
+        "cassé"
+      ]
+    },
+    {
+      "id": "t10",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Um 20 Uhr im Vorführraum",
+      "instruction": "Das sieht Paula um 20 Uhr. Schreib das französische Wort zu jeder Nummer – mit un oder une.",
+      "bank": true
+    },
+    {
+      "id": "t11",
+      "kind": "questions",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Wo ist was?",
+      "instruction": "Schau dir das Bild an und antworte in ganzen Sätzen. Benutze sur, sous, à gauche de oder à droite de.",
+      "items": [
+        {
+          "question": "Où est l'affiche ?",
+          "answer": "Elle est sur le mur, à droite de la fenêtre.",
+          "lines": 1
+        },
+        {
+          "question": "Où est la boîte ?",
+          "answer": "Elle est sur la table, sous la fenêtre.",
+          "lines": 1
+        },
+        {
+          "question": "Où est la sortie de secours ?",
+          "answer": "Elle est à droite de l'écran.",
+          "lines": 1
+        },
+        {
+          "question": "La séance est-elle complète ? Comment le vois-tu ?",
+          "answer": "Oui, elle est complète : tous les fauteuils sont occupés.",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Der Blog der Freiwilligen",
+      "instruction": "Paula schreibt für den Blog der Festival-Freiwilligen, was sie am Donnerstag erlebt hat. Schreib ihren Beitrag auf Französisch, in der Ich-Form – mit Passé composé und Imparfait.",
+      "prompt": "Was ist um 18 Uhr passiert? Wie hat Paula die Filmrolle gefunden? Was ist um 20 Uhr passiert? Und was hat sie über das Wort „sortie“ gelernt?",
+      "starter": "Jeudi soir, au Festival Lumière, j'ai vécu une drôle d'aventure. À 18 heures, …",
+      "must_use": [
+        "la bobine",
+        "disparaître",
+        "le projectionniste",
+        "la séance",
+        "complet",
+        "la sortie"
+      ],
+      "min_words": 70,
+      "max_words": 110,
+      "lines": 12,
+      "model_answer": "Jeudi soir, au Festival Lumière, j'ai vécu une drôle d'aventure. À 18 heures, la bobine du film a disparu ! Karim, le projectionniste, était désespéré, car la séance de 20 heures était complète. J'ai cherché partout, mais je n'ai rien trouvé. Puis j'ai pensé au mot sur la boîte : SORTIE. Pour Karim, c'était le titre du film. Mais pour Théo, un nouveau bénévole, c'était la porte de la salle ! Par la fenêtre de la cabine, j'ai vu la boîte à côté de la sortie de secours. À 20 heures, les ouvriers de 1895 sont sortis de l'usine sur le grand écran. Maintenant, je sais : « sortie » a deux sens !"
+    },
+    {
+      "id": "t13",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Und du?",
+      "instruction": "Antworte auf Französisch in zwei bis drei Sätzen. Schau danach noch einmal auf deine Idee vom Anfang: Hattest du recht?",
+      "items": [
+        {
+          "question": "Tu préfères regarder un film au cinéma ou à la maison ? Pourquoi ?",
+          "lines": 3
+        },
+        {
+          "question": "Quel film aimerais-tu voir un jour sur grand écran ? Pourquoi ?",
+          "lines": 3
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "kind": "media_search",
+      "stage": "epilogue",
+      "title": "Karims Tipp",
+      "instruction": "„Schau dir den Film selbst an!“, sagt Karim. Such ihn im Internet – es gibt absichtlich keinen Link, denn die Suche auf Französisch gehört zur Aufgabe.",
+      "media": "video",
+      "queries": [
+        "La Sortie de l'usine Lumière à Lyon",
+        "premiers films Lumière 1895",
+        "Festival Lumière Lyon"
+      ],
+      "questions": [
+        "Combien de temps dure le film ?",
+        "Note trois choses que tu vois dans le film.",
+        "Regarde le programme du Festival Lumière : quel film aimerais-tu voir ?"
+      ]
+    }
+  ]
+}

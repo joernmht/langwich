@@ -1,0 +1,7 @@
+# The sdist ships what the tests need, the examples and the licences.
+include LICENSE README.md CLAUDE.md
+graft examples
+graft tests
+graft src/langwich/fonts
+graft src/langwich/schema
+global-exclude __pycache__ *.py[cod]

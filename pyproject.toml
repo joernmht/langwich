@@ -1,47 +1,87 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+# setuptools 77 reads the SPDX `license` expression and `license-files`.
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "langwich"
-version = "0.1.0"
-description = "Automated language learning worksheet generator for e-paper and print"
+# The version lives in src/langwich/__init__.py (__version__) only.
+dynamic = ["version"]
+description = "Story-driven language-learning worksheets for e-paper and print — written by any LLM, typeset by langwich"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE", "src/langwich/fonts/OFL-*.txt"]
 requires-python = ">=3.11"
 authors = [
-    {name = "langwich contributors"}
+    {name = "Jörn Maurischat"},
+    {name = "langwich contributors"},
 ]
+keywords = ["language learning", "worksheets", "e-paper", "LLM", "PDF"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Education",
 ]
 dependencies = [
-    "reportlab>=4.1",
-    "weasyprint>=61",
+    # 61-62 crash with current pydyf or lack CSS grid; 63-64 paginate and
+    # name embedded fonts differently. CI tests the floors (job "minimum").
+    "weasyprint>=65",
+    # 2.11: no protected-namespace warning, schema output as checked in.
+    "pydantic>=2.11,<3",
+    "pillow>=10",
+    # render/metrics.py measures text with the bundled fonts (WeasyPrint
+    # needs fontTools too; declared because langwich imports it directly).
+    "fonttools>=4.40",
 ]
 
 [project.optional-dependencies]
+# HEIC/HEIF photos (iPhone) for `langwich prompt --image` and rendering.
+heic = ["pillow-heif>=0.16"]
 dev = [
-    "pytest>=8.0",
+    "pytest>=8.0,<10",
     "pytest-cov>=4.1",
-    "ruff>=0.3",
-    "mypy>=1.8",
+    # capped: a new linter or type-checker release must not turn CI red
+    # without a code change (the ruff rule set is pinned below as well)
+    "ruff>=0.15,<0.17",
+    "mypy>=1.8,<2",
+    "pymupdf>=1.23",
 ]
+
+[project.urls]
+Homepage = "https://joernmht.github.io/langwich/"
+Documentation = "https://github.com/joernmht/langwich#readme"
+Source = "https://github.com/joernmht/langwich"
+Issues = "https://github.com/joernmht/langwich/issues"
+Schema = "https://joernmht.github.io/langwich/schema/langwich-3.json"
 
 [project.scripts]
 langwich = "langwich.cli:main"
 
+[tool.setuptools.dynamic]
+version = {attr = "langwich.__version__"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+langwich = ["fonts/*.ttf", "fonts/*.txt", "schema/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
 
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 
+[tool.ruff.lint]
+# An explicit rule set: ruff's defaults change between releases.
+select = ["E4", "E7", "E9", "F"]
+
 [tool.mypy]
 python_version = "3.11"
-strict = true
+files = ["src/langwich"]
+ignore_missing_imports = true

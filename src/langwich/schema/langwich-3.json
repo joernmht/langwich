@@ -1,0 +1,2532 @@
+{
+  "$defs": {
+    "Character": {
+      "additionalProperties": false,
+      "description": "A recurring person in the story (reused across a series).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "One line in the source language, e.g. '23, gap year in Vienna'.",
+          "title": "Role"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Character",
+      "type": "object"
+    },
+    "ChoiceItem": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "answer": {
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "options",
+        "answer"
+      ],
+      "title": "ChoiceItem",
+      "type": "object"
+    },
+    "ClozeTask": {
+      "additionalProperties": false,
+      "description": "Gap text. Mark every gap as ``{{answer}}``, ``{{answer|alternative}}``\nor ``{{answer::hint}}`` (the hint is required for ``base_form`` and\n``translation`` hints).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "cloze",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "One connected passage with gaps.",
+          "title": "Text"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Separate sentences with gaps.",
+          "title": "Items"
+        },
+        "hint": {
+          "default": "word_bank",
+          "enum": [
+            "word_bank",
+            "first_letter",
+            "base_form",
+            "translation",
+            "none"
+          ],
+          "title": "Hint",
+          "type": "string"
+        },
+        "distractors": {
+          "description": "Extra word-bank words.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Distractors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind"
+      ],
+      "title": "ClozeTask",
+      "type": "object"
+    },
+    "DialogueLine": {
+      "additionalProperties": false,
+      "properties": {
+        "speaker": {
+          "minLength": 1,
+          "title": "Speaker",
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "May contain {{gaps}}; null = learner writes it.",
+          "title": "Text"
+        },
+        "cue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language cue for a line the learner writes.",
+          "title": "Cue"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model answer for a line the learner writes.",
+          "title": "Answer"
+        }
+      },
+      "required": [
+        "speaker"
+      ],
+      "title": "DialogueLine",
+      "type": "object"
+    },
+    "DialogueTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "dialogue",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lines": {
+          "items": {
+            "$ref": "#/$defs/DialogueLine"
+          },
+          "minItems": 2,
+          "title": "Lines",
+          "type": "array"
+        },
+        "bank": {
+          "default": false,
+          "title": "Bank",
+          "type": "boolean"
+        },
+        "distractors": {
+          "description": "Extra word-bank words.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Distractors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "lines"
+      ],
+      "title": "DialogueTask",
+      "type": "object"
+    },
+    "DrawTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "draw",
+          "title": "Kind",
+          "type": "string"
+        },
+        "prompt": {
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "prompt"
+      ],
+      "title": "DrawTask",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "description": "A true, checkable fact shown as a 'Did you know?' sidebar.",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Short citation, e.g. 'ICO, 2023'.",
+          "title": "Source"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "GrammarPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "explanation": {
+          "description": "Source language, 1–3 sentences.",
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Compact pattern, e.g. 'werden + Partizip II'.",
+          "title": "Rule"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GrammarTable"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "examples": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Examples",
+          "type": "array"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "explanation"
+      ],
+      "title": "GrammarPoint",
+      "type": "object"
+    },
+    "GrammarTable": {
+      "additionalProperties": false,
+      "properties": {
+        "head": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Head",
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rows"
+      ],
+      "title": "GrammarTable",
+      "type": "object"
+    },
+    "Label": {
+      "additionalProperties": false,
+      "description": "A numbered object in a scene picture.",
+      "properties": {
+        "n": {
+          "description": "Marker number printed on the picture.",
+          "maximum": 30,
+          "minimum": 1,
+          "title": "N",
+          "type": "integer"
+        },
+        "term": {
+          "description": "Target-language answer, nouns with article.",
+          "minLength": 1,
+          "title": "Term",
+          "type": "string"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Marker position, 0 = left edge, 1 = right edge of the picture.",
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Marker position, 0 = top edge, 1 = bottom edge of the picture.",
+          "title": "Y"
+        }
+      },
+      "required": [
+        "n",
+        "term"
+      ],
+      "title": "Label",
+      "type": "object"
+    },
+    "LabelTask": {
+      "additionalProperties": false,
+      "description": "Name the numbered objects in a scene picture (``scene`` is required).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "title": "Scene",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "label",
+          "title": "Kind",
+          "type": "string"
+        },
+        "bank": {
+          "default": true,
+          "description": "Show the terms as a word bank.",
+          "title": "Bank",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "scene",
+        "kind"
+      ],
+      "title": "LabelTask",
+      "type": "object"
+    },
+    "MatchTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "match",
+          "title": "Kind",
+          "type": "string"
+        },
+        "pairs": {
+          "items": {
+            "$ref": "#/$defs/Pair"
+          },
+          "minItems": 2,
+          "title": "Pairs",
+          "type": "array"
+        },
+        "extra": {
+          "description": "Distractors for the right column.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Extra",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "pairs"
+      ],
+      "title": "MatchTask",
+      "type": "object"
+    },
+    "MediaSearchTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "media_search",
+          "title": "Kind",
+          "type": "string"
+        },
+        "media": {
+          "default": "video",
+          "enum": [
+            "video",
+            "article",
+            "podcast",
+            "image"
+          ],
+          "title": "Media",
+          "type": "string"
+        },
+        "queries": {
+          "description": "Target-language search terms.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Queries",
+          "type": "array"
+        },
+        "questions": {
+          "description": "What to find out or note.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "queries",
+        "questions"
+      ],
+      "title": "MediaSearchTask",
+      "type": "object"
+    },
+    "MultipleChoiceTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "multiple_choice",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ChoiceItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "MultipleChoiceTask",
+      "type": "object"
+    },
+    "OrderEventsTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "order_events",
+          "title": "Kind",
+          "type": "string"
+        },
+        "events": {
+          "description": "In the correct order; shown shuffled.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 3,
+          "title": "Events",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "events"
+      ],
+      "title": "OrderEventsTask",
+      "type": "object"
+    },
+    "Pair": {
+      "additionalProperties": false,
+      "properties": {
+        "left": {
+          "minLength": 1,
+          "title": "Left",
+          "type": "string"
+        },
+        "right": {
+          "minLength": 1,
+          "title": "Right",
+          "type": "string"
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "title": "Pair",
+      "type": "object"
+    },
+    "Picture": {
+      "additionalProperties": false,
+      "description": "The picture of a scene.\n\nProvide ``image`` (a local path or URL — e.g. the photo the story was\nbuilt from, or an open-access image), or ``svg`` (simple black line art\ndrawn by the LLM), or neither. ``prompt`` is an image-generation prompt\nfor later use; it is never printed on the learner's sheet.",
+      "properties": {
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        },
+        "svg": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A complete <svg>…</svg> element.",
+          "title": "Svg"
+        },
+        "credit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Attribution the image licence requires.",
+          "title": "Credit"
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Caption"
+        },
+        "prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image-generation prompt (not printed).",
+          "title": "Prompt"
+        },
+        "labels": {
+          "items": {
+            "$ref": "#/$defs/Label"
+          },
+          "title": "Labels",
+          "type": "array"
+        },
+        "numbers_in_image": {
+          "default": false,
+          "description": "True when the image itself already shows the marker numbers.",
+          "title": "Numbers In Image",
+          "type": "boolean"
+        }
+      },
+      "title": "Picture",
+      "type": "object"
+    },
+    "QuestionItem": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model answer for the answer key.",
+          "title": "Answer"
+        },
+        "lines": {
+          "default": 2,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Lines",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "question"
+      ],
+      "title": "QuestionItem",
+      "type": "object"
+    },
+    "QuestionsTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "questions",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/QuestionItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "QuestionsTask",
+      "type": "object"
+    },
+    "Scene": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "heading": {
+          "description": "Short target-language heading.",
+          "minLength": 1,
+          "title": "Heading",
+          "type": "string"
+        },
+        "beat": {
+          "anyOf": [
+            {
+              "enum": [
+                "setup",
+                "development",
+                "complication",
+                "climax",
+                "resolution",
+                "epilogue"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Beat"
+        },
+        "text": {
+          "description": "Target-language text; blank lines split paragraphs.",
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "translation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language translation.",
+          "title": "Translation"
+        },
+        "picture": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Picture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "heading",
+        "text"
+      ],
+      "title": "Scene",
+      "type": "object"
+    },
+    "Series": {
+      "additionalProperties": false,
+      "description": "Present when the worksheet is one episode of a continuing story.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "episode": {
+          "minimum": 1,
+          "title": "Episode",
+          "type": "integer"
+        },
+        "previously": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "'Previously…' recap (episode ≥ 2).",
+          "title": "Previously"
+        },
+        "next": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Teaser for the next episode.",
+          "title": "Next"
+        },
+        "review": {
+          "description": "Target words from earlier episodes to recycle.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Review",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "episode"
+      ],
+      "title": "Series",
+      "type": "object"
+    },
+    "Story": {
+      "additionalProperties": false,
+      "properties": {
+        "logline": {
+          "description": "One source-language sentence: who wants what.",
+          "minLength": 1,
+          "title": "Logline",
+          "type": "string"
+        },
+        "setting": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setting"
+        },
+        "characters": {
+          "items": {
+            "$ref": "#/$defs/Character"
+          },
+          "title": "Characters",
+          "type": "array"
+        },
+        "scenes": {
+          "items": {
+            "$ref": "#/$defs/Scene"
+          },
+          "minItems": 1,
+          "title": "Scenes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "logline",
+        "scenes"
+      ],
+      "title": "Story",
+      "type": "object"
+    },
+    "TransformItem": {
+      "additionalProperties": false,
+      "properties": {
+        "prompt": {
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "cue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cue"
+        },
+        "answer": {
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "answer"
+      ],
+      "title": "TransformItem",
+      "type": "object"
+    },
+    "TransformTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "transform",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/TransformItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "TransformTask",
+      "type": "object"
+    },
+    "TrueFalseItem": {
+      "additionalProperties": false,
+      "properties": {
+        "statement": {
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "boolean"
+        },
+        "correction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The true version, for false statements.",
+          "title": "Correction"
+        }
+      },
+      "required": [
+        "statement",
+        "answer"
+      ],
+      "title": "TrueFalseItem",
+      "type": "object"
+    },
+    "TrueFalseTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "true_false",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/TrueFalseItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "TrueFalseTask",
+      "type": "object"
+    },
+    "VocabItem": {
+      "additionalProperties": false,
+      "properties": {
+        "term": {
+          "description": "Target language; nouns with article.",
+          "minLength": 1,
+          "title": "Term",
+          "type": "string"
+        },
+        "translation": {
+          "minLength": 1,
+          "title": "Translation",
+          "type": "string"
+        },
+        "pos": {
+          "default": "other",
+          "title": "Pos",
+          "type": "string"
+        },
+        "plural": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plural"
+        },
+        "forms": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Irregular forms, e.g. 'wächst, wuchs, ist gewachsen'.",
+          "title": "Forms"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene"
+        }
+      },
+      "required": [
+        "term",
+        "translation"
+      ],
+      "title": "VocabItem",
+      "type": "object"
+    },
+    "Vocabulary": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "description": "The 6–15 key terms the tasks practise; each must also appear in items.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Target",
+          "type": "array"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/VocabItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "Vocabulary",
+      "type": "object"
+    },
+    "WordBuildingItem": {
+      "additionalProperties": false,
+      "properties": {
+        "parts": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Parts",
+          "type": "array"
+        },
+        "answer": {
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parts",
+        "answer"
+      ],
+      "title": "WordBuildingItem",
+      "type": "object"
+    },
+    "WordBuildingTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "word_building",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/WordBuildingItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "WordBuildingTask",
+      "type": "object"
+    },
+    "WritingTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "writing",
+          "title": "Kind",
+          "type": "string"
+        },
+        "prompt": {
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "starter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Starter"
+        },
+        "must_use": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Must Use",
+          "type": "array"
+        },
+        "min_words": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Words"
+        },
+        "max_words": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Words"
+        },
+        "lines": {
+          "anyOf": [
+            {
+              "maximum": 40,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lines"
+        },
+        "model_answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Answer"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "prompt"
+      ],
+      "title": "WritingTask",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "langwich/3",
+      "title": "Schema",
+      "type": "string"
+    },
+    "title": {
+      "description": "Target-language title.",
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "standfirst": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Source-language intro line.",
+      "title": "Standfirst"
+    },
+    "source_lang": {
+      "description": "The learner's language (ISO 639-1).",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$",
+      "title": "Source Lang",
+      "type": "string"
+    },
+    "target_lang": {
+      "description": "The language being learned.",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$",
+      "title": "Target Lang",
+      "type": "string"
+    },
+    "cefr_level": {
+      "enum": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "title": "Cefr Level",
+      "type": "string"
+    },
+    "topic": {
+      "minLength": 1,
+      "title": "Topic",
+      "type": "string"
+    },
+    "frame": {
+      "anyOf": [
+        {
+          "enum": [
+            "episode",
+            "reportage",
+            "case_study",
+            "diary",
+            "letters",
+            "mystery",
+            "dialogue",
+            "other"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Frame"
+    },
+    "series": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Series"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "story": {
+      "$ref": "#/$defs/Story"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/Fact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "vocabulary": {
+      "$ref": "#/$defs/Vocabulary"
+    },
+    "grammar": {
+      "items": {
+        "$ref": "#/$defs/GrammarPoint"
+      },
+      "title": "Grammar",
+      "type": "array"
+    },
+    "tasks": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "cloze": "#/$defs/ClozeTask",
+            "dialogue": "#/$defs/DialogueTask",
+            "draw": "#/$defs/DrawTask",
+            "label": "#/$defs/LabelTask",
+            "match": "#/$defs/MatchTask",
+            "media_search": "#/$defs/MediaSearchTask",
+            "multiple_choice": "#/$defs/MultipleChoiceTask",
+            "order_events": "#/$defs/OrderEventsTask",
+            "questions": "#/$defs/QuestionsTask",
+            "transform": "#/$defs/TransformTask",
+            "true_false": "#/$defs/TrueFalseTask",
+            "word_building": "#/$defs/WordBuildingTask",
+            "writing": "#/$defs/WritingTask"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/MatchTask"
+          },
+          {
+            "$ref": "#/$defs/TrueFalseTask"
+          },
+          {
+            "$ref": "#/$defs/MultipleChoiceTask"
+          },
+          {
+            "$ref": "#/$defs/OrderEventsTask"
+          },
+          {
+            "$ref": "#/$defs/QuestionsTask"
+          },
+          {
+            "$ref": "#/$defs/ClozeTask"
+          },
+          {
+            "$ref": "#/$defs/TransformTask"
+          },
+          {
+            "$ref": "#/$defs/WordBuildingTask"
+          },
+          {
+            "$ref": "#/$defs/LabelTask"
+          },
+          {
+            "$ref": "#/$defs/WritingTask"
+          },
+          {
+            "$ref": "#/$defs/DialogueTask"
+          },
+          {
+            "$ref": "#/$defs/MediaSearchTask"
+          },
+          {
+            "$ref": "#/$defs/DrawTask"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Tasks",
+      "type": "array"
+    },
+    "ui": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Overrides for page furniture strings (for languages without built-in labels).",
+      "title": "Ui",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "title",
+    "source_lang",
+    "target_lang",
+    "cefr_level",
+    "topic",
+    "story",
+    "vocabulary",
+    "tasks"
+  ],
+  "title": "langwich worksheet (langwich/3)",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://joernmht.github.io/langwich/schema/langwich-3.json"
+}
