@@ -22,9 +22,13 @@ is learning the *target* language):
 
 from __future__ import annotations
 
+import difflib
 import json
+import re
+import types
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
 from pydantic import (
     BaseModel,
@@ -274,7 +278,14 @@ class ChoiceItem(_Model):
     @model_validator(mode="after")
     def _answer_in_options(self) -> ChoiceItem:
         if self.answer not in self.options:
-            raise ValueError(f"answer {self.answer!r} is not one of the options")
+            options = ", ".join(repr(o) for o in self.options)
+            same = [o for o in self.options if o.casefold() == self.answer.casefold()]
+            close = same or difflib.get_close_matches(self.answer, self.options, n=1, cutoff=0.6)
+            guess = f" — did you mean {close[0]!r}?" if close else ""
+            raise ValueError(
+                f"answer {self.answer!r} is not one of the options ({options}); copy the right "
+                f"option exactly, letter for letter{guess}"
+            )
         if len({o.casefold() for o in self.options}) != len(self.options):
             raise ValueError("options must be distinct")
         return self
@@ -445,14 +456,48 @@ class Worksheet(_Model):
 # Loading
 # ---------------------------------------------------------------------------
 
+#: What the authoring prompt tells an LLM to reply when it cannot see the
+#: attached picture. A file that holds only this is not a worksheet, and a
+#: repair prompt would only make a model without the picture invent one.
+NO_PICTURE_SENTINEL = "NO PICTURE ATTACHED"
+
+
+@dataclass(frozen=True)
+class LoadNote:
+    """A repair the lenient loader made while reading a file.
+
+    ``code`` is ``'wrapped-json'`` (text or a Markdown fence around the JSON
+    object was ignored) or ``'normalized'`` (a known LLM quirk such as
+    ``"kind": "multiple-choice"`` was read as the value the contract
+    defines). ``langwich validate`` reports each note as a warning, so the
+    LLM learns to write the file exactly.
+    """
+
+    code: str
+    where: str
+    message: str
+
 
 class ContractError(Exception):
     """The input does not match the contract. ``problems`` holds
-    ``(location, message)`` pairs, locations in JSON-pointer style."""
+    ``(location, message)`` pairs, locations in JSON-pointer style.
 
-    def __init__(self, problems: list[tuple[str, str]], hint: str | None = None):
+    ``code`` is ``'contract'``, or ``'no-picture-attached'`` when the file is
+    the prompt's :data:`NO_PICTURE_SENTINEL` reply. ``notes`` are the repairs
+    the lenient loader made before the problem was found."""
+
+    def __init__(
+        self,
+        problems: list[tuple[str, str]],
+        hint: str | None = None,
+        *,
+        code: str = "contract",
+        notes: list[LoadNote] | None = None,
+    ):
         self.problems = problems
         self.hint = hint
+        self.code = code
+        self.notes: list[LoadNote] = list(notes or [])
         lines = [f"{loc or '/'}: {msg}" for loc, msg in problems]
         if hint:
             lines.append(hint)
@@ -466,32 +511,351 @@ LEGACY_HINT = (
     "to turn it into a langwich/3 worksheet."
 )
 
+NO_PICTURE_MESSAGE = (
+    f"the file contains only the reply '{NO_PICTURE_SENTINEL}': the LLM could not see the "
+    "picture the prompt refers to, so it wrote no worksheet. Attach the image to a model "
+    "that accepts pictures and ask again, or make the prompt without --image."
+)
+
+#: Kind names LLMs use instead of the contract's (after lower-casing and
+#: turning spaces and hyphens into underscores).
+KIND_ALIASES: dict[str, str] = {
+    "mcq": "multiple_choice",
+    "multiplechoice": "multiple_choice",
+    "multiple_choice_question": "multiple_choice",
+    "multiple_choice_questions": "multiple_choice",
+    "fill_in_the_blank": "cloze",
+    "fill_in_the_blanks": "cloze",
+    "fill_in_blanks": "cloze",
+    "fill_blanks": "cloze",
+    "fill_the_gaps": "cloze",
+    "fill_in_the_gaps": "cloze",
+    "gap_fill": "cloze",
+    "gapfill": "cloze",
+    "true_or_false": "true_false",
+    "truefalse": "true_false",
+    "matching": "match",
+    "ordering": "order_events",
+    "order": "order_events",
+    "sequencing": "order_events",
+    "short_answer": "questions",
+    "short_answers": "questions",
+    "open_questions": "questions",
+    "essay": "writing",
+    "drawing": "draw",
+    "labelling": "label",
+    "labeling": "label",
+    "dialog": "dialogue",
+    "transformation": "transform",
+    "word_formation": "word_building",
+}
+
+#: Language names an LLM may write instead of a language code.
+LANGUAGE_NAMES: dict[str, str] = {
+    "english": "en", "german": "de", "deutsch": "de", "french": "fr", "français": "fr",
+    "francais": "fr", "spanish": "es", "español": "es", "espanol": "es", "italian": "it",
+    "italiano": "it", "portuguese": "pt", "português": "pt", "portugues": "pt",
+    "dutch": "nl", "nederlands": "nl", "polish": "pl", "polski": "pl", "swedish": "sv",
+    "danish": "da", "norwegian": "no", "finnish": "fi", "czech": "cs", "turkish": "tr",
+    "greek": "el", "russian": "ru", "ukrainian": "uk", "arabic": "ar", "hebrew": "he",
+    "japanese": "ja", "chinese": "zh", "mandarin": "zh", "korean": "ko",
+}
+
+
+def canonical_kind(kind: str) -> str | None:
+    """The task kind an LLM meant (``'Multiple-Choice'`` -> ``'multiple_choice'``),
+    or ``None`` when the name is unknown."""
+    key = re.sub(r"[\s-]+", "_", kind.strip().lower())
+    if key in TASK_KINDS:
+        return key
+    return KIND_ALIASES.get(key)
+
+
+def _canonical_lang(code: str) -> str:
+    primary, sep, rest = code.strip().replace("_", "-").partition("-")
+    return primary.lower() + sep + rest
+
+
+def normalize_quirks(data: Any) -> list[LoadNote]:
+    """Fix known LLM quirks in raw worksheet data *in place*; one note per repair.
+
+    * task kinds written differently (``multiple-choice``, ``mcq``,
+      ``fill_in_the_blanks``, ``true_or_false``, ``matching``, ``ordering``,
+      ``short_answer``, ``essay``, ``drawing``, …);
+    * facts given as plain strings (read as ``{"text": …}``);
+    * a lower-case CEFR level (``b1``) and upper-case language codes (``DE``).
+
+    Nothing else is guessed: everything else is reported by the contract.
+    """
+    notes: list[LoadNote] = []
+    if not isinstance(data, dict):
+        return notes
+    level = data.get("cefr_level")
+    if isinstance(level, str) and level not in CEFR_LEVELS and level.strip().upper() in CEFR_LEVELS:
+        data["cefr_level"] = level.strip().upper()
+        notes.append(LoadNote(
+            "normalized", "/cefr_level",
+            f"cefr_level {level!r} was read as {data['cefr_level']!r}; write the level in "
+            "capitals: A1, A2, B1, B2, C1 or C2.",
+        ))
+    for key in ("source_lang", "target_lang"):
+        value = data.get(key)
+        if isinstance(value, str) and not re.fullmatch(_LANG_PATTERN, value):
+            fixed = _canonical_lang(value)
+            if re.fullmatch(_LANG_PATTERN, fixed):
+                data[key] = fixed
+                notes.append(LoadNote(
+                    "normalized", f"/{key}",
+                    f"{key} {value!r} was read as {fixed!r}; write language codes in lower "
+                    "case, e.g. 'en', 'de', 'pt-BR'.",
+                ))
+    facts = data.get("facts")
+    if isinstance(facts, list):
+        plain = [i for i, f in enumerate(facts) if isinstance(f, str) and f.strip()]
+        for i in plain:
+            facts[i] = {"text": facts[i].strip()}
+        if plain:
+            notes.append(LoadNote(
+                "normalized", "/facts",
+                f"{len(plain)} fact{'s were' if len(plain) != 1 else ' was'} written as a plain "
+                "string and read as {\"text\": …}; write every fact as an object, e.g. "
+                "{\"scene\": \"s1\", \"text\": \"…\", \"source\": \"…\"}.",
+            ))
+    tasks = data.get("tasks")
+    if isinstance(tasks, list):
+        for i, task in enumerate(tasks):
+            if not isinstance(task, dict) or not isinstance(task.get("kind"), str):
+                continue
+            kind = task["kind"]
+            canon = canonical_kind(kind)
+            if canon is not None and canon != kind:
+                task["kind"] = canon
+                notes.append(LoadNote(
+                    "normalized", f"/tasks/{i}/kind",
+                    f"the task kind {kind!r} was read as {canon!r}; write it exactly as "
+                    f"{canon!r}.",
+                ))
+    return notes
+
+
+# -- friendly contract messages ----------------------------------------------
+
 
 def _pointer(loc: tuple[Any, ...]) -> str:
     return "/" + "/".join(str(p) for p in loc) if loc else "/"
 
 
-def _discriminator_prefix_ok(loc: tuple[Any, ...]) -> tuple[Any, ...]:
-    # pydantic inserts the discriminator tag ('match', 'cloze', …) into the
-    # location of union members; drop it so pointers match the JSON.
-    out = []
+def _json_location(loc: tuple[Any, ...], data: Any) -> tuple[Any, ...]:
+    """The part of a pydantic error location that points into the input.
+
+    pydantic adds union member tags to locations (the task kind ``'match'``,
+    ``'str'``, ``'list[constrained-str]'``, ``'function-after[…]'``); they
+    are not keys of the file. A location part is kept when it is a key or
+    index of the data at that point (or the missing last field)."""
+    out: list[Any] = []
+    node: Any = data
     for i, part in enumerate(loc):
-        if (
-            isinstance(part, str)
-            and part in TASK_KINDS
-            and i >= 2
-            and loc[i - 2] == "tasks"
-        ):
-            continue
-        out.append(part)
+        last = i == len(loc) - 1
+        if isinstance(node, dict) and isinstance(part, str) and part in node:
+            out.append(part)
+            node = node[part]
+        elif isinstance(node, list) and isinstance(part, int) and 0 <= part < len(node):
+            out.append(part)
+            node = node[part]
+        elif last and isinstance(node, dict) and isinstance(part, str):
+            out.append(part)  # a missing field
+            node = None
+        # anything else is a union tag: drop it
     return tuple(out)
 
 
+def _unwrap(annotation: Any, value: Any) -> Any:
+    """The model class or ``list[…]`` an annotation stands for, given the value."""
+    origin = get_origin(annotation)
+    if origin is Annotated:
+        return _unwrap(get_args(annotation)[0], value)
+    if origin in (Union, types.UnionType):
+        members = [a for a in get_args(annotation) if a is not type(None)]
+        models: list[type[BaseModel]] = [
+            a for a in members if isinstance(a, type) and issubclass(a, BaseModel)
+        ]
+        if len(models) > 1:
+            kind = value.get("kind") if isinstance(value, dict) else None
+            return next(
+                (m for m in models
+                 if "kind" in m.model_fields and get_args(m.model_fields["kind"].annotation) == (kind,)),
+                None,
+            )
+        if models:
+            return models[0]
+        return next((a for a in members if get_origin(a) is list), None)
+    return annotation
+
+
+def _field(model: type[BaseModel], key: str) -> Any:
+    for name, info in model.model_fields.items():
+        if key in (name, info.alias):
+            return info
+    return None
+
+
+def _model_at(data: Any, parts: tuple[Any, ...]) -> Any:
+    """The model class (or ``list[…]``) that describes ``data`` at ``parts``."""
+    ann: Any = Worksheet
+    node: Any = data
+    for part in parts:
+        if isinstance(ann, type) and issubclass(ann, BaseModel):
+            info = _field(ann, part) if isinstance(part, str) else None
+            if info is None:
+                return None
+            node = node.get(part) if isinstance(node, dict) else None
+            ann = _unwrap(info.annotation, node)
+        elif get_origin(ann) is list and isinstance(part, int):
+            node = node[part] if isinstance(node, list) and part < len(node) else None
+            ann = _unwrap(get_args(ann)[0], node)
+        else:
+            return None
+    return ann
+
+
+def _field_names(model: type[BaseModel]) -> list[str]:
+    return [info.alias or name for name, info in model.model_fields.items()]
+
+
+def _did_you_mean(value: str, options: list[str]) -> str:
+    lowered = {o.casefold(): o for o in options}
+    if value.casefold() in lowered:
+        return f" (did you mean '{lowered[value.casefold()]}'?)"
+    close = difflib.get_close_matches(value, options, n=1, cutoff=0.6)
+    return f" (did you mean '{close[0]}'?)" if close else ""
+
+
+def _object_example(model: Any) -> str:
+    if not (isinstance(model, type) and issubclass(model, BaseModel)):
+        return ""
+    cls: type[BaseModel] = model
+    fields = cls.model_fields
+    required = [info.alias or name for name, info in fields.items() if info.is_required()]
+    if not required:
+        return ""
+    body = ", ".join(f'"{name}": …' for name in required)
+    return f", e.g. {{{body}}}"
+
+
+def _describe(value: Any) -> str:
+    if isinstance(value, str):
+        return "a plain string"
+    if isinstance(value, bool):
+        return "true/false"
+    if isinstance(value, (int, float)):
+        return "a number"
+    if isinstance(value, list):
+        return "a list"
+    if isinstance(value, dict):
+        return "an object {…}"
+    if value is None:
+        return "null"
+    return "a different type"
+
+
+_KINDS_TEXT = ", ".join(f"'{k}'" for k in TASK_KINDS)
+
+
+def _friendly(error: dict[str, Any], parts: tuple[Any, ...], data: Any) -> str:
+    """An LLM-actionable message for one pydantic error."""
+    kind = error["type"]
+    msg = str(error["msg"])
+    ctx = error.get("ctx") or {}
+    value = error.get("input")
+    name = next((p for p in reversed(parts) if isinstance(p, str)), "")
+    subject = f"each entry of '{name}'" if parts and isinstance(parts[-1], int) else f"'{name}'"
+    if kind == "missing":
+        parent = _model_at(data, parts[:-1])
+        info = _field(parent, name) if isinstance(parent, type) and issubclass(parent, BaseModel) else None
+        about = f" ({info.description})" if info is not None and info.description else ""
+        return f"the required field '{name}' is missing{about}; add it (see 'langwich schema')."
+    if kind == "extra_forbidden":
+        parent = _model_at(data, parts[:-1])
+        if isinstance(parent, type) and issubclass(parent, BaseModel):
+            fields = _field_names(parent)
+            return (
+                f"'{name}' is not a field here{_did_you_mean(name, fields)}; remove it, or move "
+                f"its content into one of the fields defined here: {', '.join(fields)}."
+            )
+        return f"'{name}' is not a field here; remove it (see 'langwich schema')."
+    if kind == "union_tag_not_found":
+        return f"every task needs a 'kind': one of {_KINDS_TEXT}."
+    if kind == "union_tag_invalid":
+        tag = str(ctx.get("tag", value))
+        guess = canonical_kind(tag)
+        hint = f" (did you mean '{guess}'?)" if guess else _did_you_mean(tag, list(TASK_KINDS))
+        return f"'{tag}' is not a task kind{hint}. Use one of {_KINDS_TEXT}."
+    if kind in ("model_type", "model_attributes_type", "dict_type"):
+        example = _object_example(_model_at(data, parts))
+        return f"this must be a JSON object {{…}}{example}, not {_describe(value)}."
+    if kind == "literal_error":
+        options = re.findall(r"'([^']*)'", str(ctx.get("expected", "")))
+        hint = _did_you_mean(str(value), options) if isinstance(value, str) else ""
+        return f"{value!r} is not allowed for '{name}'{hint}; use one of {', '.join(repr(o) for o in options)}."
+    if kind == "string_pattern_mismatch":
+        if name in ("source_lang", "target_lang") and isinstance(value, str):
+            code = LANGUAGE_NAMES.get(value.strip().casefold())
+            guess = f" (did you mean '{code}'?)" if code else ""
+            return (
+                f"{value!r} is not a language code{guess}; write an ISO 639-1 code such as "
+                "'en', 'de', 'fr', 'es', optionally with a region: 'pt-BR'."
+            )
+        if ctx.get("pattern") == _ID_PATTERN:
+            return (
+                f"{value!r} is not a valid id: use only letters, digits, '_' and '-', starting "
+                "with a letter or digit (e.g. 's1', 'lena', 'g-passive')."
+            )
+    if name == "scene" and kind in ("string_type", "list_type"):
+        return "'scene' must be a scene id such as \"s1\", or a list of scene ids such as [\"s1\", \"s2\"]."
+    if kind in ("string_type", "string_sub_type"):
+        return f"{subject} must be text in double quotes, not {_describe(value)}."
+    if kind == "list_type":
+        return f"{subject} must be a list [ … ], not {_describe(value)}."
+    if kind in ("bool_type", "bool_parsing"):
+        return f"{subject} must be true or false (without quotes)."
+    if kind in ("int_type", "int_parsing", "int_from_float"):
+        return f"{subject} must be a whole number."
+    if kind == "string_too_short":
+        return f"{subject} must not be empty."
+    if kind == "too_short":
+        return f"'{name}' needs at least {ctx.get('min_length')} entries."
+    if kind == "value_error":
+        return re.sub(r"^Value error, ", "", msg)
+    return msg
+
+
+def _problems(exc: ValidationError, data: Any) -> list[tuple[str, str]]:
+    grouped: dict[str, list[str]] = {}
+    type_only: dict[str, bool] = {}
+    for error in exc.errors():
+        parts = _json_location(tuple(error["loc"]), data)
+        where = _pointer(parts)
+        messages = grouped.setdefault(where, [])
+        text = _friendly(error, parts, data)
+        if text not in messages:
+            messages.append(text)
+        type_only[where] = type_only.get(where, True) and str(error["type"]).endswith("_type")
+    # A union member that did not even have the right type (scene: 'a string'
+    # when a list was given) is noise when another member got further.
+    deeper = {w for w in grouped if any(o.startswith(w.rstrip("/") + "/") for o in grouped if o != w)}
+    return [
+        (where, " Or: ".join(messages)) for where, messages in grouped.items()
+        if not (where in deeper and type_only[where])
+    ]
+
+
 def worksheet_from_dict(data: Any) -> Worksheet:
+    """Check parsed JSON against the contract (strictly: no quirks are fixed —
+    :func:`parse_worksheet` does that first)."""
     if not isinstance(data, dict):
-        raise ContractError([("/", "the top level must be a JSON object")])
+        raise ContractError([("/", "the top level must be a JSON object {…}")])
     if "story" not in data and "content" in data:
-        raise ContractError([("/story", "missing")], hint=LEGACY_HINT)
+        raise ContractError([("/story", "the required field 'story' is missing")], hint=LEGACY_HINT)
     if data.get("schema") not in (None, SCHEMA_ID) and "schema" in data:
         raise ContractError(
             [("/schema", f"expected {SCHEMA_ID!r}, got {data.get('schema')!r}")],
@@ -499,16 +863,15 @@ def worksheet_from_dict(data: Any) -> Worksheet:
     try:
         return Worksheet.model_validate(data)
     except ValidationError as exc:
-        problems = [
-            (_pointer(_discriminator_prefix_ok(tuple(e["loc"]))), e["msg"])
-            for e in exc.errors()
-        ]
-        raise ContractError(problems) from None
+        raise ContractError(_problems(exc, data)) from None
+
+
+# -- reading text ----------------------------------------------------------------
 
 
 def strip_code_fence(raw: str) -> str | None:
-    """The JSON inside a Markdown ```json … ``` fence (LLMs like to add one),
-    or ``None`` when the text is not fenced."""
+    """The JSON inside a Markdown ```json … ``` fence that wraps the whole
+    text, or ``None`` when the text is not fenced."""
     text = raw.strip()
     if not text.startswith("```"):
         return None
@@ -518,27 +881,228 @@ def strip_code_fence(raw: str) -> str | None:
     return "\n".join(body)
 
 
-def load_worksheet(path: str | Path) -> Worksheet:
-    """Load and check a worksheet file; every failure is a :class:`ContractError`."""
+def is_no_picture_reply(raw: str) -> bool:
+    """True when the whole text is the prompt's :data:`NO_PICTURE_SENTINEL`."""
+    text = raw.strip().strip("`'\"“”„ \t\r\n").rstrip(".!").strip()
+    return text.upper() == NO_PICTURE_SENTINEL
+
+
+_FENCE_LINE_RE = re.compile(r"^[ \t]*(```|~~~)")
+
+
+def _fenced_blocks(text: str) -> list[tuple[int, str]]:
+    """``(offset, content)`` of every Markdown code fence (an unclosed last
+    fence runs to the end of the text)."""
+    blocks: list[tuple[int, str]] = []
+    offset = 0
+    start: int | None = None
+    for line in text.splitlines(keepends=True):
+        if _FENCE_LINE_RE.match(line):
+            if start is None:
+                start = offset + len(line)
+            else:
+                blocks.append((start, text[start:offset]))
+                start = None
+        offset += len(line)
+    if start is not None:
+        blocks.append((start, text[start:]))
+    return blocks
+
+
+def _object_end(text: str, start: int) -> int | None:
+    """Index after the ``}`` that closes the ``{`` at ``start`` (strings respected)."""
+    depth = 0
+    in_string = escaped = False
+    for i in range(start, len(text)):
+        c = text[i]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif c == "\\":
+                escaped = True
+            elif c == '"':
+                in_string = False
+        elif c == '"':
+            in_string = True
+        elif c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return None
+
+
+def _candidates(text: str) -> list[tuple[int, str]]:
+    """Places where a wrapped JSON object may be: fenced blocks first, then
+    the balanced ``{…}`` from the first brace (or the first line that starts
+    with one), then everything from the first ``{`` to the last ``}``."""
+    out: list[tuple[int, str]] = []
+    for offset, body in _fenced_blocks(text):
+        lead = len(body) - len(body.lstrip())
+        if body.strip().startswith("{"):
+            out.append((offset + lead, body.strip()))
+    starts = []
+    first = text.find("{")
+    if first >= 0:
+        starts.append(first)
+    line_start = re.search(r"^[ \t]*\{", text, re.MULTILINE)
+    if line_start is not None:
+        starts.append(line_start.end() - 1)
+    for start in dict.fromkeys(starts):
+        end = _object_end(text, start)
+        if end is not None:
+            out.append((start, text[start:end]))
+    last = text.rfind("}")
+    if first >= 0 and last > first:
+        out.append((first, text[first:last + 1]))
+    return list(dict.fromkeys(out))
+
+
+def _quote(text: str, limit: int = 60) -> str:
+    text = " ".join(text.split())
+    return "'" + (text[: limit - 1] + "…" if len(text) > limit else text) + "'"
+
+
+def _wrapped_note(text: str, start: int, end: int) -> LoadNote:
+    outside = [
+        line.strip() for line in (text[:start] + "\n" + text[end:]).splitlines() if line.strip()
+    ]
+    prose = [line for line in outside if not _FENCE_LINE_RE.match(line)]
+    fenced = len(prose) < len(outside)
+    if fenced and not prose:
+        what = "a Markdown code fence"
+    elif fenced:
+        what = f"a Markdown code fence and other text ({_quote(prose[0])})"
+    else:
+        what = f"other text ({_quote(prose[0])})"
+    return LoadNote(
+        "wrapped-json", "/",
+        f"the JSON object is wrapped in {what}; only the object was read. Save only the JSON "
+        "object: start with { and end with }, no code fence, no other text.",
+    )
+
+
+#: Top-level keys that tell a worksheet (or a langwich v2 file) from one of
+#: its nested objects.
+_WORKSHEET_KEYS = frozenset({"schema", "story", "tasks", "vocabulary", "content"})
+
+
+def json_error_message(text: str, exc: json.JSONDecodeError, where: str = "") -> str:
+    """A friendly message for a JSON syntax error (positions refer to ``text``)."""
+    if not text.strip():
+        return "the file is empty; it must contain the worksheet JSON object, starting with {."
+    lines = text.splitlines()
+    snippet = lines[exc.lineno - 1].strip() if 0 < exc.lineno <= len(lines) else ""
+    before = text[: exc.pos].rstrip()
+    hint = ""
+    if before.endswith(",") and ("Expecting property name" in exc.msg or "Expecting value" in exc.msg):
+        hint = " (a trailing comma before } or ]? Remove the comma after the last entry)"
+    elif "Expecting property name" in exc.msg:
+        hint = " (names and strings need double quotes \"…\", not single quotes)"
+    elif "Expecting ',' delimiter" in exc.msg:
+        hint = (" (a missing comma, or an unescaped \" inside a string? Use „…“ or \\\")"
+                if exc.pos < len(text.rstrip()) else " (the JSON ends too early: was it cut off?)")
+    elif "Unterminated string" in exc.msg:
+        hint = " (a string without its closing \" — was the reply cut off?)"
+    elif "Invalid control character" in exc.msg:
+        hint = " (a raw line break inside a string? Write it as \\n)"
+    elif "Extra data" in exc.msg:
+        hint = " (text after the JSON object? Save only the object, from { to })"
+    elif "Expecting value" in exc.msg and not before:
+        hint = " (the file must contain only the JSON object, starting with {)"
+    message = f"invalid JSON{where} at line {exc.lineno}, column {exc.colno}: {exc.msg}{hint}"
+    if snippet:
+        message += f". The line reads: {_quote(snippet, 90)}"
+    return message
+
+
+def parse_json_text(text: str) -> tuple[Any, list[LoadNote]]:
+    """Parse the text of a worksheet file leniently.
+
+    Strict JSON first; if that fails, a JSON object inside a Markdown fence
+    or surrounded by chat text is extracted (only when it parses as an
+    object) and reported as a ``wrapped-json`` note. Nothing inside the JSON
+    is repaired. Raises :class:`ContractError` for the prompt's
+    :data:`NO_PICTURE_SENTINEL` reply and for text without a readable object
+    (the error position refers to the file, the hint to the likely cause).
+    """
+    if is_no_picture_reply(text):
+        raise ContractError([("/", NO_PICTURE_MESSAGE)], code="no-picture-attached")
+    try:
+        return json.loads(text), []
+    except json.JSONDecodeError as exc:
+        first_error = exc
+    candidates = _candidates(text)
+    for start, body in candidates:
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and _WORKSHEET_KEYS & set(data):
+            return data, [_wrapped_note(text, start, start + len(body))]
+    if text.lstrip().startswith("{") or not candidates:
+        if not candidates and text.strip() and "{" not in text:
+            raise ContractError([(
+                "/",
+                "the file contains no JSON object: it must be the worksheet JSON, starting "
+                f"with {{ and ending with }}. It starts with {_quote(text.strip().splitlines()[0])}.",
+            )])
+        raise ContractError([("/", json_error_message(text, first_error))])
+    # Report the error inside the most likely object, at its place in the file.
+    start, body = candidates[0]
+    try:
+        json.loads(body)
+    except json.JSONDecodeError as inner:
+        mapped = json.JSONDecodeError(inner.msg, text, start + inner.pos)
+        fenced = any(offset <= start < offset + len(b) + 1 for offset, b in _fenced_blocks(text))
+        where = " inside the code fence" if fenced else " in the JSON object"
+        raise ContractError([(
+            "/",
+            json_error_message(text, mapped, where)
+            + " (the text around the object is ignored once the object itself is valid JSON)",
+        )]) from None
+    raise ContractError([("/", json_error_message(text, first_error))])  # pragma: no cover
+
+
+def parse_worksheet(text: str) -> tuple[Worksheet, list[LoadNote]]:
+    """Read worksheet JSON text leniently: extract a wrapped object, fix known
+    quirks (see :func:`normalize_quirks`), then check it against the contract.
+
+    Returns the worksheet and the repairs made; raises :class:`ContractError`
+    (carrying those repairs as ``notes``) when the text cannot be read."""
+    data, notes = parse_json_text(text)
+    notes += normalize_quirks(data)
+    try:
+        return worksheet_from_dict(data), notes
+    except ContractError as exc:
+        exc.notes = notes + exc.notes
+        raise
+
+
+def load_worksheet(path: str | Path, notes: list[LoadNote] | None = None) -> Worksheet:
+    """Load and check a worksheet file; every failure is a :class:`ContractError`.
+
+    Loading is lenient (see :func:`parse_worksheet`); pass a list as
+    ``notes`` to receive the repairs that were made."""
     path = Path(path)
     try:
         raw = path.read_text(encoding="utf-8-sig")
     except FileNotFoundError:
         raise ContractError([("/", f"file not found: {path}")]) from None
-    except UnicodeDecodeError:
-        raise ContractError([("/", f"{path} is not UTF-8 text")]) from None
+    except IsADirectoryError:
+        raise ContractError([("/", f"{path} is a folder, not a file")]) from None
+    except UnicodeDecodeError as exc:
+        raise ContractError([(
+            "/", f"{path} is not UTF-8 text (undecodable byte at position {exc.start}); save it "
+            "as UTF-8.",
+        )]) from None
     except OSError as exc:
         raise ContractError([("/", f"cannot read {path}: {exc.strerror or exc}")]) from None
-    fenced = strip_code_fence(raw)
-    if fenced is not None:
-        raw = fenced
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise ContractError(
-            [("/", f"invalid JSON at line {exc.lineno}, column {exc.colno}: {exc.msg}")],
-        ) from None
-    return worksheet_from_dict(data)
+    ws, found = parse_worksheet(raw)
+    if notes is not None:
+        notes.extend(found)
+    return ws
 
 
 def json_schema() -> dict[str, Any]:

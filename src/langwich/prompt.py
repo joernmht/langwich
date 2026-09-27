@@ -15,7 +15,11 @@ and the output rule. ``compact=True`` gives a shorter variant for small
 local models (7–14B) with the same contract.
 
 :func:`repair_prompt` turns a validation report into a short "fix these
-problems" prompt for the model that wrote the file.
+problems" prompt for the model that wrote the file (problems only the user
+can fix, such as a missing photo, are left out).
+
+Languages, level and frame are resolved in one place, :func:`resolve_options`
+(given value > previous episode > langwich 2 file > profile > defaults).
 """
 
 from __future__ import annotations
@@ -29,26 +33,48 @@ from dataclasses import dataclass
 from typing import Any
 
 from langwich import locale
-from langwich.model import CEFR_LEVELS, SCHEMA_ID, TASK_KINDS, Worksheet
+from langwich.model import (
+    CEFR_LEVELS,
+    NO_PICTURE_SENTINEL,
+    SCHEMA_ID,
+    STAGES,
+    TASK_KINDS,
+    ContractError,
+    Worksheet,
+    parse_json_text,
+)
 from langwich.series import Continuation, continuation, slugify
+from langwich.validate import ENVIRONMENT_CODES, SCENES_MAX, SCENES_MIN
+
+#: Built-in defaults when nothing else gives languages or level.
+DEFAULT_SOURCE_LANG = "en"
+DEFAULT_TARGET_LANG = "de"
+DEFAULT_LEVEL = "B1"
 
 
 @dataclass
 class PromptOptions:
-    """What the learner wants. ``None`` leaves the choice to the LLM.
+    """What the learner wants. ``None`` means "not given" (for the topic,
+    frame and scene count: the LLM or the level decides).
 
-    With ``from_legacy`` or ``continue_from``, languages and level that are
-    still at their defaults are taken from that file instead (an explicit,
-    non-default value wins).
+    Languages, level and frame are resolved once, by :func:`resolve_options`:
+    a value given here > the previous episode (``continue_from``) > the
+    langwich 2 file (``from_legacy``) > ``profile`` > the built-in defaults
+    (en → de, B1; no frame).
     """
 
-    source_lang: str = "en"
-    target_lang: str = "de"
-    level: str = "B1"
+    source_lang: str | None = None
+    target_lang: str | None = None
+    level: str | None = None
     topic: str | None = None
     frame: str | None = None
+    #: number of scenes, SCENES_MIN–SCENES_MAX (the range the validator accepts)
     scenes: int | None = None
-    #: path/URL of a picture the story must be built around (the user attaches it to the LLM)
+    #: what the LLM writes as the scene's ``picture.image``, copied into the
+    #: prompt exactly: a path relative to the worksheet JSON (``langwich prompt
+    #: --image`` copies a local photo to ``data/pictures/`` and passes
+    #: ``pictures/<file>``) or a URL. The user attaches the picture itself to
+    #: the conversation.
     image: str | None = None
     #: a text to build the worksheet on
     from_text: str | None = None
@@ -62,6 +88,19 @@ class PromptOptions:
     color: bool = False
     compact: bool = False
     notes: str | None = None
+    #: remembered defaults (``.langwich/profile.json``): ``source_lang``,
+    #: ``target_lang``, ``level`` and ``frame`` fill in what nothing above gives
+    profile: Mapping[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class ResolvedOptions:
+    """Languages, level and frame as the prompt uses them (see :func:`resolve_options`)."""
+
+    source_lang: str
+    target_lang: str
+    level: str
+    frame: str | None
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +130,8 @@ QUOTES: dict[str, str] = {
     "ko": "“…”", "ca": "«…»",
 }
 
+#: Languages whose nouns are listed with their article (the validator checks
+#: it): how a noun and its plural look.
 _ARTICLE_EXAMPLES: dict[str, str] = {
     "de": '"die Bohne", plural "die Bohnen"',
     "fr": '"la tasse", plural "les tasses" (for l\' add the gender to "note": "f")',
@@ -99,14 +140,112 @@ _ARTICLE_EXAMPLES: dict[str, str] = {
     "pt": '"a casa", plural "as casas"',
 }
 
+#: The articles a label instruction may ask for.
+_ARTICLE_WORDS: dict[str, str] = {
+    "de": "der, die or das", "fr": "le, la or l'", "es": "el, la, los or las",
+    "it": "il, lo, la or l'", "pt": "o, a, os or as",
+}
+
+#: Languages whose word lists give nouns without an article (English has
+#: articles, but a dictionary says "apron", not "the apron").
+_NO_ARTICLE_LANGS = frozenset({
+    "en", "ru", "uk", "be", "pl", "cs", "sk", "sl", "hr", "sr", "bs", "bg", "mk", "fi", "et",
+    "lv", "lt", "hu", "tr", "ja", "zh", "ko", "vi", "th", "id", "ms", "hi", "fa", "la",
+})
+
+#: Irregular verbs — and separable or reflexive ones where the language has
+#: them — with the "forms" a learner needs.
 _FORMS_EXAMPLES: dict[str, str] = {
-    "de": '"wachsen": "wächst, wuchs, ist gewachsen"',
-    "fr": '"prendre": "je prends, nous prenons, j\'ai pris"',
-    "es": '"tener": "tengo, tuve, he tenido"',
-    "it": '"prendere": "prendo, presi, ho preso"',
-    "pt": '"fazer": "faço, fiz, feito"',
+    "de": '"wachsen": "wächst, wuchs, ist gewachsen"; "anziehen": "zieht an, zog an, hat '
+          'angezogen"; "sich freuen": "freut sich, freute sich, hat sich gefreut"',
+    "nl": '"lopen": "loopt, liep, heeft gelopen"; "opbellen": "belt op, belde op, heeft '
+          'opgebeld"; "zich wassen": "wast zich, waste zich, heeft zich gewassen"',
+    "fr": '"prendre": "je prends, nous prenons, j\'ai pris"; "se lever": "je me lève, nous nous '
+          'levons, je me suis levé(e)"',
+    "es": '"tener": "tengo, tuve, he tenido"; "levantarse": "me levanto, me levanté, me he '
+          'levantado"',
+    "it": '"prendere": "prendo, presi, ho preso"; "alzarsi": "mi alzo, mi alzai, mi sono '
+          'alzato/a"',
+    "pt": '"fazer": "faço, fiz, feito"; "levantar-se": "levanto-me, levantei-me, levantado"',
     "en": '"grow": "grew, grown"',
 }
+#: Languages with separable verbs ("anziehen": "zieht … an").
+_SEPARABLE_LANGS = frozenset({"de", "nl"})
+#: Languages with reflexive verbs whose forms a learner must see.
+_REFLEXIVE_LANGS = frozenset({
+    "de", "nl", "fr", "es", "it", "pt", "ca", "ro", "pl", "cs", "sk", "sl", "hr", "sr", "ru",
+    "uk", "sv", "da", "no", "nb", "nn",
+})
+
+
+def _indefinite(word: object) -> str:
+    """``"an"`` before a vowel sound as in "an A2 learner", "an Italian video";
+    else ``"a"``."""
+    return "an" if str(word)[:1].upper() in "AEIO" else "a"
+
+
+def _plural_word(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
+def _noun_rules(tgt: str) -> dict[str, str]:
+    """How nouns, label terms and a label task's word box work in ``tgt``."""
+    base = locale.base_lang(tgt)
+    name = _short_name(tgt)
+    if base in _ARTICLE_EXAMPLES:
+        return {
+            "nouns": f"Nouns with their definite article and plural: {_ARTICLE_EXAMPLES[base]}.",
+            "label_term": "in T with its article, as in vocabulary.items",
+            "noun_check": "Nouns with article and plural.",
+            "label_bank": (
+                "A label task's word box shows the terms without their articles, so its "
+                f"instruction may ask for the article (\"with {_ARTICLE_WORDS[base]}\"); the "
+                "solutions show the full term."
+                + (" Then prefer label terms whose article shows the gender (not l')."
+                   if base in ("fr", "it") else "")
+            ),
+        }
+    if base in _NO_ARTICLE_LANGS:
+        return {
+            "nouns": (f"Nouns without an article, as {_indefinite(name)} {name} word list gives "
+                      "them; irregular plurals in \"plural\"."),
+            "label_term": "in T without an article, as in vocabulary.items",
+            "noun_check": "Nouns without article, irregular plurals in \"plural\".",
+            "label_bank": "",
+        }
+    return {
+        "nouns": (f"Nouns as {_indefinite(name)} {name} dictionary gives them — with the "
+                  "article or gender it marks — and irregular plurals in \"plural\"."),
+        "label_term": "in T, spelt as in vocabulary.items",
+        "noun_check": "Nouns as a dictionary gives them, plurals where irregular.",
+        "label_bank": "",
+    }
+
+
+def _verb_kinds(tgt: str) -> str:
+    """"irregular", "irregular and reflexive", "irregular, separable and reflexive" …"""
+    base = locale.base_lang(tgt)
+    kinds = ["irregular"]
+    if base in _SEPARABLE_LANGS:
+        kinds.append("separable")
+    if base in _REFLEXIVE_LANGS:
+        kinds.append("reflexive")
+    return _and_list(kinds)
+
+
+def _forms_rule(tgt: str) -> str:
+    base = locale.base_lang(tgt)
+    form = "infinitive" if base in _FORMS_EXAMPLES else "dictionary form"
+    head = f"Verbs in the {form}" + (' (without "to")' if base == "en" else "")
+    example = f" (e.g. {_FORMS_EXAMPLES[base]})" if base in _FORMS_EXAMPLES else ""
+    return (f'{head}. "forms" is REQUIRED for every {_verb_kinds(tgt)} verb{example}: learners '
+            f"cannot build those forms from the {form}.")
+
+
+def _and_list(items: Iterable[str]) -> str:
+    items = list(items)
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
 
 #: Examples in the target language for the gap markup and grammar rules
 #: (alternatives, a base-form hint, a structure).
@@ -220,12 +359,13 @@ KIND_FIELDS: dict[str, str] = {
     "transform": '"items": [{"prompt": T, "cue": S or T? (what to change), "answer": T}]',
     "word_building": '"items": [{"parts": [T, T, …], "answer": T}]',
     "label": '"scene": scene id (required; its picture has labels), "bank": true | false? '
-             "(default true: a word box)",
+             "(default true: a word box with the terms, printed without their articles)",
     "writing": '"prompt": S, "starter": T?, "must_use": [T]?, "min_words": n?, '
                '"max_words": n?, "lines": 1–40?, "model_answer": T?',
     "dialogue": '"lines": [{"speaker": name, "text": T with gaps?, "cue": S?, "answer": T?}] '
                 '(≥ 2; a line without "text" is written by the learner from its "cue"), '
-                '"bank": true | false?',
+                '"bank": true | false? (a word box of the gap answers), "distractors": [T]? '
+                "(extra words for the box)",
     "media_search": '"media": "video" | "article" | "podcast" | "image", "queries": [T], '
                     '"questions": [T]',
     "draw": '"prompt": S, "labels": [T]?',
@@ -250,7 +390,7 @@ field is an error.
  "vocabulary": {"target": [T], "items": [VocabItem]},
  "grammar": [GrammarPoint],
  "tasks": [Task],
- "ui": {key: S}? (only when a section below asks for it)
+ "ui": {key: S}? (only when this prompt asks for it)
 }
 Character    {"id", "name", "role": S?}
 Scene        {"id", "heading": T, "beat": beat?, "text": T (prose, paragraphs split by \\n\\n),
@@ -270,7 +410,7 @@ GrammarPoint {"id", "name": S, "explanation": S, "rule": text?,
 frame: episode | reportage | case_study | diary | letters | mystery | dialogue | other
 beat:  setup | development | complication | climax | resolution | epilogue
 pos:   noun | verb | adjective | adverb | preposition | conjunction | pronoun | phrase | other
-stage: warm_up | gist | detail | form | practice | picture | production | epilogue
+stage: <<stage_list>>
 
 Every task: {"id", "kind", "stage", "scene": scene id or [scene ids]?, "title": S,
              "instruction": S, "grammar": grammar id?, … the fields of its kind}
@@ -285,7 +425,8 @@ def field_reference(values: Mapping[str, object], terse: bool = False) -> str:
     ``terse`` drops the parenthetical explanations (same fields)."""
     width = max(len(k) for k in KIND_FIELDS) + 2
     kinds = "\n".join(f"{kind.ljust(width)}{KIND_FIELDS[kind]}" for kind in TASK_KINDS)
-    text = _fill(_FIELD_REFERENCE_HEAD, values) + kinds + "\n```"
+    text = _fill(_FIELD_REFERENCE_HEAD, {**values, "stage_list": " | ".join(STAGES)})
+    text += kinds + "\n```"
     if terse:
         head, fence, code = text.partition("```")
         text = head + fence + _PAREN_RE.sub("", code)
@@ -420,14 +561,16 @@ MINI_EXAMPLE: dict[str, Any] = {
         {
             "id": "g1",
             "name": "Modal verbs",
-            "explanation": "Modal verbs say what someone wants to, has to or may do. The modal "
-                           "verb comes second; the main verb goes to the end, in the infinitive.",
+            "explanation": "Modal verbs say what someone can, wants to, should, has to or may "
+                           "do. The modal verb comes second; the main verb goes to the end, in "
+                           "the infinitive. ich and er/sie/es have the same form, without an "
+                           "ending.",
             "rule": "modal verb (2nd position) … infinitive (end)",
             "table": {
-                "head": ["", "wollen", "müssen", "dürfen"],
-                "rows": [["ich", "will", "muss", "darf"],
-                         ["er / sie / es", "will", "muss", "darf"],
-                         ["ihr", "wollt", "müsst", "dürft"]],
+                "head": ["", "können", "wollen", "sollen"],
+                "rows": [["ich", "kann", "will", "soll"],
+                         ["er / sie / es", "kann", "will", "soll"],
+                         ["ihr", "könnt", "wollt", "sollt"]],
             },
             "examples": ["Heute will sie zu Fuß zur Insel Neuwerk gehen.",
                          "Wir müssen vorher auf der Insel sein."],
@@ -586,6 +729,16 @@ def _fill(template: str, values: Mapping[str, object]) -> str:
 _ITEM_RE = re.compile(r"^(\s*)([-*]|\d+\.) ")
 REFLOW_WIDTH = 96
 
+#: A line that starts with this character is printed exactly as it is (minus
+#: the marker): never re-wrapped, its whitespace never normalised — for text
+#: the LLM must copy character for character, such as the picture path.
+_KEEP = "\x1f"
+
+
+def _keep(line: str) -> str:
+    """Mark ``line`` to be printed verbatim by :func:`_reflow`."""
+    return _KEEP + line
+
 
 def _wrap(text: str, first: str, rest: str) -> str:
     return textwrap.fill(
@@ -596,7 +749,8 @@ def _wrap(text: str, first: str, rest: str) -> str:
 
 def _reflow(text: str) -> str:
     """Re-wrap prose paragraphs and list items after the markers are filled.
-    Code fences, tables and headings are left exactly as they are."""
+    Code fences, tables, headings and lines marked with :func:`_keep` are
+    left exactly as they are."""
     out: list[str] = []
     buf: list[str] = []      # lines of the current paragraph or list item
     indent = ("", "")        # (first-line prefix, continuation prefix) of buf
@@ -610,6 +764,11 @@ def _reflow(text: str) -> str:
 
     for line in text.split("\n"):
         stripped = line.strip()
+        if line.startswith(_KEEP) and fence is None:
+            flush()
+            indent = ("", "")
+            out.append(line[len(_KEEP):])
+            continue
         if fence is not None:
             out.append(line)
             if stripped.startswith(fence) and stripped.strip("`") == "":
@@ -662,7 +821,7 @@ _LEGACY_KEYS = (
     "picture_scene", "vocabulary", "phrases", "grammar", "reading",
 )
 _LANG_RE = re.compile(r"^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$")
-_DEFAULTS = PromptOptions()
+_FRAME_NAMES = frozenset(FRAMES)
 
 
 @dataclass
@@ -693,37 +852,88 @@ def _legacy_value(legacy: dict | None, *keys: str) -> str | None:
     return None
 
 
+def _lang_code(value: object) -> str | None:
+    """``"EN"`` → ``"en"``, ``"pt-BR"`` stays; ``None`` for anything else."""
+    if not isinstance(value, str):
+        return None
+    head, sep, tail = value.strip().partition("-")
+    code = head.lower() + sep + tail
+    return code if _LANG_RE.match(code) else None
+
+
+def _level_code(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    level = value.strip().upper()
+    return level if level in LEVELS else None
+
+
+def _first(explicit: object, fallbacks: Iterable[object], parse: Any, error: str) -> str:
+    """``explicit`` if given (it must parse), else the first fallback that parses."""
+    if explicit is not None:
+        value = parse(explicit)
+        if value is None:
+            raise ValueError(error.format(explicit))
+        return str(value)
+    for candidate in fallbacks:
+        value = parse(candidate)
+        if value is not None:
+            return str(value)
+    raise ValueError(error.format(None))  # pragma: no cover - the defaults always parse
+
+
+def resolve_options(opts: PromptOptions) -> ResolvedOptions:
+    """The languages, level and frame the prompt for ``opts`` uses.
+
+    Each is taken from the first of: the value in ``opts`` (``None`` = not
+    given), the previous episode (``continue_from``), the langwich 2 file
+    (``from_legacy``; languages and level only), ``profile``, the built-in
+    defaults (en → de, B1; no frame). Values from files that are not usable
+    (``"German"``, ``"B3"``) are skipped; an unusable value given in ``opts``
+    raises :class:`ValueError`. :func:`build_prompt` calls this — callers use
+    it to check or remember what the prompt asks for.
+    """
+    prev = opts.continue_from
+    legacy = opts.from_legacy if isinstance(opts.from_legacy, dict) else None
+    profile: Mapping[str, Any] = opts.profile if isinstance(opts.profile, Mapping) else {}
+    src = _first(
+        opts.source_lang,
+        (prev.source_lang if prev else None, _legacy_value(legacy, "source_lang"),
+         profile.get("source_lang"), DEFAULT_SOURCE_LANG),
+        _lang_code, "{!r} is not a language code; use ISO 639-1 like en, de, fr, pt-BR",
+    )
+    tgt = _first(
+        opts.target_lang,
+        (prev.target_lang if prev else None, _legacy_value(legacy, "target_lang"),
+         profile.get("target_lang"), DEFAULT_TARGET_LANG),
+        _lang_code, "{!r} is not a language code; use ISO 639-1 like en, de, fr, pt-BR",
+    )
+    level = _first(
+        opts.level,
+        (prev.cefr_level if prev else None, _legacy_value(legacy, "cefr_level", "level"),
+         profile.get("level"), DEFAULT_LEVEL),
+        _level_code, "unknown CEFR level {!r}; use one of " + ", ".join(LEVELS),
+    )
+    frame = opts.frame
+    if frame is None and prev is not None:
+        frame = prev.frame
+    if frame is None and profile.get("frame") in _FRAME_NAMES:
+        frame = profile["frame"]
+    return ResolvedOptions(src, tgt, level, frame)
+
+
 def _brief(opts: PromptOptions) -> _Brief:
+    resolved = resolve_options(opts)
+    if opts.scenes is not None and not SCENES_MIN <= opts.scenes <= SCENES_MAX:
+        raise ValueError(f"scenes must be between {SCENES_MIN} and {SCENES_MAX} (got "
+                         f"{opts.scenes}); langwich checks stories of that length")
     cont = continuation(opts.continue_from) if opts.continue_from is not None else None
     legacy = opts.from_legacy if isinstance(opts.from_legacy, dict) else None
-
-    def pick(value: str, default: str, *fallbacks: str | None) -> str:
-        if value != default:
-            return value
-        return next((f for f in fallbacks if f), value)
-
-    src = pick(opts.source_lang, _DEFAULTS.source_lang,
-               cont.source_lang if cont else None, _legacy_value(legacy, "source_lang"))
-    tgt = pick(opts.target_lang, _DEFAULTS.target_lang,
-               cont.target_lang if cont else None, _legacy_value(legacy, "target_lang"))
-    level = pick(opts.level.upper(), _DEFAULTS.level,
-                 cont.cefr_level if cont else None,
-                 (_legacy_value(legacy, "cefr_level", "level") or "").upper() or None)
-    if not _LANG_RE.match(src):
-        src = opts.source_lang
-    if not _LANG_RE.match(tgt):
-        tgt = opts.target_lang
-    if level not in LEVELS:
-        level = opts.level.upper()
-    if level not in LEVELS:
-        raise ValueError(f"unknown CEFR level {opts.level!r}; use one of {', '.join(LEVELS)}")
-    spec = LEVELS[level]
+    spec = LEVELS[resolved.level]
     scenes = opts.scenes or (COMPACT_SCENES if opts.compact else spec.scenes)
     topic = opts.topic or _legacy_value(legacy, "topic")
-    frame = opts.frame
-    if cont is not None and frame is None:
-        frame = opts.continue_from.frame if opts.continue_from is not None else None
-    return _Brief(src, tgt, level, spec, scenes, topic, frame, cont, opts)
+    return _Brief(resolved.source_lang, resolved.target_lang, resolved.level, spec, scenes,
+                  topic, resolved.frame, cont, opts)
 
 
 def _beat_plan(n: int) -> str:
@@ -753,27 +963,43 @@ def _values(b: _Brief) -> dict[str, object]:
         translation_hint = "{{" + _FLOUR[tgt_base] + "::" + _FLOUR[src_base] + "}}"
     else:
         translation_hint = "{{T word::S meaning}}"
+    t_name = _short_name(b.tgt)
     return {
         "ex_alt": alt, "ex_base": base_form, "ex_rule": rule, "ex_translation": translation_hint,
         "beat_plan": _beat_plan(b.scenes),
-        "S": _short_name(b.src), "T": _short_name(b.tgt),
+        "S": _short_name(b.src), "T": t_name,
         "S_full": language_name(b.src), "T_full": language_name(b.tgt),
-        "src": b.src, "tgt": b.tgt, "level": b.level,
+        "a_T": _indefinite(t_name),
+        "src": b.src, "tgt": b.tgt, "level": b.level, "a_level": _indefinite(b.level),
         "level_name": _LEVEL_NAMES[b.level], "n": b.scenes,
+        "n_scenes": _plural_word(b.scenes, "scene"),
         "w_low": low, "w_high": high, "ps_low": ps_low, "ps_high": ps_high,
         "t_low": t_low, "t_high": t_high, "tw_low": tw_low, "tw_high": tw_high,
         "wr_low": w_low, "wr_high": w_high,
         "pf_low": b.spec.plot_facts[0], "pf_high": b.spec.plot_facts[1],
-        "quotes": (f"{_short_name(b.tgt)} quotation marks ({quotes})" if quotes
-                   else f"the usual {_short_name(b.tgt)} quotation marks"),
-        "nouns": (f"Nouns with their definite article and plural: {_ARTICLE_EXAMPLES[tgt_base]}."
-                  if tgt_base in _ARTICLE_EXAMPLES else
-                  "Nouns as a dictionary gives them — with article or gender if "
-                  f"{_short_name(b.tgt)} has them — and irregular plurals in \"plural\"."),
-        "forms": (f'Verbs in the infinitive; irregular forms in "forms" (e.g. '
-                  f'{_FORMS_EXAMPLES[tgt_base]}).' if tgt_base in _FORMS_EXAMPLES else
-                  'Verbs in their dictionary form; irregular forms a learner needs in "forms".'),
+        "quotes": (f"{t_name} quotation marks ({quotes})" if quotes
+                   else f"the usual {t_name} quotation marks"),
+        **_noun_rules(b.tgt),
+        "forms": _forms_rule(b.tgt),
+        "scene_stages": " → ".join(s for s in STAGES if s in _SCENE_STAGES),
+        "scene_stage_list": _and_list(s for s in STAGES if s in _SCENE_STAGES),
+        "forms_check": f'"forms" for every {_verb_kinds(b.tgt)} verb.',
+        "no_picture": NO_PICTURE_SENTINEL,
+        "example_langs": _example_langs(b),
     }
+
+
+#: Stages of the tasks that follow a scene, in the planner's order.
+_SCENE_STAGES = frozenset({"gist", "detail", "picture", "form", "practice"})
+
+
+def _example_langs(b: _Brief) -> str:
+    if (b.src, b.tgt) == ("en", "de"):
+        return "It has the same languages as yours."
+    return (f"It is English → German; yours is {_short_name(b.src)} → {_short_name(b.tgt)}: "
+            f"write every T field in {_short_name(b.tgt)} and every S field in "
+            f"{_short_name(b.src)}, and follow {_short_name(b.tgt)} rules for articles, word "
+            "order and quotation marks.")
 
 
 # ---------------------------------------------------------------------------
@@ -784,8 +1010,8 @@ _INTRO = """\
 # Write a langwich worksheet: a story-based lesson as JSON (schema "langwich/3")
 
 You are an author of graded readers and an experienced language teacher. Write one printable
-worksheet for an adult who speaks <<S>> and is learning <<T>> (<<level>>): a short story in <<n>>
-scenes that weaves true facts into fiction, plus the tasks that lead the learner through it —
+worksheet for an adult who speaks <<S>> and is learning <<T>> (<<level>>): a short story in
+<<n_scenes>> that weaves true facts into fiction, plus the tasks that lead the learner through it —
 before reading, scene by scene, and into writing of their own. Answer with one JSON object; the
 program langwich checks it and typesets it in black and white for paper and e-paper. You write
 every word the learner sees."""
@@ -798,7 +1024,7 @@ _BRIEF = """\
 - Level: <<level>> (<<level_name>>)
 - Topic: <<topic_line>>
 - Frame: <<frame_line>>
-- Story: <<n>> scenes, <<w_low>>–<<w_high>> words in total (about <<ps_low>>–<<ps_high>> per scene)
+- Story: <<n_scenes>>, <<w_low>>–<<w_high>> words in total (about <<ps_low>>–<<ps_high>> per scene)
 - Tasks: <<t_low>>–<<t_high>>
 - Pictures: <<picture_line>>"""
 
@@ -821,7 +1047,7 @@ logline sums this up in one sentence.
 something at stake (a test, a deadline, a promise, a guest to impress); one to three others with
 clear roles (mentor, rival, friend), each with a voice of their own.
 
-**Beats.** One beat per scene, set in "beat" — for <<n>> scenes: <<beat_plan>>. Link scenes by
+**Beats.** One beat per scene, set in "beat" — for <<n_scenes>>: <<beat_plan>>. Link scenes by
 *but* and *therefore*, not *and then*. Each scene has a concrete
 place and time (heading or first sentence), something happens, one or two sensory details
 (smell, sound, texture), some direct speech, and a small hook at the end.
@@ -885,7 +1111,7 @@ _VOCABULARY = """\
 - "target": the <<tw_low>>–<<tw_high>> key words — right for the level, carried by the story and
   the topic. Each occurs in the story (inflected is fine) and in at least three tasks (the
   warm-up match, a cloze gap, "must_use", a label …), spelt exactly like its "items" term.
-- "items": every key word, plus every word in the story, facts and tasks that a <<level>> learner
+- "items": every key word, plus every word in the story, facts and tasks that <<a_level>> <<level>> learner
   may not know (typically 15–40), with a short S "translation" and "pos". Words that no task
   tests are printed as glosses beside their scene, so be generous.
 - <<nouns>> <<forms>>"""
@@ -896,18 +1122,21 @@ _GRAMMAR = """\
 1–2 points the story really uses (at least twice), right for the level: "name" and
 "explanation" (1–3 sentences) in S, a compact "rule" ("<<ex_rule>>"), an optional
 small "table" (≤ 6 rows) and 2–3 "examples" from the story. Practise each point in a form task
-(cloze with base_form hints, transform or word_building) whose "grammar" is its id — the grammar
-box is printed beside that task, so its rule, table and examples must never contain that task's
-answers (use other words and sentences in the box)."""
+(cloze with base_form hints, transform or word_building) whose "grammar" is its id. The grammar
+box is printed beside that task, so it must never show that task's answers — not in the rule,
+the table or the examples. It may show the same pattern with OTHER words: a table of other verbs
+(or nouns) that follow the rule, examples from the story that the task does not ask for. The
+example below shows können, wollen and sollen in its table; its form task asks for müssen and
+dürfen."""
 
 _ARC = """\
 ## 6. The lesson arc
 
 langwich prints the tasks in lesson order, whatever their order in the JSON: **Before you
 read** (every warm_up task) → **the story**: each scene, followed by the tasks whose "scene" is
-that scene (several scenes: the last one), sorted gist → detail → form → practice → picture — so
-give each of these tasks its scene → **Your turn** (production) → **Take it further**
-(epilogue).
+that scene (several scenes: the last one), sorted <<scene_stages>> — so give each of these
+tasks its scene → **Your turn** (production) → **Take it further** (epilogue). Picture tasks
+come right after the comprehension tasks of their scene; form and practice tasks move on.
 
 Recommended set (<<t_low>>–<<t_high>> tasks):
 1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra".
@@ -915,17 +1144,19 @@ Recommended set (<<t_low>>–<<t_high>> tasks):
    could go wrong? Check at the end.").
 3. gist/detail: one task per scene, varying true_false, multiple_choice, questions and
    order_events (events from the whole story; scene = the last scene).
-4. form: one task per grammar point, with "grammar".
-5. practice: a word-bank cloze that CONTINUES the story in new sentences — the next morning, a
+4. picture: <<picture_tasks>>
+5. form: one task per grammar point, with "grammar".
+6. practice: a word-bank cloze that CONTINUES the story in new sentences — the next morning, a
    note, a message, a moment the story skipped — with 5–7 key words and 2–3 distractors. Never
    copy story sentences.
-6. picture: <<picture_tasks>>
 7. production: a writing task that closes or continues the story from a character's point of
    view (a message, a diary entry, a letter, a review): "starter", 5–7 key words in "must_use",
-   <<wr_low>>–<<wr_high>> words, "lines" (about one per 8 words), "model_answer". Plus one short
-   personal question that links the topic to the learner's life (questions, no model answer).
-8. epilogue (optional): media_search as in-story homework ("Frau Berger's homework: find a
-   <<T>> video about roasting coffee"), with T queries and two T questions.
+   <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "lines" (about one per 8 words),
+   "model_answer". langwich prints the word range and the writing lines itself — don't repeat
+   them in the instruction. Plus one short personal question that links the topic to the
+   learner's life (questions, no model answer).
+8. epilogue (optional): media_search as homework that a character sets in the story ("find
+   <<a_T>> <<T>> video about …" — the topic of the story), with T queries and two T questions.
 Extras if they fit: a dialogue (the characters in a new situation), a transform, a
 word_building."""
 
@@ -935,15 +1166,17 @@ _ITEMS = """\
 - **One defensible answer.** Each gap's sentence forces its answer by meaning and grammar. If
   another word fits too, list it (<<ex_alt>>) or rewrite the sentence.
 - **No give-aways.** No gap at the start of a sentence; the answer appears nowhere else in the
-  task. In a word box each word fits exactly one gap, in the form the gap needs; distractors
-  match the answers in word class and form (capitals and endings reveal nothing) and are
-  plausible but wrong everywhere.
+  task. In a word box — a cloze with "hint": "word_bank", a dialogue with "bank": true — each
+  word fits exactly one gap, in the form the gap needs, and 2–3 "distractors" make sure the
+  last gap is not free by elimination. Distractors match the answers in word class and form
+  (capitals and endings reveal nothing) and are plausible but wrong in every gap.
 - **New sentences** for form and practice items; comprehension items paraphrase, not quote.
 - true_false: 3–5 statements, both kinds; a false one changes one detail and has a
   "correction". multiple_choice: 3 similar options, one right, "answer" copied exactly.
   questions: need the story (why? how?), with a model "answer". order_events: 4–6 events from
   different scenes, in the correct order. match: every entry unique, "extra" included.
-  writing: the model answer keeps to the word range and uses every "must_use" word.
+  writing: the model answer keeps to the word range and uses every "must_use" word; the
+  instruction does not repeat the word range (langwich prints it).
 - Cloze "hint": word_bank (a box of the answers + distractors), first_letter, base_form
   (<<ex_base>>), translation (<<ex_translation>>, the hint in S) — these two need the ::hint —
   or none.
@@ -962,9 +1195,9 @@ viewBox='0 0 200 120' fill='none' stroke='#000' stroke-width='1.5' stroke-lineca
 </svg>` (single quotes inside need no JSON escaping). Stroke-only line, rect, circle, ellipse,
 polyline and path; <<svg_colour>>, no text, no gradients or images, at most ~80 elements. Draw
 a few large, recognisable objects that the scene mentions, apart from each other. Then
-"labels": 4–8 of them, "term" in T with article, numbered 1, 2, 3 …, "x"/"y" = the object's
+"labels": 4–8 of them, "term" <<label_term>>, numbered 1, 2, 3 …, "x"/"y" = the object's
 centre as a fraction of the viewBox: x = (cx − min-x) / width, y = (cy − min-y) / height
-(0, 0 = top-left). Use a label task.
+(0, 0 = top-left). Use a label task. <<label_bank>>
 
 **B. No drawing.** No "svg", no "labels"; a draw task on that scene instead: the learner draws
 the scene and labels 4–6 T words.
@@ -975,22 +1208,28 @@ Always add "caption" (T) and "prompt": an English description of the scene as a
 _PICTURE_ATTACHED = """\
 ## 8. The picture (attached)
 
-A picture is attached to this conversation (<<image>>). Study it first and build the story
-around it.
+A picture is attached to this conversation. Study it first and build the story around it.
 - Take the setting, the topic<<and_topic>> and the facts from what is visible. Name a real place
   or thing only if you recognise it with certainty. People in it are fictional characters —
   never guess who they are.
 - One scene describes exactly what the picture shows — people, place, objects, what is
   happening — so the learner can compare text and picture; nothing in it contradicts the
-  picture. That scene gets "picture": {"image": "<<image>>", "caption": T, "labels": […]}, the
-  path exactly as written here, no "svg".
-- "labels": 4–8 clearly visible objects that the scene text mentions, "term" in T with article,
+  picture. That scene gets "picture": {"image": …, "caption": T, "labels": […]}, no "svg".
+  Copy this "image" into it exactly, character for character:
+
+<<image_line>>
+
+- "labels": 4–8 clearly visible objects that the scene text mentions, "term" <<label_term>>,
   numbered 1, 2, 3 …, "x"/"y" = the object's centre as fractions of the picture's width and
   height, estimated from the picture (0, 0 = top-left, 1, 1 = bottom-right; the middle of the
-  lower-left quarter is x 0.25, y 0.75). Add every label term to vocabulary.items.
+  lower-left quarter is x 0.25, y 0.75). The printed marker is about 7 mm wide: for a small
+  object put the point just beside it, not on it. Add every label term to vocabulary.items.
+  <<label_bank>>
+- "credit": if the picture is not the learner's own (a photo from Wikimedia Commons, Flickr,
+  a book …), write the attribution its licence requires, e.g. "Photo: Jane Doe, CC BY 2.0".
 - Tasks: a label task on that scene and, if it fits, questions about the picture (where things
   are, what people are doing).
-- If no picture is attached or you cannot see it, reply only with: NO PICTURE ATTACHED"""
+- If no picture is attached or you cannot see it, reply only with: <<no_picture>>"""
 
 _SERIES_NEXT = """\
 ## 9. This is episode <<episode>> of the series "<<series_title>>"
@@ -1024,8 +1263,8 @@ _SERIES_FIRST = """\
 ## 9. This is episode 1 of a series
 
 Add "series": {"id": a short slug such as "<<series_id_hint>>", "title": T (the series name, e.g.
-the protagonist and the place), "episode": 1, "next": T (a one- or two-sentence teaser for episode 2), "review":
-[]}. Give the protagonist a life that can carry more episodes (a job, a place, people, an open
+the protagonist and the place), "episode": 1, "next": T (a one- or two-sentence teaser for
+episode 2), "review": []}. Give the protagonist a life that can carry more episodes (a job, a place, people, an open
 question), and end so that the learner wants the next one."""
 
 _FROM_TEXT = """\
@@ -1034,7 +1273,7 @@ _FROM_TEXT = """\
 - Keep its facts: every factual claim in the worksheet comes from the text or is common
   knowledge you are sure of. Take the topic and the key words from it.
 - If it already is a story at about <<level>> level in <<T>>, keep its wording (fix only
-  mistakes), split it into <<n>> scenes with headings and beats, and translate them.
+  mistakes), split it into <<n_scenes>> with headings and beats, and translate them.
 - Otherwise re-tell it as a story in the chosen frame — characters who experience, discover or
   explain its facts — in <<T>> at <<level>> level. If it is long, follow its most interesting
   thread."""
@@ -1062,8 +1301,8 @@ _EXAMPLE_HEAD = """\
 ## <<number>>. Example
 
 A shortened English → German A2 worksheet (2 scenes, 7 tasks) that shows the format and the
-craft in miniature. Yours follows the brief: <<n>> scenes, <<t_low>>–<<t_high>> tasks, your own
-languages and topic. Do not copy its story."""
+craft in miniature. <<example_langs>> Yours follows the brief: <<n_scenes>>,
+<<t_low>>–<<t_high>> tasks, your own topic. Do not copy its story."""
 
 _CHECKLIST = """\
 ## Before you answer, check
@@ -1071,12 +1310,13 @@ _CHECKLIST = """\
 - Story: protagonist, goal, stakes, a real complication, a payoff that turns on a true fact;
   place, time, action and dialogue in every scene; <<w_low>>–<<w_high>> words in total.
 - Facts: all true, nothing invented; 1–3 "facts" with a "scene".
-- Key words: in "items" (same spelling), in the story, in at least three tasks. Nouns with
-  article and plural.
+- Key words: in "items" (same spelling), in the story, in at least three tasks.
+  <<noun_check>> <<forms_check>>
 - Languages: T and S in the right fields; every scene translated; task titles from the story.
-- Tasks: unique ids; every gist, detail, form, practice and picture task has a "scene"; all
+- Tasks: unique ids; every <<scene_stage_list>> task has a "scene"; all
   references exist; one defensible answer per gap and none at the start of a sentence; practice
-  texts are new; multiple_choice answers copied from the options; events in story order.
+  texts are new; multiple_choice answers copied from the options; events in story order; the
+  grammar box shows none of its task's answers; word boxes have distractors.
 - Picture: labels on real objects (x, y between 0 and 1); a label task only with image or svg.
 - JSON: double quotes, no trailing commas, no comments, \\n\\n between paragraphs, only the
   fields of the reference."""
@@ -1104,7 +1344,7 @@ _C_INTRO = """\
 # Write a langwich worksheet as JSON (schema "langwich/3") — short version
 
 Write one worksheet for an adult who speaks <<S>> and learns <<T>> (<<level>>): a short story in
-<<n>> scenes that mixes true facts with fiction, and about 8 tasks about it. Answer with one JSON
+<<n_scenes>> that mixes true facts with fiction, and about 8 tasks about it. Answer with one JSON
 object."""
 
 _C_BRIEF = """\
@@ -1113,7 +1353,7 @@ _C_BRIEF = """\
 - S = <<S_full>> (the learner's language), T = <<T_full>> (the language learned), level <<level>>
 - Topic: <<topic_line>>
 - Frame: <<frame_line>>
-- Story: <<n>> scenes, <<w_low>>–<<w_high>> words in total. Sentences: <<sentences>>; grammar:
+- Story: <<n_scenes>>, <<w_low>>–<<w_high>> words in total. Sentences: <<sentences>>; grammar:
   <<structures>>. Keep sentences simple."""
 
 _C_RULES = """\
@@ -1131,20 +1371,24 @@ grammar examples, every task item. S: standfirst, logline, roles, topic, scene t
 (optional), grammar name and explanation, task titles and instructions, writing and draw prompts.
 
 **Vocabulary.** "target": <<tw_low>>–<<tw_high>> key words, each in the story and in at least three
-tasks, spelt as in "items". "items": the key words plus other words the learner may not know (15–25). <<nouns>>
+tasks, spelt as in "items". "items": the key words plus other words the learner may not know
+(15–25). <<nouns>> <<forms>>
 
-**Grammar.** One point the story uses, practised by a form task whose "grammar" is its id.
+**Grammar.** One point the story uses, practised by a form task whose "grammar" is its id. The
+grammar box is printed beside that task: it may show the pattern with other words, never the
+task's answers.
 
 **Tasks.** Every task except warm_up and production gets a "scene".
 1. warm_up · match: the key words (T) and their meanings (S), plus 1 "extra".
 2. gist/detail: one task per scene (true_false, multiple_choice or questions).
-3. form: a cloze or transform that practises the grammar point; for verb forms a cloze with
+3. picture: <<picture_tasks>>
+4. form: a cloze or transform that practises the grammar point; for verb forms a cloze with
    "hint": "base_form" (<<ex_base>>).
-4. practice: a word-bank cloze that CONTINUES the story in NEW sentences (never copy the story),
+5. practice: a word-bank cloze that CONTINUES the story in NEW sentences (never copy the story),
    with 5–6 key words and 2 distractors.
-5. picture: <<picture_tasks>>
 6. production: writing from a character's point of view: "starter", "must_use",
-   <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "model_answer".
+   <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "model_answer". langwich prints the
+   word range itself — don't repeat it in the instruction.
 
 **Items.** One right answer per gap; no gap at the start of a sentence; multiple_choice: 3
 options, "answer" copied exactly; a "correction" for each false true_false statement;
@@ -1158,12 +1402,18 @@ _C_PICTURE_DRAWN = """\
 task: the learner draws the scene and labels 4–6 T words."""
 
 _C_PICTURE_ATTACHED = """\
-**Picture.** A picture is attached to this conversation (<<image>>). Look at it first and build
-the story around it: one scene describes exactly what it shows. That scene gets "picture":
-{"image": "<<image>>", "caption": T, "labels": [4–6 visible objects: {"n": 1, "term": T noun
-with article, "x": 0–1, "y": 0–1}]}; x and y are the object's centre as fractions of the
-picture's width and height (0, 0 = top-left). Use a label task on that scene. People in it are
-fictional — never guess who they are. If you cannot see a picture, reply only: NO PICTURE ATTACHED"""
+**Picture.** A picture is attached to this conversation. Look at it first and build the story
+around it: one scene describes exactly what it shows. That scene gets "picture": {"image": …,
+"caption": T, "labels": [4–6 visible objects: {"n": 1, "term": T noun, "x": 0–1, "y": 0–1}]},
+with this "image", copied exactly:
+
+<<image_line>>
+
+x and y are the object's centre as fractions of the picture's width and height (0, 0 =
+top-left); for a small object, a point just beside it. Label terms <<label_term>>. Use a
+label task on that scene. If the picture is not the learner's own, give its licence
+attribution in "credit". People in it are fictional — never guess who they are. If you cannot
+see a picture, reply only: <<no_picture>>"""
 
 _C_CHECK = """\
 ## Check, then answer
@@ -1223,7 +1473,7 @@ def _level_rows(b: _Brief) -> str:
 def _picture_values(b: _Brief) -> dict[str, object]:
     colour = b.opts.color
     return {
-        "image": b.opts.image or "",
+        "image_line": _image_line(b.opts.image),
         "and_topic": " (together with the topic in the brief)" if b.topic else "",
         "svg_colour": "colour only where it helps" if colour else "no colour",
         "prompt_style": "line drawing with a few colours" if colour
@@ -1235,9 +1485,18 @@ def _picture_values(b: _Brief) -> dict[str, object]:
     }
 
 
+def _image_line(image: str | None) -> str:
+    """The ``"image": …`` line the LLM copies: JSON-escaped (a Windows path's
+    backslashes stay valid JSON) and printed verbatim (never re-wrapped, so a
+    path with spaces is not split)."""
+    if not image:
+        return ""
+    return _keep('"image": ' + json.dumps(image, ensure_ascii=False))
+
+
 def _picture_line(b: _Brief) -> str:
     if b.opts.image:
-        return f"built around the attached picture {b.opts.image} (see the picture section)"
+        return "built around the attached picture (see the picture section)"
     if b.opts.color:
         return "colour allowed, but every task must work in greyscale"
     return "black and white only (printed on paper or e-paper)"
@@ -1284,7 +1543,7 @@ def _series_section(b: _Brief, values: Mapping[str, object]) -> str | None:
         return _fill(_SERIES_NEXT, {**values, **extra})
     start_series = b.opts.series if b.opts.series is not None else b.frame == "episode"
     if start_series:
-        hint = f"{slugify(b.topic)}-series" if b.topic else "lena-in-wien"
+        hint = f"{slugify(b.topic)}-series" if b.topic else "anna-in-lyon"
         return _fill(_SERIES_FIRST, {**values, "series_id_hint": hint})
     return None
 
@@ -1367,7 +1626,7 @@ def build_prompt(opts: PromptOptions) -> str:
         str(s).strip() if isinstance(s, _Verbatim) else _reflow(s.strip())
         for s in sections if s and s.strip()
     ]
-    return "\n\n".join(parts) + "\n"
+    return "\n\n".join(parts).replace(_KEEP, "") + "\n"
 
 
 def _normal_sections(b: _Brief, values: dict[str, object]) -> list[str | None]:
@@ -1437,10 +1696,10 @@ def _issue_lines(issues: Iterable[Any], level: str) -> list[str]:
 
 def _reference_values(json_text: str) -> dict[str, object]:
     """Language names and level for the field reference, read from a
-    (possibly broken) worksheet JSON."""
+    (possibly broken or wrapped) worksheet JSON."""
     try:
-        data = json.loads(json_text)
-    except (ValueError, TypeError):
+        data, _ = parse_json_text(json_text)
+    except (ContractError, TypeError):
         data = None
     data = data if isinstance(data, dict) else {}
 
@@ -1461,10 +1720,21 @@ def repair_prompt(report: Any, json_text: str) -> str:
     """A short prompt asking the LLM to fix the problems in ``report``
     (anything with ``.issues`` of :class:`langwich.validate.Issue`).
 
-    When the file does not match the schema (``contract`` issues), the terse
-    field reference is appended, so a model in a fresh conversation can fix
-    it too."""
+    Problems only the user can fix (:data:`langwich.validate.ENVIRONMENT_CODES`,
+    e.g. a photo that is missing or cannot be decoded) are left out. When the
+    file does not match the schema (``contract`` issues), the terse field
+    reference is appended, so a model in a fresh conversation can fix it too.
+
+    Raises :class:`ValueError` when the file is the prompt's
+    ``NO PICTURE ATTACHED`` reply (a ``no-picture-attached`` issue): the model
+    could not see the picture, and a repair prompt would only make it invent
+    a worksheet without it.
+    """
     issues = list(getattr(report, "issues", []) or [])
+    for issue in issues:
+        if getattr(issue, "code", "") == "no-picture-attached":
+            raise ValueError(getattr(issue, "message", str(issue)))
+    issues = [i for i in issues if getattr(i, "code", "") not in ENVIRONMENT_CODES]
     errors = _issue_lines(issues, "error")
     warnings = _issue_lines(issues, "warning")
     parts = [

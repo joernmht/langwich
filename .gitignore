@@ -122,9 +122,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Generated output (keep PDFs, ignore databases and temp files)
-data/*.sqlite
-data/*.tmp
+# Your worksheets: JSON, pictures (data/pictures/) and rendered PDF/HTML.
+# langwich writes into data/ by default; the bundled examples live in examples/.
+data/
+
+# The JSON Schema copy the Pages workflow publishes at the schema's $id
+docs/schema/
 
 # IDE
 .vscode/
@@ -135,3 +138,6 @@ data/*.tmp
 
 # langwich profile and scratch prompts (per user)
 .langwich/
+
+# generated worksheets, pictures and PDFs (langwich render, the /langwich command)
+data/

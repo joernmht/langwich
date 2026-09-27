@@ -26,7 +26,16 @@ Use it: a topic, a level, a photo path or "next episode" there answers the match
 | `langwich render FILE` | validates, then writes `data/<name>.pdf` (and `.html`) |
 | `langwich kinds` · `langwich schema` | the 13 task kinds and 8 stages · the full JSON Schema, to look things up |
 
-If `langwich` is not found, run `pip install -e .` in the langwich repository (Python 3.11+).
+**Which `langwich`.** Every Bash call starts a fresh shell, so an activated virtual environment
+does not carry over. In the langwich repository, if `.venv/bin/langwich` exists, run every command
+below as `.venv/bin/langwich …`. If neither that nor a `langwich` on the PATH exists, install it
+once (Python 3.11+; a bare `pip install` is refused on many systems, PEP 668):
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -e .
+```
+
+and then use `.venv/bin/langwich`.
 
 ## 1. Start: profile and series
 
@@ -75,9 +84,10 @@ said or make a clearly marked guess. For example:
 Then save the profile by writing `.langwich/profile.json` in the current folder (keep any keys
 already there): `source_lang` and `target_lang` as codes (`en`, `de`, `fr`, `pt-BR` …), `level`,
 `device` (`"epaper"` or `"print"`), `color` (`true` only when they chose colour) and `interests`
-if they named any. (`langwich prompt … --save-profile` stores languages, level, colour and any
-`--frame`, but not the device.) Leave `frame` out: it is a choice per story, and
-`"frame": "episode"` in the profile would make every worksheet the start of a series.
+if they named any. (`langwich prompt … --device epaper --save-profile` stores the same settings
+except `interests`: languages, level, colour and device.) Leave `frame` out: it is a choice per
+story, and `"frame": "episode"` in the profile would make every worksheet the start of a series
+(`--save-profile` never writes it).
 
 **Returning user:** one line — "Same as last time (EN → DE · B1 · e-paper)?" — plus, when a series
 was found, "Or shall we continue *Lena in Wien* with episode 3?" If they want the next episode,
@@ -114,21 +124,25 @@ a mystery, a case study, a dialogue — you may suggest it in the same breath.
 **A photo** (the user gives a file path):
 
 1. Look at it with the Read tool — you can see images. Say in one line what you see and how the
-   story could use it.
-2. Copy it next to the worksheet, e.g. `data/<slug>.jpg` (JPEG or PNG). For an image URL,
-   download it there first so you can look at it.
-3. Pass `--image data/<slug>.jpg` to `langwich prompt`. The brief then contains the picture rules:
-   one scene describes exactly what the photo shows, 4–8 numbered labels sit on visible objects,
-   and a label task goes with that scene. The brief prints the absolute path; in
-   `picture.image` you can use it, or just the file name (`<slug>.jpg`) — paths are resolved
-   against the JSON's folder, and the short name survives moving the folder.
+   story could use it. For an image URL, download it to `.langwich/` first so you can look at
+   it, and use that file below.
+2. Pass the file to `langwich prompt --image <path>`. langwich copies it to
+   `data/pictures/<slug>.<ext>` (converting formats other than JPEG, PNG, WebP and GIF to JPEG)
+   and prints the name. The brief then contains the picture rules — one scene describes exactly
+   what the photo shows, 4–8 numbered labels sit on visible objects, and a label task goes with
+   that scene — and tells you to write exactly `"pictures/<slug>.<ext>"` as `picture.image`. Do
+   that, and save the JSON in `data/`: the path is relative to the JSON's folder.
+3. If langwich cannot read the file (an iPhone HEIC photo without `pillow-heif`, for example),
+   offer to install it (`.venv/bin/pip install pillow-heif`) or ask the user to export the photo
+   as JPEG.
 4. People in the photo become fictional characters. Never guess who they are.
 
 **A pasted text:** save it as `.langwich/source.txt` and pass `--from-text .langwich/source.txt`.
 
 ## 4. Write the worksheet
 
-**File name** (pick a free one; never overwrite an earlier worksheet):
+**File name** (pick a free one; never overwrite an earlier worksheet — `langwich prompt` ends by
+suggesting a free name that follows this convention):
 
 - one-off: `data/<slug>_<src>_<tgt>.json`, e.g. `data/nachtbaeckerei_en_de.json`
 - series: `data/<series>_<nn>_<src>_<tgt>.json`, e.g. `data/lena_01_en_de.json`; the next episode
@@ -144,16 +158,18 @@ langwich prompt --source en --target de --level B1 --topic "sourdough and a nigh
 Add what applies:
 
 - `--frame episode` — episode 1 of a series: the brief then asks for the `series` block. For a
-  series in another frame, pass that frame and `--notes "Episode 1 of a series: add the series
-  block (episode 1, a teaser in next)."` For a one-off, never pass `--frame episode`: pass
+  series in another frame, add `--series` (e.g. `--frame mystery --series`). For a one-off, pass
   `reportage`, `case_study`, `diary`, `letters`, `mystery`, `dialogue` or `other`, or leave
-  `--frame` out and choose as the author.
+  `--frame` out and choose as the author; an episode-style one-off takes
+  `--frame episode --no-series`.
 - `--continue data/lena_02_en_de.json` — the next episode. The brief brings the cast, the story so
   far, the last scene, the teaser to pick up and the words to recycle. Languages and level come
   from that file; pass `--level` only to change it.
-- `--image data/<slug>.jpg` or `--from-text .langwich/source.txt` — see step 3.
-- `--scenes N` — only when the user wants a shorter or longer story (the level sets a default).
-- `--color` — only when the user chose colour.
+- `--image <photo>` or `--from-text .langwich/source.txt` — see step 3.
+- `--scenes N` (2–7) — only when the user wants a shorter or longer story (the level sets a
+  default).
+- `--device epaper` or `--device print` — where the sheet will be used, as in the profile;
+  `--device color` or `--color` only when the user chose colour.
 - `--notes "…"` — everything else they told you: interests, names, places, a grammar point they
   want, "make it funny".
 
@@ -171,6 +187,11 @@ brief into the chat; a short "Writing the story now…" is enough.
    and every warning; each message says where and how (`--prompt` phrases them as repair
    instructions). Repeat until it prints `OK: no problems found.` — `--strict` exits with 0 only
    then. If you keep a warning on purpose, tell the user why in one line.
+   - `image-not-found` / `image-unreadable` are about the picture *file*, not the JSON: check
+     that `picture.image` is `"pictures/<file>"` and the file is in `data/pictures/`.
+   - `wrapped-json` or `normalized` means langwich had to read the file leniently (a code fence
+     or text around the object, a kind like `multiple-choice`, a fact as a plain string): rewrite
+     the file as the brief asks — exactly one clean JSON object.
 2. Then review the worksheet yourself as a strict native-speaker editor and an experienced
    teacher, reading it in lesson order as the learner will:
    - **Language:** natural and idiomatic, right for the level; articles, genders, plurals and verb
@@ -197,15 +218,41 @@ langwich render data/<file>.json --page epaper
   `--solutions none` for no key. By default the solutions come at the end.
 - `--one-task-per-page` if they want plenty of room for notes on e-paper.
 
-langwich prints `Rendered '<title>': N tasks, M pages -> data/<file>.pdf`. Give the user the PDF
-path, the page count and the solutions file, if any. Then, if you can, look at the picture page
-(Read the PDF; a long one needs `pages`, which needs poppler's `pdftoppm`) and check that the
-numbered markers sit on the right objects; if not, fix `x`/`y` and render again.
+langwich prints `Rendered '<title>': N tasks, M pages -> data/<file>.pdf`. Warnings printed
+before that line mean something is missing from the sheet (a picture that could not be used,
+say): fix the cause and render again. Give the user the PDF path, the page count and the
+solutions file, if any.
+
+**Check the picture page** whenever a scene picture has labels: do the numbered markers sit on
+the right objects? Find the page by a text printed on it — best the picture's `caption`, which is
+printed only under the picture; else the label task's `title` (it also appears on the cover and
+in the answer key) — and rasterise it with PyMuPDF (in the dev extra; if
+`.venv/bin/python -c "import pymupdf"` fails, run `.venv/bin/pip install pymupdf`; without a
+`.venv`, use the Python that runs langwich):
+
+```bash
+.venv/bin/python - data/<file>.pdf "<caption or task title>" <<'EOF'
+import os, sys, pymupdf
+doc = pymupdf.open(sys.argv[1])
+os.makedirs(".langwich", exist_ok=True)
+saved = []
+for page in doc:
+    if len(saved) < 3 and page.search_for(sys.argv[2]):
+        path = f".langwich/page-{page.number + 1}.png"
+        page.get_pixmap(dpi=110).save(path)
+        saved.append(path)
+print("saved:", saved or "no page has that text")
+EOF
+```
+
+Then Read the PNG that shows the picture. (Reading the PDF itself also works: the whole file
+without extra tools; a `pages` range needs poppler's `pdftoppm`.) If a marker is off, fix its
+`x`/`y` and render again.
 
 If it prints `Image prompt for scene …`, that scene has no picture yet, so the learner is asked
 to draw it. Offer to draw simple black line art as `svg` with labels (and a label task), or to
-look for an open-licence image (Wikimedia Commons, Openverse), save it in `data/` and set
-`picture.image` and `picture.credit`.
+look for an open-licence image (Wikimedia Commons, Openverse), save it in `data/pictures/` and
+set `picture.image` to `"pictures/<file>"` and `picture.credit` to the attribution.
 
 If no PDF could be made because WeasyPrint's system libraries are missing, langwich still writes
 the HTML and prints how to install them. Pass that on.

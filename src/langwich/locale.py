@@ -64,6 +64,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Answer in full sentences.",
         "kind.cloze.title": "Fill the gaps",
         "kind.cloze.word_bank": "Fill the gaps with words from the box. Some words are left over.",
+        "kind.cloze.word_bank_exact": "Fill the gaps with the words from the box.",
+        "continued": "continued",
         "kind.cloze.first_letter": "Fill the gaps. The first letter is given.",
         "kind.cloze.base_form": "Fill the gaps with the right form of the word in brackets.",
         "kind.cloze.translation": "Fill the gaps. The word in brackets tells you what is meant.",
@@ -135,6 +137,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Antworte in ganzen Sätzen.",
         "kind.cloze.title": "Fülle die Lücken",
         "kind.cloze.word_bank": "Fülle die Lücken mit Wörtern aus dem Kasten. Einige Wörter bleiben übrig.",
+        "kind.cloze.word_bank_exact": "Fülle die Lücken mit den Wörtern aus dem Kasten.",
+        "continued": "Fortsetzung",
         "kind.cloze.first_letter": "Fülle die Lücken. Der erste Buchstabe ist vorgegeben.",
         "kind.cloze.base_form": "Setze das Wort in Klammern in der richtigen Form ein.",
         "kind.cloze.translation": "Fülle die Lücken. Das Wort in Klammern sagt dir, was gemeint ist.",
@@ -206,6 +210,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Réponds par des phrases complètes.",
         "kind.cloze.title": "Complète le texte",
         "kind.cloze.word_bank": "Complète avec les mots de l’encadré. Certains mots ne servent pas.",
+        "kind.cloze.word_bank_exact": "Complète avec les mots de l’encadré.",
+        "continued": "suite",
         "kind.cloze.first_letter": "Complète. La première lettre est donnée.",
         "kind.cloze.base_form": "Mets le mot entre parenthèses à la bonne forme.",
         "kind.cloze.translation": "Complète. Le mot entre parenthèses t’indique le sens.",
@@ -277,6 +283,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Responde con frases completas.",
         "kind.cloze.title": "Completa los huecos",
         "kind.cloze.word_bank": "Completa con palabras del recuadro. Sobran algunas.",
+        "kind.cloze.word_bank_exact": "Completa con las palabras del recuadro.",
+        "continued": "continuación",
         "kind.cloze.first_letter": "Completa los huecos. Se da la primera letra.",
         "kind.cloze.base_form": "Completa con la forma correcta de la palabra entre paréntesis.",
         "kind.cloze.translation": "Completa los huecos. La palabra entre paréntesis te dice qué significa.",
@@ -348,6 +356,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Rispondi con frasi complete.",
         "kind.cloze.title": "Completa il testo",
         "kind.cloze.word_bank": "Completa con le parole del riquadro. Alcune parole avanzano.",
+        "kind.cloze.word_bank_exact": "Completa con le parole del riquadro.",
+        "continued": "continua",
         "kind.cloze.first_letter": "Completa. La prima lettera è data.",
         "kind.cloze.base_form": "Completa con la forma giusta della parola tra parentesi.",
         "kind.cloze.translation": "Completa. La parola tra parentesi ti dice il significato.",
@@ -419,6 +429,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.questions.instruction": "Responde com frases completas.",
         "kind.cloze.title": "Completa os espaços",
         "kind.cloze.word_bank": "Completa com palavras da caixa. Sobram algumas.",
+        "kind.cloze.word_bank_exact": "Completa com as palavras da caixa.",
+        "continued": "continuação",
         "kind.cloze.first_letter": "Completa os espaços. A primeira letra é dada.",
         "kind.cloze.base_form": "Completa com a forma certa da palavra entre parênteses.",
         "kind.cloze.translation": "Completa os espaços. A palavra entre parênteses diz-te o significado.",
@@ -453,6 +465,10 @@ ENDONYMS: dict[str, str] = {
 
 BUILTIN_LANGUAGES: tuple[str, ...] = tuple(STRINGS)
 
+#: Languages written right to left (base codes).
+RTL_LANGUAGES = frozenset({"ar", "arc", "ckb", "dv", "fa", "he", "ks", "ps", "sd", "ug",
+                           "ur", "yi"})
+
 
 def base_lang(code: str) -> str:
     return code.split("-", 1)[0].lower()
@@ -476,6 +492,11 @@ def t(key: str, lang: str, overrides: Mapping[str, str] | None = None, **fmt: ob
         # an override with stray or unknown {placeholders}: use the built-in text
         builtin = STRINGS.get(base_lang(lang), {}).get(key) or STRINGS["en"][key]
         return builtin.format(**fmt)
+
+
+def direction(code: str) -> str:
+    """``"rtl"`` for languages written right to left, else ``"ltr"``."""
+    return "rtl" if base_lang(code) in RTL_LANGUAGES else "ltr"
 
 
 def endonym(code: str) -> str:

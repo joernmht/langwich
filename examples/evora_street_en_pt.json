@@ -1,0 +1,982 @@
+{
+  "schema": "langwich/3",
+  "title": "A mesma rua",
+  "standfirst": "Hannah has one afternoon in Évora to find the street in her grandmother’s fifty-year-old photo — and a train to catch at six. Find out why the old town still looks the way it did fifty years ago.",
+  "source_lang": "en",
+  "target_lang": "pt",
+  "cefr_level": "A2",
+  "topic": "Évora’s old town",
+  "frame": "episode",
+  "story": {
+    "logline": "Hannah, a designer from Bristol, wants to find and photograph the street in Évora that her grandmother photographed fifty years ago — before her train leaves at six.",
+    "setting": "Évora, Portugal: the old town on a hot Saturday in summer",
+    "characters": [
+      {
+        "id": "hannah",
+        "name": "Hannah",
+        "role": "28, a graphic designer from Bristol, on holiday in Portugal"
+      },
+      {
+        "id": "rui",
+        "name": "Rui",
+        "role": "a waiter at a café in the Praça do Giraldo"
+      },
+      {
+        "id": "amelia",
+        "name": "Dona Amélia",
+        "role": "lives in the old town; today she is whitewashing her house"
+      },
+      {
+        "id": "margaret",
+        "name": "Margaret",
+        "role": "Hannah’s grandmother in Bristol; she turns eighty on Tuesday"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Meio-dia na Praça do Giraldo",
+        "beat": "setup",
+        "text": "Sábado, meio-dia. Está muito calor na Praça do Giraldo, em Évora. A Hannah, de Bristol, mostra uma fotografia antiga ao empregado do café, o Rui.\n\n— A minha avó tirou esta fotografia aqui, há cinquenta anos. Na terça-feira, faz oitenta anos. Quero encontrar esta rua e tirar a mesma fotografia.\nO Rui olha: uma rua estreita, um arco, um candeeiro.\n— Ruas brancas e estreitas? Em Évora há centenas! — ri-se ele.\n\nE o comboio para Lisboa sai às seis.",
+        "translation": "Saturday, midday. It’s very hot in the Praça do Giraldo in Évora. Hannah, from Bristol, shows an old photo to the waiter at the café, Rui.\n\n“My grandmother took this photo here fifty years ago. On Tuesday she turns eighty. I want to find this street and take the same photo.”\nRui looks: a narrow street, an arch, a street lamp.\n“White, narrow streets? There are hundreds in Évora!” he laughs.\n\nAnd the train to Lisbon leaves at six."
+      },
+      {
+        "id": "s2",
+        "heading": "Perdida nas ruas brancas",
+        "beat": "complication",
+        "text": "A Hannah anda durante horas pelas ruas estreitas. Todas as casas são brancas, com barras amarelas ou azuis. Às três, estão quase quarenta graus e o telemóvel fica sem bateria. A Hannah perdeu-se.\n\nÀ porta de uma casa, a Dona Amélia pinta a parede com um pincel grande.\n— Estou a caiar a casa. A cal mantém a casa fresca no verão.\nA Hannah mostra-lhe a fotografia.\n— Olhe, esta chaminé conheço eu! É a casa do meu primo. Vá sempre em frente e vire à direita na segunda rua.\n— Mas passaram cinquenta anos…\n— O centro histórico é Património Mundial desde 1986. As casas antigas estão protegidas.",
+        "translation": "Hannah walks through the narrow streets for hours. All the houses are white, with yellow or blue bands. At three o’clock it is almost forty degrees, and her phone runs out of battery. Hannah is lost.\n\nIn front of a house, Dona Amélia is painting the wall with a big brush.\n“I’m whitewashing the house. The lime keeps the house cool in summer.”\nHannah shows her the photo.\n“Look, I know this chimney! It’s my cousin’s house. Go straight on and turn right at the second street.”\n“But fifty years have gone by…”\n“The old town has been World Heritage since 1986. The old houses are protected.”"
+      },
+      {
+        "id": "s3",
+        "heading": "A mesma rua",
+        "beat": "resolution",
+        "text": "Pouco depois, a Hannah está numa rua calma. Olha para a fotografia da avó e para a rua: é igual!\n\nÀ esquerda há um muro velho. Atrás do muro há uma casa com uma chaminé alta e uma janela pequena. À direita há uma porta com uma barra amarela. Lá em cima, está pendurado um candeeiro preto. Ao fundo há dois arcos e uns degraus. A calçada é de pedras escuras. Não há ninguém, só o sol e as sombras.\n\nA Hannah tira a fotografia e corre para a estação. No comboio, olha para as duas fotografias: a da avó é a preto e branco, a dela é a cores. Mas a rua é a mesma.",
+        "translation": "Soon afterwards, Hannah is standing in a quiet street. She looks at her grandmother’s photo and at the street: it’s the same!\n\nOn the left there is an old wall. Behind the wall there is a house with a tall chimney and a small window. On the right there is a door with a yellow band. Up above hangs a black street lamp. At the end there are two arches and some steps. The street is paved with dark cobbles. There is nobody there, only the sun and the shadows.\n\nHannah takes the photo and runs to the station. On the train she looks at the two photos: her grandmother’s is black and white, hers is in colour. But the street is the same.",
+        "picture": {
+          "image": "pictures/evora-street.jpg",
+          "caption": "Uma rua estreita no centro histórico de Évora",
+          "credit": "Photo: Ken & Nyetta, “Evora Street Scene - Apr 2011”, Wikimedia Commons, CC BY 2.0 (creativecommons.org/licenses/by/2.0); resized, numbers added",
+          "labels": [
+            {
+              "n": 1,
+              "term": "o candeeiro",
+              "x": 0.52,
+              "y": 0.135
+            },
+            {
+              "n": 2,
+              "term": "a chaminé",
+              "x": 0.23,
+              "y": 0.265
+            },
+            {
+              "n": 3,
+              "term": "o arco",
+              "x": 0.475,
+              "y": 0.405
+            },
+            {
+              "n": 4,
+              "term": "o muro",
+              "x": 0.16,
+              "y": 0.48
+            },
+            {
+              "n": 5,
+              "term": "a porta",
+              "x": 0.817,
+              "y": 0.6
+            },
+            {
+              "n": 6,
+              "term": "a calçada",
+              "x": 0.4,
+              "y": 0.8
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s1",
+      "title": "O Templo Romano",
+      "text": "Em Évora há um templo romano com quase dois mil anos. Muitas pessoas chamam-lhe «Templo de Diana», mas esse nome vem de uma lenda."
+    },
+    {
+      "id": "f2",
+      "scene": "s2",
+      "title": "Uma universidade antiga",
+      "text": "A Universidade de Évora foi fundada em 1559. É a segunda universidade mais antiga de Portugal, depois da Universidade de Coimbra."
+    },
+    {
+      "id": "f3",
+      "scene": "s3",
+      "title": "Casas nos arcos",
+      "text": "O Aqueduto da Água de Prata, em Évora, é do século XVI. Numa rua da cidade, há casas construídas entre os arcos do aqueduto."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "a rua",
+      "estreito",
+      "o arco",
+      "o candeeiro",
+      "a chaminé",
+      "a calçada",
+      "caiar",
+      "perder-se"
+    ],
+    "items": [
+      {
+        "term": "a rua",
+        "translation": "street",
+        "pos": "noun",
+        "plural": "as ruas"
+      },
+      {
+        "term": "estreito",
+        "translation": "narrow",
+        "pos": "adjective",
+        "note": "f. estreita"
+      },
+      {
+        "term": "o arco",
+        "translation": "arch",
+        "pos": "noun",
+        "plural": "os arcos"
+      },
+      {
+        "term": "o candeeiro",
+        "translation": "street lamp",
+        "pos": "noun",
+        "plural": "os candeeiros",
+        "note": "also: lamp (at home)"
+      },
+      {
+        "term": "a chaminé",
+        "translation": "chimney",
+        "pos": "noun",
+        "plural": "as chaminés"
+      },
+      {
+        "term": "a calçada",
+        "translation": "cobbled pavement, cobbles",
+        "pos": "noun",
+        "plural": "as calçadas"
+      },
+      {
+        "term": "caiar",
+        "translation": "to whitewash (with lime)",
+        "pos": "verb"
+      },
+      {
+        "term": "perder-se",
+        "translation": "to get lost",
+        "pos": "verb",
+        "forms": "perco-me, perde-se, perdeu-se"
+      },
+      {
+        "term": "Dona",
+        "translation": "polite title for a woman, used with her first name",
+        "pos": "other"
+      },
+      {
+        "term": "está muito calor",
+        "translation": "it’s very hot",
+        "pos": "phrase"
+      },
+      {
+        "term": "a praça",
+        "translation": "square",
+        "pos": "noun",
+        "plural": "as praças"
+      },
+      {
+        "term": "o empregado",
+        "translation": "waiter",
+        "pos": "noun",
+        "plural": "os empregados",
+        "note": "f. a empregada"
+      },
+      {
+        "term": "antigo",
+        "translation": "old (from long ago)",
+        "pos": "adjective",
+        "note": "f. antiga"
+      },
+      {
+        "term": "a fotografia",
+        "translation": "photo",
+        "pos": "noun",
+        "plural": "as fotografias"
+      },
+      {
+        "term": "o aniversário",
+        "translation": "birthday",
+        "pos": "noun",
+        "plural": "os aniversários"
+      },
+      {
+        "term": "tirar uma fotografia",
+        "translation": "to take a photo",
+        "pos": "phrase"
+      },
+      {
+        "term": "a avó",
+        "translation": "grandmother",
+        "pos": "noun",
+        "plural": "as avós"
+      },
+      {
+        "term": "há cinquenta anos",
+        "translation": "fifty years ago",
+        "pos": "phrase"
+      },
+      {
+        "term": "fazer anos",
+        "translation": "to have one’s birthday",
+        "pos": "phrase",
+        "forms": "faço anos, faz anos, fez anos",
+        "note": "faz oitenta anos = she turns eighty"
+      },
+      {
+        "term": "encontrar",
+        "translation": "to find",
+        "pos": "verb"
+      },
+      {
+        "term": "procurar",
+        "translation": "to look for",
+        "pos": "verb"
+      },
+      {
+        "term": "rir-se",
+        "translation": "to laugh",
+        "pos": "verb",
+        "forms": "rio-me, ri-se, riu-se"
+      },
+      {
+        "term": "há centenas",
+        "translation": "there are hundreds",
+        "pos": "phrase"
+      },
+      {
+        "term": "o comboio",
+        "translation": "train",
+        "pos": "noun",
+        "plural": "os comboios"
+      },
+      {
+        "term": "sair",
+        "translation": "to leave",
+        "pos": "verb",
+        "forms": "saio, sai, saiu"
+      },
+      {
+        "term": "durante horas",
+        "translation": "for hours",
+        "pos": "phrase"
+      },
+      {
+        "term": "andar",
+        "translation": "to walk, to go around",
+        "pos": "verb"
+      },
+      {
+        "term": "a barra",
+        "translation": "painted band (around doors and windows)",
+        "pos": "noun",
+        "plural": "as barras"
+      },
+      {
+        "term": "quase",
+        "translation": "almost",
+        "pos": "adverb"
+      },
+      {
+        "term": "o grau",
+        "translation": "degree",
+        "pos": "noun",
+        "plural": "os graus"
+      },
+      {
+        "term": "a bateria",
+        "translation": "battery",
+        "pos": "noun",
+        "plural": "as baterias"
+      },
+      {
+        "term": "o telemóvel",
+        "translation": "mobile phone",
+        "pos": "noun",
+        "plural": "os telemóveis"
+      },
+      {
+        "term": "ficar sem bateria",
+        "translation": "to run out of battery",
+        "pos": "phrase",
+        "forms": "fica sem bateria, ficou sem bateria"
+      },
+      {
+        "term": "a parede",
+        "translation": "wall (of a house or room)",
+        "pos": "noun",
+        "plural": "as paredes"
+      },
+      {
+        "term": "pintar",
+        "translation": "to paint",
+        "pos": "verb"
+      },
+      {
+        "term": "o pincel",
+        "translation": "paintbrush",
+        "pos": "noun",
+        "plural": "os pincéis"
+      },
+      {
+        "term": "a cal",
+        "translation": "lime (for whitewash)",
+        "pos": "noun"
+      },
+      {
+        "term": "manter",
+        "translation": "to keep",
+        "pos": "verb",
+        "forms": "mantenho, mantém, manteve",
+        "note": "manter a casa fresca = to keep the house cool"
+      },
+      {
+        "term": "deixar",
+        "translation": "to leave (something somewhere)",
+        "pos": "verb"
+      },
+      {
+        "term": "fresco",
+        "translation": "cool",
+        "pos": "adjective",
+        "note": "f. fresca"
+      },
+      {
+        "term": "o verão",
+        "translation": "summer",
+        "pos": "noun",
+        "plural": "os verões"
+      },
+      {
+        "term": "conhecer",
+        "translation": "to know (a person, a place, a thing)",
+        "pos": "verb",
+        "forms": "conheço, conhece, conheceu"
+      },
+      {
+        "term": "reconhecer",
+        "translation": "to recognise",
+        "pos": "verb",
+        "forms": "reconheço, reconhece, reconheceu"
+      },
+      {
+        "term": "segundo",
+        "translation": "according to",
+        "pos": "preposition"
+      },
+      {
+        "term": "o primo",
+        "translation": "cousin",
+        "pos": "noun",
+        "plural": "os primos",
+        "note": "f. a prima"
+      },
+      {
+        "term": "sempre em frente",
+        "translation": "straight on",
+        "pos": "phrase"
+      },
+      {
+        "term": "virar",
+        "translation": "to turn",
+        "pos": "verb"
+      },
+      {
+        "term": "à direita",
+        "translation": "to the right, on the right",
+        "pos": "phrase"
+      },
+      {
+        "term": "passar",
+        "translation": "to pass, to go by (time)",
+        "pos": "verb"
+      },
+      {
+        "term": "o centro histórico",
+        "translation": "old town, historic centre",
+        "pos": "noun",
+        "plural": "os centros históricos"
+      },
+      {
+        "term": "o Património Mundial",
+        "translation": "World Heritage (site)",
+        "pos": "noun"
+      },
+      {
+        "term": "protegido",
+        "translation": "protected",
+        "pos": "adjective",
+        "note": "f. protegida"
+      },
+      {
+        "term": "mudar",
+        "translation": "to change",
+        "pos": "verb"
+      },
+      {
+        "term": "igual",
+        "translation": "the same, identical",
+        "pos": "adjective"
+      },
+      {
+        "term": "pouco depois",
+        "translation": "soon afterwards",
+        "pos": "phrase"
+      },
+      {
+        "term": "à esquerda",
+        "translation": "on the left, to the left",
+        "pos": "phrase"
+      },
+      {
+        "term": "o muro",
+        "translation": "wall (around a garden or yard)",
+        "pos": "noun",
+        "plural": "os muros",
+        "note": "a parede = the wall of a house or room"
+      },
+      {
+        "term": "atrás de",
+        "translation": "behind",
+        "pos": "preposition"
+      },
+      {
+        "term": "a janela",
+        "translation": "window",
+        "pos": "noun",
+        "plural": "as janelas"
+      },
+      {
+        "term": "a porta",
+        "translation": "door",
+        "pos": "noun",
+        "plural": "as portas"
+      },
+      {
+        "term": "lá em cima",
+        "translation": "up there, up above",
+        "pos": "phrase"
+      },
+      {
+        "term": "ao fundo",
+        "translation": "at the end (of a street), in the background",
+        "pos": "phrase"
+      },
+      {
+        "term": "pendurado",
+        "translation": "hanging",
+        "pos": "adjective",
+        "note": "f. pendurada"
+      },
+      {
+        "term": "os degraus",
+        "translation": "steps",
+        "pos": "noun",
+        "note": "sing. o degrau"
+      },
+      {
+        "term": "a pedra",
+        "translation": "stone",
+        "pos": "noun",
+        "plural": "as pedras"
+      },
+      {
+        "term": "escuro",
+        "translation": "dark",
+        "pos": "adjective",
+        "note": "f. escura"
+      },
+      {
+        "term": "ninguém",
+        "translation": "nobody",
+        "pos": "pronoun"
+      },
+      {
+        "term": "a sombra",
+        "translation": "shadow, shade",
+        "pos": "noun",
+        "plural": "as sombras"
+      },
+      {
+        "term": "correr",
+        "translation": "to run",
+        "pos": "verb"
+      },
+      {
+        "term": "a estação",
+        "translation": "(railway) station",
+        "pos": "noun",
+        "plural": "as estações"
+      },
+      {
+        "term": "a preto e branco",
+        "translation": "in black and white",
+        "pos": "phrase"
+      },
+      {
+        "term": "a cores",
+        "translation": "in colour",
+        "pos": "phrase"
+      },
+      {
+        "term": "o templo",
+        "translation": "temple",
+        "pos": "noun",
+        "plural": "os templos"
+      },
+      {
+        "term": "chamar",
+        "translation": "to call",
+        "pos": "verb",
+        "note": "chamam-lhe … = they call it …"
+      },
+      {
+        "term": "a lenda",
+        "translation": "legend",
+        "pos": "noun",
+        "plural": "as lendas"
+      },
+      {
+        "term": "fundar",
+        "translation": "to found",
+        "pos": "verb"
+      },
+      {
+        "term": "o aqueduto",
+        "translation": "aqueduct",
+        "pos": "noun",
+        "plural": "os aquedutos"
+      },
+      {
+        "term": "o século",
+        "translation": "century",
+        "pos": "noun",
+        "plural": "os séculos"
+      },
+      {
+        "term": "construir",
+        "translation": "to build",
+        "pos": "verb",
+        "forms": "construo, constrói, construiu"
+      },
+      {
+        "term": "descer",
+        "translation": "to go down",
+        "pos": "verb",
+        "forms": "desço, desce, desceu"
+      },
+      {
+        "term": "atravessar",
+        "translation": "to cross",
+        "pos": "verb"
+      },
+      {
+        "term": "seguir",
+        "translation": "to follow, to go on",
+        "pos": "verb",
+        "forms": "sigo, segue, seguiu"
+      },
+      {
+        "term": "perguntar",
+        "translation": "to ask",
+        "pos": "verb"
+      },
+      {
+        "term": "a esquina",
+        "translation": "(street) corner",
+        "pos": "noun",
+        "plural": "as esquinas"
+      },
+      {
+        "term": "com cuidado",
+        "translation": "carefully",
+        "pos": "phrase"
+      },
+      {
+        "term": "o caminho",
+        "translation": "way, path",
+        "pos": "noun",
+        "plural": "os caminhos"
+      },
+      {
+        "term": "o presente",
+        "translation": "present, gift",
+        "pos": "noun",
+        "plural": "os presentes"
+      },
+      {
+        "term": "a moldura",
+        "translation": "picture frame",
+        "pos": "noun",
+        "plural": "as molduras"
+      },
+      {
+        "term": "calado",
+        "translation": "quiet, silent",
+        "pos": "adjective",
+        "note": "f. calada"
+      },
+      {
+        "term": "ainda",
+        "translation": "still",
+        "pos": "adverb"
+      },
+      {
+        "term": "continuar",
+        "translation": "to still be, to go on",
+        "pos": "verb",
+        "note": "continua estreita = it is still narrow"
+      },
+      {
+        "term": "abrir",
+        "translation": "to open",
+        "pos": "verb",
+        "forms": "abro, abre, abriu, aberto"
+      },
+      {
+        "term": "simpático",
+        "translation": "friendly, kind",
+        "pos": "adjective",
+        "note": "f. simpática"
+      },
+      {
+        "term": "ajudar",
+        "translation": "to help",
+        "pos": "verb"
+      },
+      {
+        "term": "Parabéns!",
+        "translation": "Happy birthday! / Congratulations!",
+        "pos": "phrase"
+      },
+      {
+        "term": "um beijinho",
+        "translation": "love (at the end of a message; literally: a little kiss)",
+        "pos": "phrase"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Giving directions: the formal imperative",
+      "scene": "s2",
+      "explanation": "To tell someone you call o senhor or a senhora what to do — for example, the way to go — Portuguese uses the formal imperative. Take the eu form of the present tense, drop the -o and add -e to -ar verbs, -a to -er and -ir verbs. With não, the form stays the same.",
+      "rule": "eu form − o, + e (-ar verbs) / + a (-er and -ir verbs)",
+      "table": {
+        "head": [
+          "infinitive",
+          "eu …",
+          "formal imperative"
+        ],
+        "rows": [
+          [
+            "virar",
+            "viro",
+            "vire"
+          ],
+          [
+            "entrar",
+            "entro",
+            "entre"
+          ],
+          [
+            "subir",
+            "subo",
+            "suba"
+          ],
+          [
+            "fazer",
+            "faço",
+            "faça"
+          ],
+          [
+            "ter",
+            "tenho",
+            "tenha"
+          ],
+          [
+            "ir",
+            "vou",
+            "vá (irregular)"
+          ]
+        ]
+      },
+      "examples": [
+        "Olhe, esta chaminé conheço eu!",
+        "Vá sempre em frente e vire à direita na segunda rua."
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Words for an old street",
+      "instruction": "You will meet these words in the story. Match each Portuguese word to its English meaning. Write the letter in the box. Two meanings are left over.",
+      "pairs": [
+        {
+          "left": "a rua",
+          "right": "street"
+        },
+        {
+          "left": "estreito",
+          "right": "narrow"
+        },
+        {
+          "left": "o arco",
+          "right": "arch"
+        },
+        {
+          "left": "o candeeiro",
+          "right": "street lamp"
+        },
+        {
+          "left": "a chaminé",
+          "right": "chimney"
+        },
+        {
+          "left": "a calçada",
+          "right": "cobbled pavement"
+        },
+        {
+          "left": "caiar",
+          "right": "to whitewash"
+        },
+        {
+          "left": "perder-se",
+          "right": "to get lost"
+        }
+      ],
+      "extra": [
+        "wide",
+        "roof"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Midday in the Praça do Giraldo",
+      "instruction": "Tick true or false. Correct the false sentences.",
+      "items": [
+        {
+          "statement": "Ao meio-dia, a Hannah está num café em Lisboa.",
+          "answer": false,
+          "correction": "Está num café em Évora, na Praça do Giraldo."
+        },
+        {
+          "statement": "A fotografia da avó tem cinquenta anos.",
+          "answer": true
+        },
+        {
+          "statement": "A Hannah quer tirar a fotografia para o aniversário da avó.",
+          "answer": true
+        },
+        {
+          "statement": "Para o Rui, é fácil encontrar a rua da fotografia.",
+          "answer": false,
+          "correction": "Não é fácil: em Évora há centenas de ruas brancas e estreitas."
+        },
+        {
+          "statement": "A Hannah tem o dia todo para procurar a rua.",
+          "answer": false,
+          "correction": "Não tem: o comboio para Lisboa sai às seis."
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "Lost in the white streets",
+      "instruction": "Tick the right answer.",
+      "items": [
+        {
+          "question": "Porque é que a Hannah não pode ver o mapa?",
+          "options": [
+            "O telemóvel ficou sem bateria.",
+            "O mapa só está em português.",
+            "Deixou o telemóvel no café."
+          ],
+          "answer": "O telemóvel ficou sem bateria."
+        },
+        {
+          "question": "Para que serve a cal, segundo a Dona Amélia?",
+          "options": [
+            "Mantém a casa fresca no verão.",
+            "Mantém a casa bonita para os turistas.",
+            "Mantém a casa quente no inverno."
+          ],
+          "answer": "Mantém a casa fresca no verão."
+        },
+        {
+          "question": "Como é que a Dona Amélia reconhece a rua da fotografia?",
+          "options": [
+            "Pela chaminé: é a casa do primo dela.",
+            "Pelo candeeiro: é igual ao da casa dela.",
+            "Pelo arco: passa lá todos os dias."
+          ],
+          "answer": "Pela chaminé: é a casa do primo dela."
+        },
+        {
+          "question": "Porque é que a rua ainda está igual, cinquenta anos depois?",
+          "options": [
+            "O centro histórico é Património Mundial e as casas estão protegidas.",
+            "Ninguém vive naquela rua há muitos anos.",
+            "O primo da Dona Amélia não gosta de mudanças."
+          ],
+          "answer": "O centro histórico é Património Mundial e as casas estão protegidas."
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s2",
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Dona Amélia’s way to the station",
+      "instruction": "Dona Amélia also explains the way to the station. Complete her directions with the formal imperative of the verb in brackets.",
+      "items": [
+        "Primeiro, {{desça::descer}} esta rua até à praça.",
+        "Depois, {{atravesse::atravessar}} a praça com cuidado.",
+        "Na avenida, {{siga::seguir}} sempre em frente.",
+        "No café da esquina, {{pergunte::perguntar}} o caminho ao empregado.",
+        "E com este calor, não {{corra::correr}}!"
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s3",
+      "title": "Grandma’s street",
+      "instruction": "Look at the street Hannah finds. Write the Portuguese word for each number — with o, a, os or as.",
+      "bank": true
+    },
+    {
+      "id": "t6",
+      "kind": "questions",
+      "stage": "picture",
+      "scene": "s3",
+      "title": "Fifty years later",
+      "instruction": "Look at the photo again and answer in Portuguese.",
+      "items": [
+        {
+          "question": "O que há atrás do muro?",
+          "answer": "Há uma casa com uma chaminé alta e uma janela pequena.",
+          "lines": 2
+        },
+        {
+          "question": "Onde está o candeeiro?",
+          "answer": "Está lá em cima, pendurado na parede da direita, por cima da rua.",
+          "lines": 2
+        },
+        {
+          "question": "O que se vê ao fundo da rua?",
+          "answer": "Veem-se dois arcos e uns degraus.",
+          "lines": 2
+        },
+        {
+          "question": "Há carros na rua? Porquê?",
+          "answer": "Não, não há carros: a rua é muito estreita.",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s3",
+      "hint": "word_bank",
+      "title": "Tuesday in Bristol: Grandma’s birthday",
+      "instruction": "On Tuesday it is Grandma’s birthday. Fill the gaps with words from the box. Two words are left over.",
+      "text": "Na terça-feira, em Bristol, a avó abre o presente: duas fotografias numa moldura. Fica muito tempo calada. Depois diz:\n— É a mesma {{rua}}! Continua tão {{estreita}} como antes. E o {{candeeiro}} preto ainda lá está!\n— E a {{chaminé}} alta também — diz a Hannah. — Mas antes de a encontrar, eu {{perdi-me}}.\nA avó ri-se:\n— Eu também! Andei duas horas por aquela {{calçada}}. Depois, uma senhora que estava a {{caiar}} a casa explicou-me o caminho.",
+      "distractors": [
+        "comboio",
+        "larga"
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "writing",
+      "stage": "production",
+      "title": "On the train: a message to Grandma",
+      "instruction": "On the train to Lisbon, Hannah writes to her grandmother. Write her message in Portuguese.",
+      "prompt": "How did Hannah find the street? Who helped her? What does the street look like today?",
+      "starter": "Querida avó, hoje estive em Évora e …",
+      "must_use": [
+        "a rua",
+        "estreito",
+        "o arco",
+        "o candeeiro",
+        "perder-se",
+        "caiar"
+      ],
+      "min_words": 40,
+      "max_words": 70,
+      "lines": 8,
+      "model_answer": "Querida avó, hoje estive em Évora e encontrei a rua da tua fotografia! Primeiro, perdi-me: todas as ruas são estreitas e brancas. Depois, uma senhora simpática, que estava a caiar a casa, ajudou-me. A rua está igual: o arco, o candeeiro preto, a chaminé alta. Tirei a mesma fotografia para ti. Muitos parabéns pelos teus oitenta anos! Um beijinho, Hannah"
+    },
+    {
+      "id": "t9",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Your turn: an old family photo",
+      "instruction": "Answer the questions in Portuguese.",
+      "items": [
+        {
+          "question": "Tem uma fotografia antiga da sua família? O que se vê nela?",
+          "lines": 3
+        },
+        {
+          "question": "Que rua ou que lugar da sua cidade quer fotografar? Porquê?",
+          "lines": 3
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "kind": "media_search",
+      "stage": "epilogue",
+      "title": "Grandma wants to see more",
+      "instruction": "Grandma Margaret wants to see Évora again. Find a Portuguese video about Évora’s old town. There is deliberately no link — searching in Portuguese is part of the task.",
+      "media": "video",
+      "queries": [
+        "Évora centro histórico",
+        "Évora Património Mundial",
+        "casas caiadas Alentejo"
+      ],
+      "questions": [
+        "Que monumentos de Évora aparecem no vídeo? Escreva dois.",
+        "De que cor são as barras das casas no vídeo?"
+      ]
+    }
+  ]
+}

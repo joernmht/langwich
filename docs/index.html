@@ -475,15 +475,16 @@
         <h2>From an idea to a printout in three steps</h2>
         <p>langwich is deliberately split in two: an AI writes every word, a small Python tool
         checks it and sets it on paper. langwich itself calls no API and needs no key and
-        no account.</p>
+        no account — and its renderer fetches nothing from the network: the PDF is made
+        from the JSON, the bundled fonts and the picture the JSON names.</p>
       </div>
       <div class="steps">
         <div class="step">
           <h3>Ask for a prompt</h3>
           <p><code>langwich prompt --topic bread</code> prints a complete brief for the AI:
           your languages and level, how to tell a story that carries true facts, the task
-          kinds and the JSON format. Have a photo? <code>--image photo.jpg</code> makes it
-          the starting point of the story.</p>
+          kinds and the JSON format. Have a photo? <code>--image photo.jpg</code> copies it to
+          <code>data/pictures/</code> and makes it the starting point of the story.</p>
         </div>
         <div class="step">
           <h3>Let any AI write the story</h3>
@@ -494,7 +495,8 @@
         </div>
         <div class="step">
           <h3>langwich checks and typesets</h3>
-          <p><code>langwich validate</code> catches slips and writes a repair prompt for the AI.
+          <p><code>langwich validate</code> catches slips — it even reads a chatty reply with a
+          code fence around the JSON — and writes a repair prompt for the AI.
           <code>langwich render</code> puts the tasks in lesson order and typesets the PDF —
           A4 or e-paper, with the answers at the back. The format is documented in the
           <a href="https://github.com/joernmht/langwich#the-json-contract-langwich3">README</a>.</p>
@@ -510,8 +512,9 @@
         <p class="eyebrow sans">What lands on the page</p>
         <h2>A lesson in every story</h2>
         <p>Every worksheet follows the same arc through <span data-count="stages">8</span>
-        stages: warm up before you read, then scene by scene — read a little, work with it,
-        read on — then write something of your own and take it further. The AI picks from
+        stages: warm up before you read, then scene by scene — read a little, check what
+        happened, look at the picture, work with the language, read on — then write something
+        of your own and take it further. The AI picks from
         <span data-count="task-kinds">13</span> kinds of task; langwich puts each one right after
         the scene it belongs to. (These numbers aren’t hand-written, by the way — they’re read
         from the code on every deploy.)</p>
@@ -544,27 +547,29 @@
           </div>
           <div class="family">
             <div class="family-head">
-              <h3>Scene by scene: the language</h3>
-              <span class="stages sans"><span class="stage">form</span><span class="stage">practice</span></span>
+              <h3>Scene by scene: the picture</h3>
+              <span class="stages sans"><span class="stage">picture</span></span>
             </div>
-            <p>Notice the grammar the scene uses, then put the new words and forms into new
-            sentences. A grammar box sits beside the task that practises it.</p>
+            <p>One scene has a picture — your photo, or simple line art the AI drew. Its tasks
+            come right after you have understood the scene.</p>
             <dl class="kinds sans">
-              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
-              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
-              <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
-              <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation.</dd>
+              <dt><code>label</code></dt><dd>Name the numbered objects in the scene picture; the word box gives the words, you add the article.</dd>
+              <dt><code>draw</code></dt><dd>No picture? Draw the scene yourself and label it.</dd>
             </dl>
           </div>
           <div class="family">
             <div class="family-head">
-              <h3>Scene by scene: the picture</h3>
-              <span class="stages sans"><span class="stage">picture</span></span>
+              <h3>Scene by scene: the language</h3>
+              <span class="stages sans"><span class="stage">form</span><span class="stage">practice</span></span>
             </div>
-            <p>One scene has a picture — your photo, or simple line art the AI drew.</p>
+            <p>Notice the grammar the scene uses, then put the new words and forms into new
+            sentences that carry the story on. A grammar box sits beside the task that
+            practises it.</p>
             <dl class="kinds sans">
-              <dt><code>label</code></dt><dd>Name the numbered objects in the scene picture.</dd>
-              <dt><code>draw</code></dt><dd>No picture? Draw the scene yourself and label it.</dd>
+              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
+              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
+              <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
+              <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation — with a few wrong words in the box.</dd>
             </dl>
           </div>
           <div class="family">
@@ -602,8 +607,8 @@
       <div class="section-head">
         <p class="eyebrow sans">See it on paper</p>
         <h2>Stories you can print today</h2>
-        <p>These worksheets come with the repository — render them yourself before involving
-        any AI. Each one wraps true facts in a made-up story, and every instruction is in the
+        <p>These worksheets and more come with the repository — render them yourself before
+        involving any AI. Each one wraps true facts in a made-up story, and every instruction is in the
         learner’s own language.</p>
       </div>
       <div class="ex-cards">
@@ -625,7 +630,7 @@
               <figcaption>
                 <p class="kicker sans">Episode 1</p>
                 <h4>Fünf Tage im Café Lindner</h4>
-                <p>Five days to earn the right to make Herr Novak’s cappuccino — and to find out
+                <p>Five days to earn the right to make Herr Novak’s Melange — and to find out
                 where your morning coffee comes from.</p>
                 <div class="cta-row sans">
                   <a class="btn primary" href="examples/lena_01_en_de.pdf">Worksheet (PDF)</a>
@@ -659,8 +664,8 @@
           <figcaption>
             <h3>La bobine disparue · DE → FR · B1</h3>
             <p>A mystery at the Festival Lumière in Lyon: two hours before a sold-out screening,
-            the film reel is gone. For German speakers learning French — so every instruction
-            is in German.</p>
+            the film reel is gone. Episode&nbsp;1 of the series <em>Paula à Lyon</em>, for German
+            speakers learning French — so every instruction is in German.</p>
             <div class="cta-row sans">
               <a class="btn primary" href="examples/festival_lyon_de_fr.pdf">Worksheet (PDF)</a>
               <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/festival_lyon_de_fr.json">Source JSON ↗</a>
@@ -679,6 +684,24 @@
             <div class="cta-row sans">
               <a class="btn primary" href="examples/mercado_valencia_en_es.pdf">Worksheet (PDF)</a>
               <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/mercado_valencia_en_es.json">Source JSON ↗</a>
+            </div>
+          </figcaption>
+        </figure>
+        <figure class="ex-card">
+          <a href="examples/evora_street_en_pt.pdf">
+            <img src="assets/evora-street-picture.png" loading="lazy"
+                 alt="The picture page of “A mesma rua”: a greyscale photo of a street in Évora with numbered markers, and a labelling task.">
+          </a>
+          <figcaption>
+            <p class="kicker sans">Built from a photo</p>
+            <h3>A mesma rua · EN → PT · A2</h3>
+            <p>Hannah has one afternoon in Évora to find the street in her grandmother’s
+            fifty-year-old photo. Made with <code>langwich prompt --image</code> from a real
+            open-licence photo (Ken &amp; Nyetta, CC&nbsp;BY&nbsp;2.0): the story grew out of what
+            the picture shows, and the numbered markers sit on it.</p>
+            <div class="cta-row sans">
+              <a class="btn primary" href="examples/evora_street_en_pt.pdf">Worksheet (PDF)</a>
+              <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/evora_street_en_pt.json">Source JSON ↗</a>
             </div>
           </figcaption>
         </figure>
@@ -728,14 +751,16 @@
           <button class="copy sans" type="button">Copy</button>
           <pre>git clone https://github.com/joernmht/langwich
 cd langwich
-pip install -e .
+python3 -m venv .venv
+.venv/bin/pip install -e .
 claude
 <span class="p">&gt;</span> /langwich</pre>
         </div>
         <p class="hint sans">Add a topic, a photo path or “next episode” after
-        <code class="mono">/langwich</code>. Your defaults are kept in
-        <code class="mono">.langwich/profile.json</code>. Works in the Claude Code CLI, the
-        desktop app and on claude.ai/code.</p>
+        <code class="mono">/langwich</code>. Claude uses the langwich in
+        <code class="mono">.venv</code> (and installs it there if it is missing). Your defaults
+        are kept in <code class="mono">.langwich/profile.json</code>. Works in the Claude Code
+        CLI, the desktop app and on claude.ai/code.</p>
       </div>
 
       <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
@@ -745,16 +770,20 @@ claude
         <ol class="plain">
           <li>Print the brief with your languages, level and topic.</li>
           <li>Paste <code class="mono">prompt.txt</code> into a new chat, or attach the file.
-          Starting from a photo? Add <code class="mono">--image</code>, attach the photo as well,
-          and use a model that can see images.</li>
-          <li>Save the reply — one JSON object — as <code class="mono">data/tides_en_de.json</code>.</li>
+          Starting from a photo? Add <code class="mono">--image</code> — langwich copies the photo
+          to <code class="mono">data/pictures/</code> — attach the photo as well, and use a model
+          that can see images.</li>
+          <li>Save the reply as <code class="mono">data/tides_en_de.json</code>. Just the JSON
+          object is best; if the model wrapped it in a code fence or chatted around it, langwich
+          reads the object anyway and warns.</li>
           <li>Check it. If langwich finds problems, paste the repair prompt into the same chat
           and save the new reply over the file.</li>
           <li>Typeset it.</li>
         </ol>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
-          <pre><span class="c"># 1. the brief (with a photo: add --image harbour.jpg and attach harbour.jpg too)</span>
+          <pre><span class="c"># 1. the brief (with a photo: add --image harbour.jpg and attach harbour.jpg too;</span>
+<span class="c">#    save the JSON in data/, where the copied photo is)</span>
 langwich prompt --source en --target de --level B1 --topic tides -o prompt.txt
 
 <span class="c"># 4. check the JSON the AI wrote; if there are problems, make a repair prompt</span>
@@ -765,8 +794,8 @@ langwich validate data/tides_en_de.json --prompt &gt; repair.txt
 langwich render data/tides_en_de.json</pre>
         </div>
         <p class="hint sans">Add <code class="mono">--save-profile</code> once, and langwich
-        remembers your languages and level: next time <code class="mono">langwich prompt --topic
-        volcanoes</code> is enough.</p>
+        remembers your languages, level, colour choice and device (never the story frame):
+        next time <code class="mono">langwich prompt --topic volcanoes</code> is enough.</p>
       </div>
 
       <div class="tabpanel" id="panel-local" role="tabpanel" aria-labelledby="tab-local" hidden>
@@ -775,7 +804,11 @@ langwich render data/tides_en_de.json</pre>
         langwich’s repair loop catches what they get wrong.</p>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
-          <pre><span class="c"># a brief half as long, for models of 7–14B parameters</span>
+          <pre><span class="c"># once: a copy of the model with a 32k context (Ollama's default is far too small)</span>
+printf 'FROM gemma3:12b\nPARAMETER num_ctx 32768\n' &gt; Modelfile
+ollama create gemma3-32k -f Modelfile
+
+<span class="c"># a brief half as long, for models of 7–14B parameters</span>
 langwich prompt --compact --target es --level A2 --topic "a night market" -o prompt.txt
 
 <span class="c"># paste prompt.txt into the model's chat, save its answer, then check it</span>
@@ -789,9 +822,10 @@ langwich render data/night_market_en_es.json</pre>
         <ul class="plain">
           <li><strong>Context:</strong> the compact brief is about 3,500 tokens and a finished
           worksheet another 6,000–12,000, so give the model at least 16k tokens of context — 32k
-          for the repair loop, which sends the whole JSON back. In Ollama:
-          <code class="mono">OLLAMA_CONTEXT_LENGTH=32768 ollama serve</code>; in LM Studio, the
-          context length you set when loading the model.</li>
+          for the repair loop, which sends the whole JSON back. A cut-off answer is not valid
+          JSON. In Ollama, use the 32k copy made above (or start the server with
+          <code class="mono">OLLAMA_CONTEXT_LENGTH=32768 ollama serve</code>); in LM Studio, set
+          the context length when you load the model.</li>
           <li><strong>Bigger is better:</strong> larger models tell better stories and can take the
           full brief — leave out <code class="mono">--compact</code>.</li>
           <li><strong>Photos</strong> need a vision model, such as Gemma&nbsp;3 or Qwen2.5-VL.</li>
@@ -807,6 +841,7 @@ langwich render data/night_market_en_es.json</pre>
           <pre>#!/bin/sh
 <span class="c"># ~/langwich/daily.sh: one new worksheet a day, saved as data/&lt;date&gt;.pdf</span>
 cd "$HOME/langwich" || exit 1
+PATH="$HOME/langwich/.venv/bin:$PATH"   <span class="c"># the langwich installed in .venv</span>
 day=$(date +%F)
 langwich prompt --target de --level B1 -o "data/$day-prompt.md"
 task="Read data/$day-prompt.md and write the worksheet it asks for to data/$day.json.
@@ -817,9 +852,9 @@ claude -p "$task" --allowedTools "Bash(langwich:*)" "Edit(data/**)"</pre>
         </div>
         <p>Make it executable (<code class="mono">chmod +x ~/langwich/daily.sh</code>) and add
         two lines with <code class="mono">crontab -e</code>. Cron starts with a bare
-        <code class="mono">PATH</code>, so name the folders that hold
-        <code class="mono">langwich</code> and <code class="mono">claude</code>
-        (<code class="mono">command -v langwich claude</code> shows them):</p>
+        <code class="mono">PATH</code>, so name the folder that holds
+        <code class="mono">claude</code> (<code class="mono">command -v claude</code> shows it);
+        the script adds langwich’s <code class="mono">.venv</code> itself:</p>
         <div class="codebox">
           <button class="copy sans" type="button">Copy</button>
           <pre>PATH=/usr/local/bin:/usr/bin:/bin:/home/you/.local/bin
@@ -837,20 +872,31 @@ claude -p "$task" --allowedTools "Bash(langwich:*)" "Edit(data/**)"</pre>
           <pre>#!/bin/sh
 <span class="c"># ~/langwich/local.sh: the same with a local model (Ollama), fully offline</span>
 cd "$HOME/langwich" || exit 1
+PATH="$HOME/langwich/.venv/bin:$PATH"
+model=gemma3-32k   <span class="c"># gemma3:12b with a 32k context, made once:</span>
+ollama show "$model" &gt;/dev/null 2&gt;&amp;1 || {
+  printf 'FROM gemma3:12b\nPARAMETER num_ctx 32768\n' &gt; data/Modelfile
+  ollama create "$model" -f data/Modelfile
+}
 day=$(date +%F)
 langwich prompt --compact --target de --level B1 -o "data/$day-prompt.md"
-ollama run gemma3:12b --format json &lt; "data/$day-prompt.md" &gt; "data/$day.json"
+ollama run "$model" --format json &lt; "data/$day-prompt.md" &gt; "data/$day.json"
 for round in 1 2 3; do
   langwich validate "data/$day.json" &amp;&amp; break
-  langwich validate "data/$day.json" --prompt | ollama run gemma3:12b --format json &gt; "data/$day-fixed.json"
+  langwich validate "data/$day.json" --prompt &gt; "data/$day-repair.md"
+  [ -s "data/$day-repair.md" ] || break   <span class="c"># nothing the model can repair</span>
+  ollama run "$model" --format json &lt; "data/$day-repair.md" &gt; "data/$day-fixed.json" || break
   mv "data/$day-fixed.json" "data/$day.json"
 done
 langwich render "data/$day.json"</pre>
         </div>
         <p class="hint sans">Any model you have pulled works in place of
-        <code class="mono">gemma3:12b</code>; <code class="mono">ollama run … --format json</code>
-        keeps its answer to pure JSON. Pair either script with an e-paper tablet or a duplex
-        printer, and the day starts with a worksheet instead of a feed.</p>
+        <code class="mono">gemma3:12b</code> — keep the 32k context
+        (<code class="mono">PARAMETER num_ctx 32768</code>): the repair round sends the whole
+        worksheet back. <code class="mono">ollama run … --format json</code> keeps the answer to
+        pure JSON, and the loop stops when there is nothing the model can repair. Pair either
+        script with an e-paper tablet or a duplex printer, and the day starts with a worksheet
+        instead of a feed.</p>
       </div>
     </div>
   </section>
@@ -862,11 +908,13 @@ langwich render "data/$day.json"</pre>
     <div class="wrap start-grid">
       <div>
         <p class="eyebrow sans">Get started</p>
-        <h2>Four commands to your first worksheet</h2>
-        <p class="start-note">You need Python 3.11 or newer. PDFs are made with WeasyPrint,
+        <h2>A few commands to your first worksheet</h2>
+        <p class="start-note">You need Python 3.11 or newer; langwich goes into a virtual
+        environment, <code class="mono">.venv</code> (in a new terminal, activate it again, or
+        call <code class="mono">.venv/bin/langwich</code>). PDFs are made with WeasyPrint,
         which needs the Pango library from your system (<code class="mono">brew install
         pango</code> on a Mac; the README has the steps for Linux and Windows).
-        The repository includes <span data-count="examples">4</span> complete worksheets, so you
+        The repository includes <span data-count="examples">5</span> complete worksheets, so you
         can print one before involving any AI at all — black-and-white duplex is fine.</p>
         <p class="start-note">Instructions are written in your language by the AI; langwich’s own
         page labels are built in for <span data-count="ui-languages">6</span> languages (English,
@@ -881,6 +929,7 @@ langwich render "data/$day.json"</pre>
         <button class="copy sans" type="button">Copy</button>
         <pre>git clone https://github.com/joernmht/langwich
 cd langwich
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
 pip install -e .
 
 <span class="c"># render a bundled example → data/lena_01_en_de.pdf</span>
@@ -895,8 +944,8 @@ langwich prompt --target fr --level A2 \
   --topic "a bakery in Lyon" -o prompt.txt
 
 <span class="c"># … then check and typeset the JSON it writes</span>
-langwich validate data/bakery_en_fr.json
-langwich render data/bakery_en_fr.json</pre>
+langwich validate data/a_bakery_in_lyon_en_fr.json
+langwich render data/a_bakery_in_lyon_en_fr.json</pre>
       </div>
     </div>
   </section>
@@ -906,10 +955,11 @@ langwich render data/bakery_en_fr.json</pre>
 <footer>
   <div class="wrap">
     <div class="foot-row sans">
-      <span><strong>langwich</strong> — analogue language learning: written by AI, typeset for paper. MIT license.</span>
+      <span><strong>langwich</strong> — analogue language learning: written by AI, typeset for paper. <a href="https://github.com/joernmht/langwich/blob/main/LICENSE">MIT license</a>.</span>
       <span>
         <a href="https://github.com/joernmht/langwich">GitHub</a> ·
         <a href="https://github.com/joernmht/langwich#the-json-contract-langwich3">JSON contract</a> ·
+        <a href="schema/langwich-3.json">JSON Schema</a> ·
         <a href="#top">Back to top ↑</a>
       </span>
     </div>

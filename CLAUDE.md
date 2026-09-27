@@ -8,10 +8,22 @@ and renders a monochrome PDF. Human docs: `README.md`; design and validation rul
 
 ## Setup
 
-`pip install -e ".[dev]"` (Python 3.11+; runtime deps: weasyprint, pydantic, pillow). PDFs need
-Pango for WeasyPrint (Debian/Ubuntu: `sudo apt install libpango-1.0-0 libpangoft2-1.0-0`, macOS:
-`brew install pango`); without it `langwich render` writes only the HTML. `prompt`, `validate`,
-`schema` and `kinds` work regardless.
+Python 3.11+, in a virtual environment (Ubuntu, Debian and Homebrew refuse a bare `pip install`,
+PEP 668):
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
+
+Every Bash call starts a fresh shell, so `activate` does not carry over: call `.venv/bin/langwich`,
+`.venv/bin/pytest` and so on (or `.venv/bin/python -m …`) whenever `.venv` exists. Runtime deps:
+weasyprint, pydantic, pillow, fonttools. PDFs need Pango and HarfBuzz for WeasyPrint
+(Debian/Ubuntu: `sudo apt install libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0`, macOS:
+`brew install pango`); without them `langwich render` writes only the HTML. `prompt`,
+`validate`, `schema` and `kinds` work regardless. Optional: `pillow-heif` reads iPhone HEIC
+photos (`pip install -e ".[heic]"`); poppler (`pdftoppm`) lets the Read tool open single PDF
+pages — PyMuPDF from the dev extra does the same job (see the slash command).
 
 ## `/langwich`
 
@@ -23,8 +35,11 @@ validate and repair → render → check the picture page.
 
 There is no content generator in Python and there must never be one: no text slicing, no
 fallback items. If a task needs an item, the JSON contains it, with its answer. The planner only
-arranges (before you read → scene by scene: gist, detail, form, practice, picture → your turn →
-take it further) and makes seeded shuffles, so the same JSON and seed give the same PDF.
+arranges (before you read → scene by scene: gist, detail, picture, form, practice → your turn →
+take it further) and makes seeded shuffles, so the same JSON and seed give the same PDF. Picture
+tasks follow comprehension because they are about the scene just read; form and practice items
+move the story on. Word boxes: cloze and dialogue boxes hold the gap answers plus `distractors`;
+a label box shows the terms without articles (the answer key keeps them).
 
 ## Golden rules
 
@@ -33,7 +48,10 @@ take it further) and makes seeded shuffles, so the same JSON and seed give the s
    `langwich kinds`. Unknown fields are errors.
 2. **Always validate before rendering.** Run `langwich validate FILE`, fix every error and every
    warning (`--prompt` turns them into repair instructions) until it prints
-   `OK: no problems found.`, then `langwich render FILE`.
+   `OK: no problems found.`, then `langwich render FILE`. `image-not-found` and
+   `image-unreadable` are file problems, not JSON problems: the repair prompt leaves them out.
+   `wrapped-json` and `normalized` warnings mean the file was read leniently (a code fence or
+   prose around the object, a kind such as `multiple-choice`): write it cleanly instead.
 3. **The topic or premise comes from the user** (or the interests in their profile). Offer ideas;
    never pick one silently. Facts must be true; only the characters are fiction.
 4. **langwich 2 and 1 are gone.** `archive/`, the exercise graph (21 exercise types), the
@@ -43,24 +61,32 @@ take it further) and makes seeded shuffles, so the same JSON and seed give the s
    `render/` to match, run `python scripts/export_schema.py`, and keep every example free of
    errors and warnings.
 6. **Docs must match the code.** `tests/test_docs.py` parses every `langwich …` command and flag
-   in README.md, CLAUDE.md, the slash command and docs/index.html, and checks every complete JSON
-   worksheet in them. Fence partial JSON excerpts as `jsonc`.
+   in README.md, CLAUDE.md, the slash command, docs/index.html and docs/architecture.md, checks
+   that README.md lists every CLI option, that stage sequences follow the lesson order, and every
+   complete JSON worksheet in them. Fence partial JSON excerpts as `jsonc`.
+7. **Rebuild the showcase after changing the renderer, the planner or an example.** Run
+   `python3 scripts/build_showcase.py` and commit `docs/examples/` and `docs/assets/`;
+   `python3 scripts/build_showcase.py --check` (CI) fails when the committed PDFs no longer match
+   a fresh render.
+8. **The renderer stays offline.** WeasyPrint may fetch only `data:` URIs and the bundled fonts
+   (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
+   outside resource is a `picture.image` the JSON names, loaded by `images.py`.
 
 ## Module map (`src/langwich/`)
 
 | Module | Responsibility |
 |---|---|
-| `model.py` | the contract (pydantic), `load_worksheet`, `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
-| `validate.py` | semantic checks; `check_file(path) -> Report` with JSON-pointer issues and fix hints |
-| `plan.py` | lesson arc, glosses, grammar and fact sidebars, seeded shuffles |
+| `model.py` | the contract (pydantic), lenient loading (`load_worksheet`, `parse_worksheet`), `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
+| `validate.py` | semantic checks; `check_file(path) -> Report` with JSON-pointer issues and fix hints; `ENVIRONMENT_CODES` |
+| `plan.py` | lesson arc, glosses, grammar and fact sidebars, word boxes, seeded shuffles |
 | `markup.py` | `{{answer\|alternative::hint}}` gap markup |
 | `answers.py` | renderer-neutral answer key |
-| `images.py` | load, convert (greyscale) and embed pictures; never crash |
+| `images.py` | load, convert (greyscale), sanitise and embed pictures; never crash |
 | `locale.py` | page labels in en, de, fr, es, it, pt; others via the worksheet's `ui` |
-| `prompt.py` | authoring brief (`build_prompt`) and repair prompt for any LLM |
-| `series.py` | context for the next episode (`continuation`) |
-| `profile.py` | `.langwich/profile.json` (source_lang, target_lang, level, frame, color, device) |
-| `render/` | HTML + print CSS → PDF via WeasyPrint; bundled fonts in `fonts/` |
+| `prompt.py` | authoring brief (`build_prompt`) and repair prompt (`repair_prompt`) for any LLM |
+| `series.py` | context for the next episode (`continuation`), file names |
+| `profile.py` | `.langwich/profile.json` (source_lang, target_lang, level, color, device; `frame` only by hand) |
+| `render/` | HTML + print CSS → PDF via WeasyPrint (offline URL fetcher); bundled fonts in `fonts/` |
 | `cli.py` | `render`, `validate`, `schema`, `prompt`, `kinds`; legacy `--from-json` alias |
 
 ## CLI
@@ -68,22 +94,34 @@ take it further) and makes seeded shuffles, so the same JSON and seed give the s
 ```bash
 langwich prompt --source en --target de --level B1 --topic "night trains" -o .langwich/prompt.md
 langwich prompt --continue data/lena_02_en_de.json -o .langwich/prompt.md   # next episode
-langwich prompt --image data/market.jpg -o .langwich/prompt.md              # story around a photo
+langwich prompt --image ~/Pictures/market.jpg -o .langwich/prompt.md        # story around a photo
 langwich prompt --from-text .langwich/source.txt -o .langwich/prompt.md     # story from a text
 langwich validate data/night_trains_en_de.json            # add --prompt, --json or --strict
 langwich render data/night_trains_en_de.json --page epaper --solutions separate
 ```
 
-Other prompt options: `--frame`, `--scenes N`, `--notes TEXT`, `--color`, `--compact` (small local
-models), `--save-profile`. Other render options: `-o OUT`, `--one-task-per-page`,
-`--no-translations`, `--allow-color`, `--seed N`, `--html-only`, `--strict`. Output goes to
-`data/<json name>.pdf` and `.html`; `.langwich/` holds the profile and scratch briefs.
+Other prompt options: `--frame`, `--series`/`--no-series` (a series in any frame / a one-off
+`episode`), `--scenes N` (2–7), `--notes TEXT`, `--color`, `--device {epaper,print,color}`,
+`--data-dir DIR`, `--compact` (small local models), `--save-profile` (languages, level, colour,
+device — never the frame). `--image FILE` copies the picture to `data/pictures/<slug>.<ext>`
+(JPEG unless it is JPEG/PNG/WebP/GIF) and the brief tells the LLM to write
+`"picture": {"image": "pictures/<file>"}`, so the JSON belongs in `data/`; a URL is passed through.
+Other render options: `-o OUT`, `--one-task-per-page`, `--no-translations`, `--allow-color`,
+`--seed N`, `--html-only`, `--strict` (also exit 1 when rendering produced warnings; they are
+printed before the `Rendered` line). `validate --prompt` prints problems the LLM cannot fix to
+stderr, and exits 1 without a prompt for a `NO PICTURE ATTACHED` reply. Output goes to
+`data/<json name>.pdf` and `.html`; `.langwich/` holds the profile and scratch briefs; `data/` is
+not in git.
 
 ## Tests
 
 ```bash
-pytest
-ruff check src tests scripts
-python scripts/export_schema.py --check
-python3 scripts/update_page_stats.py --check
+.venv/bin/pytest                                   # LANGWICH_REQUIRE_PDF=1: PDF tests fail, not skip
+.venv/bin/ruff check src tests scripts             # pinned rule set in pyproject.toml
+.venv/bin/mypy
+.venv/bin/python scripts/export_schema.py --check
+.venv/bin/python scripts/update_page_stats.py --check
+.venv/bin/python scripts/build_showcase.py --check
 ```
+
+The version lives only in `src/langwich/__init__.py` (`__version__`).

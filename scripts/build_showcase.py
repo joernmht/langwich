@@ -22,18 +22,27 @@ name, both keep their full stem: ``coffee-en-de``).
 The output is deterministic: the default shuffle seed, and a fixed
 ``SOURCE_DATE_EPOCH`` so that the embedded font subsets — and with them the
 PDF files — are byte-identical from run to run. Files whose content did not
-change are not rewritten.
+change are not rewritten, and generated files that no example produces any
+more (a renamed or removed example) are deleted.
 
 Usage:
     python3 scripts/build_showcase.py           # render everything
-    python3 scripts/build_showcase.py --check   # exit 1 if an output is missing
+    python3 scripts/build_showcase.py --check   # compare only; exit 1 if stale
 
-Needs WeasyPrint (a langwich dependency) and PyMuPDF for the previews
-(``pip install -e ".[dev]"``).
+``--check`` writes nothing: it renders every example into a temporary folder
+and compares page count and page text with the committed PDFs (robust across
+font-subset names and PDF byte details), and checks that every preview PNG
+exists. Run the full build — and commit ``docs/examples/`` and
+``docs/assets/`` — after changing ``src/langwich/render/``, the planner or an
+example. Unknown options are an error; nothing is ever rebuilt by accident.
+
+Needs WeasyPrint (a langwich dependency) and PyMuPDF for the previews and the
+comparison (``pip install -e ".[dev]"``).
 """
 
 from __future__ import annotations
 
+import argparse
 import html
 import os
 import re
@@ -50,7 +59,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 # fontTools stamps every font subset with the current time unless this is set.
 os.environ.setdefault("SOURCE_DATE_EPOCH", "1767225600")  # 2026-01-01
 
-from langwich.model import Worksheet, load_worksheet  # noqa: E402
+from langwich.model import Worksheet  # noqa: E402
 from langwich.validate import check_file  # noqa: E402
 
 EXAMPLES_DIR = REPO_ROOT / "examples"
@@ -129,6 +138,31 @@ def expected_outputs(example: Example, ws: Worksheet) -> list[Path]:
     return out
 
 
+#: Files this script generates; anything matching that no example produces
+#: is a leftover (the other files in docs/assets/ are left alone).
+GENERATED_PATTERNS: tuple[tuple[Path, str], ...] = (
+    (PDF_DIR, "*.pdf"),
+    (ASSETS_DIR, "*-page1.png"),
+    (ASSETS_DIR, "*-picture.png"),
+)
+
+#: The pages that show the previews; a preview none of them uses is noted.
+SHOWCASE_PAGES: tuple[Path, ...] = (REPO_ROOT / "README.md", REPO_ROOT / "docs" / "index.html")
+
+
+def leftover_files(expected: set[Path]) -> list[Path]:
+    """Generated-looking files in docs/ that no example produces any more."""
+    found = {p for folder, pattern in GENERATED_PATTERNS for p in folder.glob(pattern)}
+    return sorted(found - expected)
+
+
+def unused_previews(expected: set[Path]) -> list[Path]:
+    """Preview PNGs that neither the README nor the landing page shows."""
+    pages = "".join(p.read_text(encoding="utf-8") for p in SHOWCASE_PAGES if p.is_file())
+    return sorted(p for p in expected
+                  if p.suffix == ".png" and p.name not in pages)
+
+
 # ---------------------------------------------------------------------------
 # Rendering
 # ---------------------------------------------------------------------------
@@ -150,7 +184,7 @@ def render(example: Example, ws: Worksheet, out_dir: Path, page: str) -> tuple[P
 
 def picture_heading(page_html: str) -> str | None:
     """The heading of the task (or scene) that shows the scene picture."""
-    at = page_html.find('<figure class="fig">')
+    at = page_html.find('<figure class="fig"')
     if at < 0:
         return None
     start = page_html.rfind("<section", 0, at)
@@ -197,6 +231,41 @@ def write_if_changed(path: Path, data: bytes) -> None:
     print(f"  written    {rel} ({len(data) // 1024} KB)")
 
 
+def page_texts(pdf: Path) -> list[str]:
+    """The text of every page, whitespace-normalised."""
+    import pymupdf
+
+    with pymupdf.open(pdf) as doc:
+        return [" ".join(page.get_text("text").split()) for page in doc]
+
+
+def compare_pdf(fresh: Path, committed: Path) -> str | None:
+    """None when ``committed`` has the pages and text of ``fresh``, else why not."""
+    rel = committed.relative_to(REPO_ROOT)
+    if not committed.is_file() or committed.stat().st_size == 0:
+        return f"missing: {rel}"
+    new, old = page_texts(fresh), page_texts(committed)
+    if len(new) != len(old):
+        return f"stale: {rel} has {len(old)} pages, the renderer now makes {len(new)}"
+    for number, (a, b) in enumerate(zip(new, old), start=1):
+        if a != b:
+            return f"stale: {rel} differs from a fresh render on page {number}"
+    return None
+
+
+def check(example: Example, ws: Worksheet, tmp: Path) -> list[str]:
+    """Problems of one example's committed showcase files (nothing is written)."""
+    problems = []
+    pdf, _ = render(example, ws, tmp, "a4")
+    problems.append(compare_pdf(pdf, example.pdf))
+    if example.epaper:
+        pdf, _ = render(example, ws, tmp, "epaper")
+        problems.append(compare_pdf(pdf, example.epaper_pdf))
+    problems += [f"missing: {p.relative_to(REPO_ROOT)}" for p in expected_outputs(example, ws)
+                 if p.suffix == ".png" and (not p.is_file() or p.stat().st_size == 0)]
+    return [p for p in problems if p]
+
+
 def build(example: Example, ws: Worksheet, tmp: Path) -> None:
     import pymupdf
 
@@ -231,35 +300,66 @@ def load(example: Example) -> Worksheet:
     return report.worksheet
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="build_showcase.py",
+        description="Render examples/*.json into docs/examples/ (PDFs) and docs/assets/ "
+                    "(PNG previews) for the README and the website.",
+        epilog="Run it after changing the renderer, the planner or an example, and commit "
+               "docs/examples/ and docs/assets/.",
+    )
+    parser.add_argument(
+        "--check", action="store_true",
+        help="write nothing: render into a temporary folder, compare page count and text "
+             "with the committed PDFs, check that every preview exists; exit 1 if anything "
+             "is stale or missing",
+    )
+    return parser.parse_args(argv)
+
+
 def main(argv: list[str]) -> int:
-    check_only = "--check" in argv
+    args = parse_args(argv)  # --help and unknown options stop here, before any rendering
     examples = find_examples()
     if not examples:
         print("error: no examples/*.json found", file=sys.stderr)
         return 1
 
-    if check_only:
-        missing = [p for ex in examples for p in expected_outputs(ex, load_worksheet(ex.path))
-                   if not p.is_file() or p.stat().st_size == 0]
-        for path in missing:
-            print(f"missing: {path.relative_to(REPO_ROOT)}", file=sys.stderr)
-        if missing:
-            print("Run 'python3 scripts/build_showcase.py' and commit the result.",
-                  file=sys.stderr)
-            return 1
-        print(f"All showcase files for {len(examples)} examples are present.")
-        return 0
-
     try:
         import pymupdf  # noqa: F401
     except ImportError:
-        print("error: the previews need PyMuPDF: pip install -e \".[dev]\"", file=sys.stderr)
+        print("error: the previews and --check need PyMuPDF: pip install -e \".[dev]\"",
+              file=sys.stderr)
         return 1
 
+    worksheets = [(example, load(example)) for example in examples]
+    expected = {p for example, ws in worksheets for p in expected_outputs(example, ws)}
+
     with tempfile.TemporaryDirectory(prefix="langwich-showcase-") as tmp:
-        for example in examples:
+        if args.check:
+            problems = [p for example, ws in worksheets for p in check(example, ws, Path(tmp))]
+            problems += [f"leftover: {p.relative_to(REPO_ROOT)} (no example produces it; "
+                         "delete it)" for p in leftover_files(expected)]
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            for path in unused_previews(expected):
+                print(f"note: {path.relative_to(REPO_ROOT)} is shown neither in README.md nor "
+                      "in docs/index.html", file=sys.stderr)
+            if problems:
+                print("Run 'python3 scripts/build_showcase.py' and commit docs/examples/ and "
+                      "docs/assets/.", file=sys.stderr)
+                return 1
+            print(f"The showcase files of {len(examples)} examples match the renderer.")
+            return 0
+
+        for example, ws in worksheets:
             print(f"{example.path.relative_to(REPO_ROOT)}")
-            build(example, load(example), Path(tmp))
+            build(example, ws, Path(tmp))
+    for path in leftover_files(expected):
+        path.unlink()
+        print(f"  removed    {path.relative_to(REPO_ROOT)} (no example produces it)")
+    for path in unused_previews(expected):
+        print(f"note: {path.relative_to(REPO_ROOT)} is shown neither in README.md nor in "
+              "docs/index.html", file=sys.stderr)
     return 0
 
 

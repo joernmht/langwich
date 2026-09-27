@@ -11,7 +11,7 @@
     "id": "lena-in-wien",
     "title": "Lena in Wien",
     "episode": 2,
-    "previously": "Lena, 23, from Manchester, is spending a gap year in Vienna, working at Café Lindner. In one week Frau Berger taught her where coffee comes from and how the roast changes its taste. On Friday Lena passed her big test: Herr Novak, the café's oldest regular, smiled at her cappuccino.",
+    "previously": "Lena, 23, from Manchester, is spending a gap year in Vienna, working at Café Lindner. In her first week Frau Berger taught her where coffee comes from and how the roast changes its taste. Lena burnt her first roast — and then understood why Herr Novak, the café's strictest regular, always took three sugars. On Friday he drank her Melange without any. Her uncle Marco, who once worked in Vienna, always speaks German with her so that she can practise.",
     "next": "Nächste Folge: Zurück in Wien bekommt Lena einen Brief aus Triest. Darin: ein altes Foto aus dem Hafen – und eine Frage von Signor Bruno …",
     "review": [
       "die Bohne",
@@ -38,7 +38,7 @@
       {
         "id": "marco",
         "name": "Onkel Marco",
-        "role": "Lena's uncle, her mum's brother; born Mark in Manchester, he has run Bar Molo in Trieste for fifteen years"
+        "role": "Lena's uncle, her mum's brother; born Mark in Manchester, he worked in Vienna before he opened Bar Molo in Trieste fifteen years ago"
       },
       {
         "id": "bruno",
@@ -57,28 +57,28 @@
         "heading": "Donnerstag – Ein Anruf aus Triest",
         "beat": "setup",
         "text": "Am Donnerstagabend ruft Lenas Onkel aus Triest an. Eigentlich heißt er Mark, aber dort nennen ihn alle Marco. Seit fünfzehn Jahren hat er eine kleine Espressobar am Hafen. „Ich bin mit dem Roller gestürzt“, sagt er. „Mein Arm ist in Gips, und am Sonntag ist die Barcolana, die große Segelregatta. Kannst du mir aushelfen?“\n\nLena fragt Frau Berger, ob sie sich ein paar Tage freinehmen darf. „Fahr nur!“, sagt die Chefin. „Dein Onkel hat früher auch bei mir gearbeitet.“",
-        "translation": "On Thursday evening Lena's uncle calls from Trieste. His real name is Mark, but there everyone calls him Marco. For fifteen years he has had a small espresso bar at the harbour. \"I came off my scooter,\" he says. \"My arm is in plaster, and on Sunday it's the Barcolana, the big sailing regatta. Can you help me out?\"\n\nLena asks Frau Berger if she can take a few days off. \"Go!\" says her boss. \"Your uncle used to work for me too.\""
+        "translation": "On Thursday evening Lena's uncle calls from Trieste. His real name is Mark, but there everyone calls him Marco. For fifteen years he has had a small espresso bar at the harbour. “I came off my scooter,” he says. “My arm is in plaster, and on Sunday it's the Barcolana, the big sailing regatta. Can you help me out?”\n\nLena asks Frau Berger if she can take a few days off. “Go!” says her boss. “Your uncle used to work for me too.”"
       },
       {
         "id": "s2",
         "heading": "Freitag – Nero, Capo, Capo in B",
         "beat": "development",
-        "text": "Die Bar Molo ist klein: eine Theke, sechs Hocker, eine alte Espressomaschine und ein Fenster mit Blick aufs Meer. Onkel Marco zeigt mit dem Gipsarm hinaus: „Triest ist eine Kaffeestadt. Schon zur Zeit der Habsburger kamen hier Schiffe mit Kaffeesäcken an. Die Bohnen wachsen in Brasilien oder Vietnam. Dort werden sie geerntet und getrocknet, hier werden viele geröstet.“\n\nWer in Triest einen Espresso möchte, bestellt „un nero“. „Un capo“ ist ein Espresso mit ein bisschen Milchschaum in der Tasse, „un capo in b“ das Gleiche im Glas – b wie „bicchiere“, Italienisch für Glas.",
-        "translation": "Bar Molo is small: a counter, six stools, an old espresso machine and a window looking out to sea. Uncle Marco points outside with his plastered arm: \"Trieste is a coffee city. Ships with sacks of coffee were already arriving here in the time of the Habsburgs. The beans grow in Brazil or Vietnam. There they are picked and dried; here many of them are roasted.\"\n\nIf you want an espresso in Trieste, you order \"un nero\". \"Un capo\" is an espresso with a little milk foam in a cup, \"un capo in b\" is the same in a glass – b for \"bicchiere\", Italian for glass."
+        "text": "Die Bar Molo ist klein: eine Theke, sechs Hocker, eine alte Espressomaschine und ein Fenster mit Blick aufs Meer. Onkel Marco zeigt mit dem Gipsarm hinaus: „Triest ist eine Kaffeestadt. Schon zur Zeit der Habsburger kamen hier Schiffe mit Kaffeesäcken an. Die Bohnen wachsen in Brasilien oder Vietnam. Dort werden sie geerntet und getrocknet, hier werden viele geröstet.“\n\nWer in Triest einen Espresso möchte, bestellt „un nero“. „Un capo“ ist ein Espresso mit ein bisschen Milchschaum in der Tasse, „un capo in b“ das Gleiche im Glas – b wie „bicchiere“, Italienisch für Glas. Ganz leicht, denkt Lena.",
+        "translation": "Bar Molo is small: a counter, six stools, an old espresso machine and a window looking out to sea. Uncle Marco points outside with his arm in plaster: “Trieste is a coffee city. Ships with sacks of coffee were already arriving here in the time of the Habsburgs. The beans grow in Brazil or Vietnam. There they are picked and dried; here many of them are roasted.”\n\nIf you want an espresso in Trieste, you order “un nero”. “Un capo” is an espresso with a little milk foam in a cup, “un capo in b” is the same in a glass – b for “bicchiere”, Italian for glass. Easy, Lena thinks."
       },
       {
         "id": "s3",
         "heading": "Samstag – Alles durcheinander",
         "beat": "complication",
-        "text": "Am Samstag ist die Bar schon um sieben Uhr voll. Segler, Touristen und Stammgäste rufen ihre Bestellungen: „Due neri! Un capo in b!“ Lena arbeitet, so schnell sie kann, aber sie verwechselt fast alles: Espresso im Glas statt in der Tasse, Nero statt Capo.\n\nUm neun kommt Signor Bruno. Vierzig Jahre lang hat er im Hafen Kaffeesäcke getragen. Er war Marcos erster Gast, und seitdem trinkt er hier jeden Morgen seinen Capo in B. Im Lärm hört Lena nur „Capo“ und macht einen großen Cappuccino. Signor Bruno sieht die Tasse lange an, schiebt sie zurück und geht – ohne ein Wort. Onkel Marco macht sich Sorgen.",
-        "translation": "On Saturday the bar is already full at seven o'clock. Sailors, tourists and regulars call out their orders: \"Due neri! Un capo in b!\" Lena works as fast as she can, but she mixes up almost everything: espresso in a glass instead of a cup, a nero instead of a capo.\n\nAt nine Signor Bruno comes in. For forty years he carried coffee sacks in the port. He was Marco's first customer, and since then he has drunk his capo in b here every morning. In all the noise Lena only hears \"capo\" and makes a big cappuccino. Signor Bruno looks at the cup for a long time, pushes it back and leaves – without a word. Uncle Marco is worried."
+        "text": "Am Samstag muss Onkel Marco zum Arzt. Schon um sieben ist die Bar voll, und Lena ist allein. Segler, Touristen und Stammgäste rufen ihre Bestellungen: „Due neri! Un capo in b!“ Lena arbeitet schnell, aber sie verwechselt fast alles: Nero statt Capo, Glas statt Tasse.\n\nUm neun kommt ein alter Mann mit Mütze. Im Lärm hört Lena nur „capo“. Sie fragt nicht nach und macht einen großen Cappuccino – wie in Wien. Der Mann sieht die Tasse lange an, schiebt sie zurück und geht ohne ein Wort.\n\nAm Abend macht sich Onkel Marco Sorgen: „Das war Signor Bruno, mein erster Gast! Vierzig Jahre lang hat er im Hafen Kaffeesäcke getragen. Seit fünfzehn Jahren trinkt er hier jeden Morgen um neun einen Capo in B. Hoffentlich kommt er wieder.“",
+        "translation": "On Saturday Uncle Marco has to go to the doctor. By seven the bar is already full, and Lena is on her own. Sailors, tourists and regulars call out their orders: “Due neri! Un capo in b!” Lena works fast, but she mixes up almost everything: a nero instead of a capo, a glass instead of a cup.\n\nAt nine an old man in a cap comes in. In all the noise Lena only hears “capo”. She doesn't ask again and makes a big cappuccino – the way they do in Vienna. The man looks at the cup for a long time, pushes it back and leaves without a word.\n\nIn the evening Uncle Marco is worried: “That was Signor Bruno, my very first customer! For forty years he carried coffee sacks in the port. For fifteen years he has had a capo in b here every morning at nine. I hope he comes back.”"
       },
       {
         "id": "s4",
         "heading": "Sonntag – Die Tafel",
         "beat": "resolution",
-        "text": "Um sechs Uhr früh hat Lena eine Idee: Sie holt eine Tafel aus dem Keller und schreibt mit Kreide die drei Kaffeewörter darauf – und daneben, was sie bedeuten. Darunter zeichnet sie eine Tasse und ein Glas.\n\nDraußen sind Hunderte Segelboote unterwegs, drinnen zeigen die Touristen auf die Tafel und bestellen ohne Probleme. Um neun kommt Signor Bruno. Bevor er etwas sagen kann, steht schon ein Capo in B vor ihm – mit einem Blatt aus Milchschaum. Er trinkt – und lächelt. „Brava“, sagt er nur.\n\nAm Abend fragt Frau Berger am Telefon, ob Lena schon einen Stammgast hat. „Ja“, sagt Lena und lacht. „Er ist noch strenger als Herr Novak!“ Onkel Marco hebt seinen Gipsarm: „Sag ihr, dass ich stolz auf dich bin!“",
-        "translation": "At six in the morning Lena has an idea: she fetches a blackboard from the cellar and writes the three coffee words on it in chalk – and next to them what they mean. Underneath she draws a cup and a glass.\n\nOutside, hundreds of sailing boats are out on the sea; inside, the tourists point at the board and order without any problems. At nine Signor Bruno comes in. Before he can say anything, a capo in b is already standing in front of him – with a leaf of milk foam. He drinks – and smiles. \"Brava,\" is all he says.\n\nIn the evening Frau Berger asks on the phone whether Lena already has a regular. \"Yes,\" Lena says, laughing. \"He's even stricter than Herr Novak!\" Uncle Marco raises his plastered arm: \"Tell her that I'm proud of you!\"",
+        "text": "Um sechs Uhr früh hat Lena eine Idee. Sie holt eine Tafel aus dem Keller und schreibt mit Kreide die drei Kaffeewörter darauf – und daneben, was sie bedeuten. Darunter zeichnet sie eine Tasse und ein Glas.\n\nDraußen sind Hunderte Segelboote unterwegs, drinnen zeigen die Touristen auf die Tafel und bestellen ohne Probleme. Als Signor Bruno um neun hereinkommt, steht sein Capo in B schon auf der Theke. Er sieht die Tafel an, dann Lena. Langsam trinkt er sein Glas aus. Dann legt er Geld für zwei auf die Theke: „Uno per oggi, uno per domani.“\n\nAm Abend fragt Frau Berger am Telefon, ob Lena schon einen Stammgast hat. „Ja“, sagt Lena und lacht. „Er ist noch strenger als Herr Novak!“ Onkel Marco hebt seinen Gipsarm: „Sag ihr, dass ich stolz auf dich bin!“",
+        "translation": "At six in the morning Lena has an idea. She fetches a blackboard from the cellar and writes the three coffee words on it in chalk – and next to them what they mean. Underneath she draws a cup and a glass.\n\nOutside, hundreds of sailing boats are out on the water; inside, the tourists point at the board and order without any problems. When Signor Bruno comes in at nine, his capo in b is already waiting on the counter. He looks at the board, then at Lena. Slowly he empties his glass. Then he puts money for two on the counter: “Uno per oggi, uno per domani” – one for today, one for tomorrow.\n\nIn the evening Frau Berger asks on the phone whether Lena already has a regular. “Yes,” Lena says, laughing. “He's even stricter than Herr Novak!” Uncle Marco raises his arm in its cast: “Tell her that I'm proud of you!”",
         "picture": {
           "svg": "<svg viewBox=\"0 0 178 96\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <line x1=\"0\" y1=\"91\" x2=\"178\" y2=\"91\" stroke-width=\".45\"/>\n  <!-- chalkboard on the wall -->\n  <path d=\"M11,8.3 L29,3 L47,8.3\" stroke-width=\".3\"/>\n  <circle cx=\"29\" cy=\"3\" r=\".6\" fill=\"#000\" stroke=\"none\"/>\n  <rect x=\"6\" y=\"8\" width=\"46\" height=\"34\" rx=\".6\" stroke-width=\".8\" fill=\"#fff\"/>\n  <rect x=\"8\" y=\"10\" width=\"42\" height=\"30\" stroke-width=\".3\"/>\n  <rect x=\"10\" y=\"42\" width=\"38\" height=\"1.4\" stroke-width=\".4\" fill=\"#fff\"/>\n  <rect x=\"40.5\" y=\"40.9\" width=\"4.4\" height=\"1.1\" rx=\".3\" stroke-width=\".3\" fill=\"#fff\"/>\n  <path d=\"M11,16.2 L11,13 L13.1,16.2 L13.1,13 M15.94,13 L14.05,13 L14.05,16.2 L15.94,16.2 M14.05,14.6 L15.52,14.6 M16.89,16.2 L16.89,13 L18.15,13 Q18.99,13 18.99,13.8 Q18.99,14.6 18.15,14.6 L16.89,14.6 M17.94,14.6 L18.99,16.2 M19.94,14.6 A1.15,1.6 0 1 1 22.24,14.6 A1.15,1.6 0 1 1 19.94,14.6 M25.09,14.05 L26.77,14.05 M25.09,15.15 L26.77,15.15 M28.32,15.8 C28.42,14.7 29.32,14.7 29.02,15.8 Q29.17,16.35 29.52,15.8 C29.62,15.3 30.52,15.3 30.22,15.8 Q30.37,16.35 30.72,15.8 C30.82,13.9 31.72,13.9 31.42,15.8 Q31.57,16.35 31.92,15.8 C32.02,15.3 32.92,15.3 32.62,15.8 Q32.77,16.35 33.12,15.8 C33.22,15 34.12,15 33.82,15.8 Q33.97,16.35 34.32,15.8 C34.42,14.2 35.32,14.2 35.02,15.8 Q35.17,16.35 35.52,15.8 C35.62,15.4 36.52,15.4 36.22,15.8 Q36.37,16.35 36.72,15.8 C36.82,14.8 37.72,14.8 37.42,15.8 Q37.57,16.35 37.92,15.8 C38.02,15.3 38.92,15.3 38.62,15.8 Q38.77,16.35 39.12,15.8 C39.22,14 40.12,14 39.82,15.8 Q39.97,16.35 40.32,15.8 C40.42,14.7 41.32,14.7 41.02,15.8 Q41.17,16.35 41.52,15.8 C41.62,15.3 42.52,15.3 42.22,15.8 Q42.37,16.35 42.72,15.8 C42.82,13.9 43.72,13.9 43.42,15.8 Q43.57,16.35 43.92,15.8 C44.02,15.3 44.92,15.3 44.62,15.8 Q44.77,16.35 45.12,15.8 C45.22,15 46.12,15 45.82,15.8 Q45.97,16.35 46.32,15.8 M12.98,20.48 A1.15,1.6 0 1 0 12.98,22.72 M14.25,23.2 L15.3,20 L16.35,23.2 M14.71,22.05 L15.89,22.05 M17.3,23.2 L17.3,20 L18.56,20 Q19.4,20 19.4,20.8 Q19.4,21.6 18.56,21.6 L17.3,21.6 M20.35,21.6 A1.15,1.6 0 1 1 22.65,21.6 A1.15,1.6 0 1 1 20.35,21.6 M25.5,21.05 L27.18,21.05 M25.5,22.15 L27.18,22.15 M28.73,22.8 C28.83,21.7 29.73,21.7 29.43,22.8 Q29.58,23.35 29.93,22.8 C30.03,22.3 30.93,22.3 30.63,22.8 Q30.78,23.35 31.13,22.8 C31.23,20.9 32.13,20.9 31.83,22.8 Q31.98,23.35 32.33,22.8 C32.43,22.3 33.33,22.3 33.03,22.8 Q33.18,23.35 33.53,22.8 C33.63,22 34.53,22 34.23,22.8 Q34.38,23.35 34.73,22.8 C34.83,21.2 35.73,21.2 35.43,22.8 Q35.58,23.35 35.93,22.8 C36.03,22.4 36.93,22.4 36.63,22.8 Q36.78,23.35 37.13,22.8 C37.23,21.8 38.13,21.8 37.83,22.8 Q37.98,23.35 38.33,22.8 C38.43,22.3 39.33,22.3 39.03,22.8 Q39.18,23.35 39.53,22.8 C39.63,21 40.53,21 40.23,22.8 Q40.38,23.35 40.73,22.8 C40.83,21.7 41.73,21.7 41.43,22.8 Q41.58,23.35 41.93,22.8 C42.03,22.3 42.93,22.3 42.63,22.8 Q42.78,23.35 43.13,22.8 C43.23,20.9 44.13,20.9 43.83,22.8 Q43.98,23.35 44.33,22.8 C44.43,22.3 45.33,22.3 45.03,22.8 Q45.18,23.35 45.53,22.8 C45.63,22 46.53,22 46.23,22.8 Q46.38,23.35 46.73,22.8 M12.98,27.48 A1.15,1.6 0 1 0 12.98,29.72 M14.25,30.2 L15.3,27 L16.35,30.2 M14.71,29.05 L15.89,29.05 M17.3,30.2 L17.3,27 L18.56,27 Q19.4,27 19.4,27.8 Q19.4,28.6 18.56,28.6 L17.3,28.6 M20.35,28.6 A1.15,1.6 0 1 1 22.65,28.6 A1.15,1.6 0 1 1 20.35,28.6 M25.5,30.2 L25.5,27 M26.45,30.2 L26.45,27 L28.55,30.2 L28.55,27 M31.4,30.2 L31.4,27 L32.55,27 Q33.33,27 33.33,27.8 Q33.33,28.6 32.55,28.6 L31.4,28.6 M32.55,28.6 Q33.5,28.6 33.5,29.4 Q33.5,30.2 32.55,30.2 L31.4,30.2 M36.35,28.05 L38.03,28.05 M36.35,29.15 L38.03,29.15 M39.58,29.8 C39.68,28.7 40.58,28.7 40.28,29.8 Q40.43,30.35 40.78,29.8 C40.88,29.3 41.78,29.3 41.48,29.8 Q41.63,30.35 41.98,29.8 C42.08,27.9 42.98,27.9 42.68,29.8 Q42.83,30.35 43.18,29.8 C43.28,29.3 44.18,29.3 43.88,29.8 Q44.03,30.35 44.38,29.8 C44.48,29 45.38,29 45.08,29.8 Q45.23,30.35 45.58,29.8 C45.68,28.2 46.58,28.2 46.28,29.8 Q46.43,30.35 46.78,29.8\" stroke-width=\".42\"/>\n  <g stroke-width=\".4\" transform=\"translate(4.4 0)\">\n    <path d=\"M14.6,38.3 L24.4,38.3\"/>\n    <path d=\"M16,33.9 L22.4,33.9 L21.7,37.6 Q19.2,38.3 16.7,37.6 Z\"/>\n    <path d=\"M22.3,34.7 C24.4,34.7 24.4,36.9 21.9,36.9\"/>\n    <path d=\"M18.4,32.9 c-.6,-.7 .6,-1.1 0,-1.9 M20.1,32.9 c-.6,-.7 .6,-1.1 0,-1.9\" stroke-width=\".3\"/>\n  </g>\n  <g stroke-width=\".4\" transform=\"translate(4.6 0)\">\n    <path d=\"M29.2,33.2 L33.6,33.2 L33.1,38.3 L29.7,38.3 Z\"/>\n    <path d=\"M29.3,34.6 L33.5,34.6\" stroke-width=\".3\"/>\n    <path d=\"M29.45,35.4 L33.35,35.4 L33.1,38.3 L29.7,38.3 Z\" fill=\"#000\" stroke=\"none\"/>\n  </g>\n  <!-- pendant lamp over the machine -->\n  <line x1=\"79\" y1=\"0\" x2=\"79\" y2=\"8\" stroke-width=\".35\"/>\n  <path d=\"M73,13 L85,13 L82,8 L76,8 Z\" fill=\"#000\" stroke-width=\".4\"/>\n  <path d=\"M77.4,13.1 Q79,15 80.6,13.1\" stroke-width=\".35\"/>\n  <!-- wall clock: nine o'clock, when Signor Bruno comes -->\n  <circle cx=\"106\" cy=\"17\" r=\"5.2\" stroke-width=\".55\" fill=\"#fff\"/>\n  <circle cx=\"106\" cy=\"17\" r=\"4.3\" stroke-width=\".2\"/>\n  <path d=\"M106,12.7 L106,13.6 M110.3,17 L109.4,17 M106,21.3 L106,20.4 M101.7,17 L102.6,17\" stroke-width=\".4\"/>\n  <path d=\"M106,17 L106,13.4 M106,17 L103.1,17\" stroke-width=\".55\"/>\n  <circle cx=\"106\" cy=\"17\" r=\".45\" fill=\"#000\" stroke=\"none\"/>\n  <!-- window with a view of the sea -->\n  <defs><clipPath id=\"sea\"><rect x=\"134\" y=\"10\" width=\"38\" height=\"44\"/></clipPath></defs>\n  <rect x=\"132\" y=\"8\" width=\"42\" height=\"48\" stroke-width=\".7\" fill=\"#fff\"/>\n  <g clip-path=\"url(#sea)\">\n    <line x1=\"134\" y1=\"35\" x2=\"172\" y2=\"35\" stroke-width=\".35\"/>\n    <path d=\"M133,35 L133,31.6 C136.5,30.4 139.5,29.2 142.5,29.6 C145.5,30 148.5,32.6 151.5,35 Z\" stroke-width=\".35\" fill=\"#fff\"/>\n    <!-- lighthouse on the far shore -->\n    <path d=\"M140.2,29.8 L140.7,24.7 L142.1,24.7 L142.6,29.8 Z\" stroke-width=\".35\" fill=\"#fff\"/>\n    <rect x=\"140.55\" y=\"23.3\" width=\"1.7\" height=\"1.4\" stroke-width=\".3\" fill=\"#fff\"/>\n    <path d=\"M140.2,23.3 L141.4,22 L142.6,23.3 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M136,39 q1,-.7 2,0 q1,.7 2,0 M150,38.5 q1,-.7 2,0 q1,.7 2,0 M158,45.5 q1,-.7 2,0 q1,.7 2,0 M166,48 q1,-.7 2,0 q1,.7 2,0 M137,53 q1,-.7 2,0 q1,.7 2,0 M147,53.2 q1,-.7 2,0 q1,.7 2,0 M161,52.8 q1,-.7 2,0 q1,.7 2,0 M140,44 q1,-.7 2,0 q1,.7 2,0 M168,37.8 q1,-.7 2,0 q1,.7 2,0\" stroke-width=\".3\"/>\n    <path d=\"M155,15 q1.1,-1.1 2.2,0 q1.1,-1.1 2.2,0 M160.5,13 q1.1,-1.1 2.2,0 q1.1,-1.1 2.2,0 M164,16.5 q1.1,-1.1 2.2,0 q1.1,-1.1 2.2,0\" stroke-width=\".35\"/>\n    <!-- far boat -->\n    <g transform=\"translate(155.4 37.9) scale(.3) translate(-145 -49)\" stroke-width=\"1\"><path d=\"M137.5,48.6 L152.5,48.6 L150.6,51 L139.8,51 Z\" fill=\"#fff\"/><line x1=\"145.6\" y1=\"48.6\" x2=\"145.6\" y2=\"31.8\"/><path d=\"M146.1,32.4 Q150.9,40 152.4,47.7 L146.1,47.7 Z\" fill=\"#fff\"/><path d=\"M145.1,33.8 Q141.3,40.6 139.4,47.8 L145.1,47.8 Z\" fill=\"#fff\"/></g>\n    <!-- middle boat, sailing the other way -->\n    <g transform=\"translate(163.4 42.6) scale(-.58 .58) translate(-145 -49)\" stroke-width=\".7\"><path d=\"M137.5,48.6 L152.5,48.6 L150.6,51 L139.8,51 Z\" fill=\"#fff\"/><line x1=\"145.6\" y1=\"48.6\" x2=\"145.6\" y2=\"31.8\"/><path d=\"M146.1,32.4 Q150.9,40 152.4,47.7 L146.1,47.7 Z\" fill=\"#fff\"/><path d=\"M145.1,33.8 Q141.3,40.6 139.4,47.8 L145.1,47.8 Z\" fill=\"#fff\"/></g>\n    <!-- the nearest sailing boat -->\n    <g stroke-width=\".45\"><path d=\"M137.5,48.6 L152.5,48.6 L150.6,51 L139.8,51 Z\" fill=\"#fff\"/><line x1=\"145.6\" y1=\"48.6\" x2=\"145.6\" y2=\"31.8\"/><path d=\"M146.1,32.4 Q150.9,40 152.4,47.7 L146.1,47.7 Z\" fill=\"#fff\"/><path d=\"M145.1,33.8 Q141.3,40.6 139.4,47.8 L145.1,47.8 Z\" fill=\"#fff\"/></g>\n  </g>\n  <rect x=\"134\" y=\"10\" width=\"38\" height=\"44\" stroke-width=\".3\"/>\n  <rect x=\"134\" y=\"20\" width=\"38\" height=\"1.2\" stroke-width=\".3\" fill=\"#fff\"/>\n  <rect x=\"130\" y=\"56\" width=\"46\" height=\"2.4\" stroke-width=\".5\" fill=\"#fff\"/>\n  <rect x=\"134\" y=\"62\" width=\"38\" height=\"25\" stroke-width=\".3\"/>\n  <!-- the counter -->\n  <rect x=\"4\" y=\"61.2\" width=\"112\" height=\"29.8\" stroke-width=\".55\" fill=\"#fff\"/>\n  <line x1=\"4\" y1=\"88\" x2=\"116\" y2=\"88\" stroke-width=\".3\"/>\n  <g stroke-width=\".28\"><rect x=\"7\" y=\"64.6\" width=\"22\" height=\"20.4\"/><line x1=\"32\" y1=\"61.2\" x2=\"32\" y2=\"88\"/><rect x=\"35\" y=\"64.6\" width=\"22\" height=\"20.4\"/><line x1=\"60\" y1=\"61.2\" x2=\"60\" y2=\"88\"/><rect x=\"63\" y=\"64.6\" width=\"22\" height=\"20.4\"/><line x1=\"88\" y1=\"61.2\" x2=\"88\" y2=\"88\"/><rect x=\"91\" y=\"64.6\" width=\"22\" height=\"20.4\"/></g>\n  <rect x=\"2\" y=\"58\" width=\"116\" height=\"3.2\" stroke-width=\".6\" fill=\"#fff\"/>\n  <!-- espresso machine -->\n  <path d=\"M66.3,36 L66.9,32.6 L70.1,32.6 L70.7,36 Z M71.8,36 L72.4,32.6 L75.6,32.6 L76.2,36 Z M77.3,36 L77.9,32.6 L81.1,32.6 L81.7,36 Z M82.8,36 L83.4,32.6 L86.6,32.6 L87.2,36 Z M88.3,36 L88.9,32.6 L92.1,32.6 L92.7,36 Z\" stroke-width=\".4\" fill=\"#fff\"/>\n  <rect x=\"64\" y=\"36\" width=\"30\" height=\"19\" rx=\"1.2\" stroke-width=\".65\" fill=\"#fff\"/>\n  <line x1=\"64.6\" y1=\"43\" x2=\"93.4\" y2=\"43\" stroke-width=\".25\"/>\n  <circle cx=\"79\" cy=\"39.6\" r=\"2.3\" stroke-width=\".4\" fill=\"#fff\"/>\n  <path d=\"M79,39.6 L80.3,38.4\" stroke-width=\".35\"/>\n  <circle cx=\"67.2\" cy=\"39.6\" r=\"1\" stroke-width=\".4\"/>\n  <g stroke-width=\".45\"><path d=\"M68.5,44.4 L74.5,44.4 L73.7,46.8 L69.3,46.8 Z\" fill=\"#fff\"/><path d=\"M68.9,46.8 L74.1,46.8 L73.5,48.7 L69.5,48.7 Z\" fill=\"#fff\"/><path d=\"M69.2,47.8 L64.3,49.6\" stroke-width=\"1.3\"/><path d=\"M70.7,48.8 L70.7,49.8 M72.3,48.8 L72.3,49.8\" stroke-width=\".3\"/><path d=\"M69.3,51.4 L73.7,51.4 L73.2,54.6 Q71.5,55.1 69.8,54.6 Z\" fill=\"#fff\"/><path d=\"M83.5,44.4 L89.5,44.4 L88.7,46.8 L84.3,46.8 Z\" fill=\"#fff\"/><path d=\"M83.9,46.8 L89.1,46.8 L88.5,48.7 L84.5,48.7 Z\" fill=\"#fff\"/><path d=\"M88.8,47.8 L93.7,49.6\" stroke-width=\"1.3\"/><path d=\"M85.7,48.8 L85.7,49.8 M87.3,48.8 L87.3,49.8\" stroke-width=\".3\"/><path d=\"M84.3,51.4 L88.7,51.4 L88.2,54.6 Q86.5,55.1 84.8,54.6 Z\" fill=\"#fff\"/></g>\n  <path d=\"M94,40.8 L96.6,40.8 Q97.6,40.8 97.6,41.8 L97.6,52.4\" stroke-width=\".75\"/>\n  <rect x=\"62\" y=\"55\" width=\"34\" height=\"3\" stroke-width=\".5\" fill=\"#fff\"/>\n  <path d=\"M64,55.7 L64,57.3 M66,55.7 L66,57.3 M68,55.7 L68,57.3 M70,55.7 L70,57.3 M72,55.7 L72,57.3 M74,55.7 L74,57.3 M76,55.7 L76,57.3 M78,55.7 L78,57.3 M80,55.7 L80,57.3 M82,55.7 L82,57.3 M84,55.7 L84,57.3 M86,55.7 L86,57.3 M88,55.7 L88,57.3 M90,55.7 L90,57.3 M92,55.7 L92,57.3 M94,55.7 L94,57.3\" stroke-width=\".22\"/>\n  <!-- a nero on its saucer -->\n  <g stroke-width=\".45\" fill=\"#fff\">\n    <ellipse cx=\"56\" cy=\"57.4\" rx=\"4.2\" ry=\".8\"/>\n    <path d=\"M59,54.6 C60.9,54.6 60.9,56.6 58.6,56.6\" fill=\"none\"/>\n    <path d=\"M53,53.8 L59,53.8 L58.3,57 Q56,57.6 53.7,57 Z\"/>\n    <path d=\"M54.8,52.6 c-.7,-.8 .7,-1.3 0,-2.2 M57.2,52.6 c-.7,-.8 .7,-1.3 0,-2.2\" stroke-width=\".28\" fill=\"none\"/>\n  </g>\n  <!-- Signor Bruno's capo in b, on a small saucer -->\n  <ellipse cx=\"106\" cy=\"57.55\" rx=\"3.9\" ry=\".75\" stroke-width=\".45\" fill=\"#fff\"/>\n  <path d=\"M103.9,52.2 L108.1,52.2 L107.65,57.3 L104.35,57.3 Z\" stroke-width=\".5\" fill=\"#fff\"/>\n  <path d=\"M104.05,53.9 L107.95,53.9 L107.65,57.3 L104.35,57.3 Z\" fill=\"#000\" stroke=\"none\"/>\n  <path d=\"M104,53.2 Q105,52.8 106,53.2 Q107,53.6 108,53.2\" stroke-width=\".25\"/>\n  <!-- bar stools -->\n  <path d=\"M33.6,73 L32,89.6 M42.4,73 L44,89.6 M38.6,73.4 L38.98,89.6\" stroke=\"#fff\" stroke-width=\"2\"/>\n  <ellipse cx=\"38\" cy=\"83\" rx=\"5.5\" ry=\"1.1\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n  <path d=\"M33.6,73 L31.8,91 M42.4,73 L44.2,91 M38.6,73.4 L39,91\" stroke-width=\".75\"/>\n  <ellipse cx=\"38\" cy=\"83\" rx=\"5.5\" ry=\"1.1\" stroke-width=\".45\"/>\n  <path d=\"M33.1,71.4 L33.6,73.3 L42.4,73.3 L42.9,71.4 Z\" stroke-width=\".45\" fill=\"#fff\"/>\n  <path d=\"M31.5,70 L31.5,71.5 A6.5,1.6 0 0 0 44.5,71.5 L44.5,70\" stroke-width=\".55\" fill=\"#fff\"/>\n  <ellipse cx=\"38\" cy=\"70\" rx=\"6.5\" ry=\"1.6\" stroke-width=\".55\" fill=\"#fff\"/>\n  <path d=\"M116.6,73 L115,89.6 M125.4,73 L127,89.6 M121.6,73.4 L121.98,89.6\" stroke=\"#fff\" stroke-width=\"2\"/>\n  <ellipse cx=\"121\" cy=\"83\" rx=\"5.5\" ry=\"1.1\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n  <path d=\"M116.6,73 L114.8,91 M125.4,73 L127.2,91 M121.6,73.4 L122,91\" stroke-width=\".75\"/>\n  <ellipse cx=\"121\" cy=\"83\" rx=\"5.5\" ry=\"1.1\" stroke-width=\".45\"/>\n  <path d=\"M116.1,71.4 L116.6,73.3 L125.4,73.3 L125.9,71.4 Z\" stroke-width=\".45\" fill=\"#fff\"/>\n  <path d=\"M114.5,70 L114.5,71.5 A6.5,1.6 0 0 0 127.5,71.5 L127.5,70\" stroke-width=\".55\" fill=\"#fff\"/>\n  <ellipse cx=\"121\" cy=\"70\" rx=\"6.5\" ry=\"1.6\" stroke-width=\".55\" fill=\"#fff\"/>\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\"><line x1=\"55\" y1=\"26\" x2=\"52.5\" y2=\"26\"/><line x1=\"110.78\" y1=\"46.38\" x2=\"107.3\" y2=\"51.7\"/><line x1=\"134.88\" y1=\"76.65\" x2=\"126.5\" y2=\"78.8\"/><line x1=\"155.4\" y1=\"49.92\" x2=\"151.8\" y2=\"49.8\"/></g>\n</svg>",
           "caption": "Sonntag, neun Uhr, in der Bar Molo",
@@ -352,6 +352,30 @@
         "scene": "s3"
       },
       {
+        "term": "nachfragen",
+        "translation": "to ask again, to check",
+        "pos": "verb",
+        "forms": "fragt nach, fragte nach, hat nachgefragt"
+      },
+      {
+        "term": "die Mütze",
+        "translation": "cap",
+        "pos": "noun",
+        "plural": "die Mützen"
+      },
+      {
+        "term": "hereinkommen",
+        "translation": "to come in",
+        "pos": "verb",
+        "forms": "kommt herein, kam herein, ist hereingekommen"
+      },
+      {
+        "term": "austrinken",
+        "translation": "to finish (a drink)",
+        "pos": "verb",
+        "forms": "trinkt aus, trank aus, hat ausgetrunken"
+      },
+      {
         "term": "die Tafel",
         "translation": "(black)board",
         "pos": "noun",
@@ -378,12 +402,6 @@
         "term": "unterwegs",
         "translation": "out, on the move",
         "pos": "adverb"
-      },
-      {
-        "term": "das Blatt",
-        "translation": "leaf",
-        "pos": "noun",
-        "plural": "die Blätter"
       },
       {
         "term": "streng",
@@ -429,6 +447,16 @@
         "term": "der Geschmack",
         "translation": "taste, flavour",
         "pos": "noun"
+      },
+      {
+        "term": "Uno per oggi, uno per domani",
+        "translation": "(Italian) One for today, one for tomorrow.",
+        "pos": "phrase"
+      },
+      {
+        "term": "ausgezeichnet",
+        "translation": "excellent",
+        "pos": "adjective"
       }
     ]
   },
@@ -467,10 +495,10 @@
     {
       "id": "g2",
       "name": "Ordering politely",
-      "explanation": "At the counter, German speakers rarely say ich will (I want). The Konjunktiv II forms ich hätte gern (I'd like) and könnten Sie …? (could you …?) sound polite and friendly.",
-      "rule": "Ich hätte gern + accusative · Könnten Sie … + infinitive?",
+      "explanation": "At the counter, German speakers rarely say ich will (I want). The Konjunktiv II forms ich hätte gern (I'd like), könnten Sie …? (could you …?) and würden Sie …? (would you …?) sound polite and friendly.",
+      "rule": "Ich hätte gern + accusative · Könnten Sie / Würden Sie … + infinitive?",
       "examples": [
-        "Ich hätte gern einen Capo in B.",
+        "Ich hätte gern den Apfelstrudel, bitte.",
         "Könnten Sie mir das bitte erklären?"
       ]
     }
@@ -526,7 +554,7 @@
       "kind": "multiple_choice",
       "stage": "warm_up",
       "title": "Trieste — what do you think?",
-      "instruction": "Make a guess and tick one answer. You will find out in the story and in the 'Did you know?' boxes.",
+      "instruction": "Make a guess and tick one answer. You will find out in the story and in the “Did you know?” boxes.",
       "items": [
         {
           "question": "Wo liegt Triest?",
@@ -542,7 +570,7 @@
           "options": [
             "zu Österreich",
             "zu Frankreich",
-            "zur Schweiz"
+            "zu Italien"
           ],
           "answer": "zu Österreich"
         },
@@ -571,7 +599,7 @@
           "correction": "Seine Espressobar ist in Triest, am Hafen."
         },
         {
-          "statement": "Onkel Marco ist mit dem Roller gestürzt und kann nicht richtig arbeiten.",
+          "statement": "Onkel Marco hatte einen Unfall und braucht Hilfe.",
           "answer": true
         },
         {
@@ -580,7 +608,7 @@
           "correction": "Sie sagt: „Fahr nur!“ Lena darf sich ein paar Tage freinehmen."
         },
         {
-          "statement": "Onkel Marco hat früher im Café Lindner gearbeitet.",
+          "statement": "Frau Berger war früher Onkel Marcos Chefin.",
           "answer": true
         }
       ]
@@ -595,7 +623,7 @@
       "items": [
         {
           "question": "Warum ist Triest eine Kaffeestadt?",
-          "answer": "Schon zur Zeit der Habsburger kamen hier Schiffe mit Kaffeesäcken an, und viele Bohnen werden in Triest geröstet.",
+          "answer": "Schon zur Zeit der Habsburger kamen Schiffe mit Kaffeesäcken nach Triest, und bis heute werden dort viele Bohnen geröstet.",
           "lines": 2
         },
         {
@@ -616,9 +644,14 @@
       "stage": "practice",
       "scene": "s2",
       "grammar": "g2",
-      "title": "Two guests from Graz",
-      "instruction": "An Austrian couple orders at Bar Molo. Fill the gaps with the words from the box. Then write Lena's missing line.",
+      "title": "Friday afternoon: two guests from Graz",
+      "instruction": "An Austrian couple orders at Bar Molo. Fill the gaps with words from the box — three words are left over. Then write Lena's missing line.",
       "bank": true,
+      "distractors": [
+        "ein",
+        "Keller",
+        "bestellen"
+      ],
       "lines": [
         {
           "speaker": "Lena",
@@ -626,7 +659,7 @@
         },
         {
           "speaker": "Herr Huber",
-          "text": "Grüß Gott! Ich {{hätte}} gern einen Espresso, bitte."
+          "text": "Grüß Gott! Ich hätte gern {{einen}} Espresso, bitte."
         },
         {
           "speaker": "Lena",
@@ -634,7 +667,7 @@
         },
         {
           "speaker": "Frau Huber",
-          "text": "Und was {{empfehlen}} Sie mir? Schwarzer Kaffee ist mir zu bitter."
+          "text": "Und was würden Sie mir {{empfehlen}}? Schwarzer Kaffee ist mir zu bitter."
         },
         {
           "speaker": "Lena",
@@ -651,15 +684,19 @@
         },
         {
           "speaker": "Herr Huber",
-          "text": "Wunderbar. {{Könnten}} Sie uns bitte auch Wasser bringen?"
+          "text": "Wunderbar. Und könnten Sie uns bitte auch {{Wasser}} bringen?"
         },
         {
           "speaker": "Lena",
           "text": "Sehr gern."
         },
         {
+          "speaker": "Lena",
+          "text": "(Etwas später) Hat es Ihnen geschmeckt?"
+        },
+        {
           "speaker": "Herr Huber",
-          "text": "Das war ausgezeichnet! Wir möchten bitte {{zahlen}}."
+          "text": "Ja, ausgezeichnet! Wir möchten bitte {{zahlen}}."
         }
       ]
     },
@@ -669,13 +706,13 @@
       "stage": "detail",
       "scene": "s3",
       "title": "Saturday: everything goes wrong",
-      "instruction": "Put the events of Saturday morning in the right order.",
+      "instruction": "Put the events of Saturday in the right order.",
       "events": [
-        "Um sieben Uhr ist die Bar schon voll.",
-        "Lena verwechselt fast alle Bestellungen.",
-        "Signor Bruno kommt in die Bar.",
-        "Lena macht einen großen Cappuccino.",
-        "Signor Bruno geht, ohne ein Wort zu sagen."
+        "Onkel Marco muss zum Arzt.",
+        "Lena bringt vielen Gästen das falsche Getränk.",
+        "Lena versteht die Bestellung eines alten Mannes falsch.",
+        "Der alte Mann geht, ohne etwas zu trinken.",
+        "Onkel Marco erzählt Lena, wer der Mann ist."
       ]
     },
     {
@@ -686,31 +723,31 @@
       "title": "Sunday: Lena's idea",
       "items": [
         {
-          "question": "Was schreibt Lena auf die Tafel?",
+          "question": "Was steht auf Lenas Tafel?",
           "options": [
             "die Preise der Getränke",
-            "die Triester Kaffeewörter und was sie bedeuten",
-            "die Namen der Segelboote"
+            "wie man in Triest Kaffee bestellt",
+            "das Programm der Regatta"
           ],
-          "answer": "die Triester Kaffeewörter und was sie bedeuten"
+          "answer": "wie man in Triest Kaffee bestellt"
         },
         {
-          "question": "Was macht Lena, als Signor Bruno kommt?",
+          "question": "Woher weiß Lena, was Signor Bruno trinkt?",
           "options": [
-            "Sie fragt ihn, was er trinken möchte.",
-            "Sie stellt ihm sofort einen Capo in B hin.",
-            "Sie macht ihm wieder einen Cappuccino."
+            "Onkel Marco hat es ihr erzählt.",
+            "Signor Bruno hat es auf die Tafel geschrieben.",
+            "Sie hat ihn am Samstag richtig verstanden."
           ],
-          "answer": "Sie stellt ihm sofort einen Capo in B hin."
+          "answer": "Onkel Marco hat es ihr erzählt."
         },
         {
-          "question": "Was möchte Frau Berger am Telefon wissen?",
+          "question": "Warum bezahlt Signor Bruno für zwei?",
           "options": [
-            "ob Lena schon einen Stammgast hat",
-            "wann Lena nach Wien zurückkommt",
-            "wie das Wetter in Triest ist"
+            "Er möchte noch ein zweites Glas.",
+            "Er bezahlt schon für morgen.",
+            "Er lädt Lena zu einem Kaffee ein."
           ],
-          "answer": "ob Lena schon einen Stammgast hat"
+          "answer": "Er bezahlt schon für morgen."
         }
       ]
     },
@@ -721,7 +758,7 @@
       "scene": "s4",
       "grammar": "g1",
       "title": "Lena tells Frau Berger everything",
-      "instruction": "On the phone Lena reports what people said and asked this weekend. Finish each sentence with dass, ob or a question word. The verb goes to the end — and watch the pronouns.",
+      "instruction": "On the phone Lena reports what people said and asked in Trieste. Finish each sentence with dass, ob or a question word. The verb goes to the end — and watch the pronouns.",
       "items": [
         {
           "prompt": "Onkel Marco: „Die Bar ist am Barcolana-Wochenende immer voll.“",
@@ -734,9 +771,9 @@
           "answer": "Eine Touristin fragt, was ein Capo ist."
         },
         {
-          "prompt": "Signor Bruno: „Kommst du morgen wieder?“",
+          "prompt": "Signor Bruno: „Bist du morgen auch da?“",
           "cue": "Signor Bruno fragt, …",
-          "answer": "Signor Bruno fragt, ob ich morgen wiederkomme."
+          "answer": "Signor Bruno fragt, ob ich morgen auch da bin."
         },
         {
           "prompt": "Herr Huber: „Wo kann man hier gut essen?“",
@@ -763,11 +800,11 @@
       "hint": "word_bank",
       "title": "Monday: after the regatta",
       "instruction": "What happens the next day? Fill the gaps with words from the box. Three words are left over.",
-      "text": "Am Montag ist die Barcolana vorbei, und im {{Hafen}} liegen nur noch ein paar {{Segelboote}}. Aber die {{Tafel}} bleibt an der Wand. Jetzt {{bestellen}} auch die Touristen wie echte Triester: „Un nero, per favore!“ Onkel Marco erzählt jedem Gast von Lena: „Am Samstag hat sie noch alles {{verwechselt}}, und heute kennt sie schon jeden {{Stammgast}}!“ Lena ist ein bisschen {{stolz}}. Nur der {{Milchschaum}} für Signor Bruno ist noch nicht ganz perfekt – sagt er. Aber er kommt jeden Morgen wieder.",
+      "text": "Am Montag ist die Barcolana vorbei, und im {{Hafen}} liegen nur noch ein paar {{Segelboote}}. Aber die {{Tafel}} bleibt an der Wand. Jetzt {{bestellen}} auch die Touristen wie echte Triester: „Un nero, per favore!“ Onkel Marco erzählt jedem Gast von Lena: „Am Samstag hat sie noch alles {{verwechselt}}, und heute kennt sie schon jeden {{Stammgast}}!“ Lena ist ein bisschen {{stolz}}. Um neun kommt Signor Bruno – bezahlt hat er ja schon. Nur der {{Milchschaum}} in seinem Glas ist noch nicht ganz perfekt – sagt er.",
       "distractors": [
         "Röstung",
         "trocknen",
-        "Äquator"
+        "bitter"
       ]
     },
     {
@@ -776,7 +813,7 @@
       "stage": "picture",
       "scene": "s4",
       "title": "Sunday morning at Bar Molo",
-      "instruction": "Write the German word for each number — with der, die or das.",
+      "instruction": "Write the German word for each number with der, die or das. The word box leaves out the articles.",
       "bank": true
     },
     {
@@ -785,7 +822,7 @@
       "stage": "production",
       "title": "Uncle Marco writes to Vienna",
       "instruction": "On Monday Uncle Marco writes a card to Frau Berger to thank her. Write his card in German.",
-      "prompt": "Why did he need help? What went wrong on Saturday? What was Lena's idea, and what happened on Sunday?",
+      "prompt": "Why did he need help? What went wrong on Saturday? What did Lena do on Sunday, and how did Signor Bruno react?",
       "starter": "Liebe Frau Berger, vielen Dank, dass Sie mir Lena geschickt haben! …",
       "must_use": [
         "stürzen",
@@ -798,7 +835,7 @@
       "min_words": 60,
       "max_words": 90,
       "lines": 10,
-      "model_answer": "Liebe Frau Berger, vielen Dank, dass Sie mir Lena geschickt haben! Ich bin mit dem Roller gestürzt, und mit meinem Gipsarm konnte ich nicht arbeiten. Zum Glück konnte Lena mir aushelfen. Am Samstag war die Bar voll, und sie hat viele Bestellungen verwechselt. Sogar Signor Bruno, mein treuester Stammgast, ist ohne ein Wort gegangen. Aber am Sonntag hatte Lena eine tolle Idee: Sie hat die Triester Kaffeewörter auf eine Tafel geschrieben. Jetzt bestellen sogar die Touristen richtig! Ich bin sehr stolz auf Lena. Herzliche Grüße aus Triest, Ihr Marco"
+      "model_answer": "Liebe Frau Berger, vielen Dank, dass Sie mir Lena geschickt haben! Ich bin mit dem Roller gestürzt und konnte mit meinem Gipsarm nicht arbeiten. Zum Glück konnte Lena mir aushelfen. Am Samstag war sie allein in der Bar und hat viele Bestellungen verwechselt. Sogar Signor Bruno, mein erster Stammgast, ist ohne ein Wort gegangen. Aber am Sonntag hat Lena alle Kaffeewörter auf eine Tafel geschrieben, und Bruno hat schon für heute bezahlt. Ich bin sehr stolz auf sie. Herzliche Grüße aus Triest, Ihr Marco"
     },
     {
       "id": "t12",
@@ -831,7 +868,7 @@
       ],
       "questions": [
         "Notiere drei neue Wörter mit Artikel.",
-        "Was hast du über Triest gelernt, das nicht in der Geschichte steht?"
+        "Was hast du über Triest gelernt, was nicht in der Geschichte steht?"
       ]
     }
   ]

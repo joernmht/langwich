@@ -8,10 +8,14 @@ languages and level every time::
       "source_lang": "en",
       "target_lang": "de",
       "level": "B1",
-      "frame": "episode",
       "color": false,
       "device": "epaper"
     }
+
+``langwich prompt --save-profile`` writes :data:`SAVED_KEYS` only. A
+``frame`` is a choice per story and is never saved — ``"frame": "episode"``
+would make every brief the start of a series — but one added by hand is
+still read.
 
 :func:`load_profile` searches the start directory (default: the current
 directory) and its parents, stopping at the filesystem root or at the first
@@ -31,6 +35,9 @@ PROFILE_FILE = "profile.json"
 
 #: Keys langwich itself reads. Other keys are kept untouched.
 KNOWN_KEYS: tuple[str, ...] = ("source_lang", "target_lang", "level", "frame", "color", "device")
+
+#: Keys ``langwich prompt --save-profile`` writes (never ``frame``).
+SAVED_KEYS: tuple[str, ...] = ("source_lang", "target_lang", "level", "color", "device")
 
 
 def _start_dir(start: Path | None) -> Path:

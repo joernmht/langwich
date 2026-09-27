@@ -19,6 +19,36 @@ class RenderOptions:
     html_only: bool = False        # write the .html only, no PDF
 
 
+@dataclass(frozen=True)
+class LayoutHints:
+    """Corrections from a first layout pass (see ``render_worksheet``).
+
+    ``build_html`` estimates page breaks; after WeasyPrint has laid the pages
+    out, the renderer may build once more with these hints.
+    """
+
+    #: numbers of picture tasks that must not share a keep-together unit with
+    #: the label task before them (the pair did not fit on one page); they get
+    #: a small copy of the picture instead
+    unpair: frozenset[int] = frozenset()
+    #: set the word list tighter (a few rows spilled onto an almost empty
+    #: page): 0 = normal, 1 = tighter rows, 2 = also smaller type
+    compact_words: int = 0
+    #: tasks kept whole only for convenience (word box or grammar beside the
+    #: items) that may break between items, so the page before them is not
+    #: left almost empty; their boxes move above the items
+    flow: frozenset[int] = frozenset()
+    #: flowing tasks whose header may stay with just their grammar/word box
+    #: (or first item) at the foot of a page that would otherwise stay half empty
+    loose: frozenset[int] = frozenset()
+    #: (task number, mm): a smaller picture, or a lower drawing frame, so the
+    #: task fits the space left on the page before
+    shrink: tuple[tuple[int, float], ...] = ()
+
+    def shrink_for(self, number: int) -> float | None:
+        return next((mm for n, mm in self.shrink if n == number), None)
+
+
 @dataclass
 class RenderResult:
     html: Path

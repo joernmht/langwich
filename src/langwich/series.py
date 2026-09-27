@@ -113,12 +113,13 @@ def continuation(prev: Worksheet) -> Continuation:
       then the series id and title are derived from its title).
     """
     series = prev.series
+    episode = next_episode(prev)
     if series is not None:
-        series_id, series_title, episode = series.id, series.title, series.episode + 1
+        series_id, series_title = series.id, series.title
         previously, teaser = series.previously, series.next
         earlier_review = list(series.review)
     else:
-        series_id, series_title, episode = slugify(prev.title), prev.title, 2
+        series_id, series_title = slugify(prev.title), prev.title
         previously, teaser, earlier_review = None, None, []
 
     lines: list[str] = []
@@ -153,23 +154,87 @@ _EPISODE_TOKEN_RE = re.compile(
     re.IGNORECASE,
 )
 
+#: Longest slug in a suggested worksheet file name (cut at a word boundary).
+_FILE_SLUG_MAX = 32
 
-def next_episode_filename(prev_path: str | Path, episode: int | None = None) -> str:
+
+def next_episode(prev: Worksheet) -> int:
+    """The episode number that follows ``prev``: ``series.episode + 1``, or 2
+    when ``prev`` is a one-off story."""
+    return prev.series.episode + 1 if prev.series is not None else 2
+
+
+def file_slug(text: str, fallback: str = "story") -> str:
+    """The ``<slug>`` of a worksheet file name: lower-case ASCII words joined
+    by ``_``, at most 32 characters (``"Sourdough & a night bakery"`` →
+    ``"sourdough_a_night_bakery"``)."""
+    words = slugify(text, fallback="").split("-")
+    slug = ""
+    for word in (w for w in words if w):
+        candidate = f"{slug}_{word}" if slug else word
+        if len(candidate) > _FILE_SLUG_MAX:
+            break
+        slug = candidate
+    return slug or (words[0][:_FILE_SLUG_MAX] if words and words[0] else fallback)
+
+
+def worksheet_filename(
+    base: str, source_lang: str, target_lang: str, episode: int | None = None,
+    *, variant: int = 1,
+) -> str:
+    """A file name by the documented convention: ``<slug>_<src>_<tgt>.json``
+    for a one-off story, ``<series>_<nn>_<src>_<tgt>.json`` for an episode
+    (``worksheet_filename("lena", "en", "de", 1)`` → ``"lena_01_en_de.json"``).
+    ``base`` is turned into a slug with :func:`file_slug`; ``variant`` > 1
+    marks an alternative when the name is taken (``coffee-2_en_de.json``)."""
+    slug = file_slug(base) + (f"-{variant}" if variant > 1 else "")
+    number = f"_{episode:02d}" if episode is not None else ""
+    return f"{slug}{number}_{source_lang}_{target_lang}.json"
+
+
+def next_episode_filename(
+    prev_path: str | Path,
+    episode: int | None = None,
+    *,
+    source_lang: str | None = None,
+    target_lang: str | None = None,
+    prev_langs: tuple[str, str] | None = None,
+) -> str:
     """The file name for the next episode, next to the previous one.
 
-    ``lena_01_en_de.json`` → ``lena_02_en_de.json`` (zero padding kept),
-    ``story_ep2.json`` → ``story_ep3.json``; a name without an episode
-    number gets ``_ep2`` appended (``coffee_en_de.json`` →
-    ``coffee_en_de_ep2.json``). ``episode`` overrides the new number.
+    ``episode`` is the new episode number — pass :func:`next_episode` of the
+    previous worksheet, so the name agrees with ``series.episode``; without
+    it the number in the old name + 1 (or 2) is used. ``source_lang`` and
+    ``target_lang`` are the new episode's languages, ``prev_langs`` the
+    previous episode's (default: the same); a name that ends with the
+    previous language pair gets the new one.
+
+    * A name with an episode number gets the new number, zero padding kept:
+      ``lena_01_en_de.json`` → ``lena_02_en_de.json``, ``story_ep2.json`` →
+      ``story_ep3.json``.
+    * A name without one follows ``<series>_<nn>_<src>_<tgt>.json``: the
+      number goes before the language pair (``coffee_en_de.json`` →
+      ``coffee_02_en_de.json``); a name without the pair gets number and
+      languages appended (``coffee.json`` → ``coffee_02_en_de.json``, or
+      ``coffee_02.json`` when no languages are given).
     """
     path = Path(prev_path)
     stem, suffix = path.stem, path.suffix or ".json"
+    new = (source_lang, target_lang) if source_lang and target_lang else None
+    old = prev_langs or new
+    langs = ""
+    if old is not None:
+        pair = f"_{old[0]}_{old[1]}"
+        if stem.casefold().endswith(pair.casefold()) and len(stem) > len(pair):
+            stem = stem[: len(stem) - len(pair)]
+            langs = "_{}_{}".format(*(new or old))
     match = _EPISODE_TOKEN_RE.search(stem)
     if match:
         digits = match.group("num")
-        new = episode if episode is not None else int(digits) + 1
-        number = str(new).zfill(len(digits))
+        number = str(episode if episode is not None else int(digits) + 1).zfill(len(digits))
         stem = stem[: match.start("num")] + number + stem[match.end("num"):]
     else:
-        stem = f"{stem}_ep{episode if episode is not None else 2}"
-    return str(path.with_name(stem + suffix))
+        stem = f"{stem}_{episode if episode is not None else 2:02d}"
+        if not langs and new is not None:
+            langs = f"_{new[0]}_{new[1]}"
+    return str(path.with_name(stem + langs + suffix))

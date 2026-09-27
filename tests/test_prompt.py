@@ -49,10 +49,12 @@ from langwich.prompt import (
     LEVELS,
     MINI_EXAMPLE,
     PromptOptions,
+    ResolvedOptions,
     build_prompt,
     compact_example,
     field_reference,
     repair_prompt,
+    resolve_options,
 )
 
 REPO = Path(__file__).resolve().parent.parent
@@ -332,9 +334,10 @@ def test_ui_strings_for_a_source_language_without_labels():
 
 
 def test_image_mode_builds_the_story_around_the_picture():
-    text = _flat(build_prompt(PromptOptions(source_lang="de", target_lang="fr", image=IMAGE)))
-    assert f"A picture is attached to this conversation ({IMAGE})" in text
-    assert f'"image": "{IMAGE}"' in text
+    raw = build_prompt(PromptOptions(source_lang="de", target_lang="fr", image=IMAGE))
+    text = _flat(raw)
+    assert "A picture is attached to this conversation." in text
+    assert f'"image": "{IMAGE}"' in raw.splitlines()
     assert "fractions of the picture's width and height" in text
     assert '"x"' in text and '"y"' in text
     assert "0, 0 = top-left" in text
@@ -344,10 +347,40 @@ def test_image_mode_builds_the_story_around_the_picture():
 
 
 def test_image_mode_compact():
-    text = _flat(build_prompt(PromptOptions(image="photo.jpg", compact=True)))
-    assert "photo.jpg" in text
-    assert "fractions of the" in text
-    assert '"image": "photo.jpg"' in text
+    raw = build_prompt(PromptOptions(image="photo.jpg", compact=True))
+    assert "fractions of the" in _flat(raw)
+    assert '"image": "photo.jpg"' in raw.splitlines()
+
+
+def _image_line(prompt: str) -> str:
+    lines = [line for line in prompt.splitlines() if line.startswith('"image": ')]
+    assert len(lines) == 1, lines
+    return lines[0]
+
+
+@pytest.mark.parametrize("image", [
+    "pictures/stall-at-the-mercado-central.jpg",
+    "C:\\Users\\Jörn Maurischat\\Pictures\\Urlaub 2025\\IMG_2034.jpg",
+    "/Users/joern/Library/Mobile Documents/com~apple~CloudDocs/Fotos/Wien Café  2.jpg",
+    "Screenshot 2026-09-26 at 10.41.07\u202fAM.png",
+    "https://example.org/photos/market%20stall.jpg",
+])
+@pytest.mark.parametrize("compact", [False, True])
+def test_picture_path_is_valid_json_on_its_own_line(image: str, compact: bool):
+    """The path is JSON-escaped (backslashes stay valid JSON) and printed on
+    a line of its own, never re-wrapped or whitespace-normalised."""
+    prompt = build_prompt(PromptOptions(image=image, compact=compact, topic="a market"))
+    line = _image_line(prompt)
+    assert line == '"image": ' + json.dumps(image, ensure_ascii=False)
+    assert json.loads("{" + line + "}") == {"image": image}
+    assert "\x1f" not in prompt
+
+
+def test_picture_path_is_not_repeated_in_reflowed_prose():
+    image = "My Photos/Holiday 2026 Valencia market/stall at the Mercado Central.png"
+    prompt = build_prompt(PromptOptions(image=image))
+    assert prompt.count(image) == 1
+    assert "Pictures: built around the attached picture (see the picture section)" in _flat(prompt)
 
 
 def test_drawn_picture_mode_offers_svg_or_draw_task(normal: str):
@@ -377,6 +410,58 @@ def test_continuation_mode(lena: Worksheet):
     assert "previously" in text
     assert _flat(lena.story.scenes[-1].text.split("\n\n")[0]) in text
     assert "episode 3" in text  # the new teaser
+
+
+def test_continuation_with_an_explicit_level_uses_it():
+    """Levelling up a series: an explicit level wins even when it equals the
+    built-in default (B1), and so does an explicit source language ('en')."""
+    valencia = load_worksheet(REPO / "examples" / "mercado_valencia_en_es.json")
+    assert valencia.cefr_level == "A2"
+    text = _flat(build_prompt(PromptOptions(continue_from=valencia, level="B1")))
+    assert "Level: B1 (intermediate)" in text and "Use the **B1** row" in text
+    assert "Level: A2" not in text
+    assert "Level: A2" in build_prompt(PromptOptions(continue_from=valencia))
+    lyon = load_worksheet(REPO / "examples" / "festival_lyon_de_fr.json")
+    assert lyon.source_lang == "de"
+    text = _flat(build_prompt(PromptOptions(continue_from=lyon, source_lang="en")))
+    assert "an adult who speaks English and is learning French" in text
+
+
+def test_from_legacy_with_an_explicit_default_level_uses_it():
+    legacy = dict(LEGACY, cefr_level="A2")
+    assert "Level: A2" in build_prompt(PromptOptions(from_legacy=legacy))
+    text = _flat(build_prompt(PromptOptions(from_legacy=legacy, level="B1")))
+    assert "Level: B1" in text and "Level: A2" not in text
+    assert "this worksheet follows the brief (de → fr, B1)" in text
+
+
+def test_resolve_options_precedence(lena: Worksheet):
+    profile = {"source_lang": "fr", "target_lang": "es", "level": "A1", "frame": "diary"}
+    assert resolve_options(PromptOptions()) == ResolvedOptions("en", "de", "B1", None)
+    assert resolve_options(PromptOptions(profile=profile)) == ResolvedOptions(
+        "fr", "es", "A1", "diary")
+    # the legacy file beats the profile, the previous episode beats both
+    assert resolve_options(PromptOptions(from_legacy=LEGACY, profile=profile)) == (
+        ResolvedOptions("de", "fr", "B1", "diary"))
+    assert resolve_options(PromptOptions(continue_from=lena, from_legacy=LEGACY,
+                                         profile=profile)) == (
+        ResolvedOptions("en", "de", "B1", "episode"))
+    # explicit values beat everything, also when they equal the defaults
+    assert resolve_options(PromptOptions(source_lang="EN", target_lang="de", level="b1",
+                                         frame="mystery", continue_from=lena,
+                                         profile=profile)) == (
+        ResolvedOptions("en", "de", "B1", "mystery"))
+
+
+def test_resolve_options_skips_unusable_file_values_but_rejects_explicit_ones():
+    legacy = dict(LEGACY, source_lang="German", cefr_level="B3")
+    profile = {"source_lang": "nl", "level": "Z9", "frame": "saga"}
+    assert resolve_options(PromptOptions(from_legacy=legacy, profile=profile)) == (
+        ResolvedOptions("nl", "fr", "B1", None))
+    with pytest.raises(ValueError, match="language code"):
+        resolve_options(PromptOptions(target_lang="German"))
+    with pytest.raises(ValueError, match="CEFR"):
+        resolve_options(PromptOptions(level="B3"))
 
 
 def test_continuation_takes_languages_from_the_previous_episode():
@@ -515,3 +600,162 @@ def test_series_switch_overrides_the_frame_default():
     marker = "film-series"
     assert marker in mystery_series and marker not in plain_mystery
     assert "tea-series" in episode_default and "tea-series" not in episode_without
+
+
+# ---------------------------------------------------------------------------
+# Wording that must agree with the validator, the planner and the renderer
+# ---------------------------------------------------------------------------
+
+
+def test_example_grammar_box_shows_the_pattern_with_other_verbs():
+    """The prompt's rule — the box beside a task never shows its answers — holds
+    for its own example: the table conjugates other modal verbs."""
+    grammar = {g["id"]: g for g in MINI_EXAMPLE["grammar"]}
+    cells = {c.casefold() for g in grammar.values() for row in g["table"]["rows"] for c in row}
+    boxed = [t for t in MINI_EXAMPLE["tasks"] if t.get("grammar")]
+    assert boxed
+    for task in boxed:
+        answers = re.findall(r"\{\{([^}|:]+)", " ".join(task.get("items") or [task.get("text")]))
+        assert answers
+        assert not {a.casefold() for a in answers} & cells, task["id"]
+    flat = _flat(build_prompt(PromptOptions()))
+    assert "It may show the same pattern with OTHER words" in flat
+    assert "never show that task's answers" in flat
+
+
+@pytest.mark.parametrize("compact", [False, True])
+def test_prompt_says_langwich_prints_the_word_range(compact: bool):
+    flat = _flat(build_prompt(PromptOptions(compact=compact)))
+    assert "langwich prints the word range" in flat
+    assert "don't repeat" in flat
+
+
+def test_forms_are_required_for_irregular_separable_and_reflexive_verbs():
+    de = _flat(build_prompt(PromptOptions()))
+    assert '"forms" is REQUIRED for every irregular, separable and reflexive verb' in de
+    assert '"anziehen": "zieht an, zog an, hat angezogen"' in de
+    fr = _flat(build_prompt(PromptOptions(target_lang="fr")))
+    assert '"forms" is REQUIRED for every irregular and reflexive verb' in fr
+    en = _flat(build_prompt(PromptOptions(source_lang="de", target_lang="en")))
+    assert '"forms" is REQUIRED for every irregular verb' in en and "separable" not in en
+
+
+def test_label_word_box_and_articles_follow_the_target_language():
+    de = _flat(build_prompt(PromptOptions()))
+    assert "word box shows the terms without their articles" in de
+    assert '"with der, die or das"' in de
+    assert "Nouns with article and plural" in de
+    en = _flat(build_prompt(PromptOptions(source_lang="de", target_lang="en")))
+    for phrase in ("with article", "with its article", "Nouns with their", "if English has them",
+                   "word box shows the terms without their articles"):
+        assert phrase not in en, phrase
+    assert "Nouns without an article, as an English word list gives them" in en
+    assert '"term" in T without an article' in en
+    en_photo = _flat(build_prompt(PromptOptions(source_lang="de", target_lang="en",
+                                                image="pictures/p.jpg")))
+    assert "with article" not in en_photo and "with its article" not in en_photo
+    en_compact = _flat(build_prompt(PromptOptions(source_lang="de", target_lang="en",
+                                                  image="pictures/p.jpg", compact=True)))
+    assert "with article" not in en_compact
+
+
+def test_dialogue_word_boxes_have_distractors():
+    assert '"distractors": [T]?' in KIND_FIELDS["dialogue"]
+    flat = _flat(build_prompt(PromptOptions()))
+    assert 'a dialogue with "bank": true' in flat
+    assert "the last gap is not free by elimination" in flat
+
+
+@pytest.mark.parametrize("opts", [
+    PromptOptions(level="A1"), PromptOptions(level="A2", compact=True),
+    PromptOptions(source_lang="de", target_lang="it"), PromptOptions(target_lang="en"),
+    PromptOptions(source_lang="en", target_lang="es", level="A2", scenes=2),
+], ids=["A1", "A2-compact", "it", "en", "es-2-scenes"])
+def test_no_template_grammar_slips(opts: PromptOptions):
+    text = _flat(build_prompt(opts))
+    assert not re.search(r"\ba (A1|A2|English|Italian|Arabic)\b", text)
+    assert not re.search(r"\b1 scenes\b", text)
+    assert "section below asks" not in text
+    assert "Frau Berger" not in text and "lena-in-wien" not in text
+
+
+def test_articles_before_level_and_language():
+    a2 = _flat(build_prompt(PromptOptions(level="A2", target_lang="it", source_lang="de")))
+    assert "that an A2 learner may not know" in a2
+    assert "find an Italian video" in a2
+    b1 = _flat(build_prompt(PromptOptions(level="B1")))
+    assert "that a B1 learner may not know" in b1 and "find a German video" in b1
+
+
+@pytest.mark.parametrize("scenes", [1, 8, 12])
+def test_scene_count_outside_the_validator_range_is_rejected(scenes: int):
+    with pytest.raises(ValueError, match="between 2 and 7"):
+        build_prompt(PromptOptions(scenes=scenes))
+
+
+def test_scene_range_matches_the_validator():
+    validate = pytest.importorskip("langwich.validate")
+    assert (validate.SCENES_MIN, validate.SCENES_MAX) == (2, 7)
+    assert "2 scenes" in build_prompt(PromptOptions(scenes=2))
+    assert "7 scenes" in build_prompt(PromptOptions(scenes=7))
+
+
+def test_example_heading_names_the_learner_languages():
+    es = _flat(build_prompt(PromptOptions(target_lang="es", level="A2")))
+    assert "It is English → German; yours is English → Spanish" in es
+    de = _flat(build_prompt(PromptOptions()))
+    assert "It has the same languages as yours" in de
+
+
+def test_lesson_arc_puts_pictures_after_comprehension():
+    flat = _flat(build_prompt(PromptOptions()))
+    assert "sorted gist → detail → picture → form → practice" in flat
+    assert "every gist, detail, picture, form and practice task has a \"scene\"" in flat
+    assert flat.index("4. picture:") < flat.index("5. form:") < flat.index("6. practice:")
+    compact = _flat(build_prompt(PromptOptions(compact=True)))
+    assert compact.index("3. picture:") < compact.index("4. form:")
+    assert "stage: " + " | ".join(STAGES) in build_prompt(PromptOptions())
+
+
+def test_no_picture_sentinel_comes_from_the_model():
+    from langwich.model import NO_PICTURE_SENTINEL
+
+    for compact in (False, True):
+        text = build_prompt(PromptOptions(image="pictures/p.jpg", compact=compact))
+        assert f"reply only with: {NO_PICTURE_SENTINEL}" in _flat(text) or (
+            f"reply only: {NO_PICTURE_SENTINEL}" in _flat(text))
+
+
+# ---------------------------------------------------------------------------
+# Repair: what an LLM cannot fix stays out
+# ---------------------------------------------------------------------------
+
+
+def test_repair_prompt_leaves_out_environment_issues():
+    report = _Report([
+        _Issue("error", "image-not-found", "/story/scenes/1/picture/image",
+               "the picture file pictures/stall.jpg was not found."),
+        _Issue("warning", "image-unreadable", "/story/scenes/2/picture/image",
+               "HEIC without pillow-heif."),
+        _Issue("warning", "no-facts", "/facts", "the worksheet has no facts."),
+    ])
+    text = repair_prompt(report, json.dumps(MINI_EXAMPLE, ensure_ascii=False))
+    assert "no-facts" in text
+    assert "image-not-found" not in text and "image-unreadable" not in text
+    assert "## Errors" not in text
+
+
+def test_repair_prompt_refuses_the_no_picture_reply():
+    report = _Report([_Issue("error", "no-picture-attached", "/",
+                             "the file contains only the reply 'NO PICTURE ATTACHED'")])
+    with pytest.raises(ValueError, match="NO PICTURE ATTACHED"):
+        repair_prompt(report, "NO PICTURE ATTACHED")
+
+
+def test_repair_prompt_reads_languages_from_wrapped_json():
+    report = _Report([_Issue("error", "contract", "/tasks/0/pairz", "not a field")])
+    wrapped = ("Here is your worksheet:\n\n```json\n"
+               '{"schema": "langwich/3", "source_lang": "de", "target_lang": "fr", '
+               '"tasks": []}\n```\nEnjoy!')
+    text = repair_prompt(report, wrapped)
+    assert "text in French" in text and "text in German" in text

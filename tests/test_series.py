@@ -13,10 +13,13 @@ from langwich.series import (
     MAX_REVIEW_WORDS,
     Continuation,
     continuation,
+    file_slug,
+    next_episode,
     next_episode_filename,
     scene_gist,
     sentences,
     slugify,
+    worksheet_filename,
 )
 
 LENA = Path(__file__).resolve().parent.parent / "examples" / "lena_01_en_de.json"
@@ -147,14 +150,65 @@ def test_scene_gist():
     ("story_ep2.json", "story_ep3.json"),
     ("03_lena.json", "04_lena.json"),
     ("folge7.json", "folge8.json"),
-    ("coffee_en_de.json", "coffee_en_de_ep2.json"),
-    ("lena_b1_en_de.json", "lena_b1_en_de_ep2.json"),
-    ("trip_2024.json", "trip_2024_ep2.json"),
+    # no episode number: <series>_<nn>[_<src>_<tgt>]
+    ("coffee.json", "coffee_02.json"),
+    ("trip_2024.json", "trip_2024_02.json"),
 ])
 def test_next_episode_filename(prev: str, expected: str):
     assert next_episode_filename(prev) == str(Path(expected))
 
 
+@pytest.mark.parametrize(("prev", "target", "expected"), [
+    ("lena_01_en_de.json", "de", "lena_02_en_de.json"),
+    ("coffee_en_de.json", "de", "coffee_02_en_de.json"),   # documented <series>_<nn>_<src>_<tgt>
+    ("data/mercado_valencia_en_es.json", "es", "data/mercado_valencia_02_en_es.json"),
+    ("lena_b1_en_de.json", "de", "lena_b1_02_en_de.json"),
+    ("coffee.json", "de", "coffee_02_en_de.json"),
+    ("story_ep2.json", "de", "story_ep3.json"),
+])
+def test_next_episode_filename_follows_the_naming_convention(prev: str, target: str,
+                                                             expected: str):
+    name = next_episode_filename(prev, source_lang="en", target_lang=target)
+    assert name == str(Path(expected))
+
+
 def test_next_episode_filename_with_explicit_episode():
     assert next_episode_filename("lena_01_en_de.json", episode=5) == "lena_05_en_de.json"
-    assert next_episode_filename("coffee.json", episode=3) == "coffee_ep3.json"
+    assert next_episode_filename("lena_01_en_de.json", episode=10) == "lena_10_en_de.json"
+    assert next_episode_filename("coffee.json", episode=3) == "coffee_03.json"
+
+
+def test_next_episode_filename_takes_the_new_languages():
+    name = next_episode_filename("festival_lyon_de_fr.json", 2, source_lang="en",
+                                 target_lang="fr", prev_langs=("de", "fr"))
+    assert name == "festival_lyon_02_en_fr.json"
+
+
+def test_next_episode_number_follows_the_series(lena: Worksheet):
+    assert next_episode(lena) == lena.series.episode + 1 == continuation(lena).episode
+    data = _lena_dict()
+    data["series"]["episode"] = 5
+    ws = worksheet_from_dict(data)
+    assert next_episode(ws) == 6 == continuation(ws).episode
+    # the file name agrees with series.episode, not with the old name's number
+    assert next_episode_filename("lena_01_en_de.json", next_episode(ws)) == "lena_06_en_de.json"
+    del data["series"]
+    assert next_episode(worksheet_from_dict(data)) == 2
+
+
+@pytest.mark.parametrize(("text", "slug"), [
+    ("coffee", "coffee"),
+    ("Sourdough & a night bakery", "sourdough_a_night_bakery"),
+    ("Fünf Tage im Café Lindner", "fuenf_tage_im_cafe_lindner"),
+    ("the history of the bicycle in the Netherlands and Denmark", "the_history_of_the_bicycle_in"),
+    ("!!!", "story"),
+])
+def test_file_slug(text: str, slug: str):
+    assert file_slug(text) == slug
+    assert len(file_slug(text)) <= 32
+
+
+def test_worksheet_filename():
+    assert worksheet_filename("Night bakery", "en", "de") == "night_bakery_en_de.json"
+    assert worksheet_filename("lena", "en", "de", 1) == "lena_01_en_de.json"
+    assert worksheet_filename("coffee", "en", "de", variant=2) == "coffee-2_en_de.json"

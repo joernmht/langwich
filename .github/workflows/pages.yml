@@ -34,9 +34,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install the contract dependencies
-        run: pip install "pydantic>=2.6"
+        run: pip install "pydantic>=2.11,<3"
       - name: Sync live counts from the langwich/3 contract
         run: python3 scripts/update_page_stats.py
+      # The schema's "$id" is https://joernmht.github.io/langwich/schema/langwich-3.json:
+      # publish the checked-in copy at exactly that address.
+      - name: Publish the JSON Schema
+        run: mkdir -p docs/schema && cp src/langwich/schema/langwich-3.json docs/schema/langwich-3.json
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

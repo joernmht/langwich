@@ -33,41 +33,57 @@ how to use langwich with whichever AI you have.
 
 ## Quick start
 
-You need Python 3.11 or newer.
+You need Python 3.11 or newer. langwich installs into a virtual environment (`.venv`), which
+keeps it apart from your system's Python — recent Ubuntu, Debian and Homebrew refuse a bare
+`pip install` outside one:
 
 ```bash
 git clone https://github.com/joernmht/langwich.git
 cd langwich
+python3 -m venv .venv
+. .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -e .
 langwich render examples/lena_01_en_de.json
 ```
 
-This writes `data/lena_01_en_de.pdf`, and next to it the `.html` file it was made from. Four
-worksheets come with the repository:
+This writes `data/lena_01_en_de.pdf`, and next to it the `.html` file it was made from. In a new
+terminal, activate the environment again (`. .venv/bin/activate`) or call `.venv/bin/langwich`
+directly. For a `langwich` command that works everywhere without activating anything, install it
+with `pipx install -e .` or `uv tool install -e .` instead.
+
+Worksheets that come with the repository include:
 
 | File | Story | Languages | Level |
 |---|---|---|---|
-| [`examples/lena_01_en_de.json`](examples/lena_01_en_de.json) | *Fünf Tage im Café Lindner* — Lena, on a gap year in Vienna, has five days to earn the right to make the pickiest regular's cappuccino. Episode 1 of the series *Lena in Wien*. | English → German | B1 |
+| [`examples/lena_01_en_de.json`](examples/lena_01_en_de.json) | *Fünf Tage im Café Lindner* — Lena, on a gap year in Vienna, has five days to earn the right to make Herr Novak's Melange, the café's strictest regular. Episode 1 of the series *Lena in Wien*. | English → German | B1 |
 | [`examples/lena_02_en_de.json`](examples/lena_02_en_de.json) | *Ein Capo in B für Signor Bruno* — episode 2: Lena runs her injured uncle's espresso bar in Trieste and has to learn how the city orders its coffee. | English → German | B1 |
-| [`examples/festival_lyon_de_fr.json`](examples/festival_lyon_de_fr.json) | *La bobine disparue* — a mystery at the Festival Lumière in Lyon: a film reel vanishes two hours before a sold-out screening. | German → French | B1 |
-| [`examples/mercado_valencia_en_es.json`](examples/mercado_valencia_en_es.json) | *La lista de la abuela Pepa* — Emily shops for her host grandmother's Sunday paella at Valencia's Mercado Central. | English → Spanish | A2 |
+| [`examples/festival_lyon_de_fr.json`](examples/festival_lyon_de_fr.json) | *La bobine disparue* — a mystery at the Festival Lumière in Lyon: a film reel vanishes two hours before a sold-out screening. Episode 1 of the series *Paula à Lyon*. | German → French | B1 |
+| [`examples/mercado_valencia_en_es.json`](examples/mercado_valencia_en_es.json) | *La lista de la abuela Pepa* — Emily shops for her host grandmother's Sunday paella at Valencia's Mercado Central. A one-off story. | English → Spanish | A2 |
+| [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) | *A mesma rua* — Hannah has one afternoon in Évora to find the street in her grandmother's fifty-year-old photo. Built from a real open-licence photo with `langwich prompt --image` (photo: Ken & Nyetta, CC BY 2.0). | English → Portuguese | A2 |
 
-The rendered PDFs are in [`docs/examples/`](docs/examples/).
+Every file in [`examples/`](examples/) validates without a single warning; the PDFs are in
+[`docs/examples/`](docs/examples/).
 
 ### PDFs need Pango
 
 langwich makes PDFs with [WeasyPrint](https://weasyprint.org), which needs the Pango text
-library from your operating system:
+library (and HarfBuzz's font subsetter) from your operating system:
 
 | System | Install |
 |---|---|
-| Debian, Ubuntu | `sudo apt install libpango-1.0-0 libpangoft2-1.0-0` |
-| macOS (Homebrew) | `brew install pango` |
+| Debian, Ubuntu | `sudo apt install libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0` |
+| macOS (Homebrew) | `brew install pango` — if WeasyPrint still cannot find it, `export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib` |
 | Windows | follow [WeasyPrint's installation guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) |
 
 Without Pango, `langwich render` still writes the HTML file and tells you so: open it in a
 browser and print it to PDF. The other commands (`prompt`, `validate`, `schema`, `kinds`) do not
 need Pango at all.
+
+**Offline by design.** langwich calls no AI service and stores no key. The renderer fetches
+nothing: WeasyPrint may load only `data:` URIs and the bundled fonts, and SVG line art is
+cleaned of scripts, `<foreignObject>` and links to outside files before it is embedded. The only
+thing langwich ever loads from outside the JSON is the picture a worksheet names in
+`picture.image` — a local file, or a URL it downloads when you render.
 
 ---
 
@@ -79,29 +95,32 @@ Three steps, whichever AI you use:
 # 1. Say what you want; langwich prints a complete brief for the AI
 langwich prompt --source en --target de --level B1 --topic "sourdough bread" -o prompt.txt
 
-# 2. Give prompt.txt to an AI and save its answer as data/sourdough_en_de.json
+# 2. Give prompt.txt to an AI and save its answer as data/sourdough_bread_en_de.json
 
 # 3. Check the file, then typeset it
-langwich validate data/sourdough_en_de.json
-langwich render data/sourdough_en_de.json
+langwich validate data/sourdough_bread_en_de.json
+langwich render data/sourdough_bread_en_de.json
 ```
 
 **The brief** is a self-contained Markdown prompt of about 350 lines: story craft, a level table,
 which language goes where, the lesson arc, rules for good task items, a field reference, a short
 example that validates, and a checklist. The AI needs nothing else — no access to this repository,
-no plug-in. Without `-o` the brief goes to standard output.
+no plug-in. Without `-o` the brief goes to standard output. At the end, `langwich prompt` suggests
+where to save the answer, following the naming convention: `data/<topic>_<source>_<target>.json`,
+episodes of a series `data/<series>_<nn>_<source>_<target>.json`.
 
 **The topic is yours.** `--topic` can be anything: "tides", "the Vienna Philharmonic", "how a
 bicycle gear works". Leave it out and the AI chooses. `--frame` picks the kind of story
 (`episode`, `reportage`, `case_study`, `diary`, `letters`, `mystery`, `dialogue`, `other`),
-`--scenes N` its length, and `--notes "…"` passes on anything else ("make it funny", "use the
-subjunctive", "set it in Graz").
+`--scenes N` its length (2–7 scenes; the level sets a default), and `--notes "…"` passes on
+anything else ("make it funny", "use the subjunctive", "set it in Graz"). `--device epaper`,
+`print` or `color` says where the sheet will be used (`color` also allows colour in pictures).
 
 **Checking.** `langwich validate` reports errors (they block rendering) and warnings (worth
 fixing), each with a location in the file and a sentence on how to fix it:
 
 ```text
-data/sourdough_en_de.json: 2 errors, 2 warnings
+data/sourdough_bread_en_de.json: 2 errors, 2 warnings
 
 Errors (must be fixed before rendering):
   /tasks/3/scene  [unknown-scene]
@@ -121,8 +140,16 @@ into a repair prompt. Give it to the same AI, save the corrected answer over the
 validate again until it prints `OK: no problems found.`
 
 ```bash
-langwich validate data/sourdough_en_de.json --prompt > repair.txt
+langwich validate data/sourdough_bread_en_de.json --prompt > repair.txt
 ```
+
+Some problems are not the AI's to fix, and the repair prompt leaves them out: a picture file that
+is missing (`image-not-found`) or cannot be read (`image-unreadable`). `--prompt` prints those for
+you on standard error instead. They are errors when the picture has numbered labels or a label
+or picture task needs it, otherwise warnings. When nothing but such problems is left, `--prompt`
+prints no prompt at all and exits with status 1. And when the "JSON" is only the brief's
+`NO PICTURE ATTACHED` reply (`no-picture-attached`), there is nothing to repair: the AI never saw
+the photo, so `--prompt` says so and exits with status 1 — attach the picture and ask again.
 
 ### With Claude Code
 
@@ -138,8 +165,13 @@ objects. Files are named `data/<slug>_<source>_<target>.json`, episodes of a ser
 
 1. `langwich prompt … -o prompt.txt`
 2. Paste the contents of `prompt.txt` into a new chat, or attach the file.
-3. Copy the reply — one JSON object — into a file such as `data/tides_en_de.json`. If the model
-   wrapped it in a Markdown code fence, langwich still reads it (and warns).
+3. Copy the reply — one JSON object — into a file such as `data/tides_en_de.json`. A chatty
+   reply is fine too: if the object sits in a Markdown code fence or between lines of prose,
+   langwich reads just the object and warns (`wrapped-json`). Known slips are read leniently and
+   warned about as well (`normalized`): a kind written `multiple-choice`, `mcq`,
+   `fill_in_the_blanks`, `true_or_false`, `matching`, `ordering`, `short_answer`, `essay` or
+   `drawing`, facts written as plain strings, a lower-case level such as `b1`. Nothing else is
+   guessed — a missing comma, for instance, is an error that says where to look.
 4. `langwich validate data/tides_en_de.json`. If there are problems, paste the output of
    `langwich validate data/tides_en_de.json --prompt` into the same chat and save the new reply
    over the file.
@@ -161,8 +193,17 @@ langwich prompt --target es --level A2 --topic "a night market" --compact -o pro
   small models (7–14B parameters). Larger local models can take the full brief.
 - **Context window:** the compact brief is about 3,500 tokens and a finished worksheet another
   6,000–12,000, so give the model at least 16k tokens of context — 32k for the repair loop, which
-  sends the whole JSON back. In Ollama that is the `num_ctx` parameter (or the context length in
-  the app's settings); in LM Studio, the context length you set when loading the model.
+  sends the whole JSON back. Ollama's default is far smaller, and a worksheet cut off in the
+  middle is not valid JSON. Make a copy of the model with a 32k context once, and use that:
+
+  ```bash
+  printf 'FROM gemma3:12b\nPARAMETER num_ctx 32768\n' > Modelfile
+  ollama create gemma3-32k -f Modelfile
+  ollama run gemma3-32k --format json < prompt.txt > data/night_market_en_es.json
+  ```
+
+  (Or start the server with `OLLAMA_CONTEXT_LENGTH=32768 ollama serve`, or set the context length
+  in the Ollama app.) In LM Studio, set the context length when you load the model.
 - Paste the brief into the model's chat, save the JSON it answers with, and run
   `langwich validate`. Small models make more mistakes; the repair loop
   (`langwich validate FILE --prompt`) usually fixes them in a round or two.
@@ -182,20 +223,34 @@ langwich prompt --image photos/market.jpg --topic "a market in Valencia" -o prom
 - The story is built around the photo: one scene describes exactly what it shows, and 4–8
   numbered labels sit on visible objects for a label task ("name what you see"). `--topic` is
   optional; without it the topic comes from the picture.
-- **Paths:** langwich writes a local photo's *absolute* path into the brief, and the AI copies it
-  into `picture.image`, so the JSON renders wherever you save it on this computer. To move or
-  share the worksheet, put the photo next to the JSON and set `picture.image` to just the file
-  name — relative paths are resolved against the JSON file's folder. A URL is kept as it is and
-  downloaded when you render. If the file is not found, langwich warns you.
+- **The photo is copied into `data/pictures/`.** `langwich prompt --image` copies a local photo
+  to `data/pictures/<name>.<ext>` (a plain ASCII file name) and tells the AI to write exactly
+  `"pictures/<name>.<ext>"` as `picture.image`. Save the JSON in `data/` — relative paths are
+  resolved against the JSON file's folder — and the worksheet renders wherever the folder goes.
+  `--data-dir DIR` copies to `DIR/pictures/` instead, for JSON you keep in `DIR`.
+- **Formats:** JPEG, PNG, WebP and GIF are copied as they are; any other format Pillow can read
+  is converted to JPEG. iPhone HEIC photos need `pip install pillow-heif` (or
+  `pip install -e ".[heic]"`) — or export the photo as JPEG first. langwich says so when it
+  cannot read a file.
+- **A URL** is kept as it is: the brief names it, and langwich downloads it when you render.
+- **Missing pictures** are reported by `langwich validate` (`image-not-found`,
+  `image-unreadable`): as errors when the picture carries numbered labels or a label or picture
+  task needs it, otherwise as warnings. These are for you to fix, not the AI; the repair prompt
+  leaves them out.
 - The AI estimates the label positions. Look at the picture page after rendering; if a number sits
   beside its object, adjust `x`/`y` in the JSON and render again.
+- **Example:** [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) was made
+  this way from a CC BY photo of a street in Évora ([`examples/pictures/evora-street.jpg`](examples/pictures/evora-street.jpg));
+  its `picture.credit` carries the attribution the licence requires.
 - Photos are printed in high-contrast greyscale; `langwich render … --allow-color` keeps colour.
 
 ### Continuing a series
 
 Worksheets can be episodes of one story with the same characters. Start a series with
 `--frame episode` — the brief then asks for a `series` block with a teaser for the next episode.
-Continue it with `--continue`:
+A series in any other frame takes `--series` (`--frame mystery --series`, like *La bobine
+disparue*); `--no-series` makes an `episode`-style story a one-off (like *La lista de la abuela
+Pepa*). Continue a series with `--continue`:
 
 ```bash
 langwich prompt --continue examples/lena_02_en_de.json -o prompt.txt
@@ -249,8 +304,9 @@ their order in the JSON:
 1. **Before you read** — `warm_up` tasks: pre-teach the key words, make a prediction.
 2. **Scene by scene** — the scene text, with glosses for unknown words in the side column and
    "Did you know?" fact boxes, then the tasks anchored to that scene, in the order `gist` →
-   `detail` → `form` → `practice` → `picture`. A task follows the last scene it names; a task
-   without a scene follows the last scene.
+   `detail` → `picture` → `form` → `practice`. Picture tasks come right after comprehension,
+   because they are about the scene just read; form and practice items move the story on. A
+   task follows the last scene it names; a task without a scene follows the last scene.
 3. **Your turn** — `production` tasks: write about the story or yourself.
 4. **Take it further** — `epilogue` tasks, such as a search in the target language.
 
@@ -270,16 +326,22 @@ that practises it.
 | `cloze` | fills gaps | `text` or `items[]` with gap markup, `hint`, `distractors[]` |
 | `transform` | rewrites sentences | `items[{prompt, cue, answer}]` |
 | `word_building` | combines parts into a word | `items[{parts[], answer}]` |
-| `label` | names the numbered objects in a scene picture | `scene`, `bank` |
+| `label` | names the numbered objects in a scene picture | `scene`, `bank` (the box shows the terms without articles) |
 | `writing` | writes a text | `prompt`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
-| `dialogue` | fills or writes dialogue lines | `lines[{speaker, text \| cue, answer}]`, `bank` |
+| `dialogue` | fills or writes dialogue lines | `lines[{speaker, text \| cue, answer}]`, `bank`, `distractors[]` |
 | `media_search` | searches online in the target language (no links — searching is the task) | `media`, `queries[]`, `questions[]` |
 | `draw` | draws and labels | `prompt`, `labels[]` |
 
 Every task also has `id`, `kind`, `stage` and optionally `scene` (one id or a list), `title`,
 `instruction` and `grammar` (the id of a grammar point). `langwich kinds` prints this table and
-the eight stages: `warm_up`, `gist`, `detail`, `form`, `practice`, `picture`, `production`,
-`epilogue`.
+the eight stages in lesson order: `warm_up`, `gist`, `detail`, `picture`, `form`, `practice`,
+`production`, `epilogue`.
+
+**Word boxes.** A cloze with `"hint": "word_bank"` and a dialogue with `"bank": true` print a box
+with the gap answers plus the `distractors` — wrong but plausible words, so the last gap is not
+solved by elimination. A label task's box (`"bank": true`) shows the terms *without* their
+articles (`Tasse`, not `die Tasse`); the answer key keeps the full term. So an instruction such as
+"Name the objects — with der, die or das" asks for something the box does not give away.
 
 ---
 
@@ -287,8 +349,19 @@ the eight stages: `warm_up`, `gist`, `detail`, `form`, `practice`, `picture`, `p
 
 The contract is defined once, as pydantic models in
 [`src/langwich/model.py`](src/langwich/model.py). `langwich schema` prints it as JSON Schema (a
-copy lives in [`src/langwich/schema/langwich-3.json`](src/langwich/schema/langwich-3.json)), and
-the brief from `langwich prompt` explains it to the AI. Unknown fields are errors.
+copy lives in [`src/langwich/schema/langwich-3.json`](src/langwich/schema/langwich-3.json), and
+the website publishes it at its `$id`,
+[joernmht.github.io/langwich/schema/langwich-3.json](https://joernmht.github.io/langwich/schema/langwich-3.json)),
+and the brief from `langwich prompt` explains it to the AI. Unknown fields are errors — a
+worksheet cannot carry a `$schema` key either. To have an editor check worksheets as you type,
+map the files to the schema in the editor's settings instead — in VS Code, in the repository's
+`.vscode/settings.json`:
+
+```jsonc
+"json.schemas": [
+  {"fileMatch": ["data/*.json", "examples/*.json"], "url": "./src/langwich/schema/langwich-3.json"}
+]
+```
 
 | Field | Required | Language | What it holds |
 |---|---|---|---|
@@ -386,14 +459,17 @@ markup belongs in tasks only, never in the story.
 
 A scene can have a `picture` — usually the scene with the richest setting. It takes one of:
 
-- **`image`** — a local path (relative paths are resolved against the JSON file's folder), an
+- **`image`** — a local path (relative paths are resolved against the JSON file's folder; by
+  convention `"pictures/<file>"`, the folder `langwich prompt --image` copies to), an
   `http(s)` URL or a `data:` URI: the photo the story was built from, or an open-licence image
   from [Wikimedia Commons](https://commons.wikimedia.org) or [Openverse](https://openverse.org).
   Put the attribution the licence requires in `credit`.
 - **`svg`** — simple black line art the AI draws itself: a complete `<svg>…</svg>` element,
-  stroke-only, no text, no colour. All four examples use this.
+  stroke-only, no text, no colour, like the drawings in [`examples/pictures/`](examples/pictures/).
+  Scripts, `<foreignObject>` and links to outside files are removed before it is embedded.
 - **neither** — then a `label` task turns into "draw and label", and `langwich render` prints the
-  picture's `prompt` so you can generate or find an image later.
+  picture's `prompt` so you can generate or find an image later: save it in `data/pictures/` and
+  set `picture.image` to `"pictures/<file>"`.
 
 `labels` puts numbered markers on the picture: `n` is the number, `term` the target-language
 answer, and `x`/`y` the position as fractions of the picture's width and height, from `0, 0`
@@ -414,7 +490,13 @@ an illustrator or an image generator — is **never printed** on the sheet.
 ```
 
 Raster images are converted to high-contrast greyscale unless you render with `--allow-color`;
-SVG is embedded as it is. An image that cannot be read gives a warning, never a crash.
+SVG is embedded as drawn, minus anything unsafe. An image that cannot be read never crashes the
+renderer: the picture is left out with a warning (and `langwich validate` reports it first).
+
+<p align="center">
+  <img src="docs/assets/festival-lyon-picture.png" alt="A worksheet page from La bobine disparue: a line drawing of the view from a cinema projection booth — projector, screen, seats — with numbered markers, answer lines and a word box with the French words" width="48%">
+  <img src="docs/assets/lena-02-picture.png" alt="A worksheet page from episode 2 of Lena in Wien: a line drawing of an espresso bar counter with numbered markers to name in German" width="48%">
+</p>
 
 ---
 
@@ -437,7 +519,13 @@ langwich render examples/mercado_valencia_en_es.json -o market.html
   (ending in `/`), or a `.html` name, which writes the HTML only (as does `--html-only`).
 - **Deterministic:** the same JSON always gives the same sheet, and the task page and the answer
   key share every shuffle. `--seed N` shuffles differently — say, a second version for a class.
-- **Strict:** `--strict` refuses to render while there are warnings.
+- **Warnings:** anything rendering had to leave out or change — a picture that could not be
+  used, say — is printed as a warning *before* the `Rendered '…'` line.
+- **Strict:** `--strict` refuses to render while `langwich validate` reports warnings, and exits
+  with status 1 when rendering itself produced warnings (the files are still written) — useful
+  in scripts that must not ship an incomplete sheet.
+- **Offline:** rendering fetches nothing but a `picture.image` URL the JSON names; see
+  [Offline by design](#pdfs-need-pango).
 
 The design is monochrome and made for e-paper first: two bundled open-licence typefaces
 (**Literata** for the target language, **Atkinson Hyperlegible Next** for instructions), solid
@@ -463,17 +551,19 @@ level every time:
 }
 ```
 
-- `langwich prompt … --save-profile` stores the languages, level and colour choice (and `--frame`,
-  if you gave one) in `./.langwich/profile.json`. The `/langwich` command writes the file too.
+- `langwich prompt … --save-profile` stores the languages, level, colour choice and `--device` in
+  `./.langwich/profile.json` — never the frame, which is a choice per story. The `/langwich`
+  command writes the file too.
 - langwich looks for the file in the current folder and its parents, up to the project root.
 - Explicit flags win over the previous episode (`--continue`), which wins over a langwich 2 file
   (`--from-json`), which wins over the profile. Without any of them: English → German, B1.
 - `device` sets the default page size for `langwich render`: e-paper names (`epaper`,
   `remarkable`, `kindle`, `kobo`, `boox`, `supernote`, `pocketbook`, `tolino`) mean e-paper,
-  `a4` or `print` mean A4. `--save-profile` does not write it; add it by hand.
-- `color: true` allows colour in pictures (in the brief and when rendering). Keep `frame` out of
-  the profile unless every worksheet should use it — `"frame": "episode"` would make each one the
-  start of a series.
+  `a4` or `print` mean A4. `langwich prompt --device epaper|print|color` sets it for the brief
+  and, with `--save-profile`, for later; `color` also allows colour in pictures.
+- `color: true` allows colour in pictures (in the brief and when rendering).
+- A `frame` you add by hand is used for every brief, and `langwich prompt` notes where it came
+  from — `"frame": "episode"` makes each worksheet the start of a series.
 - Other keys are kept untouched (the `/langwich` command stores your `interests` there).
 
 ---
@@ -492,26 +582,31 @@ level every time:
 | `--level CEFR` | `A1` … `C2` (default: profile, else `B1`) |
 | `--topic TOPIC` | what the story and its facts are about (default: the AI chooses) |
 | `--frame FRAME` | `episode`, `reportage`, `case_study`, `diary`, `letters`, `mystery`, `dialogue`, `other` |
-| `--scenes N` | number of scenes, 1–12 (default: set by the level) |
-| `--image PATH_OR_URL` | build the story around this picture (attach it to your AI) |
+| `--scenes N` | number of scenes, 2–7 (default: set by the level) |
+| `--image PATH_OR_URL` | build the story around this picture (attach it to your AI); a local file is copied to `data/pictures/` (converted to JPEG unless it is JPEG, PNG, WebP or GIF) and the brief names it `pictures/<file>`; a URL is used as it is |
+| `--data-dir DIR` | the folder the worksheet JSON goes into (default: `data`); `--image` copies into its `pictures/` folder |
 | `--from-text FILE` | build the worksheet on this text (`-` reads standard input) |
 | `--from-json LEGACY_FILE` | upgrade a langwich 2 file |
 | `--continue PREV_JSON` | write the next episode after this worksheet |
 | `--color`, `--no-color` | allow colour in pictures (default: profile, else no) |
+| `--device {epaper,print,color}` | where the sheet is used (default: profile); `epaper` makes `render` default to `--page epaper`, `color` implies `--color` |
+| `--series`, `--no-series` | `--series`: episode 1 of a series, in any frame; `--no-series`: a one-off even with `--frame episode` (default: a series only with `--frame episode`) |
 | `--compact` | a shorter brief for small local models |
 | `--notes TEXT` | extra wishes for the AI |
 | `-o FILE`, `--output FILE` | write the brief to FILE instead of standard output |
-| `--save-profile` | remember languages, level, frame and colour in `.langwich/profile.json` |
+| `--save-profile` | remember languages, level, colour and device in `.langwich/profile.json` (never the frame) |
 
 ### `langwich validate FILE` — check a worksheet
 
 | Option | Meaning |
 |---|---|
-| `--prompt` | print a repair prompt for the AI that wrote the file |
+| `--prompt` | print a repair prompt for the AI that wrote the file; problems only you can fix (a missing or unreadable picture file) go to standard error instead |
 | `--json` | print the report as JSON (`ok`, `error_count`, `warning_count`, `issues`) |
 | `--strict` | exit with status 1 on warnings too |
 
-Exit status 0 means the file can be rendered.
+Exit status 0 means the file can be rendered. With `--prompt`, the exit status is 1 whenever no
+usable prompt could be printed: the file is the `NO PICTURE ATTACHED` reply, or only picture-file
+problems are left.
 
 ### `langwich render FILE` — make the PDF
 
@@ -525,9 +620,10 @@ Exit status 0 means the file can be rendered.
 | `--allow-color` | keep images in colour (default: high-contrast greyscale) |
 | `--seed SEED` | seed for the shuffles (default: derived from the JSON) |
 | `--html-only` | write the HTML only, no PDF |
-| `--strict` | refuse to render when there are warnings |
+| `--strict` | refuse to render when validation reports warnings; exit with status 1 when rendering produced warnings |
 
-`render` validates first and stops on errors.
+`render` validates first and stops on errors. Rendering warnings are printed before the
+`Rendered '…'` line.
 
 ### `langwich schema` and `langwich kinds`
 
@@ -566,11 +662,14 @@ langwich/
 │   │   └── options.py  render options and results
 │   ├── fonts/          Literata and Atkinson Hyperlegible Next (SIL Open Font License)
 │   └── schema/         langwich-3.json, generated from model.py
-├── examples/           four worksheets; pictures/ holds their line art as .svg files
+├── examples/           example worksheets; pictures/ holds their pictures
+├── data/               your worksheets, pictures/ and PDFs (created on first use; not in git)
 ├── tests/              pytest suite; tests/test_docs.py keeps this README honest
 ├── scripts/            export_schema.py, update_page_stats.py, build_showcase.py
-├── docs/               the website (index.html), architecture.md, assets/
-└── .claude/commands/langwich.md    the /langwich command for Claude Code
+├── docs/               the website (index.html), architecture.md, assets/, examples/ (PDFs)
+├── .github/workflows/  ci.yml (lint, types, schema, tests), pages.yml (the website)
+├── .claude/commands/langwich.md    the /langwich command for Claude Code
+└── LICENSE             MIT
 ```
 
 [`docs/architecture.md`](docs/architecture.md) explains the design: the modules and their
@@ -581,28 +680,46 @@ interfaces, how the planner places tasks, and every validation rule.
 ## Development
 
 ```bash
+python3 -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 ruff check src tests scripts
+mypy
 python scripts/export_schema.py --check
 python3 scripts/update_page_stats.py --check
+python3 scripts/build_showcase.py --check
 ```
 
-- **Tests:** `pytest` runs the whole suite. [`tests/test_docs.py`](tests/test_docs.py) checks the
-  docs themselves: every `langwich …` command in a code block must parse, every flag must
-  exist, every complete JSON worksheet must pass the contract (fence partial excerpts as
-  `jsonc`), every example must validate cleanly, and this README must mention every task kind.
+- **Tests:** `pytest` runs the whole suite. Tests that make PDFs skip when WeasyPrint or PyMuPDF
+  cannot be loaded; with `LANGWICH_REQUIRE_PDF=1` (as in CI) they fail instead.
+  [`tests/test_docs.py`](tests/test_docs.py) checks the docs themselves: every `langwich …`
+  command in a code block must parse, every flag must exist and every CLI option must appear in
+  this README, every complete JSON worksheet must pass the contract (fence partial excerpts as
+  `jsonc`), every example must validate cleanly, stage sequences must follow the lesson order,
+  and this README must mention every task kind.
+- **Lint and types:** ruff runs a pinned rule set (`[tool.ruff.lint]` in `pyproject.toml`), and
+  the dev extra caps ruff and mypy, so a new release of either cannot fail CI on unchanged code.
 - **Schema:** after changing `model.py`, run `python scripts/export_schema.py` to regenerate
-  `src/langwich/schema/langwich-3.json`; CI fails when the copy is stale.
+  `src/langwich/schema/langwich-3.json`. CI runs `python scripts/export_schema.py --check`,
+  which compares the parsed JSON, so a pydantic release that only formats numbers differently
+  is a note, not a failure. The Pages
+  workflow publishes the file at its `$id`.
 - **Website numbers:** `python3 scripts/update_page_stats.py` writes the number of task kinds,
   stages, built-in languages and examples into `docs/index.html`. The Pages workflow runs it
   before each deploy.
 - **Previews:** `python3 scripts/build_showcase.py` renders the examples into `docs/examples/`
-  (PDFs) and `docs/assets/` (the PNG previews shown here and on the website);
-  `python3 scripts/build_showcase.py --check` only reports what is missing.
-- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs ruff, the schema check and
-  pytest on Python 3.11 and 3.12; [`.github/workflows/pages.yml`](.github/workflows/pages.yml)
-  publishes `docs/` to GitHub Pages.
+  (PDFs) and `docs/assets/` (the PNG previews shown here and on the website). Run it after
+  changing the renderer, the planner or an example, and commit both folders.
+  `python3 scripts/build_showcase.py --check` writes nothing: it renders into a temporary
+  folder and compares page count and page text with the committed PDFs.
+- **Versions:** the version is `__version__` in `src/langwich/__init__.py`; `pyproject.toml`
+  reads it from there.
+- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) installs Pango and HarfBuzz and
+  runs ruff, mypy, the schema check, pytest (with `LANGWICH_REQUIRE_PDF=1`) and the showcase
+  check on Python 3.11, 3.12 and 3.13; a second job installs the oldest dependency versions
+  `pyproject.toml` allows and runs the tests (except the page-break checks tuned to the newest
+  WeasyPrint) and a render of every example; [`.github/workflows/pages.yml`](.github/workflows/pages.yml)
+  publishes `docs/` and the JSON Schema to GitHub Pages.
 - **Debugging:** when rendering fails with an unexpected error, `LANGWICH_DEBUG=1 langwich render FILE`
   shows the traceback.
 
@@ -620,5 +737,6 @@ or unidiomatic sentences, so read a worksheet before you hand it to someone else
 
 ## License
 
-MIT. The bundled fonts are licensed under the SIL Open Font License
-([`src/langwich/fonts/`](src/langwich/fonts/)).
+MIT — see [`LICENSE`](LICENSE). The bundled fonts, Literata and Atkinson Hyperlegible Next, are
+licensed under the SIL Open Font License 1.1; their licence texts are in
+[`src/langwich/fonts/`](src/langwich/fonts/).

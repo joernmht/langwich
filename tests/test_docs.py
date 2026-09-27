@@ -16,7 +16,17 @@ tests fail as soon as the docs drift away from the code:
 4. every bundled example validates with no errors and no warnings;
 5. the README mentions every task kind (in backticks);
 6. every repository path the docs mention (``examples/…``, ``docs/…``,
-   ``src/langwich/…``, ``scripts/…``, ``tests/…``) exists.
+   ``src/langwich/…``, ``scripts/…``, ``tests/…``) exists;
+7. the README documents every option of every ``langwich`` command, and the
+   ``--scenes`` range it states is the one the CLI accepts;
+8. every stage sequence in the docs (``gist → detail → …`` or a backticked
+   list) follows the lesson order in ``langwich.model.STAGES``;
+9. install instructions use a virtual environment (PEP 668), and every Ollama
+   recipe raises the context size;
+10. packaging and CI agree with the docs: the MIT licence file, the licence
+    files in the wheel, one version source, the pinned ruff rule set, the
+    Python versions, the system libraries and ``LANGWICH_REQUIRE_PDF`` in CI;
+11. ``scripts/build_showcase.py --help`` (or a mistyped option) never renders.
 
 "Code blocks" are Markdown fences and HTML ``<pre>`` elements. Placeholders in
 commands (``<file>``, ``…``, ``FILE``) are replaced by a dummy value; a line
@@ -31,6 +41,9 @@ import io
 import json
 import re
 import shlex
+import subprocess
+import sys
+import tomllib
 from dataclasses import dataclass, field
 from functools import cache
 from html.parser import HTMLParser
@@ -38,8 +51,9 @@ from pathlib import Path
 
 import pytest
 
+import langwich
 from langwich.cli import SUBCOMMANDS, build_parser
-from langwich.model import TASK_KINDS, ContractError, worksheet_from_dict
+from langwich.model import STAGES, TASK_KINDS, ContractError, worksheet_from_dict
 from langwich.validate import check_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +63,7 @@ DOC_FILES: tuple[str, ...] = (
     "CLAUDE.md",
     ".claude/commands/langwich.md",
     "docs/index.html",
+    "docs/architecture.md",
 )
 
 EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.json"))
@@ -584,3 +599,228 @@ def test_documented_paths_exist(name: str):
     doc = load_doc(name)
     missing = sorted(p for p in _mentioned_paths(doc) if not (REPO_ROOT / p).exists())
     assert not missing, f"{name} mentions paths that do not exist: {', '.join(missing)}"
+
+
+# ---------------------------------------------------------------------------
+# 7. The README documents every CLI option
+# ---------------------------------------------------------------------------
+
+
+def _subparsers() -> dict[str, argparse.ArgumentParser]:
+    for action in _parser()._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return dict(action.choices)
+    return {}
+
+
+def test_readme_documents_every_cli_option():
+    text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    missing = []
+    for name, sub in _subparsers().items():
+        for action in sub._actions:
+            longs = [s for s in action.option_strings if s.startswith("--") and s != "--help"]
+            if longs and not any(f"`{flag}" in text for flag in longs):
+                missing.append(f"langwich {name} {longs[0]}")
+    assert not missing, "README.md does not document: " + ", ".join(missing)
+
+
+def _accepted_range(args: list[str], values: range) -> tuple[int, int]:
+    ok = [n for n in values if parse_error([*args, str(n)]) is None]
+    assert ok, f"no value in {values} is accepted by langwich {' '.join(args)}"
+    return min(ok), max(ok)
+
+
+def test_documented_scene_range_is_the_accepted_one():
+    low, high = _accepted_range(["prompt", "--scenes"], range(0, 20))
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    row = next(line for line in readme.splitlines() if line.startswith("| `--scenes N`"))
+    assert f"{low}–{high}" in row, f"README says {row!r}; the CLI accepts {low}–{high}"
+    for name in ("CLAUDE.md", ".claude/commands/langwich.md"):
+        text = (REPO_ROOT / name).read_text(encoding="utf-8")
+        for m in re.finditer(r"--scenes N`?\s*\((\d+)–(\d+)\)", text):
+            assert (int(m.group(1)), int(m.group(2))) == (low, high), (name, m.group(0))
+
+
+# ---------------------------------------------------------------------------
+# 8. Stage sequences follow the lesson order
+# ---------------------------------------------------------------------------
+
+_STAGE = "|".join(sorted(STAGES, key=len, reverse=True))
+#: gist → detail → picture, or a list of three or more stages separated by
+#: commas (backticks optional in both)
+_ONE = rf"`?\b(?:{_STAGE})\b`?"
+_ARROW_RUN = re.compile(rf"{_ONE}(?:\s*(?:→|->)\s*{_ONE})+")
+_LIST_RUN = re.compile(rf"{_ONE}(?:,\s*(?:and\s+|or\s+|then\s+)?{_ONE}){{2,}}")
+_STAGE_WORD = re.compile(rf"\b({_STAGE})\b")
+_ORDER_DOCS = (*DOC_FILES, "docs/assets/logo/README.md")
+
+
+def stage_sequences(text: str) -> list[list[str]]:
+    runs = [m.group(0) for m in _ARROW_RUN.finditer(text)]
+    runs += [m.group(0) for m in _LIST_RUN.finditer(text)]
+    return [_STAGE_WORD.findall(run) for run in runs]
+
+
+def out_of_order(text: str) -> list[list[str]]:
+    rank = {stage: i for i, stage in enumerate(STAGES)}
+    return [seq for seq in stage_sequences(" ".join(text.split()))
+            if [rank[s] for s in seq] != sorted(rank[s] for s in seq)]
+
+
+def test_stage_sequence_extraction():
+    assert stage_sequences("`gist` → `detail` → `picture`") == [["gist", "detail", "picture"]]
+    assert stage_sequences("(gist → detail → form → practice)") == [
+        ["gist", "detail", "form", "practice"]]
+    assert stage_sequences("Stages: `warm_up`, `gist`, `detail`, and `form`.") == [
+        ["warm_up", "gist", "detail", "form"]]
+    assert stage_sequences("a picture of the form") == []
+    assert stage_sequences("scene by scene: gist, detail, form, practice, picture →") == [
+        ["gist", "detail", "form", "practice", "picture"]]
+    assert stage_sequences("the picture, the form") == []
+    assert out_of_order("gist → detail → form → practice → picture") == [
+        ["gist", "detail", "form", "practice", "picture"]]
+    assert out_of_order("`gist`, `detail`, `picture`, `form`, `practice`") == []
+
+
+@pytest.mark.parametrize("name", _ORDER_DOCS)
+def test_stage_sequences_follow_the_lesson_order(name: str):
+    text = (REPO_ROOT / name).read_text(encoding="utf-8")
+    wrong = out_of_order(text)
+    assert not wrong, (f"{name} lists stages out of lesson order ({' → '.join(STAGES)}): "
+                       + "; ".join(" → ".join(seq) for seq in wrong))
+
+
+# ---------------------------------------------------------------------------
+# 9. Install instructions use a venv; Ollama recipes raise the context
+# ---------------------------------------------------------------------------
+
+_BARE_PIP = re.compile(r"(?:^|[\s;&|])pip3?\s+install\s+(?:-e|--editable)\b")
+
+
+@pytest.mark.parametrize("name", DOC_FILES)
+def test_install_commands_use_a_virtual_environment(name: str):
+    # PEP 668: Ubuntu, Debian and Homebrew refuse a bare pip install outside a venv.
+    doc = load_doc(name)
+    bare = [block.line for block in doc.blocks
+            if _BARE_PIP.search(block.text) and "venv" not in block.text]
+    # inline: the first install (`pip install -e .`); extras such as ".[heic]" go into a venv
+    # that the surrounding text has already set up
+    bare += [0 for code in doc.inline_code
+             if re.search(r"(?:^|\s)pip3?\s+install\s+-e\s+\.(?:\s|$)", code)
+             and "venv" not in code]
+    assert not bare, (f"{name}: 'pip install -e' without a virtual environment "
+                      f"(code blocks at lines {bare}; line 0 = inline code)")
+
+
+@pytest.mark.parametrize("name", DOC_FILES)
+def test_ollama_recipes_set_a_large_context(name: str):
+    # Ollama's default context cuts a worksheet off in the middle.
+    doc = load_doc(name)
+    short = [block.line for block in doc.blocks
+             if re.search(r"\bollama\s+run\b", block.text)
+             and "num_ctx" not in block.text and "OLLAMA_CONTEXT_LENGTH" not in block.text]
+    context = f"{doc.prose} {' '.join(doc.inline_code)} {' '.join(b.text for b in doc.blocks)}"
+    if short and "num_ctx 32768" not in context:
+        pytest.fail(f"{name}: 'ollama run' without a 32k context (blocks at lines {short})")
+
+
+# ---------------------------------------------------------------------------
+# 10. Packaging and CI agree with the docs
+# ---------------------------------------------------------------------------
+
+
+@cache
+def _pyproject() -> dict:
+    return tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+
+def _ci() -> str:
+    return (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+
+def test_license_file_matches_the_metadata():
+    license_text = (REPO_ROOT / "LICENSE").read_text(encoding="utf-8")
+    assert license_text.startswith("MIT License")
+    assert re.search(r"Copyright \(c\) \d{4} \S", license_text)
+    project = _pyproject()["project"]
+    assert project["license"] == "MIT"
+    for pattern in project["license-files"]:
+        assert list(REPO_ROOT.glob(pattern)), f"license-files entry matches nothing: {pattern}"
+    assert "src/langwich/fonts/OFL-*.txt" in project["license-files"]
+    assert "MIT" in (REPO_ROOT / "README.md").read_text(encoding="utf-8").split("## License")[-1]
+    requires = " ".join(_pyproject()["build-system"]["requires"])
+    assert re.search(r"setuptools>=(7[7-9]|[89]\d|\d{3})", requires), requires
+
+
+def test_the_version_has_one_source():
+    project = _pyproject()["project"]
+    assert "version" not in project and "version" in project.get("dynamic", [])
+    attr = _pyproject()["tool"]["setuptools"]["dynamic"]["version"]["attr"]
+    assert attr == "langwich.__version__"
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:\.?(?:a|b|rc|dev|post)\d+)?", langwich.__version__)
+
+
+def test_the_ruff_rule_set_is_pinned():
+    # ruff's default rules change between releases; an explicit set keeps CI stable.
+    select = _pyproject()["tool"]["ruff"]["lint"]["select"]
+    assert select and all(isinstance(rule, str) for rule in select)
+    dev = " ".join(_pyproject()["project"]["optional-dependencies"]["dev"])
+    assert re.search(r"ruff>=[\d.]+,<[\d.]+", dev), "cap ruff in the dev extra"
+    assert re.search(r"mypy>=[\d.]+,<[\d.]+", dev), "cap mypy in the dev extra"
+
+
+def test_ci_python_versions_match_the_classifiers():
+    matrix = re.search(r"python-version:\s*\[([^\]]*)\]", _ci())
+    assert matrix, "ci.yml has no python-version matrix"
+    tested = set(re.findall(r"\"(3\.\d+)\"", matrix.group(1)))
+    classified = {c.rsplit(" :: ", 1)[-1] for c in _pyproject()["project"]["classifiers"]
+                  if re.fullmatch(r"Programming Language :: Python :: 3\.\d+", c)}
+    assert tested == classified, (tested, classified)
+    floor = _pyproject()["project"]["requires-python"].removeprefix(">=")
+    assert floor in tested
+    assert f"Python {floor}" in (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+
+def _apt_packages(text: str) -> set[str]:
+    return {pkg for line in re.findall(r"apt(?:-get)? install ([^`\n]*)", text)
+            for pkg in line.split() if not pkg.startswith("-")}
+
+
+def test_system_libraries_agree_between_ci_and_docs():
+    ci = _apt_packages(_ci())
+    assert {"libpango-1.0-0", "libpangoft2-1.0-0", "libharfbuzz-subset0"} <= ci
+    for name in ("README.md", "CLAUDE.md"):
+        documented = _apt_packages((REPO_ROOT / name).read_text(encoding="utf-8"))
+        assert documented == ci, f"{name} installs {sorted(documented)}, CI {sorted(ci)}"
+
+
+def test_ci_requires_the_pdf_tests_and_runs_the_checks():
+    ci = _ci()
+    assert re.search(r"LANGWICH_REQUIRE_PDF:\s*\"?1\"?", ci)
+    for step in ("ruff check src tests scripts", "mypy", "scripts/export_schema.py --check",
+                 "pytest", "scripts/build_showcase.py --check"):
+        assert step in ci, f"ci.yml does not run {step!r}"
+
+
+# ---------------------------------------------------------------------------
+# 11. build_showcase.py never renders by accident
+# ---------------------------------------------------------------------------
+
+
+def _showcase(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "build_showcase.py"), *args],
+                          capture_output=True, text=True, timeout=60, check=False)
+
+
+def test_build_showcase_help_does_not_render():
+    result = _showcase("--help")
+    assert result.returncode == 0, result.stderr
+    assert "usage:" in result.stdout and "--check" in result.stdout
+    assert "written" not in result.stdout and "unchanged" not in result.stdout
+
+
+def test_build_showcase_rejects_unknown_options():
+    result = _showcase("--chek")
+    assert result.returncode == 2
+    assert "unrecognized arguments" in result.stderr
+    assert "written" not in result.stdout and "unchanged" not in result.stdout

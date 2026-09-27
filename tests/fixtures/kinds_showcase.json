@@ -335,7 +335,7 @@
       "id": "g1",
       "name": "Passé composé mit avoir und être",
       "scene": "s2",
-      "explanation": "Das passé composé erzählt, was passiert ist. Die meisten Verben bilden es mit avoir. Verben der Bewegung wie aller, entrer oder passer nehmen être – dann passt sich das Partizip an.",
+      "explanation": "Das passé composé erzählt, was passiert ist. Die meisten Verben bilden es mit avoir. Verben der Bewegung wie aller, venir oder partir nehmen être – dann passt sich das Partizip an.",
       "rule": "avoir / être + participe passé",
       "table": {
         "head": [
@@ -346,28 +346,28 @@
         "rows": [
           [
             "je",
-            "j'ai acheté",
-            "je suis entré(e)"
+            "j'ai mangé",
+            "je suis parti(e)"
           ],
           [
             "tu",
-            "tu as acheté",
-            "tu es entré(e)"
+            "tu as mangé",
+            "tu es parti(e)"
           ],
           [
             "il / elle",
-            "il a acheté",
-            "elle est entrée"
+            "il a mangé",
+            "elle est partie"
           ],
           [
             "nous",
-            "nous avons acheté",
-            "nous sommes entré(e)s"
+            "nous avons mangé",
+            "nous sommes parti(e)s"
           ],
           [
             "ils / elles",
-            "ils ont acheté",
-            "elles sont entrées"
+            "ils ont mangé",
+            "elles sont parties"
           ]
         ]
       },
@@ -637,6 +637,11 @@
         "Karim ouvre une vieille porte.",
         "Une dame leur montre le chemin.",
         "Mila demande l'addition."
+      ],
+      "scene": [
+        "s1",
+        "s2",
+        "s3"
       ]
     },
     {

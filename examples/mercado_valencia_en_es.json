@@ -1,14 +1,14 @@
 {
   "schema": "langwich/3",
   "title": "La lista de la abuela Pepa",
-  "standfirst": "Emily has one job this Saturday: buy everything for Grandma Pepa's Sunday paella at Valencia's Mercado Central — and only what's on the list. What could go wrong?",
+  "standfirst": "Emily has one job this Saturday: buy everything for Grandma Pepa’s Sunday paella at Valencia’s Mercado Central — and only what’s on the list. What could go wrong?",
   "source_lang": "en",
   "target_lang": "es",
   "cefr_level": "A2",
   "topic": "food shopping at a market",
   "frame": "episode",
   "story": {
-    "logline": "Emily, an exchange student from Leeds, has to buy the ingredients for her host grandmother's Sunday paella — and brings home one surprise too many.",
+    "logline": "Emily, an exchange student from Leeds, has to buy the ingredients for her host grandmother’s Sunday paella — and brings home one surprise too many.",
     "setting": "Valencia, Spain: a Saturday at the Mercado Central and Sunday lunch with the Martí family",
     "characters": [
       {
@@ -19,12 +19,17 @@
       {
         "id": "pepa",
         "name": "la abuela Pepa",
-        "role": "the grandmother of Emily's host family; Sunday paella is her job"
+        "role": "the grandmother of Emily’s host family; Sunday paella is her job"
       },
       {
         "id": "amparo",
         "name": "Amparo",
         "role": "runs a vegetable stall at the Mercado Central"
+      },
+      {
+        "id": "pau",
+        "name": "Pau",
+        "role": "12, Grandma Pepa’s grandson"
       }
     ],
     "scenes": [
@@ -32,15 +37,15 @@
         "id": "s1",
         "heading": "Sábado: la lista",
         "beat": "setup",
-        "text": "Emily tiene dieciséis años y es de Leeds, en Inglaterra. Vive con la familia Martí en Valencia. Es sábado y la abuela Pepa escribe una lista.\n\n—Mañana voy a hacer paella —dice—. ¿Me haces la compra en el Mercado Central?\n—¡Claro! —contesta Emily.\n\nLa abuela le da la lista y treinta euros. Emily lee: arroz, pollo, conejo, judías verdes, garrofó, tomates y azafrán.\n—¿Conejo? —pregunta, sorprendida.\n—Sí, la paella valenciana lleva conejo. Pero compra solo esto, ¿vale?",
-        "translation": "Emily is sixteen and comes from Leeds, in England. She lives with the Martí family in Valencia. It's Saturday, and Grandma Pepa is writing a list.\n\n\"Tomorrow I'm going to make paella,\" she says. \"Will you do the shopping for me at the Mercado Central?\"\n\"Of course!\" Emily answers.\n\nGrandma gives her the list and thirty euros. Emily reads: rice, chicken, rabbit, green beans, garrofó, tomatoes and saffron.\n\"Rabbit?\" she asks, surprised.\n\"Yes, paella valenciana has rabbit in it. But only buy what's on the list, OK?\""
+        "text": "Emily tiene dieciséis años y es de Leeds. Vive con la familia Martí en Valencia. Es sábado y la abuela Pepa escribe una lista.\n\n—Mañana viene toda la familia y voy a hacer paella —dice—. ¿Me haces la compra en el Mercado Central?\n—¡Claro! —contesta Emily.\n\nLa abuela le da la lista y treinta euros. Emily lee: arroz, pollo, conejo, judías verdes, garrofó, tomates y azafrán.\n—¿Conejo? —pregunta, sorprendida.\n—Sí, la paella valenciana lleva conejo. Pero compra solo lo de la lista, ¿vale?",
+        "translation": "Emily is sixteen and comes from Leeds. She lives with the Martí family in Valencia. It’s Saturday, and Grandma Pepa is writing a list.\n\n“Tomorrow the whole family is coming, and I’m going to make paella,” she says. “Will you do the shopping for me at the Mercado Central?”\n“Of course!” Emily answers.\n\nGrandma gives her the list and thirty euros. Emily reads: rice, chicken, rabbit, green beans, garrofó, tomatoes and saffron.\n“Rabbit?” she asks, surprised.\n“Yes, paella valenciana has rabbit in it. But only buy what’s on the list, OK?”"
       },
       {
         "id": "s2",
         "heading": "En el Mercado Central",
         "beat": "complication",
-        "text": "El Mercado Central es enorme. En el puesto de verduras de Amparo hay cola. Emily pregunta: «¿Quién es el último?». Cuando es su turno, compra tomates, judías verdes, arroz y azafrán. ¡El azafrán es muy caro! ¿Y el garrofó? ¿Qué es? Amparo se ríe y le enseña unas judías grandes y blancas.\n\nEn otro puesto compra un pollo y un conejo. Todavía tiene seis euros. En un puesto de pescado ve unas gambas preciosas. «¡Paella con gambas, como en Leeds!», piensa. Y compra un cuarto de kilo.",
-        "translation": "The Mercado Central is huge. There is a queue at Amparo's vegetable stall. Emily asks: \"Who's last?\" When it's her turn, she buys tomatoes, green beans, rice and saffron. Saffron is very expensive! And the garrofó? What is it? Amparo laughs and shows her some big white beans.\n\nAt another stall she buys a chicken and a rabbit. She still has six euros. At a fish stall she sees some lovely prawns. \"Paella with prawns, like in Leeds!\" she thinks. And she buys a quarter of a kilo.",
+        "text": "En el puesto de verduras de Amparo hay cola. Emily pregunta: «¿Quién es el último?». Cuando es su turno, compra tomates, judías verdes, arroz y azafrán. Amparo, la vendedora, pone las judías en la balanza. ¡El azafrán es muy caro! ¿Y el garrofó? ¿Qué es? Amparo se ríe y le enseña unas judías grandes y blancas. Al final, le regala una naranja: «¡Las naranjas de Valencia son las mejores!».\n\nEn otro puesto compra un pollo y un conejo. Le quedan seis euros. En un puesto de pescado ve unas gambas preciosas. «¡Paella con gambas, como en Leeds!», piensa. Y compra un cuarto de kilo. Con la cesta llena, vuelve a casa.",
+        "translation": "There is a queue at Amparo’s vegetable stall. Emily asks: “Who’s last?” When it’s her turn, she buys tomatoes, green beans, rice and saffron. Amparo, the stallholder, puts the beans on the scales. Saffron is very expensive! And the garrofó? What is it? Amparo laughs and shows her some big white beans. At the end, she gives her an orange as a present: “Valencia oranges are the best!”\n\nAt another stall she buys a chicken and a rabbit. She has six euros left. At a fish stall she sees some lovely prawns. “Paella with prawns, like in Leeds!” she thinks. And she buys a quarter of a kilo. With her basket full, she goes home.",
         "picture": {
           "svg": "<svg viewBox=\"0 0 178 100\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <!-- ground -->\n  <line x1=\"2\" y1=\"96\" x2=\"176\" y2=\"96\" stroke-width=\".5\"/>\n  <!-- poles -->\n  <rect x=\"12.6\" y=\"18\" width=\"2\" height=\"78\" stroke-width=\".5\" fill=\"#fff\"/>\n  <rect x=\"163.4\" y=\"18\" width=\"2\" height=\"78\" stroke-width=\".5\" fill=\"#fff\"/>\n  <!-- the stallholder -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M79.6,60 L80.6,45.2 C81.1,41.8 83.6,40.3 86.4,40.1 L91.6,40.1 C94.4,40.3 96.9,41.8 97.4,45.2 L98.4,60 Z\"/>\n    <path d=\"M84.6,60 L84.6,46.2 L93.4,46.2 L93.4,60\" stroke-width=\".45\"/>\n    <path d=\"M84.9,46.2 L86.7,40.3 M93.1,46.2 L91.3,40.3\" stroke-width=\".35\" fill=\"none\"/>\n    <rect x=\"86.6\" y=\"51\" width=\"4.8\" height=\"3.8\" stroke-width=\".35\"/>\n    <path d=\"M82.4,45.8 L82,59.6 M95.6,45.8 L96,59.6\" stroke-width=\".4\" fill=\"none\"/>\n    <path d=\"M87.5,37.4 L87.5,40.1 M90.5,37.4 L90.5,40.1\" stroke-width=\".45\" fill=\"none\"/>\n    <circle cx=\"89\" cy=\"33\" r=\"4.8\"/>\n    <circle cx=\"89\" cy=\"26.9\" r=\"2.3\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M84.3,32.8 C83.7,28.6 86.3,28 89,28 C91.8,28 94.4,28.6 93.7,32.8 C92.8,30.6 90.9,30 89,30.1 C87.1,30.2 85.2,30.7 84.3,32.8 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <circle cx=\"87.2\" cy=\"33.5\" r=\".38\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"90.8\" cy=\"33.5\" r=\".38\" fill=\"#000\" stroke=\"none\"/>\n    <path d=\"M87.7,35.6 Q89,36.7 90.3,35.6\" stroke-width=\".35\" fill=\"none\"/>\n  </g>\n  <!-- counter -->\n  <rect x=\"19\" y=\"62.3\" width=\"140\" height=\"33.7\" stroke-width=\".5\" fill=\"#fff\"/>\n  <path d=\"M33,62.3 L33,96 M47,62.3 L47,96 M61,62.3 L61,96 M75,62.3 L75,96 M89,62.3 L89,96 M103,62.3 L103,96 M117,62.3 L117,96 M131,62.3 L131,96 M145,62.3 L145,96\" stroke-width=\".25\"/>\n  <rect x=\"17\" y=\"59.5\" width=\"144\" height=\"2.8\" stroke-width=\".6\" fill=\"#fff\"/>\n  <!-- crate of tomatoes -->\n  <g stroke-width=\".45\" fill=\"#fff\">\n    <circle cx=\"25.2\" cy=\"45.4\" r=\"3.4\"/>\n    <path d=\"M23.7,43 L25.2,43.5 L26.7,43 M24.3,44.2 L25.2,43.5 L26.1,44.2 M25.2,43.5 L25.5,42.1\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"32.2\" cy=\"45.4\" r=\"3.4\"/>\n    <path d=\"M30.7,43 L32.2,43.5 L33.7,43 M31.3,44.2 L32.2,43.5 L33.1,44.2 M32.2,43.5 L32.5,42.1\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"39.2\" cy=\"45.4\" r=\"3.4\"/>\n    <path d=\"M37.7,43 L39.2,43.5 L40.7,43 M38.3,44.2 L39.2,43.5 L40.1,44.2 M39.2,43.5 L39.5,42.1\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"46.2\" cy=\"45.4\" r=\"3.4\"/>\n    <path d=\"M44.7,43 L46.2,43.5 L47.7,43 M45.3,44.2 L46.2,43.5 L47.1,44.2 M46.2,43.5 L46.5,42.1\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"28.7\" cy=\"48.8\" r=\"3.4\"/>\n    <path d=\"M27.2,46.4 L28.7,46.9 L30.2,46.4 M27.8,47.6 L28.7,46.9 L29.6,47.6 M28.7,46.9 L29,45.5\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"35.7\" cy=\"48.8\" r=\"3.4\"/>\n    <path d=\"M34.2,46.4 L35.7,46.9 L37.2,46.4 M34.8,47.6 L35.7,46.9 L36.6,47.6 M35.7,46.9 L36,45.5\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"42.7\" cy=\"48.8\" r=\"3.4\"/>\n    <path d=\"M41.2,46.4 L42.7,46.9 L44.2,46.4 M41.8,47.6 L42.7,46.9 L43.6,47.6 M42.7,46.9 L43,45.5\" stroke-width=\".3\" fill=\"none\"/>\n    <circle cx=\"49.7\" cy=\"48.8\" r=\"3.4\"/>\n    <path d=\"M48.2,46.4 L49.7,46.9 L51.2,46.4 M48.8,47.6 L49.7,46.9 L50.6,47.6 M49.7,46.9 L50,45.5\" stroke-width=\".3\" fill=\"none\"/>\n    <rect x=\"21\" y=\"51\" width=\"32\" height=\"8.5\"/>\n    <path d=\"M21,55.2 L53,55.2\" fill=\"none\" stroke-width=\".3\"/>\n    <rect x=\"21\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n    <rect x=\"51\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n  </g>\n  <!-- scales -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M59,59.5 L74,59.5 L72.2,48.5 L60.8,48.5 Z\"/>\n    <circle cx=\"66.5\" cy=\"54\" r=\"3.5\" stroke-width=\".45\"/>\n    <path d=\"M64.06,53.11 L63.49,52.91 M64.61,52.22 L64.17,51.81 M65.47,51.61 L65.23,51.06 M66.5,51.4 L66.49,50.8 M67.52,51.61 L67.76,51.06 M68.39,52.21 L68.82,51.8 M68.94,53.1 L69.5,52.9\" stroke-width=\".25\" fill=\"none\"/>\n    <path d=\"M66.5,54 L68.1,51.6\" stroke-width=\".4\" fill=\"none\"/>\n    <circle cx=\"66.5\" cy=\"54\" r=\".5\" fill=\"#000\" stroke=\"none\"/>\n    <rect x=\"65.3\" y=\"45.6\" width=\"2.4\" height=\"2.9\" stroke-width=\".45\"/>\n    <path d=\"M55.5,44.2 C57.2,47.4 75.8,47.4 77.5,44.2 Z\"/>\n    <ellipse cx=\"66.5\" cy=\"44.2\" rx=\"11\" ry=\"1.4\" stroke-width=\".45\"/>\n  </g>\n  <!-- crate of green beans -->\n  <g stroke-width=\".4\" fill=\"#fff\">\n    <path d=\"M0,0 C2.25,-2.3 10,-2.5 12.5,-1.1 C10,-0.6 2.5,-0.1 0,0 Z M12.5,-1.1 q.9,0.1 1.3,0.8 M3.75,-1.25 l.01,0 M6.25,-1.45 l.01,0 M8.75,-1.4 l.01,0\" transform=\"translate(106.5 44.8) rotate(-4)\"/>\n    <path d=\"M0,0 C2.07,-2.3 9.2,-2.5 11.5,-1.1 C9.2,-0.6 2.3,-0.1 0,0 Z M11.5,-1.1 q.9,0.1 1.3,0.8 M3.45,-1.25 l.01,0 M5.75,-1.45 l.01,0 M8.05,-1.4 l.01,0\" transform=\"translate(113.6 44.2) rotate(6)\"/>\n    <path d=\"M0,0 C2.25,-2.3 10,-2.5 12.5,-1.1 C10,-0.6 2.5,-0.1 0,0 Z M12.5,-1.1 q.9,0.1 1.3,0.8 M3.75,-1.25 l.01,0 M6.25,-1.45 l.01,0 M8.75,-1.4 l.01,0\" transform=\"translate(103.2 47.2) rotate(3)\"/>\n    <path d=\"M0,0 C2.16,-2.3 9.6,-2.5 12,-1.1 C9.6,-0.6 2.4,-0.1 0,0 Z M12,-1.1 q.9,0.1 1.3,0.8 M3.6,-1.25 l.01,0 M6,-1.45 l.01,0 M8.4,-1.4 l.01,0\" transform=\"translate(110.6 47.6) rotate(-3)\"/>\n    <path d=\"M0,0 C1.71,-2.3 7.6,-2.5 9.5,-1.1 C7.6,-0.6 1.9,-0.1 0,0 Z M9.5,-1.1 q.9,0.1 1.3,0.8 M2.85,-1.25 l.01,0 M4.75,-1.45 l.01,0 M6.65,-1.4 l.01,0\" transform=\"translate(117.2 47.4) rotate(4)\"/>\n    <path d=\"M0,0 C2.16,-2.3 9.6,-2.5 12,-1.1 C9.6,-0.6 2.4,-0.1 0,0 Z M12,-1.1 q.9,0.1 1.3,0.8 M3.6,-1.25 l.01,0 M6,-1.45 l.01,0 M8.4,-1.4 l.01,0\" transform=\"translate(102.4 50.2) rotate(-1)\"/>\n    <path d=\"M0,0 C2.25,-2.3 10,-2.5 12.5,-1.1 C10,-0.6 2.5,-0.1 0,0 Z M12.5,-1.1 q.9,0.1 1.3,0.8 M3.75,-1.25 l.01,0 M6.25,-1.45 l.01,0 M8.75,-1.4 l.01,0\" transform=\"translate(109.2 50.5) rotate(2)\"/>\n    <path d=\"M0,0 C1.8,-2.3 8,-2.5 10,-1.1 C8,-0.6 2,-0.1 0,0 Z M10,-1.1 q.9,0.1 1.3,0.8 M3,-1.25 l.01,0 M5,-1.45 l.01,0 M7,-1.4 l.01,0\" transform=\"translate(116.4 50.4) rotate(-3)\"/>\n    <rect x=\"101\" y=\"51\" width=\"28\" height=\"8.5\"/>\n    <path d=\"M101,55.2 L129,55.2\" fill=\"none\" stroke-width=\".3\"/>\n    <rect x=\"101\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n    <rect x=\"127\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n  </g>\n  <!-- crate of oranges -->\n  <g stroke-width=\".45\" fill=\"#fff\">\n    <circle cx=\"136\" cy=\"45.2\" r=\"3.7\"/><circle cx=\"134.7\" cy=\"44.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"137.2\" cy=\"43.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"136.2\" cy=\"45.8\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"134.4\" cy=\"46.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"137.6\" cy=\"46.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"143.4\" cy=\"45.2\" r=\"3.7\"/><circle cx=\"142.1\" cy=\"44.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"144.6\" cy=\"43.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"143.6\" cy=\"45.8\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"141.8\" cy=\"46.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"145\" cy=\"46.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"150.8\" cy=\"45.2\" r=\"3.7\"/><circle cx=\"149.5\" cy=\"44.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"152\" cy=\"43.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"151\" cy=\"45.8\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"149.2\" cy=\"46.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"152.4\" cy=\"46.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"139.7\" cy=\"48.7\" r=\"3.7\"/><circle cx=\"138.4\" cy=\"47.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"140.9\" cy=\"47.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"139.9\" cy=\"49.3\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"138.1\" cy=\"50.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"141.3\" cy=\"49.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"147.1\" cy=\"48.7\" r=\"3.7\"/><circle cx=\"145.8\" cy=\"47.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"148.3\" cy=\"47.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"147.3\" cy=\"49.3\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"145.5\" cy=\"50.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"148.7\" cy=\"49.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"154.3\" cy=\"48.7\" r=\"3.7\"/><circle cx=\"153\" cy=\"47.9\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"155.5\" cy=\"47.4\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"154.5\" cy=\"49.3\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"152.7\" cy=\"50.1\" r=\".22\" fill=\"#000\" stroke=\"none\"/><circle cx=\"155.9\" cy=\"49.6\" r=\".22\" fill=\"#000\" stroke=\"none\"/>\n    <path d=\"M143.4,41.5 C144.9,39.4 147.6,39.1 149,39.9 C147.6,41.5 145.3,41.9 143.4,41.5 Z\" stroke-width=\".35\"/>\n    <path d=\"M143.4,41.5 L147.4,40.3\" stroke-width=\".25\" fill=\"none\"/>\n    <path d=\"M136,41.5 C134.6,39.4 132,39.2 130.8,40.1 C132.2,41.6 134.3,41.9 136,41.5 Z\" stroke-width=\".35\"/>\n    <path d=\"M136,41.5 L132.4,40.4\" stroke-width=\".25\" fill=\"none\"/>\n    <rect x=\"132\" y=\"51\" width=\"26\" height=\"8.5\"/>\n    <path d=\"M132,55.2 L158,55.2\" fill=\"none\" stroke-width=\".3\"/>\n    <rect x=\"132\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n    <rect x=\"156\" y=\"51\" width=\"2\" height=\"8.5\" stroke-width=\".35\"/>\n  </g>\n  <!-- open sack of rice -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M117.6,96 C115.8,89 116.5,82 118.4,77.6 L141.6,77.6 C143.5,82 144.2,89 142.4,96 Z\"/>\n    <path d=\"M117.4,78.4 C116.9,76.6 117.3,75.2 118.3,74.4 L141.7,74.4 C142.7,75.2 143.1,76.6 142.6,78.4 C134.4,79.6 125.6,79.6 117.4,78.4 Z\" stroke-width=\".5\"/>\n    <path d=\"M119.2,74.6 C121.6,70.2 138.4,70.2 140.8,74.6 Z\" stroke-width=\".45\"/>\n    <ellipse cx=\"123\" cy=\"73.1\" rx=\".55\" ry=\".25\" transform=\"rotate(-30 123 73.1)\" stroke-width=\".25\"/><ellipse cx=\"126\" cy=\"72.2\" rx=\".55\" ry=\".25\" transform=\"rotate(7 126 72.2)\" stroke-width=\".25\"/><ellipse cx=\"129.2\" cy=\"71.8\" rx=\".55\" ry=\".25\" transform=\"rotate(-16 129.2 71.8)\" stroke-width=\".25\"/><ellipse cx=\"132.6\" cy=\"72.1\" rx=\".55\" ry=\".25\" transform=\"rotate(21 132.6 72.1)\" stroke-width=\".25\"/><ellipse cx=\"135.8\" cy=\"72.6\" rx=\".55\" ry=\".25\" transform=\"rotate(-2 135.8 72.6)\" stroke-width=\".25\"/><ellipse cx=\"138\" cy=\"73.6\" rx=\".55\" ry=\".25\" transform=\"rotate(-25 138 73.6)\" stroke-width=\".25\"/><ellipse cx=\"124.6\" cy=\"74\" rx=\".55\" ry=\".25\" transform=\"rotate(12 124.6 74)\" stroke-width=\".25\"/><ellipse cx=\"128\" cy=\"73.4\" rx=\".55\" ry=\".25\" transform=\"rotate(-11 128 73.4)\" stroke-width=\".25\"/><ellipse cx=\"131\" cy=\"73.6\" rx=\".55\" ry=\".25\" transform=\"rotate(26 131 73.6)\" stroke-width=\".25\"/><ellipse cx=\"134.2\" cy=\"73.8\" rx=\".55\" ry=\".25\" transform=\"rotate(3 134.2 73.8)\" stroke-width=\".25\"/><ellipse cx=\"121.6\" cy=\"74.1\" rx=\".55\" ry=\".25\" transform=\"rotate(-20 121.6 74.1)\" stroke-width=\".25\"/>\n    <path d=\"M130.6,72.4 L135.8,68.8 L137.6,71.2 Q134.6,73.4 131,73 Z\" stroke-width=\".45\"/>\n    <path d=\"M136.7,70 L141.8,66.2\" stroke-width=\".8\" fill=\"none\"/>\n    <path d=\"M121,84 l1.4,.5 M126,88.5 l1.4,.4 M134.5,85 l1.4,.5 M138.4,90.4 l1.2,.4 M122.6,92 l1.3,.4 M130.2,93 l1.3,.3\" stroke-width=\".3\" fill=\"none\"/>\n  </g>\n  <!-- basket -->\n  <g stroke-width=\".45\" fill=\"#fff\">\n    <path d=\"M28.8,82.6 C28.8,69.4 51.2,69.4 51.2,82.6\" fill=\"none\"/>\n    <path d=\"M30.6,82.6 C30.6,71.8 49.4,71.8 49.4,82.6\" fill=\"none\"/>\n    <path d=\"M26.6,82.6 L53.4,82.6 L50.8,96 L29.2,96 Z\" stroke-width=\".55\"/>\n    <rect x=\"25.8\" y=\"81.2\" width=\"28.4\" height=\"2.4\" rx=\"1.1\" stroke-width=\".5\"/>\n    <path d=\"M27.4,87 L52.6,87 M28.2,91.4 L51.8,91.4\" fill=\"none\" stroke-width=\".3\"/>\n    <path d=\"M28.6,84.2 L28.9,86.4 M30.8,84.2 L31.1,86.4 M33,84.2 L33.3,86.4 M35.2,84.2 L35.5,86.4 M37.4,84.2 L37.7,86.4 M39.6,84.2 L39.9,86.4 M41.8,84.2 L42.1,86.4 M44,84.2 L44.3,86.4 M46.2,84.2 L46.5,86.4 M48.4,84.2 L48.7,86.4 M50.6,84.2 L50.9,86.4 M30.5,87.6 L30.8,90.8 M32.7,87.6 L33,90.8 M34.9,87.6 L35.2,90.8 M37.1,87.6 L37.4,90.8 M39.3,87.6 L39.6,90.8 M41.5,87.6 L41.8,90.8 M43.7,87.6 L44,90.8 M45.9,87.6 L46.2,90.8 M48.1,87.6 L48.4,90.8 M50.3,87.6 L50.6,90.8 M30.2,92 L30.5,95.4 M32.4,92 L32.7,95.4 M34.6,92 L34.9,95.4 M36.8,92 L37.1,95.4 M39,92 L39.3,95.4 M41.2,92 L41.5,95.4 M43.4,92 L43.7,95.4 M45.6,92 L45.9,95.4 M47.8,92 L48.1,95.4 M50,92 L50.3,95.4\" fill=\"none\" stroke-width=\".25\"/>\n  </g>\n  <!-- striped awning -->\n  <g stroke-width=\".5\">\n    <path d=\"M14,9 L24,9 L24,16 A5,5 0 0 1 14,16 Z\" fill=\"#fff\"/>\n    <path d=\"M24,9 L34,9 L34,16 A5,5 0 0 1 24,16 Z\" fill=\"#000\"/>\n    <path d=\"M34,9 L44,9 L44,16 A5,5 0 0 1 34,16 Z\" fill=\"#fff\"/>\n    <path d=\"M44,9 L54,9 L54,16 A5,5 0 0 1 44,16 Z\" fill=\"#000\"/>\n    <path d=\"M54,9 L64,9 L64,16 A5,5 0 0 1 54,16 Z\" fill=\"#fff\"/>\n    <path d=\"M64,9 L74,9 L74,16 A5,5 0 0 1 64,16 Z\" fill=\"#000\"/>\n    <path d=\"M74,9 L84,9 L84,16 A5,5 0 0 1 74,16 Z\" fill=\"#fff\"/>\n    <path d=\"M84,9 L94,9 L94,16 A5,5 0 0 1 84,16 Z\" fill=\"#000\"/>\n    <path d=\"M94,9 L104,9 L104,16 A5,5 0 0 1 94,16 Z\" fill=\"#fff\"/>\n    <path d=\"M104,9 L114,9 L114,16 A5,5 0 0 1 104,16 Z\" fill=\"#000\"/>\n    <path d=\"M114,9 L124,9 L124,16 A5,5 0 0 1 114,16 Z\" fill=\"#fff\"/>\n    <path d=\"M124,9 L134,9 L134,16 A5,5 0 0 1 124,16 Z\" fill=\"#000\"/>\n    <path d=\"M134,9 L144,9 L144,16 A5,5 0 0 1 134,16 Z\" fill=\"#fff\"/>\n    <path d=\"M144,9 L154,9 L154,16 A5,5 0 0 1 144,16 Z\" fill=\"#000\"/>\n    <path d=\"M154,9 L164,9 L164,16 A5,5 0 0 1 154,16 Z\" fill=\"#fff\"/>\n    <rect x=\"12\" y=\"6.6\" width=\"154\" height=\"2.6\" fill=\"#fff\" stroke-width=\".6\"/>\n  </g>\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"66.5\" y1=\"39.3\" x2=\"66.5\" y2=\"42.6\"/>\n    <line x1=\"37\" y1=\"38.8\" x2=\"38.2\" y2=\"41.9\"/>\n    <line x1=\"115\" y1=\"38.8\" x2=\"115\" y2=\"42.4\"/>\n    <line x1=\"147.4\" y1=\"37.3\" x2=\"146.4\" y2=\"40.3\"/>\n    <line x1=\"130\" y1=\"69.4\" x2=\"130\" y2=\"71.3\"/>\n    <line x1=\"57.2\" y1=\"84.6\" x2=\"52.8\" y2=\"85.8\"/>\n    <line x1=\"101.6\" y1=\"29.7\" x2=\"94.3\" y2=\"31.5\"/>\n  </g>\n</svg>",
           "caption": "El puesto de Amparo en el Mercado Central",
@@ -48,48 +53,42 @@
           "labels": [
             {
               "n": 1,
-              "term": "el toldo",
-              "x": 0.107,
-              "y": 0.132
-            },
-            {
-              "n": 2,
               "term": "la balanza",
               "x": 0.374,
               "y": 0.361
             },
             {
-              "n": 3,
+              "n": 2,
               "term": "los tomates",
               "x": 0.208,
               "y": 0.356
             },
             {
-              "n": 4,
+              "n": 3,
               "term": "las judías verdes",
               "x": 0.646,
               "y": 0.356
             },
             {
-              "n": 5,
+              "n": 4,
               "term": "las naranjas",
               "x": 0.829,
               "y": 0.341
             },
             {
-              "n": 6,
+              "n": 5,
               "term": "el arroz",
               "x": 0.73,
               "y": 0.662
             },
             {
-              "n": 7,
+              "n": 6,
               "term": "la cesta",
               "x": 0.339,
               "y": 0.842
             },
             {
-              "n": 8,
+              "n": 7,
               "term": "la vendedora",
               "x": 0.589,
               "y": 0.294
@@ -101,8 +100,8 @@
         "id": "s3",
         "heading": "¿Gambas en la paella?",
         "beat": "resolution",
-        "text": "En casa, la abuela abre las bolsas.\n—Garrofó, conejo… muy bien. Pero… ¿gambas?\n—¡Sorpresa! —dice Emily.\n—¡Ay, Emily! La paella valenciana no lleva marisco.\n\nEmily se pone roja, pero la abuela le da un beso: «No pasa nada. El lunes vamos a hacer juntas un arroz con gambas».\n\nEl domingo, toda la familia se sienta a la mesa. Emily prueba el socarrat, el arroz tostado del fondo.\n—¡Qué rico!\n—Muy bien —dice la abuela—. Y el domingo que viene, ¡tú vas a hacer la paella!",
-        "translation": "At home, Grandma opens the bags.\n\"Garrofó, rabbit… very good. But… prawns?\"\n\"Surprise!\" says Emily.\n\"Oh, Emily! Paella valenciana doesn't have seafood in it.\"\n\nEmily goes red, but Grandma gives her a kiss: \"Never mind. On Monday we'll make a rice dish with prawns together.\"\n\nOn Sunday, the whole family sits down at the table. Emily tries the socarrat, the toasted rice from the bottom of the pan.\n\"Delicious!\"\n\"Very good,\" says Grandma. \"And next Sunday, you're going to make the paella!\""
+        "text": "En casa, la abuela abre las bolsas.\n—Garrofó, conejo… muy bien. Pero… ¿gambas?\n—¡Sorpresa! —dice Emily.\n—¡Ay, Emily! La paella valenciana no lleva marisco.\n\nEmily se pone roja, pero la abuela le da un beso: «No pasa nada. Esta noche cenamos gambas a la plancha».\n\nEl domingo, toda la familia se sienta a la mesa. Pau, el nieto de la abuela, pregunta:\n—¿Y esto blanco qué es?\n—Es garrofó, una judía de Valencia —explica Emily—. ¡Y sin marisco, claro!\nTodos se ríen.\n—¡Emily sabe más que mi nieto! —dice la abuela—. Y el domingo que viene, ¡tú vas a hacer la paella!",
+        "translation": "At home, Grandma opens the bags.\n“Garrofó, rabbit… very good. But… prawns?”\n“Surprise!” says Emily.\n“Oh, Emily! Paella valenciana doesn’t have seafood in it.”\n\nEmily goes red, but Grandma gives her a kiss: “Never mind. Tonight we’ll have grilled prawns for dinner.”\n\nOn Sunday, the whole family sits down at the table. Pau, Grandma’s grandson, asks:\n“And what’s this white stuff?”\n“It’s garrofó, a bean from Valencia,” Emily explains. “And no seafood, of course!”\nEveryone laughs.\n“Emily knows more than my grandson!” says Grandma. “And next Sunday, you’re going to make the paella!”"
       }
     ]
   },
@@ -247,7 +246,7 @@
       },
       {
         "term": "¿Quién es el último?",
-        "translation": "Who's last? (you ask this when you join a queue)",
+        "translation": "Who’s last? (you ask this when you join a queue)",
         "pos": "phrase"
       },
       {
@@ -275,9 +274,16 @@
         "note": "also: to teach"
       },
       {
-        "term": "todavía",
-        "translation": "still",
-        "pos": "adverb"
+        "term": "regalar",
+        "translation": "to give (as a present)",
+        "pos": "verb"
+      },
+      {
+        "term": "quedar",
+        "translation": "to be left",
+        "pos": "verb",
+        "forms": "le queda, le quedan",
+        "note": "le quedan seis euros = she has six euros left"
       },
       {
         "term": "el pescado",
@@ -297,15 +303,15 @@
         "note": "f. preciosa"
       },
       {
-        "term": "pensar",
-        "translation": "to think",
-        "pos": "verb",
-        "forms": "pienso, piensas, piensa"
-      },
-      {
         "term": "un cuarto de kilo",
         "translation": "a quarter of a kilo (250 g)",
         "pos": "phrase"
+      },
+      {
+        "term": "lleno",
+        "translation": "full",
+        "pos": "adjective",
+        "note": "f. llena"
       },
       {
         "term": "la bolsa",
@@ -333,14 +339,18 @@
       },
       {
         "term": "No pasa nada.",
-        "translation": "Never mind. / It doesn't matter.",
+        "translation": "Never mind. / It doesn’t matter.",
         "pos": "phrase"
       },
       {
-        "term": "juntos",
-        "translation": "together",
-        "pos": "adjective",
-        "note": "f. juntas"
+        "term": "cenar",
+        "translation": "to have dinner",
+        "pos": "verb"
+      },
+      {
+        "term": "a la plancha",
+        "translation": "grilled (on a hot plate)",
+        "pos": "phrase"
       },
       {
         "term": "sentarse",
@@ -349,10 +359,22 @@
         "forms": "me siento, te sientas, se sienta"
       },
       {
-        "term": "probar",
-        "translation": "to taste, to try",
+        "term": "el nieto",
+        "translation": "grandson",
+        "pos": "noun",
+        "plural": "los nietos",
+        "note": "la nieta = granddaughter"
+      },
+      {
+        "term": "saber",
+        "translation": "to know",
         "pos": "verb",
-        "forms": "pruebo, pruebas, prueba"
+        "forms": "sé, sabes, sabe"
+      },
+      {
+        "term": "explicar",
+        "translation": "to explain",
+        "pos": "verb"
       },
       {
         "term": "el socarrat",
@@ -371,20 +393,9 @@
         "pos": "noun"
       },
       {
-        "term": "¡Qué rico!",
-        "translation": "Delicious!",
-        "pos": "phrase"
-      },
-      {
         "term": "el domingo que viene",
         "translation": "next Sunday",
         "pos": "phrase"
-      },
-      {
-        "term": "el toldo",
-        "translation": "awning",
-        "pos": "noun",
-        "plural": "los toldos"
       },
       {
         "term": "la balanza",
@@ -454,12 +465,6 @@
         "note": "also: envelope"
       },
       {
-        "term": "la especia",
-        "translation": "spice",
-        "pos": "noun",
-        "plural": "las especias"
-      },
-      {
         "term": "guapa",
         "translation": "love, dear (friendly way to talk to a woman or girl)",
         "pos": "other",
@@ -523,16 +528,6 @@
         "note": "f. barata"
       },
       {
-        "term": "enfadarse",
-        "translation": "to get angry",
-        "pos": "verb"
-      },
-      {
-        "term": "tirar",
-        "translation": "to throw away",
-        "pos": "verb"
-      },
-      {
         "term": "propio",
         "translation": "own",
         "pos": "adjective",
@@ -557,7 +552,7 @@
       "id": "g1",
       "name": "Plans: ir a + infinitive",
       "scene": "s1",
-      "explanation": "To talk about plans and the near future, Spanish uses ir + a + infinitive — just like English 'going to'. Only ir changes; the second verb stays in the infinitive.",
+      "explanation": "To talk about plans and the near future, Spanish uses ir + a + infinitive — just like English ‘going to’. Only ir changes; the second verb stays in the infinitive.",
       "rule": "ir (voy, vas, va …) + a + infinitive",
       "table": {
         "head": [
@@ -616,33 +611,29 @@
         ],
         "rows": [
           [
-            "un kilo",
-            "de naranjas"
-          ],
-          [
-            "medio kilo",
-            "de cebollas"
-          ],
-          [
-            "un cuarto de kilo",
-            "de gambas"
-          ],
-          [
             "cien gramos",
             "de jamón"
           ],
           [
-            "una bolsa",
-            "de patatas"
+            "una botella",
+            "de aceite"
           ],
           [
-            "un sobre",
-            "de azúcar"
+            "un paquete",
+            "de galletas"
+          ],
+          [
+            "una lata",
+            "de atún"
+          ],
+          [
+            "dos kilos",
+            "de naranjas"
           ]
         ]
       },
       "examples": [
-        "¿Me pone medio kilo de cebollas, por favor?"
+        "¿Me pone cien gramos de jamón, por favor?"
       ]
     }
   ],
@@ -651,7 +642,7 @@
       "id": "t1",
       "kind": "match",
       "stage": "warm_up",
-      "title": "Words for Grandma Pepa's list",
+      "title": "Words for Grandma Pepa’s list",
       "instruction": "You will meet these words in the story. Match each Spanish word to its English meaning. Write the letter in the box.",
       "pairs": [
         {
@@ -705,16 +696,20 @@
       "kind": "true_false",
       "stage": "gist",
       "scene": "s1",
-      "title": "Saturday morning at the Martís'",
+      "title": "Saturday morning at the Martís’",
       "instruction": "Tick true or false. Correct the false sentences.",
       "items": [
         {
           "statement": "Emily es de Valencia.",
           "answer": false,
-          "correction": "Emily es de Leeds, en Inglaterra."
+          "correction": "Emily es de Leeds."
         },
         {
           "statement": "La abuela Pepa va a hacer paella el domingo.",
+          "answer": true
+        },
+        {
+          "statement": "El domingo, la abuela cocina para mucha gente.",
           "answer": true
         },
         {
@@ -723,7 +718,7 @@
           "correction": "En la lista no hay gambas."
         },
         {
-          "statement": "Según la abuela, la paella valenciana lleva conejo.",
+          "statement": "Para la abuela, el conejo es un ingrediente de la paella valenciana.",
           "answer": true
         }
       ]
@@ -736,10 +731,10 @@
       "grammar": "g1",
       "hint": "base_form",
       "title": "Who is going to do what?",
-      "instruction": "Sunday is paella day at the Martís'. Complete the plans with ir a + the verb in brackets.",
+      "instruction": "Sunday is paella day at the Martís’. Complete the plans with ir a + the verb in brackets.",
       "items": [
         "Emily dice: «Hoy {{voy a comprar::comprar}} todo en el mercado».",
-        "La abuela le pregunta: «¿{{Vas a ir::ir}} en autobús?».",
+        "La abuela le pregunta: «¿Y {{vas a ir::ir}} en autobús?».",
         "Mañana toda la familia {{va a comer::comer}} en casa.",
         "La abuela dice: «Mañana tú y yo {{vamos a poner::poner}} la mesa».",
         "Los tíos {{van a traer::traer}} el postre."
@@ -752,8 +747,8 @@
       "scene": "s2",
       "grammar": "g2",
       "bank": true,
-      "title": "At Amparo's stall",
-      "instruction": "What do Emily and Amparo say? Fill the gaps with words from the box. Then write Emily's line from the English cue.",
+      "title": "At Amparo’s stall",
+      "instruction": "What do Emily and Amparo say? Fill the gaps with words from the box — two words are left over. Then write Emily’s line from the English cue.",
       "lines": [
         {
           "speaker": "Amparo",
@@ -792,6 +787,10 @@
           "speaker": "Amparo",
           "text": "Es por el azafrán, guapa. ¡Un kilo de azafrán cuesta miles de euros!"
         }
+      ],
+      "distractors": [
+        "litro",
+        "docena"
       ]
     },
     {
@@ -799,15 +798,15 @@
       "kind": "label",
       "stage": "picture",
       "scene": "s2",
-      "title": "Amparo's stall",
-      "instruction": "Look at Amparo's stall. Write the Spanish word for each number — with el, la, los or las.",
+      "title": "Amparo’s stall",
+      "instruction": "Look at Amparo’s stall. Write the Spanish word for each number — with el, la, los or las.",
       "bank": true
     },
     {
       "id": "t6",
       "kind": "order_events",
       "stage": "gist",
-      "title": "Emily's weekend in order",
+      "title": "Emily’s weekend in order",
       "instruction": "Put the events in the order of the story. Write 1–6 in the boxes.",
       "events": [
         "La abuela le da a Emily una lista y treinta euros.",
@@ -815,7 +814,12 @@
         "Amparo le enseña el garrofó.",
         "Emily compra un cuarto de kilo de gambas.",
         "La abuela encuentra las gambas en una bolsa.",
-        "Emily prueba el socarrat."
+        "Emily le explica a Pau qué es el garrofó."
+      ],
+      "scene": [
+        "s1",
+        "s2",
+        "s3"
       ]
     },
     {
@@ -829,38 +833,38 @@
         {
           "question": "¿Por qué compra Emily las gambas?",
           "options": [
-            "Porque están en la lista.",
-            "Porque quiere dar una sorpresa.",
-            "Porque son muy baratas."
+            "Porque en Leeds la paella lleva gambas.",
+            "Porque la abuela las pone en la lista.",
+            "Porque Amparo se las regala."
           ],
-          "answer": "Porque quiere dar una sorpresa."
+          "answer": "Porque en Leeds la paella lleva gambas."
         },
         {
           "question": "¿Qué dice la abuela de las gambas?",
           "options": [
-            "Que la paella valenciana no lleva marisco.",
-            "Que son muy caras.",
+            "Que no son para una paella valenciana.",
+            "Que son demasiado caras.",
             "Que no le gusta el pescado."
           ],
-          "answer": "Que la paella valenciana no lleva marisco."
+          "answer": "Que no son para una paella valenciana."
         },
         {
-          "question": "¿Qué hace la abuela cuando ve las gambas?",
+          "question": "¿Qué van a hacer con las gambas?",
           "options": [
-            "Se enfada mucho.",
-            "Le da un beso a Emily.",
-            "Tira las gambas."
+            "Las van a comer el sábado por la noche.",
+            "Las van a poner en la paella del domingo.",
+            "Las van a llevar otra vez al mercado."
           ],
-          "answer": "Le da un beso a Emily."
+          "answer": "Las van a comer el sábado por la noche."
         },
         {
-          "question": "¿Qué va a hacer Emily el domingo que viene?",
+          "question": "¿Por qué dice la abuela que Emily sabe más que Pau?",
           "options": [
-            "Va a volver a Leeds.",
-            "Va a hacer la paella.",
-            "Va a comer en un restaurante."
+            "Porque sabe qué es el garrofó.",
+            "Porque habla tres idiomas.",
+            "Porque cocina mejor que él."
           ],
-          "answer": "Va a hacer la paella."
+          "answer": "Porque sabe qué es el garrofó."
         }
       ]
     },
@@ -870,12 +874,12 @@
       "stage": "practice",
       "scene": "s3",
       "hint": "word_bank",
-      "title": "One week later: Emily's paella",
-      "instruction": "Now it's Emily's turn to cook. Fill the gaps with words from the box. Two words are left over.",
+      "title": "One week later: Emily’s paella",
+      "instruction": "Now it’s Emily’s turn to cook. Fill the gaps with words from the box. Two words are left over.",
       "text": "Una semana después, Emily vuelve al {{mercado}} con su propia lista. Primero va al {{puesto}} de Amparo. «Hoy no compro gambas», dice. «Ya sé que una paella valenciana de verdad no lleva {{marisco}}». Amparo sonríe y le pone judías verdes, garrofó y una bolsa de {{arroz}}. Después, en el puesto de carne, pide un pollo y medio {{conejo}}. Al final compra un sobre de {{azafrán}}: ¡qué {{caro}}! El domingo, toda la familia prueba la paella de Emily. ¿Y la abuela? ¡Quiere más!",
       "distractors": [
-        "balanza",
-        "vendedora"
+        "pollo",
+        "barato"
       ]
     },
     {
@@ -911,13 +915,13 @@
       "min_words": 30,
       "max_words": 50,
       "lines": 7,
-      "model_answer": "¡Hola, familia! El sábado voy a hacer un plato inglés: el shepherd's pie. Lleva carne, patatas, cebollas y zanahorias. ¡No lleva marisco, abuela! Por la mañana voy a comprar las verduras en el puesto de Amparo, en el mercado. Vamos a comer a las dos. Un beso"
+      "model_answer": "¡Hola, familia! El sábado voy a hacer un plato inglés: shepherd’s pie. Lleva carne, patatas y zanahorias, ¡pero no lleva marisco, abuela! Voy a comprar las verduras en el puesto de Amparo, en el mercado. Comemos a las dos. Un beso"
     },
     {
       "id": "t11",
       "kind": "media_search",
       "stage": "epilogue",
-      "title": "Grandma Pepa's homework",
+      "title": "Grandma Pepa’s homework",
       "instruction": "Find a short Spanish video recipe for paella valenciana. There is deliberately no link — searching in Spanish is part of the task.",
       "media": "video",
       "queries": [
