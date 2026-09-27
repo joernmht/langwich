@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import difflib
 import json
+from collections.abc import Mapping
 import re
 import types
 from dataclasses import dataclass
@@ -761,7 +762,7 @@ def _describe(value: Any) -> str:
 _KINDS_TEXT = ", ".join(f"'{k}'" for k in TASK_KINDS)
 
 
-def _friendly(error: dict[str, Any], parts: tuple[Any, ...], data: Any) -> str:
+def _friendly(error: Mapping[str, Any], parts: tuple[Any, ...], data: Any) -> str:
     """An LLM-actionable message for one pydantic error."""
     kind = error["type"]
     msg = str(error["msg"])

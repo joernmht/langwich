@@ -271,7 +271,7 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
             try:
                 with Image.open(io.BytesIO(raw)) as probe:
                     probe.verify()
-                img = Image.open(io.BytesIO(raw))
+                img: Image.Image = Image.open(io.BytesIO(raw))
             finally:
                 Image.MAX_IMAGE_PIXELS = limit
         fmt = img.format or ""
