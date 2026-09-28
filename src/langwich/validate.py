@@ -1424,6 +1424,57 @@ class _Checker:
 
     def check_tables(self) -> None:
         """Table shape, gaps, width and distractors."""
+        most = 5  # columns: wider tables get too narrow on an e-paper page
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TableTask):
+                continue
+            where = f"/tasks/{i}"
+            columns = len(task.head) if task.head else 2
+            if columns > most:
+                self.warn(
+                    "table-too-wide", f"{where}/head",
+                    f"the table has {columns} columns; on an e-paper page more than {most} get "
+                    f"too narrow to read and write in. Leave out the columns the task does not "
+                    f"need (at most {most}), or split it into two table tasks.",
+                )
+            answers: list[str] = []
+            has_gap = has_open = broken = False
+            for r, row in enumerate(task.rows):
+                if len(row) != columns:
+                    if task.head:
+                        shape = (f"'head' has {columns} columns ({_one_of(task.head)}), so every "
+                                 f"row needs exactly {columns} cells")
+                    else:
+                        shape = ("a table without 'head' is a form of two columns — the field "
+                                 "and its value, e.g. [\"<field>\", \"{{<value>}}\"] — so every "
+                                 "row needs exactly 2 cells (add a 'head' for more columns)")
+                    self.error(
+                        "table-shape", f"{where}/rows/{r}",
+                        f"this row has {len(row)} cell{'s' if len(row) != 1 else ''}, but "
+                        f"{shape}. Add the missing cells (null for a cell the learner fills in "
+                        "with their own words) or remove the extra ones.",
+                    )
+                for c, cell in enumerate(row):
+                    if cell is None:
+                        has_open = True
+                        continue
+                    self._check_gap_text(
+                        task.hint, cell, f"{where}/rows/{r}/{c}", "this table cell",
+                        need_gaps=False,
+                    )
+                    found, problem = _parse_gaps(cell)
+                    broken = broken or problem is not None
+                    has_gap = has_gap or bool(found)
+                    answers += [a for g in found for a in g.accepted]
+            if not has_gap and not has_open and not broken:
+                self.error(
+                    "table-nothing-to-do", f"{where}/rows",
+                    "every cell of this table is already filled in, so the learner has nothing "
+                    "to do. Mark the words to fill in as {{gaps}} inside the cells, e.g. "
+                    f"\"{{{{{self.example_word()}}}}}\", or set a cell to null where the learner "
+                    "writes an answer of their own.",
+                )
+            self._check_distractors(i, task.distractors, answers)
 
     def check_gapped_texts(self) -> None:
         """Gapped-text gaps and extra sentences."""

@@ -200,8 +200,11 @@ def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_table(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """The gap answers of a table, row by row."""
-    return []  # (spine stub: the table implementation fills this in)
+    """The gap answers of a table, row by row (the order of the gap numbers);
+    open (null) cells are the learner's own answers and have no entry."""
+    task = pt.task
+    assert isinstance(task, TableTask)
+    return [gap_answer(g) for row in task.rows for cell in row if cell for g in safe_gaps(cell)]
 
 
 def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:

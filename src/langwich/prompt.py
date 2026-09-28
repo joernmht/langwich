@@ -433,9 +433,9 @@ KIND_RULES: dict[str, str] = {
                 'punctuation only in "end"; list every other correct order in "alternatives".',
     "word_building": '"parts" (words, prefixes, suffixes) that join into one new word, the '
                      '"answer".',
-    "table": "a form, timetable, price list or verb/word-family table with 3–8 rows; every row "
-             'as long as "head" (2 cells for a form); {{gaps}} for facts from the story or '
-             "forms; null for the learner's own answer.",
+    "table": "a form, timetable, price list or verb/word-family table with 3–8 rows and at "
+             'most 5 columns; every row as long as "head" (2 cells for a form); {{gaps}} for '
+             "facts from the story or forms; null for the learner's own answer.",
     "proofread": "a character's draft (message, note, review) of 60–150 words with 4–8 mistakes "
                  'of the kinds practised, each {{correct::wrong}}; "marked": false from B2.',
     "label": 'only on a scene whose picture has "labels" and an "image" or "svg" (else draw).',

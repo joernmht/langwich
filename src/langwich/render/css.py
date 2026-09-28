@@ -376,6 +376,30 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: cloze choice ---- */
 
 /* ---- kind: table ---- */
+/* A ruled table (a form, field | value, without 'head'). The column widths
+   come from tasks._table (fixed), so a blank never runs into the next column;
+   gaps are numbered blanks, an open (null) cell is a blank as wide as the
+   cell, and every row is tall enough to write in. The cells of a row share
+   the baseline of their first line. */
+.gcap { font: 600 11pt/1.35 var(--serif); margin: 0 0 1.8mm var(--gut); break-after: avoid; }
+.gtab-bank { margin: 0 0 3.4mm var(--gut); break-after: avoid; }
+.gtab-bank .wordbox .words { display: flex; flex-wrap: wrap; }
+.gtab-bank .wordbox .words li { margin-right: 5mm; }
+table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--gut);
+  border-top: .75pt solid #000; }
+.gtab th, .gtab td { padding: 0 2mm; text-align: start; }
+.gtab th:first-child, .gtab td:first-child { padding-left: 0; }
+.gtab th:last-child, .gtab td:last-child { padding-right: 0; }
+.gtab th { font: 600 10pt/1.3 var(--serif); vertical-align: bottom; padding-top: 1.4mm;
+  padding-bottom: 1.2mm; border-bottom: .5pt solid #000; }
+.gtab td { height: var(--pitch); vertical-align: baseline; padding-top: 2mm;
+  padding-bottom: 1.2mm; font: 400 11pt/1.4 var(--serif); border-bottom: .5pt solid var(--hair); }
+.gtab td.lab { font-weight: 600; }
+.gtab td.gp, .gtab td.open { line-height: 7.6mm; padding-top: 0; padding-bottom: .4mm; }
+.gtab td.open .wr { display: inline-block; width: 100%; line-height: 1.12;
+  border-bottom: .8pt solid #000; }
+.gtab tr { break-inside: avoid; }
+.gtab tbody tr:first-child:not(:last-child) { break-after: avoid; }
 
 /* ---- kind: gapped_text ---- */
 
