@@ -950,15 +950,14 @@ class _Checker:
                 if single else ""
             )
             if hint == "proofread":
+                problem = "has no marked mistakes, so there is nothing to correct"
                 how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
                        "wrong form the character wrote.")
             else:
+                problem = "has no gaps, so there is nothing to fill in"
                 how = (f"Mark each gap as {{{{answer}}}} inside the text, e.g. "
                        f"'… {{{{{self.example_word()}}}}} …'.")
-            self.error(
-                "cloze-without-gaps", where,
-                f"{what} has no gaps, so there is nothing to fill in.{extra} {how}",
-            )
+            self.error("cloze-without-gaps", where, f"{what} {problem}.{extra} {how}")
         if hint in ("base_form", "translation"):
             kind = "base form" if hint == "base_form" else "meaning in the source language"
             for gap in found:
@@ -1003,7 +1002,8 @@ class _Checker:
                         "the correct word and there is nothing to correct. Write it as "
                         f"{{{{{body}::<the wrong form the character wrote>}}}}.",
                     )
-                elif gap.hint.casefold() in {a.casefold() for a in gap.accepted}:
+                # (case counts: 'kaffee' for 'Kaffee' is a mistake to correct)
+                elif " ".join(gap.hint.split()) in {" ".join(a.split()) for a in gap.accepted}:
                     self.warn(
                         "hint-is-answer", where,
                         f"the mistake {{{{{body}::{gap.hint}}}}} prints a correct form as the "
@@ -1541,6 +1541,27 @@ class _Checker:
 
     def check_proofread(self) -> None:
         """Proofread texts: every mistake as {{correct::wrong}}."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ProofreadTask):
+                continue
+            where = f"/tasks/{i}/text"
+            self._check_gap_text("proofread", task.text, where, "this proofread text")
+            for gap in _parse_gaps(task.text)[0]:
+                # '{{ist::sind|bist}}' is the markup of a choice gap: the
+                # draft can show only one wrong form, the rest would be
+                # printed with the '|'
+                wrong = markup.wrong_options(gap)
+                if len(wrong) > 1:
+                    body = "|".join(gap.accepted)
+                    keep = next((w for w in wrong if w not in gap.accepted), wrong[0])
+                    self.error(
+                        "missing-gap-hint", where,
+                        f"the mistake {{{{{body}::{gap.hint}}}}} has {len(wrong)} wrong forms, "
+                        "but the draft shows only the one the character wrote; here it would "
+                        f"print {_q(gap.hint or '')}, '|' included. Keep one wrong form after "
+                        f"the '::' ({{{{{body}::{keep}}}}}); other correct forms go before it "
+                        "({{correct|also_correct::wrong}}).",
+                    )
 
     def check_transform_extras(self) -> None:
         """Transform frames, key words and max_words."""

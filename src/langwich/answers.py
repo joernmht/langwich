@@ -258,8 +258,11 @@ def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """'wrong → correct' per mistake."""
-    return []  # (spine stub: the proofread implementation fills this in)
+    """'wrong → correct' per mistake, in text order (the arrow never starts a line)."""
+    task = pt.task
+    assert isinstance(task, ProofreadTask)
+    return [f"{gap.hint}\u00a0→ {gap_answer(gap)}" if gap.hint else gap_answer(gap)
+            for gap in safe_gaps(task.text)]
 
 
 def _key_crossword(pt: PlannedTask, ws: Worksheet) -> list[str]:

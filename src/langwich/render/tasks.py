@@ -410,8 +410,72 @@ def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the table renderer)
 
 
+def _draft_html(b: Builder, text: str, marked: bool, numbers: Iterator[int]) -> str:
+    """One paragraph of a proofread draft, every mistake in its wrong form.
+
+    ``marked``: the wrong form is underlined and followed by its number; its
+    last word, the number and closing punctuation never split at a line end.
+    """
+    try:
+        parts = markup.split(text)
+    except ValueError:
+        b.warn(f"malformed gap markup in {text[:40]!r}…; printed as is.")
+        return esc(text)
+    out: list[str] = []
+    skip = 0  # characters of the next text part already printed with a mistake
+    for idx, part in enumerate(parts):
+        if isinstance(part, str):
+            out.append(esc(part[skip:]).replace("\n", "<br>"))
+            skip = 0
+            continue
+        wrong = part.hint or part.answer  # (no wrong form: the validator reports it)
+        if not marked:
+            out.append(esc(wrong))
+            continue
+        after = parts[idx + 1] if idx + 1 < len(parts) else ""
+        punct = trailing_punctuation(after) if isinstance(after, str) else ""
+        skip = len(punct)
+        tail = esc(punct.replace(" ", "\u00a0"))
+        head, space, last = wrong.rpartition(" ")
+        lead = f"<u>{esc(head)} </u>" if space else ""
+        out.append(f'{lead}<span class="nw"><u>{esc(last)}</u>'
+                   f'<span class="gn">{next(numbers)}</span>{tail}</span>')
+    return "".join(out)
+
+
 def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the proofread renderer)
+    gaps = safe_gaps(task.text)
+    counter = itertools.count(1)
+    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+    body = "".join(f"<p>{_draft_html(b, p, task.marked, counter)}</p>" for p in paras)
+    draft = f'<div class="draft tl"{b.lang_attr()}>{body}</div>'
+    # Below the draft, one numbered field per mistake: marked, for the
+    # correction; unmarked, a row 'wrong → correct' for each one the learner
+    # finds. Handwriting takes about half as much room again as the print.
+    written = [g.answer for g in gaps] + ([] if task.marked else [g.hint or "" for g in gaps])
+    widest = max((metrics.width_mm(w, "serif", 11.0) for w in written), default=0.0)
+    line_w = max(widest * 1.5 + 4.0, 28.0)
+    if task.marked:
+        cell_w = GUTTER_W + line_w
+        cells = [f'<div class="fld"><span>{n}</span><span class="line"></span></div>'
+                 for n in range(1, len(gaps) + 1)]
+    else:
+        cell_w = GUTTER_W + 2 * line_w + 8.0  # the arrow
+        cells = [f'<div class="fx"><span>{n}</span><span class="line"></span>'
+                 '<span class="ar">→</span><span class="line"></span></div>'
+                 for n in range(1, len(gaps) + 1)]
+    fixes = ""
+    if cells:
+        avail = b.main_width(b.has_aside(pt, False))
+        cols = max(1, min(4, len(cells), int((avail + 7.0) // (cell_w + 7.0))))  # 7 mm apart
+        cols = math.ceil(len(cells) / math.ceil(len(cells) / cols))  # 6 in 3 + 3, not 4 + 2
+        # one grid per row, so that a page breaks between rows (never after
+        # the first one or before the last one, see the CSS)
+        style = f' style="grid-template-columns:repeat({cols}, 1fr)"'
+        rows = "".join(f'<div class="fr"{style}>{"".join(cells[k:k + cols])}</div>'
+                       for k in range(0, len(cells), cols))
+        fixes = f'<div class="fixes">{rows}</div>'
+    return Parts(f'<div class="proof">{draft}{fixes}</div>', keep=True)
 
 
 def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
@@ -471,7 +535,9 @@ def _instruction_transform(b: Builder, task: TransformTask) -> str | None:
 
 
 def _instruction_proofread(b: Builder, task: ProofreadTask) -> str | None:
-    return None
+    if task.marked:
+        return b.t("kind.proofread.instruction")
+    return b.t("kind.proofread.count", n=len(safe_gaps(task.text)))
 
 
 _INSTRUCTIONS: dict[str, Callable[[Builder, Any], str | None]] = {

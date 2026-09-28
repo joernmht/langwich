@@ -394,6 +394,24 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: find_in_text ---- */
 
 /* ---- kind: proofread ---- */
+/* the character's draft in a frame, marked mistakes underlined and numbered;
+   below, a numbered field per correction (marked) or a row 'wrong → correct'
+   per mistake found (unmarked), the numbers in the gutter. The draft stays
+   with the first row, and no row stands alone on a page. */
+.proof .draft { margin-left: var(--gut); border: .6pt solid #000; padding: 2.2mm 4mm 2.6mm; }
+.proof .draft p { font: 400 11pt/6.4mm var(--serif); hyphens: manual; orphans: 2; widows: 2; }
+.proof .draft p + p { margin-top: 1.6mm; }
+.proof .draft u { text-decoration: underline; text-decoration-thickness: .8pt;
+  text-underline-offset: 1.8pt; }
+.proof .draft .gn { vertical-align: .45em; line-height: 1; margin-left: .5mm; }
+.proof .fixes { margin-top: 1.4mm; }
+.proof .fr { display: grid; column-gap: 7mm; break-inside: avoid; }
+.proof .draft:not(:last-child), .proof .fr:first-child:not(:last-child),
+.proof .fr:nth-last-child(2) { break-after: avoid; }
+.proof .fx { display: grid; grid-template-columns: var(--gut) 1fr 8mm 1fr; align-items: end;
+  height: var(--pitch); font: 700 11pt var(--sans); }
+.proof .fx .line { border-bottom: .6pt solid var(--ink-3); height: 6mm; }
+.proof .fx .ar { font: 400 14pt/1 var(--serif); text-align: center; }  /* on the lines */
 
 /* ---- kind: transform+ ---- */
 

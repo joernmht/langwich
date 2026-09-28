@@ -567,7 +567,8 @@ KIND_RULES: dict[str, str] = {
              'as long as "head" (2 cells for a form); {{gaps}} for facts from the story or '
              "forms; null for the learner's own answer.",
     "proofread": "a character's draft (message, note, review) of 60–150 words with 4–8 mistakes "
-                 'of the kinds practised, each {{correct::wrong}}; "marked": false from B2.',
+                 "of the kinds practised, each {{correct::wrong}} around only the words that "
+                 'change, with one wrong form; "marked": false from B2.',
     "label": 'only on a scene whose picture has "labels" and an "image" or "svg" (else draw).',
     "writing": 'the model answer keeps to the word range and uses every "must_use" word; the '
                "instruction does not repeat the word range (langwich prints it). To answer a "
