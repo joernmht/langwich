@@ -896,8 +896,9 @@ class _Checker:
         dialogue lines, table cells, gapped_text and proofread texts.
 
         ``hint`` is the task's hint ('base_form', 'choice', … or 'proofread'
-        for a proofread text); ``None`` checks no hints (dialogue lines,
-        gapped_text). ``need_gaps``: a text without gaps is an error."""
+        for a proofread text, 'gapped_text' for a gapped text); ``None``
+        checks no hints (dialogue lines). ``need_gaps``: a text without gaps
+        is an error."""
         if markup.has_unbalanced_braces(text):
             self.error(
                 "unbalanced-braces", where,
@@ -938,6 +939,9 @@ class _Checker:
             if hint == "proofread":
                 how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
                        "wrong form the character wrote.")
+            elif hint == "gapped_text":
+                how = ("Write each sentence you take out in its place as {{sentence}}: the "
+                       "whole sentence, with its full stop, inside double braces.")
             else:
                 how = (f"Mark each gap as {{{{answer}}}} inside the text, e.g. "
                        f"'… {{{{{self.example_word()}}}}} …'.")
@@ -1571,12 +1575,201 @@ class _Checker:
 
     def check_choice_gaps(self) -> None:
         """The options of cloze gaps with hint 'choice'."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ClozeTask) or task.hint != "choice":
+                continue
+            texts = (
+                [(f"/tasks/{i}/text", task.text)] if task.text is not None
+                else [(f"/tasks/{i}/items/{j}", t) for j, t in enumerate(task.items or [])]
+            )
+            for where, text in texts:
+                for m in markup.GAP_RE.finditer(text):
+                    try:
+                        gap = markup.parse_gap(m.group(1))
+                    except ValueError:
+                        continue  # reported as empty-gap
+                    wrong = markup.wrong_options(gap)
+                    if wrong:  # (none: reported as missing-gap-hint)
+                        self._check_choice_gap(
+                            gap, wrong, where, _at_sentence_start(_filled(text[:m.start()])),
+                        )
+
+    def _check_choice_gap(
+        self, gap: markup.Gap, wrong: list[str], where: str, starts_sentence: bool,
+    ) -> None:
+        most = 3  # wrong options: with the answer four, as in a multiple_choice item
+        body = "|".join(gap.accepted) + "::" + "|".join(wrong)
+        if len(wrong) > most:
+            self.warn(
+                "choice-options", where,
+                f"the gap {{{{{body}}}}} has {len(wrong)} wrong options, but a choice gap has "
+                f"1–{most}, so that it still reads as one choice in the text (and fits the tick "
+                f"boxes a–d below it). Keep the 1–{most} wrong options learners most easily "
+                f"confuse with '{gap.answer}' and remove the others.",
+            )
+        # Options are compared as printed: two that differ only in case
+        # ('Sie' / 'sie', 'Neues' / 'neues') are what a spelling gap asks.
+        accepted = {" ".join(a.split()) for a in gap.accepted}
+        seen: set[str] = set()
+        for option in wrong:
+            key = " ".join(option.split())
+            if key in accepted:
+                self.warn(
+                    "choice-options", where,
+                    f"the gap {{{{{body}}}}} lists '{option}' as a wrong option, but it is "
+                    "also an accepted answer (before the '::'), so the learner would have two "
+                    "right options. Replace it with a word that is wrong in this sentence, or "
+                    "remove it.",
+                )
+            elif key in seen:
+                self.warn(
+                    "choice-options", where,
+                    f"the gap {{{{{body}}}}} lists the wrong option '{option}' twice, so the "
+                    "choice would print it twice. List every option once: replace the repeat "
+                    "with another word that is wrong in this sentence, or remove it.",
+                )
+            seen.add(key)
+        # At the start of a sentence the answer has a capital letter: an
+        # option without one cannot be right, so the capital gives it away.
+        small = [w for w in wrong if w[:1].islower()]
+        if starts_sentence and gap.answer[:1].isupper() and small:
+            capitalised = [w[:1].upper() + w[1:] for w in wrong]
+            if accepted.isdisjoint(capitalised):
+                fix = ("Write every option with a capital letter here: "
+                       f"{{{{{'|'.join(gap.accepted)}::{'|'.join(capitalised)}}}}}.")
+            else:
+                fix = "Gap a word inside the sentence instead."
+            self.warn(
+                "choice-options", where,
+                f"the gap {{{{{body}}}}} starts a sentence, so its answer '{gap.answer}' has a "
+                f"capital letter, but the wrong option{'s' if len(small) > 1 else ''} "
+                f"{_one_of(small)} {'do' if len(small) > 1 else 'does'} not, and the capital "
+                f"shows which option is right. {fix}",
+            )
 
     def check_tables(self) -> None:
         """Table shape, gaps, width and distractors."""
+        most = 5  # columns: wider tables get too narrow on an e-paper page
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TableTask):
+                continue
+            where = f"/tasks/{i}"
+            columns = len(task.head) if task.head else 2
+            if columns > most:
+                self.warn(
+                    "table-too-wide", f"{where}/head",
+                    f"the table has {columns} columns; on an e-paper page more than {most} get "
+                    f"too narrow to read and write in. Leave out the columns the task does not "
+                    f"need (at most {most}), or split it into two table tasks.",
+                )
+            answers: list[str] = []
+            has_gap = has_open = broken = False
+            for r, row in enumerate(task.rows):
+                if len(row) != columns:
+                    if task.head:
+                        shape = (f"'head' has {columns} columns ({_one_of(task.head)}), so every "
+                                 f"row needs exactly {columns} cells")
+                    else:
+                        shape = ("a table without 'head' is a form of two columns — the field "
+                                 "and its value, e.g. [\"<field>\", \"{{<value>}}\"] — so every "
+                                 "row needs exactly 2 cells (add a 'head' for more columns)")
+                    self.error(
+                        "table-shape", f"{where}/rows/{r}",
+                        f"this row has {len(row)} cell{'s' if len(row) != 1 else ''}, but "
+                        f"{shape}. Add the missing cells (null for a cell the learner fills in "
+                        "with their own words) or remove the extra ones.",
+                    )
+                for c, cell in enumerate(row):
+                    if cell is None:
+                        has_open = True
+                        continue
+                    self._check_gap_text(
+                        task.hint, cell, f"{where}/rows/{r}/{c}", "this table cell",
+                        need_gaps=False,
+                    )
+                    found, problem = _parse_gaps(cell)
+                    broken = broken or problem is not None
+                    has_gap = has_gap or bool(found)
+                    answers += [a for g in found for a in g.accepted]
+            if not has_gap and not has_open and not broken:
+                self.error(
+                    "table-nothing-to-do", f"{where}/rows",
+                    "every cell of this table is already filled in, so the learner has nothing "
+                    "to do. Mark the words to fill in as {{gaps}} inside the cells, e.g. "
+                    f"\"{{{{{self.example_word()}}}}}\", or set a cell to null where the learner "
+                    "writes an answer of their own.",
+                )
+            self._check_distractors(i, task.distractors, answers)
 
     def check_gapped_texts(self) -> None:
         """Gapped-text gaps and extra sentences."""
+        # gaps: 3–6 work best; fewer leave no choice, more are too many letters
+        fewest, best, most = 3, 6, 8
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, GappedTextTask):
+                continue
+            where = f"/tasks/{i}"
+            self._check_gap_text("gapped_text", task.text, f"{where}/text", "this gapped text")
+            found = _parse_gaps(task.text)[0]  # (none: reported as empty-gap or no gaps)
+            n = len(found)
+            if found and n < fewest:
+                self.warn(
+                    "gapped-text-gaps", f"{where}/text",
+                    f"this gapped text has {n} gap{'s' if n != 1 else ''}, but a gapped text "
+                    f"needs {fewest}–{most}: with fewer, the learner hardly has to choose. Take "
+                    "more sentences out of the text, each written in its place as {{sentence}}, "
+                    f"until it has {fewest}–{best} gaps.",
+                )
+            elif n > most:
+                self.warn(
+                    "gapped-text-gaps", f"{where}/text",
+                    f"this gapped text has {n} gaps, but a gapped text works with {fewest}–{most}: "
+                    "with more, the text is mostly holes and the learner juggles too many "
+                    "letters. Put some of the sentences back into the text (without the braces) "
+                    f"until it has {fewest}–{best} gaps, or split the text into two gapped_text "
+                    "tasks.",
+                )
+            if found and not task.extra:
+                self.warn(
+                    "gapped-text-no-extra", f"{where}/extra",
+                    "this gapped text has no 'extra' sentence, so the last gap can be filled by "
+                    "elimination, without reading — and the instruction says that some sentences "
+                    "are left over. Add \"extra\": 1–2 target-language sentences on the same "
+                    "topic that fit none of the gaps (e.g. one about something the text does "
+                    "not mention).",
+                )
+            # Every lettered sentence must be different: gaps with the same
+            # sentence, or the same extra twice, would print it twice. (An
+            # extra that is also a removed sentence is a distractor-is-answer.)
+            gaps: dict[str, int] = {}
+            for k, gap in enumerate(found, 1):
+                key = " ".join(gap.answer.casefold().split())
+                if key in gaps:
+                    self.error(
+                        "duplicate-entry", f"{where}/text",
+                        f"gaps {gaps[key]} and {k} of this gapped text hold the same sentence "
+                        f"{_q(gap.answer)}, so the list of sentences would print it twice and "
+                        "the learner could not tell which letter goes where. Every removed "
+                        "sentence must be different: rewrite one of them, or put it back into "
+                        "the text (without the braces).",
+                    )
+                else:
+                    gaps[key] = k
+            extras: dict[str, int] = {}
+            for k, sentence in enumerate(task.extra):
+                key = " ".join(sentence.casefold().split())
+                if key in extras:
+                    self.error(
+                        "duplicate-entry", f"{where}/extra/{k}",
+                        f"the extra sentence {_q(sentence)} is already listed (extra/"
+                        f"{extras[key]}), so the list of sentences would print it twice. "
+                        "Replace the repeat with another sentence that fits none of the gaps, "
+                        "or remove it.",
+                    )
+                else:
+                    extras[key] = k
+            answers = [a for g in found for a in g.accepted]
+            self._check_distractors(i, task.extra, answers, field="extra")
 
     def check_find_in_text(self) -> None:
         """Find-in-text answers occur in their scenes."""
@@ -2256,12 +2449,13 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
       rewritten sentence ('il a acheté' next to 'Mila a acheté des tomates');
     * a single gap answer the learner has to produce (it differs from its
       hint), in a table cell, the rule or an example — unless the hint word
-      is what the grammar point is about, i.e. it appears in its name or
-      rule ('wird::werden' beside 'werden + Partizip II' is the rule, not a
-      leak; a table that conjugates the very verb a gap asks for is one).
-      In a word-box task the words are printed anyway, so the rule or an
-      example counts only when it is a near-copy of the item (it shares
-      three more words);
+      (of a choice gap: any of its options) is what the grammar point is
+      about, i.e. it appears in its name or rule ('wird::werden' beside
+      'werden + Partizip II' is the rule, not a leak; a table that
+      conjugates the very verb a gap asks for is one). In a word-box or
+      choice task the words are printed anyway, so the rule or an example
+      counts only when it is a near-copy of the item (it shares three more
+      words);
     * a near-copy with several gaps: one example or table cell showing two
       answers of the same item ('werden … geröstet').
 
@@ -2281,14 +2475,18 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
                 if any(_contains(transform_sentence(item), core) for item in task.items):
                     return core
     about = f"{gp.name} {gp.rule or ''}"
-    bank = (isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank") or (
+    choice = isinstance(task, ClozeTask) and task.hint == "choice"
+    bank = choice or (isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank") or (
         isinstance(task, DialogueTask) and task.bank
     )
     for item_text, unit in _gap_units(task):
         for gap in unit:
             if gap.hint and gap.hint.casefold() == gap.answer.casefold():
                 continue  # the hint already shows it
-            if (gap.hint and _contains(about, gap.hint)) or not _significant(gap.answer):
+            # (a choice gap's options are its hint words: 'weil::denn|deshalb'
+            # beside 'weil or denn?' is the rule, not a leak)
+            hints = [gap.answer, *markup.wrong_options(gap)] if choice else [gap.hint or ""]
+            if any(_contains(about, h) for h in hints) or not _significant(gap.answer):
                 continue
             if any(_contains(cell, gap.answer) for cell in cells):
                 return gap.answer

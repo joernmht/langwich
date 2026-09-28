@@ -75,8 +75,11 @@ def gapped_html(
     width: float,
     hint: str = "none",
     numbers: Iterator[int] | None = None,
+    choices: Iterator[list[str]] | None = None,
 ) -> str:
-    """Text with ``{{gaps}}`` turned into blanks of ``width`` mm.
+    """Text with ``{{gaps}}`` turned into blanks of ``width`` mm — or, with
+    ``choices`` (the options of each gap in turn), into the options in
+    brackets (see :func:`_choice_gap`).
 
     A blank sits flush after an elision (l', d', qu'), and closing
     punctuation right after it moves into the unbreakable gap, so neither
@@ -106,6 +109,9 @@ def gapped_html(
             after = f'\u00a0<span class="hint">({esc(part.hint)})</span>'
         punct = trailing_punctuation(nxt)
         skip = len(punct)
+        if choices is not None:
+            out.append(_choice_gap(next(choices, [part.answer]), num, punct))
+            continue
         classes = ["gap"]
         if prev[-1:] in ("'", "’"):
             classes.append("el")
@@ -115,6 +121,21 @@ def gapped_html(
         out.append(f'<span class="{" ".join(classes)}">{num}<span class="blank" '
                    f'style="width:{width:.1f}mm">{inner}</span>{after}{tail}</span>')
     return "".join(out)
+
+
+def _choice_gap(options: list[str], num: str, punct: str) -> str:
+    """An inline choice gap, ``(ist / sind / bist)``: the learner circles
+    one option. An option never breaks; a line may break after a slash, and
+    the brackets, the gap number and closing punctuation stay with their
+    options."""
+    last = len(options) - 1
+    pieces = []
+    for j, option in enumerate(options):
+        before = f'{num}<span class="bo">(</span>' if j == 0 else ""
+        after = ('<span class="bc">)</span>' + esc(punct.replace(" ", "\u00a0")) if j == last
+                 else '<span class="sl">\u00a0/</span>')
+        pieces.append(f'<span class="co">{before}<span class="o">{esc(option)}</span>{after}</span>')
+    return f'<span class="choice">{" ".join(pieces)}</span>'
 
 
 def bank_counts(answers: list[str]) -> dict[str, int]:
@@ -254,6 +275,8 @@ def _questions(b: Builder, pt: PlannedTask, task: QuestionsTask) -> Parts:
 
 
 def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
+    if task.hint == "choice":
+        return _cloze_choice(b, pt, task)
     texts = cloze_texts(task)
     answers = [g.answer for text in texts for g in safe_gaps(text)]
     bank = pt.bank if task.hint == "word_bank" and pt.bank else None
@@ -271,6 +294,112 @@ def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
         main = f'<div class="items gapped">{items}</div>'
     boxes = [b.word_box(unique_words(bank), counts=bank_counts(answers))] if bank else []
     return Parts(main, boxes, keep=bool(bank))
+
+
+#: Options under a choice text (see "cloze choice" in css.py), in mm: the
+#: tick box and the letter before an option, the space between two options,
+#: the gap number before the options of an item with several gaps, and the
+#: longest blank (the learner ticks a box below; nothing is written in it).
+_OPTION_LEAD = 10.4
+_OPTION_GAP = 5.0
+_ITEM_GAP_NUMBER = 6.0
+_CHOICE_BLANK = 24.0
+
+
+def _choice_columns(options: list[list[str]], avail: float) -> list[float] | None:
+    """Widths (mm) of the option columns under a choice text, the same for
+    every gap so that the options a, b, c … line up: all as wide as the
+    widest option, or each as wide as its own widest; ``None`` when not even
+    that fits ``avail`` mm."""
+    k = max((len(opts) for opts in options), default=0)
+    own = [  # (with 1 mm to spare for the measurement)
+        _OPTION_LEAD + 1.0 + max(metrics.width_mm(opts[j], "serif", 11.0)
+                                 for opts in options if j < len(opts))
+        for j in range(k)
+    ]
+    gaps = _OPTION_GAP * (k - 1)
+    if k and max(own) * k + gaps <= avail:
+        return [max(own) + (_OPTION_GAP if j < k - 1 else 0.0) for j in range(k)]
+    if k and sum(own) + gaps <= avail:
+        return [w + (_OPTION_GAP if j < k - 1 else 0.0) for j, w in enumerate(own)]
+    return None
+
+
+def _choice_rows(
+    b: Builder, rows: list[tuple[str, list[str]]], columns: list[float] | None, avail: float,
+    num_w: float = 0.0, small: bool = False,
+) -> str:
+    """The tick boxes under a choice text: one row per gap, with its number
+    (none when ``num_w`` is 0; ``small``: set like the gap numbers in the
+    text) and its options a, b, c … in the multiple_choice option styles.
+    The options stand in the shared ``columns``; without them a row gets
+    columns of its own when it fits ``avail`` mm, else one option per line."""
+    out = []
+    for label, options in rows:
+        opts = "".join(
+            f'<div class="op"><span class="bxs"></span><span class="lt">{letter(j, upper=False)}'
+            f'</span><span class="ot">{b.tl(o)}</span></div>'
+            for j, o in enumerate(options)
+        )
+        tracks = [f"{num_w:.1f}mm"] if num_w else []
+        number = ""
+        if num_w:
+            inner = f'<span class="{"gn" if small else "nn"}">{label}</span>' if label else ""
+            number = f'<span class="n">{inner}</span>'
+        own = columns or _choice_columns([options], avail)
+        if own is None:
+            tracks.append("1fr")
+            opts = f'<div class="chw">{opts}</div>'
+        else:
+            tracks += [f"{w:.1f}mm" for w in own]
+        out.append(f'<div class="chr" style="grid-template-columns:{" ".join(tracks)}">'
+                   f"{number}{opts}</div>")
+    return f'<div class="chs">{"".join(out)}</div>'
+
+
+def _cloze_choice(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
+    """A cloze with hint 'choice'. inline: every gap is its options in
+    brackets, and the learner circles one; below: numbered blanks, and under
+    the text (under each item) one row of tick boxes a, b, c … per gap."""
+    texts = cloze_texts(task)
+    units = [safe_gaps(text) for text in texts]
+    options = pt.gap_options or [[g.answer] for unit in units for g in unit]
+    shown = iter(options)
+    below = task.choice_layout == "below"
+    aside = b.has_aside(pt, False)
+    # (as wide for every gap: sized from all options, not from the answers)
+    width = min(b.blank_width([o for opts in options for o in opts], aside), _CHOICE_BLANK)
+    if task.text is not None:
+        counter = itertools.count(1)
+        paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+        body = "".join(
+            f"<p>{gapped_html(b, p, width, task.hint, counter, None if below else shown)}</p>"
+            for p in paras
+        )
+        main = f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
+        if below and options:
+            avail = b.main_width(aside) - GUTTER_W
+            rows = [(str(n), opts) for n, opts in enumerate(options, 1)]
+            main += _choice_rows(b, rows, _choice_columns(options, avail), avail, GUTTER_W)
+    else:
+        # (an item with several gaps numbers them, 1, 2 … within the item)
+        num_w = _ITEM_GAP_NUMBER if any(len(unit) > 1 for unit in units) else 0.0
+        avail = b.main_width(aside) - GUTTER_W - num_w
+        columns = _choice_columns(options, avail)
+        items = []
+        for i, (text, unit) in enumerate(zip(texts, units), 1):
+            mine = [next(shown, [g.answer]) for g in unit]
+            if below:
+                several = len(unit) > 1
+                rows = [(str(n) if several else "", opts) for n, opts in enumerate(mine, 1)]
+                numbers = itertools.count(1) if several else None
+                content = (gapped_html(b, text, width, task.hint, numbers)
+                           + _choice_rows(b, rows, columns, avail, num_w, small=True))
+            else:
+                content = gapped_html(b, text, width, task.hint, None, iter(mine))
+            items.append(_item(i, content, "c tl", b.lang_attr()))
+        main = f'<div class="items gapped">{"".join(items)}</div>'
+    return Parts(main, keep=below)
 
 
 def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
@@ -485,16 +614,217 @@ def _find_in_text(b: Builder, pt: PlannedTask, task: FindInTextTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the find_in_text renderer)
 
 
+#: The box a learner writes a letter in, in place of a removed sentence (mm).
+_SLOT_W = 7.0
+
+
 def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the gapped_text renderer)
+    """The passage with a numbered box for a letter in place of each removed
+    sentence, then the removed and the extra sentences, lettered A, B, C …
+    in the planner's order (``pt.slot_options``)."""
+    counter = itertools.count(1)
+    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+    body = "".join(f"<p>{gapped_html(b, p, _SLOT_W, numbers=counter)}</p>" for p in paras)
+    shown = pt.slot_options
+    if shown is None:
+        shown = [g.answer for g in safe_gaps(task.text)] + list(task.extra)
+    rows = "".join(f'<div><span class="l">{letter(k)}</span>{b.tl(s)}</div>'
+                   for k, s in enumerate(shown))
+    main = (f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
+            f'<div class="gts">{rows}</div>')
+    return Parts(main, keep=True)
 
 
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the scramble renderer)
 
 
+#: Table cells (see the "table" rules in css.py), in mm: the padding
+#: between two columns, the margins around a blank and some slack for the
+#: measurements; a blank is at least _SHORT_BLANK long (only _MIN_BLANK in a
+#: table too crowded for that), an open (null) cell's writing line _OPEN_W.
+_COLUMN_GAP = 4.0
+_BLANK_MARGINS = 1.6
+_SLACK = 1.0
+_SHORT_BLANK, _MIN_BLANK = 16.0, 10.0
+_OPEN_W = 24.0
+
+
+@dataclass
+class _TableLine:
+    """One line of a table cell (a cell breaks at ``\\n``), measured."""
+
+    column: int
+    cell: int  # the cell's index in reading order
+    fixed: float = 0.0  # text, gap numbers, hints and punctuation (mm)
+    gaps: int = 0
+    side: float = 0.0  # the most beside one blank: its number, hint, punctuation
+
+
+def _table_columns(
+    b: Builder, task: TableTask, avail: float, ncols: int,
+) -> tuple[list[float], list[float], int]:
+    """Column widths and the blank width of each column (mm) for a table at
+    most ``avail`` mm wide, and how many lines its tallest cell then takes
+    (estimated).
+
+    Each column needs room for its longest line (``need``), at least for its
+    longest word, heading word, writing line and blank (``least``, a blank a
+    little wider than its answer), and in any case for its words (``firm``:
+    a word is never broken, a blank may get short). A table with open cells
+    takes the full width, others about their natural width; spare room goes
+    to the columns the learner writes in, missing room is taken where lines
+    are long. The blanks of a task share one width (from its longest answer),
+    cut down so that the lines of their column stay whole — those that can
+    with a blank of at least _SHORT_BLANK; the others wrap, and their blanks
+    get the width of the column.
+    """
+    form = not task.head
+    cells = [(c, cell) for row in task.rows for c, cell in enumerate(row[:ncols])]
+    gaps = [(c, g) for c, cell in cells if cell for g in safe_gaps(cell)]
+    # a blank as wide as the column's longest answer asks (see Builder.blank_width),
+    # and as narrow as it may get in a crowded table
+    own = [18.0] * ncols
+    tight = [_SHORT_BLANK] * ncols
+    for c, gap in gaps:
+        answer_w = metrics.width_mm(gap.answer, "serif", 11.0)
+        own[c] = max(own[c], answer_w + 7.0)
+        tight[c] = max(tight[c], answer_w + 3.0)
+    number_w = metrics.width_mm(str(max(len(gaps), 1)), "sans-bold", 8.5 if b.epaper else 7.5)
+    need = [0.0] * ncols
+    least = [0.0] * ncols
+    firm = [0.0] * ncols
+    writes = [False] * ncols
+    lines: list[_TableLine] = []
+
+    def words(text: str, face: str, size: float) -> float:
+        return max((metrics.width_mm(w, face, size) for w in text.split()), default=0.0)
+
+    for c, heading in enumerate(task.head[:ncols]):
+        need[c] = metrics.width_mm(heading, "serif-bold", 10.0)
+        least[c] = firm[c] = words(heading, "serif-bold", 10.0)
+    for k, (c, cell) in enumerate(cells):
+        if cell is None:
+            writes[c] = True
+            need[c], least[c] = max(need[c], _OPEN_W), max(least[c], _OPEN_W)
+            firm[c] = max(firm[c], _MIN_BLANK)
+            continue
+        face = "serif-bold" if form and c == 0 else "serif"
+        try:
+            parts = markup.split(cell)
+        except ValueError:  # printed as is (see gapped_html)
+            parts = [cell]
+        line = _TableLine(c, k)
+        lines.append(line)
+        for idx, part in enumerate(parts):
+            if isinstance(part, str):
+                # (closing punctuation after a gap is set inside the gap)
+                text = part[len(trailing_punctuation(part)):] if idx else part
+                for n, chunk in enumerate(text.split("\n")):
+                    if n:  # a line break in the cell
+                        line = _TableLine(c, k)
+                        lines.append(line)
+                    line.fixed += metrics.width_mm(chunk, face, 11.0)
+                    longest = words(chunk, face, 11.0)
+                    least[c], firm[c] = max(least[c], longest), max(firm[c], longest)
+                continue
+            writes[c] = True
+            nxt = parts[idx + 1] if idx + 1 < len(parts) else ""
+            side = number_w + 0.6 + _BLANK_MARGINS + metrics.width_mm(
+                trailing_punctuation(nxt) if isinstance(nxt, str) else "", "serif", 11.0)
+            if part.hint and task.hint in ("base_form", "translation"):
+                side += metrics.width_mm(f"\u00a0({part.hint})", "sans", 9.5)
+            line.fixed += side
+            line.gaps += 1
+            line.side = max(line.side, side)
+            least[c] = max(least[c], tight[c] + side)
+            firm[c] = max(firm[c], _MIN_BLANK + side)
+    for line in lines:
+        need[line.column] = max(need[line.column], line.fixed + line.gaps * own[line.column])
+    # (the outer columns have padding on their inner side only)
+    pad = [_COLUMN_GAP / 2 * ((c > 0) + (c < ncols - 1)) + _SLACK for c in range(ncols)]
+    need, least, firm = ([x + p for x, p in zip(xs, pad)] for xs in (need, least, firm))
+    has_open = any(cell is None for _, cell in cells)
+    target = avail if has_open else min(avail, max(sum(need) * 1.2, avail * 0.6))
+
+    def squeeze(low: list[float], high: list[float]) -> list[float]:
+        """From ``high`` down to ``target``, never below ``low``."""
+        room, span = target - sum(low), sum(high) - sum(low)
+        return [lo + room * (hi - lo) / span if span else lo for lo, hi in zip(low, high)]
+
+    if sum(need) <= target:
+        grow = [n if writes[c] else 0.0 for c, n in enumerate(need)]
+        if not any(grow):
+            grow = list(need)
+        widths = [n + (target - sum(need)) * g / sum(grow) for n, g in zip(need, grow)]
+    elif sum(least) <= target:
+        widths = squeeze(least, need)
+    elif sum(firm) <= target:
+        widths = squeeze(firm, least)
+    else:  # not even the longest words fit: every column gives up the same share
+        widths = [f * target / sum(firm) for f in firm]
+    inner = [w - p for w, p in zip(widths, pad)]
+    blanks = [b.blank_width([gap.answer for _, gap in gaps], False)] * ncols
+    for c in range(ncols):
+        with_gaps = [line for line in lines if line.column == c and line.gaps]
+        if not with_gaps:
+            continue
+        side = max(line.side for line in with_gaps)
+        whole = [(inner[c] - line.fixed) / line.gaps for line in with_gaps]
+        cap = min((w for w in whole if w >= _SHORT_BLANK), default=inner[c] - side)
+        blanks[c] = max(min(blanks[c], cap), min(_MIN_BLANK, inner[c] - side))
+    tallest: dict[int, int] = {}
+    for line in lines:
+        width = line.fixed + line.gaps * blanks[line.column]
+        tallest[line.cell] = tallest.get(line.cell, 0) + max(
+            1, math.ceil(width / max(inner[line.column], 1.0) - 0.01))
+    return widths, blanks, max(tallest.values(), default=1)
+
+
 def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the table renderer)
+    answers = [g.answer for row in task.rows for cell in row if cell for g in safe_gaps(cell)]
+    bank = pt.bank if task.hint == "word_bank" and pt.bank else None
+    ncols = max([len(task.head), *(len(row) for row in task.rows)])
+
+    def columns(aside: bool) -> tuple[list[float], list[float], int]:
+        return _table_columns(b, task, b.main_width(aside) - GUTTER_W, ncols)
+
+    aside = b.has_aside(pt, bool(bank))
+    widths, blanks, tallest = columns(aside)
+    above = False
+    if bank and aside and not b.has_aside(pt, False):
+        # cells wrap beside the word box: the box goes above, the table gets the width
+        full = columns(False)
+        if full[2] < tallest:
+            above = True
+            widths, blanks, _ = full
+    table_w = sum(widths)
+    cols = "".join(f'<col style="width:{w:.1f}mm">' for w in widths)
+    head = ""
+    if task.head:
+        headings = "".join(f"<th>{esc(h)}</th>" for h in task.head)
+        head = f"<thead><tr>{headings}{'<th></th>' * (ncols - len(task.head))}</tr></thead>"
+    counter = itertools.count(1)
+    rows = []
+    for row in task.rows:
+        cells = []
+        for c in range(ncols):
+            cell = row[c] if c < len(row) else ""
+            if cell is None:
+                cells.append('<td class="open"><span class="wr">&nbsp;</span></td>')
+                continue
+            klass = [k for k, on in (("lab", not task.head and c == 0),
+                                     ("gp", bool(safe_gaps(cell)))) if on]
+            attr = f' class="{" ".join(klass)}"' if klass else ""
+            cells.append(f"<td{attr}>{gapped_html(b, cell, blanks[c], task.hint, counter)}</td>")
+        rows.append(f"<tr>{''.join(cells)}</tr>")
+    box = b.word_box(unique_words(bank), counts=bank_counts(answers)) if bank else ""
+    main = f'<div class="gtab-bank" style="width:{table_w:.1f}mm">{box}</div>' if above else ""
+    if task.caption:
+        main += b.tl(task.caption, "div", "gcap")
+    main += (f'<table class="gtab tl"{b.lang_attr()} style="width:{table_w:.1f}mm">'
+             f'<colgroup>{cols}</colgroup>{head}<tbody>{"".join(rows)}</tbody></table>')
+    return Parts(main, [box] if box and not above else [], keep=True)
 
 
 def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
@@ -554,6 +884,9 @@ def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
 
 
 def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
+    if task.hint == "choice":
+        below = task.choice_layout == "below"
+        return b.t("kind.cloze.choice_below" if below else "kind.cloze.choice")
     return None
 
 

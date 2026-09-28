@@ -124,6 +124,8 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
         return _key_gapped_text(pt, ws)
 
     if isinstance(task, ClozeTask):
+        if task.hint == "choice":
+            return _key_choice(pt, task)
         if task.text is not None:
             return [gap_answer(g) for g in safe_gaps(task.text)]
         return [" … ".join(gap_answer(g) for g in safe_gaps(item)) for item in task.items or []]
@@ -223,13 +225,45 @@ def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_table(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """The gap answers of a table, row by row."""
-    return []  # (spine stub: the table implementation fills this in)
+    """The gap answers of a table, row by row (the order of the gap numbers);
+    open (null) cells are the learner's own answers and have no entry."""
+    task = pt.task
+    assert isinstance(task, TableTask)
+    return [gap_answer(g) for row in task.rows for cell in row if cell for g in safe_gaps(cell)]
+
+
+def _key_choice(pt: PlannedTask, task: ClozeTask) -> list[str]:
+    """The right option of each choice gap (of each item, joined by ' … '):
+    the word the learner circles, or with the options below the text the
+    ticked letter and its word ('b – ist')."""
+    shown = iter(pt.gap_options or [])
+    per_text: list[list[str]] = []
+    for text in cloze_texts(task):
+        answers = []
+        for gap in safe_gaps(text):
+            options = next(shown, [gap.answer])
+            if task.choice_layout == "below" and gap.answer in options:
+                # (the letter and the word never part at a line end: no-break
+                # spaces, and a word joiner, as a line may break after a dash)
+                index = options.index(gap.answer)
+                answers.append(f"{letter(index, upper=False)}\u00a0–\u2060\u00a0{gap.answer}")
+            else:
+                answers.append(gap.answer)
+        per_text.append(answers)
+    if task.text is not None:
+        return per_text[0]
+    return [" … ".join(answers) for answers in per_text]
 
 
 def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """The letter of the sentence that fills each gap."""
-    return []  # (spine stub: the gapped_text implementation fills this in)
+    task = pt.task
+    assert isinstance(task, GappedTextTask)
+    gaps = safe_gaps(task.text)
+    shown = pt.slot_options
+    if shown is None:
+        shown = [g.answer for g in gaps] + list(task.extra)
+    return [letter(shown.index(g.answer)) for g in gaps]
 
 
 def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:

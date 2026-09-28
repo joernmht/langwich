@@ -431,10 +431,66 @@ table.tf3.just tbody + tbody > tr:first-child > td { padding-top: 4.2mm; }
 .solutions .sb .pts li + li { margin-top: .5mm; }
 
 /* ---- kind: cloze choice ---- */
+/* inline: each gap is its options in brackets, and the learner circles one
+   (an option never breaks, a line may break after a slash); below: numbered
+   blanks, and under the text one row of tick boxes per gap, the options in
+   columns of one width (tasks._choice_columns) so that a, b, c line up. */
+.choice .co { white-space: nowrap; }
+.choice .bo, .choice .bc, .choice .sl { color: var(--ink-3); }
+.choice .bo { margin-right: .5mm; }
+.choice .bc { margin-left: .5mm; }
+.choice .gn { margin-right: .3mm; }
+.chs { margin-top: 3.4mm; }
+.gapped .chs { margin: .6mm 0 2mm; }
+.chr { display: grid; align-items: start; break-inside: avoid; }
+.chr + .chr { margin-top: 1.4mm; }
+.chs > .chr:first-child:not(:last-child) { break-after: avoid; }
+/* (the number sits on a line of the options' face, so both share a baseline) */
+.chr > .n { font: 400 11pt/1.4 var(--serif); }
+.chr > .n .nn { font: 700 11pt var(--sans); }
+.chr > .n .gn { margin-left: 0; }
+.chw > .op + .op { margin-top: 1.2mm; }  /* (options too long for a row) */
 
 /* ---- kind: table ---- */
+/* A ruled table (a form, field | value, without 'head'). The column widths
+   come from tasks._table (fixed), so a blank never runs into the next column;
+   gaps are numbered blanks, an open (null) cell is a blank as wide as the
+   cell, and every row is tall enough to write in. The cells of a row share
+   the baseline of their first line. */
+.gcap { font: 600 11pt/1.35 var(--serif); margin: 0 0 1.8mm var(--gut); break-after: avoid; }
+.gtab-bank { margin: 0 0 3.4mm var(--gut); break-after: avoid; }
+.gtab-bank .wordbox .words { display: flex; flex-wrap: wrap; }
+.gtab-bank .wordbox .words li { margin-right: 5mm; }
+table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--gut);
+  border-top: .75pt solid #000; }
+.gtab th, .gtab td { padding: 0 2mm; text-align: start; }
+.gtab th:first-child, .gtab td:first-child { padding-left: 0; }
+.gtab th:last-child, .gtab td:last-child { padding-right: 0; }
+.gtab th { font: 600 10pt/1.3 var(--serif); vertical-align: bottom; padding-top: 1.4mm;
+  padding-bottom: 1.2mm; border-bottom: .5pt solid #000; }
+.gtab td { height: var(--pitch); vertical-align: baseline; padding-top: 2mm;
+  padding-bottom: 1.2mm; font: 400 11pt/1.4 var(--serif); border-bottom: .5pt solid var(--hair); }
+.gtab td.lab { font-weight: 600; }
+.gtab td.gp, .gtab td.open { line-height: 7.6mm; padding-top: 0; padding-bottom: .4mm; }
+.gtab td.open .wr { display: inline-block; width: 100%; line-height: 1.12;
+  border-bottom: .8pt solid #000; }
+.gtab tr { break-inside: avoid; }
+.gtab tbody tr:first-child:not(:last-child) { break-after: avoid; }
 
 /* ---- kind: gapped_text ---- */
+/* The passage has a numbered box for a letter where each sentence was taken
+   out; below it, the sentences lettered A, B, C … in ruled rows (like the
+   right column of a match task). A task that has to break keeps its
+   sentences together: the learner compares all of them for every gap. */
+.k-gapped_text .passage .blank { border: .75pt solid #000; line-height: 5.2mm;
+  vertical-align: -1.5mm; }
+.gts { margin-top: 4mm; break-inside: avoid; }
+.gts > div { display: grid; grid-template-columns: var(--gut) 1fr; align-items: baseline;
+  min-height: 8.2mm; padding: 1.4mm 0 1.2mm; border-bottom: .5pt solid var(--hair);
+  break-inside: avoid; }
+.gts > div:first-child { border-top: .5pt solid var(--hair); }
+.gts .l { font: 700 11pt var(--sans); }
+.gts .tl { font: 400 11pt/1.35 var(--serif); }
 
 /* ---- kind: find_in_text ---- */
 
