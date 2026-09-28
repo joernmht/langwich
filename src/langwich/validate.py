@@ -1413,6 +1413,41 @@ class _Checker:
 
     def check_classify(self) -> None:
         """Repeated classify items, unused categories."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ClassifyTask):
+                continue
+            seen: dict[str, int] = {}
+            for j, item in enumerate(task.items):
+                key = " ".join(item.text.casefold().split())
+                if key in seen:
+                    same = task.items[seen[key]].answer == item.answer
+                    why = ("learners would sort it twice" if same else
+                           f"it belongs to both '{task.items[seen[key]].answer}' and "
+                           f"'{item.answer}', so neither answer is right")
+                    self.error(
+                        "duplicate-entry", f"/tasks/{i}/items/{j}/text",
+                        f"the item {_q(item.text)} is already listed (items/{seen[key]}); "
+                        f"{why}. Replace it with another word or sentence from the story, "
+                        "or remove it while keeping at least 2 items.",
+                    )
+                else:
+                    seen[key] = j
+            used = {item.answer for item in task.items}
+            for k, category in enumerate(task.categories):
+                if category in used:
+                    continue
+                if len(task.categories) > 2:
+                    fix = ("Add 1–2 items that belong to it, or remove the category from "
+                           "'categories'.")
+                else:
+                    fix = ("Add 1–2 items that belong to it, or replace it with a category "
+                           "that some of the items belong to (a classify task needs at least "
+                           "2 categories).")
+                self.warn(
+                    "category-unused", f"/tasks/{i}/categories/{k}",
+                    f"no item has the answer '{category}', so its column stays empty and "
+                    f"learners can rule it out at once. {fix}",
+                )
 
     def check_true_false_extras(self) -> None:
         """'not_given' and 'justify': the third box, quotes, corrections."""

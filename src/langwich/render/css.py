@@ -368,6 +368,24 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: scramble ---- */
 
 /* ---- kind: classify ---- */
+/* grid: number | item | a tick box under each category (the column widths
+   are set per task). columns: the word box, then a column per category with
+   a writing line in every row. The categories head the columns. */
+table.cls { border-collapse: collapse; table-layout: fixed; }
+table.cls th { vertical-align: bottom; text-align: center; padding: 0 1.2mm 1.4mm;
+  border-bottom: .75pt solid #000; font: 700 9.5pt/1.25 var(--sans); hyphens: auto; }
+table.cls th.tl { font: 600 10pt/1.25 var(--serif); }
+table.cls tr { break-inside: avoid; }
+table.cls.grid td { height: 8.2mm; border-bottom: .5pt solid var(--hair); vertical-align: middle; }
+table.cls.grid td.n { font: 700 11pt var(--sans); }
+table.cls.grid td.t { font: 400 11pt/1.35 var(--serif); padding: 1mm 3mm 1mm 0; }
+table.cls.grid td.bx span { display: block; width: 4.4mm; height: 4.4mm; margin: 0 auto;
+  border: .75pt solid #000; }
+.cls-sort { padding-left: var(--gut); }
+.cls-sort .wordbox { margin-bottom: 4mm; }
+table.cls.cols td { height: var(--pitch); padding: 0 2.5mm; vertical-align: bottom; }
+table.cls.cols td + td, table.cls.cols th + th { border-left: .5pt solid var(--hair); }
+table.cls.cols td span { display: block; height: 6mm; border-bottom: .6pt solid var(--ink-3); }
 
 /* ---- kind: true_false+ ---- */
 

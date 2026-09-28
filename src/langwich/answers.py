@@ -196,7 +196,18 @@ def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """The category of each displayed row (grid), or each category's words (columns)."""
-    return []  # (spine stub: the classify implementation fills this in)
+    task = pt.task
+    assert isinstance(task, ClassifyTask)
+    if task.layout == "columns":
+        # one entry per category, in category order: 'Lena: der Hafen, die Fähre'
+        # (a no-break space: a line never ends with a category's name)
+        key = []
+        for category in task.categories:
+            words = [i.text for i in task.items if i.answer == category]
+            key.append(f"{category}: {', '.join(words) or '–'}")
+        return key
+    order = pt.row_order if pt.row_order is not None else list(range(len(task.items)))
+    return [task.items[k].answer for k in order]
 
 
 def _key_table(pt: PlannedTask, ws: Worksheet) -> list[str]:

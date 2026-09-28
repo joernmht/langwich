@@ -360,8 +360,65 @@ def _draw(b: Builder, pt: PlannedTask, task: DrawTask) -> Parts:
     return Parts(f'<p class="prompt">{esc(task.prompt)}</p>{b.frame_html(pt)}{labels}', keep_hard=True)
 
 
+#: classify grid (mm): a tick column is as wide as its heading on one line,
+#: or as its longest word when the headings must wrap to leave the items
+#: room, within these bounds (CLASSIFY_PAD: the space around a heading); the
+#: item column keeps at least CLASSIFY_TEXT_MIN.
+CLASSIFY_COL_MIN = 13.0
+CLASSIFY_COL_MAX = 30.0
+CLASSIFY_PAD = 4.5
+CLASSIFY_TEXT_MIN = 40.0
+#: classify grid: at most this many rows are always kept on one page.
+CLASSIFY_KEEP_ROWS = 10
+
+
 def _classify(b: Builder, pt: PlannedTask, task: ClassifyTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the classify renderer)
+    # The categories head the columns: serif when they are target-language
+    # words (der/die/das, names count as such), else sans.
+    target = b.column_is_target(task.categories)
+    face, size = ("serif-bold", 10.0) if target else ("sans-bold", 9.5)
+    klass = "cat tl" if target else "cat"
+    attr = b.lang_attr() if target else ""
+    heads = "".join(f'<th class="{klass}"{attr}>{esc(c)}</th>' for c in task.categories)
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    k = len(task.categories)
+    if task.layout == "columns":
+        # the word box, then a column per category with as many lines as the
+        # fullest category needs and one more, so the lines tell nothing
+        box = b.word_box(pt.bank or [item.text for item in task.items], row=True)
+        rows = max(Counter(item.answer for item in task.items).values()) + 1
+        body = f'<tr>{"<td><span></span></td>" * k}</tr>' * rows
+        return Parts(f'<div class="cls-sort">{box}<table class="cls cols" style="width:'
+                     f'{avail:.1f}mm"><thead><tr>{heads}</tr></thead><tbody>{body}</tbody>'
+                     "</table></div>", keep_hard=True)
+    # The headings stay on one line while every item still fits on one; else
+    # they wrap between words and the items get the room. The item column is
+    # only as wide as the longest item, so the boxes stay near the words.
+    def column(heading_w: float) -> float:
+        return min(max(heading_w + CLASSIFY_PAD, CLASSIFY_COL_MIN), CLASSIFY_COL_MAX)
+
+    widest = max(metrics.width_mm(item.text, "serif", 11.0) for item in task.items) + 4.0
+    whole = [column(metrics.width_mm(c, face, size)) for c in task.categories]
+    words = [column(max((metrics.width_mm(w, face, size) for w in c.split()), default=0.0))
+             for c in task.categories]
+    col_ws = whole if avail - sum(whole) >= widest else words
+    room = avail - CLASSIFY_TEXT_MIN
+    if sum(col_ws) > room:  # (many long headings: they hyphenate)
+        col_ws = [max(w * room / sum(col_ws), CLASSIFY_COL_MIN) for w in col_ws]
+    text_w = min(max(widest, CLASSIFY_TEXT_MIN), avail - sum(col_ws))
+    order = pt.row_order if pt.row_order is not None else list(range(len(task.items)))
+    ticks = '<td class="bx"><span></span></td>' * k
+    body = "".join(
+        f'<tr><td class="n">{n}</td><td class="t tl"{b.lang_attr()}>'
+        f"{esc(task.items[j].text)}</td>{ticks}</tr>"
+        for n, j in enumerate(order, 1)
+    )
+    cols = "".join(f'<col style="width:{w:.1f}mm">' for w in [GUTTER_W, text_w, *col_ws])
+    width = GUTTER_W + text_w + sum(col_ws)
+    table = (f'<table class="cls grid" style="width:{width:.1f}mm"><colgroup>{cols}</colgroup>'
+             f'<thead><tr><th></th><th></th>{heads}</tr></thead><tbody>{body}</tbody></table>')
+    rows_kept = len(task.items) <= CLASSIFY_KEEP_ROWS
+    return Parts(table, keep_hard=rows_kept, keep=True)
 
 
 #: find_in_text (mm): the arrow column between a clue and its line, and the
@@ -514,7 +571,7 @@ def _instruction_true_false(b: Builder, task: TrueFalseTask) -> str | None:
 
 
 def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:
-    return None
+    return b.t("kind.classify.columns") if task.layout == "columns" else None
 
 
 def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
@@ -566,7 +623,9 @@ def instruction_suffix(b: Builder, pt: PlannedTask) -> str:
 
 
 def _key_labels_classify(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
-    return False, None
+    """No numbers for the columns layout: each entry names its category."""
+    assert isinstance(pt.task, ClassifyTask)
+    return (True, None) if pt.task.layout == "columns" else (False, None)
 
 
 def _key_labels_crossword(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:

@@ -1180,11 +1180,12 @@ def _prepare_scramble(pt: PlannedTask, task: ScrambleTask, seed: int) -> None:
 
 def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:
     """``pt.row_order`` (grid) or ``pt.bank`` (columns: the item texts, shuffled)."""
+    # (the LLM may write the items category by category: never print its order)
     if task.layout == "columns":
-        words = [i.text for i in task.items]
-        _rng(seed, task.id, "bank").shuffle(words)
-        pt.bank = words
-    # (spine stub: the classify implementation adds the grid's row order)
+        pt.bank = _shuffle_not_identity([i.text for i in task.items], _rng(seed, task.id, "bank"))
+    else:
+        pt.row_order = _shuffle_not_identity(list(range(len(task.items))),
+                                             _rng(seed, task.id, "rows"))
 
 
 def _prepare_choice(pt: PlannedTask, task: ClozeTask, seed: int) -> None:
