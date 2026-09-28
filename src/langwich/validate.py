@@ -1454,6 +1454,35 @@ class _Checker:
     def check_question_starters(self) -> None:
         """Model answers begin with their question's starter."""
 
+        quotes = str.maketrans("‘’‚„“”«»", "'''" + '"' * 5)
+
+        def norm(text: str) -> str:
+            """Casefolded, whitespace collapsed, one kind of quote mark each."""
+            return " ".join(text.translate(quotes).casefold().split())
+
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, QuestionsTask):
+                continue
+            for j, item in enumerate(task.items):
+                if not (item.starter and item.answer):
+                    continue
+                # A '…' ('...', '___') in the starter is the learner's to fill:
+                # the answer begins with the words before the first one and
+                # has the words between them in the same order.
+                parts = [norm(p) for p in re.split(r"…|\.{3,}|_{2,}", item.starter)]
+                pattern = ".*?".join(re.escape(p) for p in parts)
+                if re.match(pattern, norm(item.answer), flags=re.DOTALL):
+                    continue
+                verb, fill = (("follow", " and fill in each '…'") if any(parts[1:])
+                              else ("begin with", " and complete the sentence"))
+                self.warn(
+                    "answer-ignores-starter", f"/tasks/{i}/items/{j}/answer",
+                    f"the model answer {_q(item.answer)} does not {verb} the starter "
+                    f"{_q(item.starter)}, which is printed on the learner's answer line. Begin "
+                    f"the model answer with the starter, word for word,{fill} — or change the "
+                    "starter so that it fits the answer.",
+                )
+
     def check_crosswords(self) -> None:
         """Crossword words, repeats, the grid and clues that give the answer away."""
 

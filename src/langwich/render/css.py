@@ -386,6 +386,9 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: transform+ ---- */
 
 /* ---- kind: questions+ media_search+ ---- */
+/* questions in the learner's language; a starter longer than the line wraps */
+.it .q.src { font: 400 11pt/1.45 var(--sans); }
+.qs .lines > div.starter { height: auto; min-height: var(--pitch); padding-top: 1.6mm; }
 
 /* ---- kind: crossword ---- */
 

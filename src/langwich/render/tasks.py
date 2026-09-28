@@ -202,11 +202,16 @@ def _order_events(b: Builder, pt: PlannedTask, task: OrderEventsTask) -> Parts:
 
 
 def _questions(b: Builder, pt: PlannedTask, task: QuestionsTask) -> Parts:
-    items = "".join(
-        _item(i, b.tl(item.question, "p", "q") + b.lines(item.lines))
-        for i, item in enumerate(task.items, 1)
-    )
-    return Parts(f'<div class="items qs">{items}</div>')
+    items = []
+    for i, item in enumerate(task.items, 1):
+        if task.question_lang == "source":
+            question = f'<p class="q src"{b.src_attr()}>{esc(item.question)}</p>'
+        else:
+            question = b.tl(item.question, "p", "q")
+        # the starter is printed on the first answer line, so it needs one
+        count = max(item.lines, 1) if item.starter else item.lines
+        items.append(_item(i, question + b.lines(count, item.starter)))
+    return Parts(f'<div class="items qs">{"".join(items)}</div>')
 
 
 def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
@@ -345,9 +350,18 @@ def _dialogue(b: Builder, pt: PlannedTask, task: DialogueTask) -> Parts:
 
 
 def _media_search(b: Builder, pt: PlannedTask, task: MediaSearchTask) -> Parts:
-    sep = '<span class="sep">·</span>'
-    queries = sep.join(esc_nw(q) for q in task.queries)
-    search = (f'<div class="search"><span class="cap">{esc(b.t("search_for"))}</span>'
+    caption = f'{b.t("search_for")} · {b.t(f"media.{task.media}")}'
+    # A query that fits beside the caption stays on one line, and a line
+    # breaks only after a separator, so no line starts with one.
+    size = 8.5 if b.epaper else 7.5  # the caption: capitals, letter-spaced .1em
+    cap_w = (metrics.width_mm(caption.upper(), "sans-bold", size)
+             + len(caption) * 0.1 * size * metrics.PT_TO_MM)
+    room = b.main_width(b.has_aside(pt, False)) - 8.0 - cap_w - 4.0  # box padding, gap
+    queries = '<span class="sep">·</span><wbr>'.join(
+        f'<span class="nw">{esc_nw(q)}</span>' if metrics.width_mm(q) <= room else esc_nw(q)
+        for q in task.queries
+    )
+    search = (f'<div class="search"><span class="cap">{esc(caption)}</span>'
               f'<span class="q tl"{b.lang_attr()}>{queries}</span></div>')
     items = "".join(_item(i, b.tl(q, "p", "q") + b.lines(2)) for i, q in enumerate(task.questions, 1))
     return Parts(f'{search}<div class="items ms">{items}</div>')
