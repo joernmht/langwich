@@ -1431,6 +1431,106 @@ class _Checker:
 
     def check_find_in_text(self) -> None:
         """Find-in-text answers occur in their scenes."""
+        scenes = self.ws.story.scenes
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, FindInTextTask):
+                continue
+            # the scenes the task is about (unknown ids are reported as unknown-scene)
+            own = [s.id for s in scenes if s.id in task.scene_ids] or [s.id for s in scenes]
+            for j, item in enumerate(task.items):
+                if not self._finds(item.answer, self._scene_texts(own)):
+                    self.warn("find-not-in-text", f"/tasks/{i}/items/{j}/answer",
+                              self._find_message(item.answer, own))
+
+    def _scene_texts(self, ids: list[str]) -> list[str]:
+        """The headings and texts of the scenes ``ids``: what learners search."""
+        return [t for s in self.ws.story.scenes if s.id in ids for t in (s.heading, s.text)]
+
+    def _find_message(self, answer: str, own: list[str]) -> str:
+        """The message for a find_in_text answer that the scenes ``own`` do not contain."""
+        scenes = self.ws.story.scenes
+        if len(own) == len(scenes):
+            where, about = "the story", ""
+        else:
+            where = f"scene{'s' if len(own) > 1 else ''} {_one_of(own)}"
+            about = ", which this task is about"
+        elsewhere = [s.id for s in scenes
+                     if s.id not in own and self._finds(answer, self._scene_texts([s.id]))]
+        if elsewhere:
+            return (f"the answer {_q(answer)} is not in {where}{about}, but in scene "
+                    f"'{elsewhere[0]}'. Learners look for it in the scenes the task follows: "
+                    f"replace it with a word or phrase of {where} that fits the clue, or add "
+                    f"'{elsewhere[0]}' to the task's 'scene'.")
+        close = self._closest_phrase(answer, self._scene_texts(own))
+        guess = f" (did you mean {_q(close)}?)" if close else ""
+        if "…" in answer or "..." in answer:
+            apart = "; '…' stands only for words between two parts of one sentence"
+        elif len(answer.split()) > 1:
+            apart = ", with '…' between words that stand apart in the scene"
+        else:
+            apart = ""
+        return (f"the answer {_q(answer)} does not occur in {where}{about}{guess}, so learners "
+                "cannot find it there. Copy the word or phrase exactly as the scene writes it "
+                f"(the same form and spelling, not the dictionary form{apart}), or choose "
+                f"another word of {where} for this clue.")
+
+    #: Apostrophes and quotation marks, each kind written one way for the
+    #: find_in_text search (soft hyphens dropped).
+    _FIND_MARKS = str.maketrans({
+        "’": "'", "‘": "'", "‚": "'", "ʼ": "'", "`": "'", "´": "'",
+        "„": '"', "“": '"', "”": '"', "«": '"', "»": '"',
+        "‹": '"', "›": '"', "\u00ad": None,
+    })
+    #: What an answer may start or end with that the search ignores.
+    _FIND_EDGES = " .,;:!?\"'()[]–—-"
+
+    @classmethod
+    def _find_key(cls, text: str) -> str:
+        """``text`` casefolded, with single spaces and one kind of apostrophe
+        and quotation mark."""
+        return " ".join(text.translate(cls._FIND_MARKS).casefold().split())
+
+    def _finds(self, answer: str, texts: list[str]) -> bool:
+        """Does one of ``texts`` contain ``answer`` as whole words (compared
+        by :meth:`_find_key`)? '…' in the answer stands for the words between
+        two parts of one sentence ('sperrt … auf')."""
+        parts = [p.strip(self._FIND_EDGES)
+                 for p in re.split(r"…|\.\.\.", self._find_key(answer))]
+        parts = [p for p in parts if p]
+        if not parts:
+            return False
+        bounded = self.target_lang not in _NO_SPACE_LANGS
+
+        def exact(part: str) -> str:
+            left = r"(?<!\w)" if bounded and re.match(r"\w", part) else ""
+            right = r"(?!\w)" if bounded and re.match(r"\w", part[-1]) else ""
+            return left + re.escape(part) + right
+
+        pattern = re.compile(r"[^.!?…]*?".join(exact(p) for p in parts))
+        return any(pattern.search(self._find_key(text)) for text in texts)
+
+    def _closest_phrase(self, answer: str, texts: list[str]) -> str | None:
+        """The words of one sentence of ``texts`` most like ``answer`` (one
+        word more or less allowed) — the inflected form of a dictionary
+        form, a compound that contains the word; ``None`` if none is close."""
+        n = len(_WORD_RE.findall(answer))
+        if not n or "…" in answer or "..." in answer or self.target_lang in _NO_SPACE_LANGS:
+            return None
+        key = self._find_key(answer).strip(self._FIND_EDGES)
+        phrases: dict[str, str] = {}
+        for text in texts:
+            for sentence in _sentences(text):
+                words = _WORD_RE.findall(sentence)
+                for size in sorted({max(n - 1, 1), n, n + 1}):
+                    for k in range(len(words) - size + 1):
+                        phrase = " ".join(words[k:k + size])
+                        phrases.setdefault(self._find_key(phrase), phrase)
+        close = difflib.get_close_matches(key, list(phrases), n=1, cutoff=0.7)
+        if close:
+            return phrases[close[0]]
+        if n == 1:  # a part of a longer word ('Dose' in 'Zuckerdose')
+            return next((p for k, p in phrases.items() if " " not in k and key in k), None)
+        return None
 
     def check_proofread(self) -> None:
         """Proofread texts: every mistake as {{correct::wrong}}."""

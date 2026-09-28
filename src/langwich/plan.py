@@ -1037,7 +1037,12 @@ def tested_terms(ws: Worksheet) -> set[str]:
         elif isinstance(task, (TableTask, ProofreadTask)):
             out.update(_norm(g.answer, lang) for g in _gaps_of(task))
         elif isinstance(task, FindInTextTask):
-            out.update(_norm(i.answer, lang) for i in task.items)
+            # the answers and every item they contain: a gloss of 'gelingen'
+            # would point at the answer 'der Milchschaum gelingt'
+            for find in task.items:
+                out.add(_norm(find.answer, lang))
+                out.update(_norm(v.term, lang) for v in ws.vocabulary.items
+                           if term_pattern(v, lang).search(find.answer))
         elif isinstance(task, CrosswordTask):
             out.update(_norm(e.answer, lang) for e in task.entries)
     return out

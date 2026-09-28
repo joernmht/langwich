@@ -415,9 +415,10 @@ KIND_RULES: dict[str, str] = {
                  '(e.g. "Lena is sad because …") and a model answer that begins with it.',
     "classify": '2–4 categories (names, der/die/das, formal/informal …), 5–10 items, every '
                 'category used, the items mixed; "answer" copied exactly from "categories".',
-    "find_in_text": "the answer is written exactly as in the scene; clues in S at A1–A2, T "
-                    "synonyms or paraphrases from B1, idioms or irony with \"explain\" and "
-                    '"explanation" at C1–C2.',
+    "find_in_text": "the answer is written exactly as in the scene (\"…\" between words that "
+                    "stand apart in one sentence); clues in S at A1–A2, T synonyms or "
+                    'paraphrases from B1, idioms or irony with "explain" and "explanation" at '
+                    "C1–C2.",
     "gapped_text": "a new text of 5–12 sentences with 3–6 sentences removed ({{…}} in place) "
                    'plus 1–2 "extra" sentences; each removed sentence fits only its gap (by '
                    "reference words, connectors, time).",

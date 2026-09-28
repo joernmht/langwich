@@ -380,6 +380,21 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: gapped_text ---- */
 
 /* ---- kind: find_in_text ---- */
+/* clue → line on one row (.fr, its columns set per task) when the answers are
+   short, else the line below the clue (.fl); 'explain' adds a captioned line
+   (.fl). A line is one text line high, so it sits on the clue's last line. */
+.fit .q.src { font-family: var(--sans); }
+.fit .fr { display: grid; align-items: end; }
+.fit .fr > .q { grid-column: 1; grid-row: 1; padding-right: 3mm; }
+.fit .fr > .ar { grid-column: 2; grid-row: 1; font: 400 11pt/1.45 var(--sans);
+  color: var(--ink-2); text-align: center; }
+.fit .fr > .line { grid-column: 3; grid-row: 1; height: 5.6mm;
+  border-bottom: .6pt solid var(--ink-3); }
+.fit .fl { display: grid; grid-template-columns: auto 1fr; grid-auto-rows: var(--pitch);
+  align-items: end; }
+.fit .fl > .cue { justify-self: end; padding: 0 2.4mm 1mm 0;
+  font: italic 400 9.5pt var(--sans); color: var(--ink-2); }
+.fit .fl > .line { height: 6mm; border-bottom: .6pt solid var(--ink-3); }
 
 /* ---- kind: proofread ---- */
 

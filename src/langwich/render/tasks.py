@@ -364,8 +364,45 @@ def _classify(b: Builder, pt: PlannedTask, task: ClassifyTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the classify renderer)
 
 
+#: find_in_text (mm): the arrow column between a clue and its line, and the
+#: least widths of the clue column and of the line when they share a row.
+FIND_ARROW_W = 6.0
+FIND_CLUE_MIN = 45.0
+FIND_LINE_MIN = 40.0
+
+
 def _find_in_text(b: Builder, pt: PlannedTask, task: FindInTextTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the find_in_text renderer)
+    # Clue → line on one row while every clue fits on two lines and the line
+    # still holds the longest answer in handwriting (about 1.2 × its width in
+    # type); else the line goes below the clue. The clue column is as wide as
+    # the widest clue needs (+ 3 mm padding), the same for every row, so the
+    # lines align.
+    target = task.clue_lang == "target"
+    face = "serif" if target else "sans"
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    widest = max(metrics.width_mm(item.answer, "serif", 11.0) for item in task.items)
+    line_min = max(FIND_LINE_MIN, widest * 1.2 + 6.0)
+    wanted = max(metrics.width_mm(item.clue, face, 11.0) for item in task.items) + 3.0
+    clue_w = min(wanted, avail - FIND_ARROW_W - line_min)
+    beside = clue_w >= min(wanted, FIND_CLUE_MIN) and all(
+        metrics.line_count(item.clue, clue_w - 3.0, face, 11.0) <= 2 for item in task.items)
+    columns = f"grid-template-columns:{clue_w:.1f}mm {FIND_ARROW_W:.1f}mm 1fr"
+    meaning = (f'<span class="cue">{esc(b.t("kind.find_in_text.explain_cap"))}</span>'
+               '<span class="line"></span>') if task.explain else ""
+    items = []
+    for i, item in enumerate(task.items, 1):
+        clue = b.tl(item.clue, "p", "q") if target else f'<p class="q src">{esc(item.clue)}</p>'
+        if beside:
+            body = (f'<div class="fr" style="{columns}">{clue}<span class="ar">→</span>'
+                    '<span class="line"></span></div>')
+            lines = meaning
+        else:
+            body = clue
+            lines = '<span class="cue">→</span><span class="line"></span>' + meaning
+        if lines:
+            body += f'<div class="fl">{lines}</div>'
+        items.append(_item(i, body))
+    return Parts(f'<div class="items fit">{"".join(items)}</div>')
 
 
 def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
@@ -481,7 +518,7 @@ def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:
 
 
 def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
-    return None
+    return b.t("kind.find_in_text.explain") if task.explain else None
 
 
 def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:

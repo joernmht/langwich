@@ -211,7 +211,14 @@ def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """Each word or phrase to find (with its explanation)."""
-    return []  # (spine stub: the find_in_text implementation fills this in)
+    task = pt.task
+    assert isinstance(task, FindInTextTask)
+    open_answer = t("open_answer", ws.source_lang, ws.ui)
+    key: list[str] = []
+    for item in task.items:
+        explanation = item.explanation or (open_answer if task.explain else None)
+        key.append(f"{item.answer} – {explanation}" if explanation else item.answer)
+    return key
 
 
 def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
