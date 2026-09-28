@@ -85,6 +85,39 @@ def transform_sentence(item: TransformItem) -> str:
     return item.answer or ""
 
 
+#: The mark that opens a Spanish question or exclamation (¿Dónde …? ¡Qué …!).
+_ES_OPENING = {"?": "¿", "!": "¡"}
+
+
+def scramble_sentence(chunks: list[str], end: str = "", lang: str = "") -> str:
+    """The sentence that scramble tiles make in this order: joined by spaces
+    (none after an elision such as l' or d'), the first letter upper-cased,
+    ``end`` at the end — a Spanish question or exclamation opens with ¿ or ¡,
+    and French puts a non-breaking space before ? and !."""
+    text = ""
+    for chunk in (c.strip() for c in chunks):
+        if chunk:
+            text += (" " if text and not text.endswith(("'", "’")) else "") + chunk
+    text = _upper_first(text)
+    base = lang.split("-", 1)[0].lower()  # es-MX → es
+    if base == "es" and end in _ES_OPENING and not text.startswith(_ES_OPENING[end]):
+        text = _ES_OPENING[end] + text
+    if base == "fr" and end in ("?", "!"):
+        end = "\u00a0" + end
+    return text + end
+
+
+def _upper_first(text: str) -> str:
+    """``text`` with its first letter upper-cased, after any opening marks
+    (a sentence that starts with a number stays as it is)."""
+    for k, ch in enumerate(text):
+        if ch.isalpha():
+            return text[:k] + ch.upper() + text[k + 1:]
+        if ch.isalnum():
+            break
+    return text
+
+
 def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
     task = pt.task
     lang, ui = ws.source_lang, ws.ui
@@ -191,7 +224,17 @@ def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """The sentence of each scramble item (and its other correct orders)."""
-    return []  # (spine stub: the scramble implementation fills this in)
+    task = pt.task
+    assert isinstance(task, ScrambleTask)
+    sentences: list[str] = []
+    for item in task.items:
+        orders: list[str] = []
+        for chunks in [item.chunks, *item.alternatives]:
+            sentence = scramble_sentence(chunks, item.end, ws.target_lang)
+            if sentence not in orders:
+                orders.append(sentence)
+        sentences.append(" / ".join(orders))
+    return sentences
 
 
 def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:

@@ -366,6 +366,18 @@ table.match td.opt.tl { font-family: var(--serif); }
 .draw-words { margin-top: 3mm; }
 
 /* ---- kind: scramble ---- */
+/* word tiles in a wrapping row, the meaning, then the learner's line with
+   the end mark (a long sentence gets more lines above it) */
+.scr > .it + .it { margin-top: 3.4mm; }
+.scr > .it > .n { padding-top: .7mm; }       /* on the baseline of the framed tiles */
+.scr .tiles { font: 400 11pt/1.3 var(--serif); }
+.scr .tile { display: inline-block; border: .6pt solid #000; padding: .4mm 1.8mm .6mm;
+  margin: 0 1.2mm 1.6mm 0; }
+.scr .cue { font: italic 400 9.5pt/1.4 var(--sans); color: var(--ink-2); margin-top: -.4mm; }
+.scr .sl { display: grid; grid-template-columns: 1fr auto; align-items: end;
+  height: var(--pitch); break-inside: avoid; }
+.scr .sl .line { border-bottom: .6pt solid var(--ink-3); height: 6mm; }
+.scr .sl .end { font: 400 13pt/1 var(--serif); padding: 0 0 .3mm 1.2mm; }
 
 /* ---- kind: classify ---- */
 

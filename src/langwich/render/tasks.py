@@ -387,7 +387,23 @@ def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
 
 
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the scramble renderer)
+    tiles = pt.tiles if pt.tiles is not None else [list(item.chunks) for item in task.items]
+    line_w = b.main_width(b.has_aside(pt, False)) - GUTTER_W - 4.0  # the end mark
+    items = []
+    for i, (item, shown) in enumerate(zip(task.items, tiles), 1):
+        row = " ".join(f'<span class="tile">{esc(c.strip())}</span>' for c in shown)
+        cue = f'<p class="cue"{b.src_attr()}>{esc(item.cue)}</p>' if item.cue else ""
+        # handwriting takes about half as much room again as the print, so
+        # a long sentence gets more than one line; the last one ends in 'end'
+        printed = metrics.width_mm(" ".join(item.chunks) + item.end, "serif", 11.0)
+        count = min(max(1, math.ceil(printed * 1.5 / line_w)), 4)
+        end = f'<span class="end">{esc(item.end)}</span>' if item.end else ""
+        lines = '<div class="sl"><span class="line"></span></div>' * (count - 1)
+        lines += f'<div class="sl"><span class="line"></span>{end}</div>'
+        items.append(_item(
+            i, f'<div class="tiles tl"{b.lang_attr()}>{row}</div>{cue}'
+               f'<div class="sls tl"{b.lang_attr()}>{lines}</div>'))
+    return Parts(f'<div class="items scr">{"".join(items)}</div>')
 
 
 def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:

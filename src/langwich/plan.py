@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import functools
 import hashlib
+import itertools
 import random
 import re
 from dataclasses import dataclass, field
@@ -1169,7 +1170,22 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
 
 def _prepare_scramble(pt: PlannedTask, task: ScrambleTask, seed: int) -> None:
     """``pt.tiles``: each item's chunks shuffled, never in a correct order."""
-    # (spine stub: the scramble implementation shuffles the tiles)
+    tiles: list[list[str]] = []
+    for j, item in enumerate(task.items):
+        correct = [list(item.chunks), *(list(a) for a in item.alternatives)]
+        rng = _rng(seed, task.id, "tiles", str(j))
+        order = _shuffle_not_identity(item.chunks, rng)
+        for _ in range(12):
+            if order not in correct:
+                break
+            order = _shuffle_not_identity(item.chunks, rng)
+        if order in correct:
+            # nearly every order is correct: take the first one that is not
+            # (when all of them are, any order will do)
+            order = next((list(p) for p in itertools.islice(itertools.permutations(order), 5040)
+                          if list(p) not in correct), order)
+        tiles.append(order)
+    pt.tiles = tiles
 
 
 def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:

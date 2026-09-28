@@ -39,7 +39,7 @@ from typing import Any, Literal
 from urllib.parse import unquote_to_bytes
 
 from langwich import locale, markup
-from langwich.answers import transform_sentence
+from langwich.answers import scramble_sentence, transform_sentence
 from langwich.model import (
     CEFR_LEVELS,
     POS_VALUES,
@@ -779,7 +779,7 @@ class _Checker:
             out += [f"{i.prompt} {i.cue or ''} {transform_sentence(i)}" for i in task.items]
         elif isinstance(task, ScrambleTask):
             out += [c for i in task.items for c in i.chunks]
-            out += [" ".join(i.chunks) for i in task.items]
+            out += [scramble_sentence(i.chunks, i.end, self.target_lang) for i in task.items]
         elif isinstance(task, WordBuildingTask):
             out += [p for i in task.items for p in i.parts] + [i.answer for i in task.items]
         elif isinstance(task, TableTask):
@@ -1423,6 +1423,100 @@ class _Checker:
 
     def check_scramble(self) -> None:
         """Scramble alternatives, punctuation in tiles, a capitalised first tile."""
+        if not any(isinstance(task, ScrambleTask) for task in self.ws.tasks):
+            return
+        capitals = {"de": "a name or a noun", "en": "a name or 'I'"}.get(self.target_lang, "a name")
+        # where the worksheet writes a word in lower case (a capital that it
+        # never drops belongs to a name or a German noun, not to the start)
+        texts = [s.text for s in self.ws.story.scenes] + [v.term for v in self.ws.vocabulary.items]
+        texts += [t for task in self.ws.tasks for t in self.task_texts(task)]
+
+        def difference(chunks: list[str], order: list[str]) -> tuple[list[str], list[str]]:
+            """The tiles of ``chunks`` that ``order`` lacks, and the ones it adds."""
+            extra = list(order)
+            missing = []
+            for chunk in chunks:
+                if chunk in extra:
+                    extra.remove(chunk)
+                else:
+                    missing.append(chunk)
+            return missing, extra
+
+        def gives_start_away(word: str) -> bool:
+            if not word[:1].isupper() or any(ch.isupper() for ch in word[1:]):
+                return False  # lower case, or an acronym or name (EU, McDonald)
+            if self._capitalised_anyway(word):
+                return False
+            lower = re.compile(r"(?<!\w)" + re.escape(word[0].lower() + word[1:]) + r"(?!\w)")
+            return any(lower.search(text) for text in texts)
+
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ScrambleTask):
+                continue
+            for j, item in enumerate(task.items):
+                where = f"/tasks/{i}/items/{j}"
+                starts = [0]  # the tiles that start a correct order
+                for k, alternative in enumerate(item.alternatives):
+                    missing, extra = difference(item.chunks, alternative)
+                    if not (missing or extra):
+                        starts.append(item.chunks.index(alternative[0]))
+                        continue
+                    wrong = " and ".join(
+                        [f"lacks {_one_of(missing)}"] * bool(missing)
+                        + [f"adds {_one_of(extra)}"] * bool(extra)
+                    )
+                    self.error(
+                        "scramble-alternative", f"{where}/alternatives/{k}",
+                        f"this alternative {wrong}, so it is not an order of the tiles in "
+                        "'chunks'. An alternative is another correct order of the same tiles: "
+                        "copy every tile of 'chunks' exactly (same spelling and capitals, each "
+                        "as often as there) and change only the order — or remove the "
+                        "alternative.",
+                    )
+                self._check_scramble_tiles(item.chunks, where)
+                for k in sorted(set(starts)):
+                    tile = item.chunks[k]
+                    word = re.search(r"\w+(?:['’]\w+)*", tile)
+                    if word is None or not gives_start_away(word.group(0)):
+                        continue
+                    at = word.start()
+                    self.warn(
+                        "scramble-capital", f"{where}/chunks/{k}",
+                        f"the tile {_q(tile)} starts the sentence and has a capital letter, so "
+                        "the learner can see which tile comes first. Write it in lower case "
+                        f"({_q(tile[:at] + tile[at].lower() + tile[at + 1:])}) here and in every "
+                        "alternative — the answer key capitalises the first word itself. Keep a "
+                        f"capital only for {capitals}, which is capitalised wherever it stands.",
+                    )
+
+    def _check_scramble_tiles(self, chunks: list[str], where: str) -> None:
+        """Sentence punctuation on a tile shows which tile ends the sentence
+        (with Spanish ¿ ¡, which one starts it). A full stop on a tile inside
+        the sentence ends an abbreviation or a German ordinal ('z. B.', 'am
+        3. Mai') and is fine."""
+        for k, chunk in enumerate(chunks):
+            tile = chunk.strip()
+            mark = re.search(r"[.?!…]+$", tile)
+            if mark and mark.start() == 0:
+                problem = (f"the tile {_q(tile)} is only punctuation, so it always comes last. "
+                           "Remove it from 'chunks' and from every alternative")
+            elif mark and (k == len(chunks) - 1 or mark.group(0) != "."):
+                problem = (f"the tile {_q(tile)} ends with '{mark.group(0)}', so the learner can "
+                           "see which tile ends the sentence. Write it as "
+                           f"{_q(tile[:mark.start()])} here and in every alternative")
+            elif tile[:1] in ("¿", "¡"):
+                problem = (f"the tile {_q(tile)} starts with '{tile[0]}', so the learner can see "
+                           f"which tile starts the sentence. Write it as {_q(tile[1:].lstrip())} "
+                           "here and in every alternative (the answer key adds the opening mark)")
+            else:
+                continue
+            marks = mark.group(0) if mark else {"¿": "?", "¡": "!"}[tile[0]]
+            end = "…" if "…" in marks or ".." in marks else marks[-1]
+            self.warn(
+                "scramble-punctuation", f"{where}/chunks/{k}",
+                f"{problem}, and set \"end\": \"{end}\" on the item — langwich prints the end "
+                "mark after the learner's answer line.",
+            )
 
     def check_classify(self) -> None:
         """Repeated classify items, unused categories."""
@@ -1685,7 +1779,8 @@ class _Checker:
                 ]
             elif isinstance(task, ScrambleTask):
                 checks += [
-                    (f"/tasks/{i}/items/{j}", " ".join(t.chunks)) for j, t in enumerate(task.items)
+                    (f"/tasks/{i}/items/{j}", scramble_sentence(t.chunks, t.end, self.target_lang))
+                    for j, t in enumerate(task.items)
                 ]
             elif isinstance(task, TableTask):
                 checks += [
