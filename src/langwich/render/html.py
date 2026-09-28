@@ -595,14 +595,40 @@ class Builder:
             return h + sum(self._text_h(it.question, width - GUTTER_W, "serif", 11, 1.45)
                            + it.lines * 9.0 + 1.6 for it in task.items)
         if isinstance(task, TrueFalseTask):
-            return h + sum(self._text_h(it.statement, width - 35, "serif", 11, 1.45) + 10.2
-                           for it in task.items)
+            # three boxes: narrower statements under a row of column heads;
+            # with "justify": one more line and more room per statement
+            from langwich.render import tasks  # local import: tasks imports this module's helpers
+
+            boxes, heads = 35.0, 0.0
+            if task.not_given:
+                boxes, heads = 3 * tasks.tf_column_width(self) + 5.0, 8.4
+            per_item = 10.2 + (11.0 if task.justify else 0.0)
+            return h + heads + sum(self._text_h(it.statement, width - boxes, "serif", 11, 1.45)
+                                   + per_item for it in task.items)
         if isinstance(task, MultipleChoiceTask):
             return h + sum(self._text_h(it.question, width - GUTTER_W, "serif", 11, 1.45)
                            + 1.4 + len(it.options) * 6.6 + 2.6 for it in task.items)
         if isinstance(task, TransformTask):
-            return h + sum(self._text_h(it.prompt, width - GUTTER_W, "serif", 11, 1.45) + 11.6
-                           for it in task.items)
+            # the prompt (narrower beside a key word), then the → line, or the
+            # frame on 7.6 mm lines with the task's blank (as wide as its longest
+            # answer and a fifth more, see tasks.frame_blank_width) for its gap
+            from langwich import markup
+            from langwich.answers import safe_gaps
+
+            avail = self.main_width(self.has_aside(pt, False)) - GUTTER_W
+            longest = max((g.answer for it in task.items if it.frame for g in safe_gaps(it.frame)),
+                          key=len, default="")
+            blank = longest + "n" * (len(longest) // 5 + 4)
+            for it in task.items:
+                kw_w = (metrics.width_mm(it.keyword.upper(), "sans-bold", 10.0) + 4.0
+                        if it.keyword else 0.0)
+                h += self._text_h(it.prompt, avail - kw_w, "serif", 11, 1.45)
+                if it.frame is None:
+                    h += 11.6
+                    continue
+                frame = f"→ {it.cue or ''} " + markup.GAP_RE.sub(lambda _: blank, it.frame)
+                h += metrics.line_count(frame, avail, "serif", 11.0) * 7.6 + 3.4
+            return h
         return h + 80.0
 
     def _pair_fits(self, label: PlannedTask, following: PlannedTask, scene: Scene) -> bool:
@@ -1308,8 +1334,23 @@ class Builder:
             else:
                 content = " · ".join(entries)
         elif isinstance(task, WritingTask) and task.model_answer:
+            # in the language the learner writes (paragraphs on new lines), then
+            # each point with the words of the model answer that cover it
+            source = task.output_lang == "source"
+            attr = self.src_attr() if source else self.lang_attr()
+            model = "<br>".join(esc_br(p.strip()) for p in task.model_answer.split("\n\n")
+                                if p.strip())
             content = (f'<i>{esc(self.t("model_answer"))}:</i> '
-                       f'<span class="model"{self.lang_attr()}>{esc(task.model_answer)}</span>')
+                       f'<span class="model{" src" if source else ""}"{attr}>{model}</span>')
+            points = "".join(
+                f"<li>{esc(p.point)}"
+                + (f" — «{self.tl(p.covered_by) if not source else esc(p.covered_by)}»"
+                   if p.covered_by else "")
+                + "</li>"
+                for p in task.points
+            )
+            if points:
+                content += f'<ul class="pts">{points}</ul>'
         else:
             content = esc(self.t("open_answer"))
         return (f'<div class="sb"><span class="st"><span class="tn2">{pt.number}</span>'
@@ -1341,8 +1382,11 @@ class Builder:
             else:
                 h += metrics.line_count(" · ".join(entries), col_w, "serif", 9.0) * 4.76
         elif isinstance(task, WritingTask) and task.model_answer:
-            h += metrics.line_count(f"{self.t('model_answer')}: {task.model_answer}", col_w,
-                                    "serif-italic", 9.0) * 4.6
+            model = "\n".join(p.strip() for p in task.model_answer.split("\n\n") if p.strip())
+            face = "sans" if task.output_lang == "source" else "serif-italic"
+            h += metrics.line_count(f"{self.t('model_answer')}: {model}", col_w, face, 9.0) * 4.6
+            h += sum(metrics.line_count(f"– {p.point} — «{p.covered_by or ''}»", col_w - 3.6,
+                                        "sans", 9.0) * 4.76 + 0.5 for p in task.points)
         else:
             h += 4.76
         return h + 3.4

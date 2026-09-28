@@ -1415,9 +1415,159 @@ class _Checker:
 
     def check_true_false_extras(self) -> None:
         """'not_given' and 'justify': the third box, quotes, corrections."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TrueFalseTask):
+                continue
+            where = f"/tasks/{i}"
+            if task.not_given and not any(item.answer == "not_given" for item in task.items):
+                self.warn(
+                    "tf-no-not-given", f"{where}/not_given",
+                    "this task prints a third box 'not in the text', but no statement has "
+                    "\"answer\": \"not_given\", so that box is never right. Add 1–2 statements "
+                    "about details the story never mentions (never about real-world facts) with "
+                    "\"answer\": \"not_given\", or remove \"not_given\": true.",
+                )
+            # quotes come from the task's scenes (the whole story for a task without one)
+            scenes = [s for ref in task.scene_ids if (s := self.ws.scene(ref)) is not None]
+            ids = [f"'{s.id}'" for s in scenes]
+            place = (
+                "the story" if not scenes
+                else f"scene {ids[0]}" if len(ids) == 1
+                else f"scenes {', '.join(ids[:-1])} and {ids[-1]}"
+            )
+            texts = [s.text for s in scenes or self.ws.story.scenes]
+            keys = [self._passage_key(text.translate(self._NO_QUOTE_MARKS)) for text in texts]
+            for j, item in enumerate(task.items):
+                if item.answer == "not_given":
+                    extra = [f"'{name}'" for name, value in
+                             (("correction", item.correction), ("quote", item.quote)) if value]
+                    if extra:
+                        them = "it" if len(extra) == 1 else "them"
+                        self.warn(
+                            "tf-not-given-correction", f"{where}/items/{j}",
+                            f"the statement {_q(item.statement)} is 'not_given' — the story "
+                            f"does not say — but it has {' and '.join(extra)}, and there is "
+                            f"nothing to correct or quote. Remove {them}; if the story does say "
+                            "whether the statement is right, answer true or false instead.",
+                        )
+                    continue
+                quote = item.quote or ""
+                if not self._passage_key(quote):
+                    if task.justify:
+                        verdict = "true" if item.answer is True else "false"
+                        self.warn(
+                            "tf-quote-missing", f"{where}/items/{j}",
+                            "the task has \"justify\": true, so learners copy the words that "
+                            f"prove each answer, but the statement {_q(item.statement)} has no "
+                            "'quote' and the answer key cannot show them. Add \"quote\": the "
+                            f"words of the story that show it is {verdict}, copied exactly (a "
+                            "few words up to one sentence).",
+                        )
+                    continue
+                bare = quote.translate(self._NO_QUOTE_MARKS)
+                if any(self._quotes(key, bare) for key in keys):
+                    continue
+                close = self._closest_passage("\n\n".join(texts), quote)
+                guess = f" (did you mean {_q(close)}?)" if close else ""
+                self.warn(
+                    "tf-quote-not-in-story", f"{where}/items/{j}/quote",
+                    f"the quote {_q(quote)} is not in {place}{guess}, so learners cannot find "
+                    "these words and the answer key would print words the story does not "
+                    "contain. Copy the words exactly from the story (leave words out with '…' "
+                    "if needed), or quote other words that prove the answer.",
+                )
+
+    #: Double quote marks, left out when a quote is compared with the story: a
+    #: quote may keep or drop the „…“ around direct speech.
+    _NO_QUOTE_MARKS = str.maketrans("", "", '„“”«»‹›"')
 
     def check_writing_extras(self) -> None:
         """Writing 'input' and 'points': the model answer covers every point."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, WritingTask) or not (task.input or task.points):
+                continue
+            where = f"/tasks/{i}"
+            answer = task.model_answer or ""
+            if not answer.strip():
+                given = " and ".join(
+                    name for name, value in (("an 'input'", task.input), ("'points'", task.points))
+                    if value
+                )
+                lang = "target" if task.output_lang == "target" else "source"
+                covers = (
+                    "covers every point; give each point \"covered_by\": the words of the model "
+                    "answer that cover it" if task.points else "does what the prompt asks"
+                )
+                self.warn(
+                    "writing-no-model-answer", where,
+                    f"this writing task has {given} but no model answer, so the answer key has "
+                    f"nothing to compare the learner's text with. Add \"model_answer\": a "
+                    f"complete text in the {lang} language, as the learner should write it, that "
+                    f"{covers}.",
+                )
+                continue
+            text = self._passage_key(answer)
+            for j, point in enumerate(task.points):
+                covered = point.covered_by or ""
+                if not self._passage_key(covered):
+                    self.warn(
+                        "point-not-covered", f"{where}/points/{j}",
+                        f"the point {_q(point.point)} has no 'covered_by', so nobody can see "
+                        "where the model answer covers it. Add \"covered_by\": the words of the "
+                        "model answer that cover this point, copied exactly; if the model answer "
+                        "does not cover it yet, add a sentence that does.",
+                    )
+                elif not self._quotes(text, covered):
+                    close = self._closest_passage(answer, covered)
+                    guess = f" (did you mean {_q(close)}?)" if close else ""
+                    self.warn(
+                        "point-not-covered", f"{where}/points/{j}/covered_by",
+                        f"'covered_by' {_q(covered)} is not part of the model answer{guess}, so "
+                        "the answer key would quote words that the model answer does not "
+                        f"contain. Copy the words that cover the point {_q(point.point)} exactly "
+                        "from model_answer, or rewrite the model answer so that it covers the "
+                        "point with these words.",
+                    )
+
+    #: Punctuation and quote marks around a quoted passage (not part of it).
+    _PASSAGE_EDGES = string.punctuation + "„“”«»‚‘’‹›…–—" + string.whitespace
+    #: Typographic quote marks and apostrophes, unified for comparisons.
+    _QUOTE_MARKS = str.maketrans("„“”«»‹›‘’‚ʼ", '"""""""\'\'\'\'')
+
+    @classmethod
+    def _passage_key(cls, text: str) -> str:
+        """A passage for substring comparisons: case, spacing, quote marks and
+        the punctuation around it do not count."""
+        text = text.strip(cls._PASSAGE_EDGES).translate(cls._QUOTE_MARKS)
+        return " ".join(text.casefold().split())
+
+    @classmethod
+    def _quotes(cls, text: str, passage: str) -> bool:
+        """Does ``text`` (a :meth:`_passage_key`) contain ``passage``? A long
+        quote may leave out words with '…': its parts must occur in order."""
+        pos = 0
+        for part in re.split(r"…|\.\.\.", passage):
+            key = cls._passage_key(part)
+            found = text.find(key, pos)
+            if found < 0:
+                return False
+            pos = found + len(key)
+        return True
+
+    @classmethod
+    def _closest_passage(cls, text: str, passage: str) -> str | None:
+        """The run of words in ``text`` most like ``passage`` (as many words),
+        or ``None`` when no run is close."""
+        words = text.split()
+        size = min(len(passage.split()), len(words))
+        key = cls._passage_key(passage)
+        best, best_ratio = None, 0.0
+        for k in range(len(words) - size + 1):
+            run = " ".join(words[k:k + size]).strip(cls._PASSAGE_EDGES)
+            ratio = difflib.SequenceMatcher(None, cls._passage_key(run), key).ratio()
+            if ratio > best_ratio:
+                best, best_ratio = run, ratio
+        return best if best_ratio >= 0.6 else None
 
     def check_choice_gaps(self) -> None:
         """The options of cloze gaps with hint 'choice'."""
@@ -1436,6 +1586,129 @@ class _Checker:
 
     def check_transform_extras(self) -> None:
         """Transform frames, key words and max_words."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TransformTask):
+                continue
+            for j, item in enumerate(task.items):
+                where = f"/tasks/{i}/items/{j}"
+                # what the learner writes: every accepted answer of the frame's
+                # gap, else the rewritten sentence
+                written = [item.answer or ""]
+                field = "answer"
+                if item.frame is not None:
+                    field = "frame"
+                    # (broken markup is reported once, and nothing else is checked)
+                    before = len(self.issues)
+                    self._check_gap_text(None, item.frame, f"{where}/frame", "this frame",
+                                         need_gaps=False)
+                    found = _parse_gaps(item.frame)[0]
+                    written = list(found[0].accepted) if len(found) == 1 else []
+                    if len(self.issues) > before:
+                        written = []
+                    elif len(found) != 1:
+                        self._frame_gaps(item.frame, found, f"{where}/frame")
+                    if (item.answer or "").strip():
+                        self._frame_and_answer(item.answer or "", transform_sentence(item),
+                                               where)
+                if item.keyword and item.keyword.strip() and written:
+                    self._check_keyword(item.keyword, item.frame, written, f"{where}/keyword")
+                if task.max_words is not None and written:
+                    self._check_answer_length(task.max_words, written, field, f"{where}/{field}")
+
+    def _frame_gaps(self, frame: str, found: list[markup.Gap], where: str) -> None:
+        if not found:
+            self.error(
+                "frame-gaps", where,
+                f"the frame {_q(frame)} has no {{{{gap}}}}, so it prints the new sentence "
+                "complete and the learner has nothing to write. Put the words the learner "
+                "writes — the part that changes, with the key word — into one gap: "
+                "'the beginning {{words to write}} the end.'",
+            )
+            return
+        shown = ", ".join("{{" + "|".join(g.accepted) + "}}" for g in found)
+        self.error(
+            "frame-gaps", where,
+            f"the frame {_q(frame)} has {len(found)} gaps ({shown}), but a frame takes exactly "
+            "one: the learner writes one answer per item, and the answer key and max_words "
+            "count it as one. Join them into one gap that holds all the words the learner "
+            "writes (the words between them included), or split the item into two.",
+        )
+
+    def _frame_and_answer(self, answer: str, sentence: str, where: str) -> None:
+        differs = _norm_sentence(answer) != _norm_sentence(sentence)
+        note = (f" It also differs from the frame with its gap filled, {_q(sentence)}: make "
+                "sure the gap holds the words you meant." if differs else "")
+        self.warn(
+            "frame-and-answer", f"{where}/answer",
+            "this item has both a 'frame' and an 'answer'. With a frame, the learner writes "
+            "only the words of its {{gap}} and the answer key prints them, so 'answer' is never "
+            f"used.{note} Remove 'answer'.",
+        )
+
+    def _check_keyword(
+        self, keyword: str, frame: str | None, written: list[str], where: str,
+    ) -> None:
+        """The key word is part of every accepted answer (a key word
+        transformation uses it unchanged)."""
+        word = keyword.strip()
+
+        def uses(text: str) -> bool:
+            if self.target_lang in _NO_SPACE_LANGS:
+                return word.casefold() in text.casefold()
+            return _contains(text, word)
+
+        missing = [w for w in written if not uses(w)]
+        if not missing:
+            return
+        what = "the words in the gap" if frame is not None else "the answer"
+        if len(missing) < len(written):
+            having = next(w for w in written if uses(w))
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is in the accepted answer {_q(having)}, but not in "
+                f"{_q(missing[0])}, and every accepted answer of the gap must use it. Rewrite "
+                f"{_q(missing[0])} with the key word, or remove it from the gap.",
+            )
+        elif frame is not None and uses(markup.GAP_RE.sub(" ", frame)):
+            gap = "{{" + missing[0] + "}}"
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is printed in the frame, outside the gap {_q(gap)}, so "
+                "the learner never has to use it. Move it into the gap: the gap holds the words "
+                "the learner writes, the key word included.",
+            )
+        else:
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is not in {what} {_q(missing[0])}, but the learner "
+                "must use the key word, unchanged (not inflected, not replaced). Rewrite the "
+                f"{'gap' if frame is not None else 'answer'} so that it contains '{word}' "
+                "exactly, or choose as key word a word the answer uses.",
+            )
+
+    def _check_answer_length(
+        self, limit: int, written: list[str], field: str, where: str,
+    ) -> None:
+        """No accepted answer is longer than the task's max_words."""
+        if self.target_lang in _NO_SPACE_LANGS:
+            return
+        longest = max(written, key=_word_count)
+        n = _word_count(longest)
+        if n <= limit:
+            return
+        if field == "frame":
+            how = ("Leave the words that do not change in the frame, outside the gap, so the "
+                   f"gap holds only the {limit} words or fewer that the learner must write; or "
+                   f"raise max_words to {n}.")
+        else:
+            how = ("Without a 'frame', the learner writes the whole new sentence. Give the item "
+                   "a 'frame' — the new sentence with one {{gap}} around the words that change "
+                   "— or remove max_words from the task.")
+        self.warn(
+            "answer-too-long", where,
+            f"the answer {_q(longest)} has {n} words, but the task's max_words allows at most "
+            f"{limit}, so the answer key breaks the task's own rule. {how}",
+        )
 
     def check_question_starters(self) -> None:
         """Model answers begin with their question's starter."""
@@ -1449,7 +1722,9 @@ class _Checker:
     def _check_model_answer(self, task: WritingTask, where: str) -> None:
         answer = task.model_answer or ""
         low, high = task.min_words, task.max_words
-        if self.target_lang not in _NO_SPACE_LANGS and (low or high):
+        lang = (self.target_lang if task.output_lang == "target"
+                else locale.base_lang(self.ws.source_lang))
+        if lang not in _NO_SPACE_LANGS and (low or high):
             n = _word_count(answer)
             too_short = low is not None and n < low * (1 - MODEL_ANSWER_SLACK)
             too_long = high is not None and n > high * (1 + MODEL_ANSWER_SLACK)
@@ -1463,6 +1738,8 @@ class _Checker:
                     f"Rewrite it to {wanted} words, so the learner sees what a complete answer "
                     "of the right length looks like.",
                 )
+        if task.output_lang == "source":
+            return  # must_use words are target-language words: not in a source-language text
         for k, word in enumerate(task.must_use):
             if strip_article(word, self.target_lang) and not self.occurs(word, [answer]):
                 self.warn(

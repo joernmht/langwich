@@ -370,8 +370,65 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: classify ---- */
 
 /* ---- kind: true_false+ ---- */
+/* three boxes: a table whose head row names the box columns (repeated after
+   a page break); a statement and its lines never split. With "justify", a
+   captioned line for the words of the story below the correction line. */
+table.tf3 { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.tf3 th { font: 600 8pt/1.2 var(--sans); text-align: center; vertical-align: bottom;
+  padding: 0 0 1.4mm; }
+table.tf3 th.n { width: var(--gut); }
+table.tf3 tbody { break-inside: avoid; }
+/* (as in a flowing task: the first two statements stay below the head, the
+   last one never stands alone) */
+table.tf3 thead + tbody:not(:last-child), table.tf3 tbody:nth-last-child(2) {
+  break-after: avoid; }
+table.tf3 tbody > tr:first-child > td { vertical-align: baseline; }
+table.tf3 tbody + tbody > tr:first-child > td { padding-top: 2.6mm; }
+table.tf3 td { padding: 0; }
+table.tf3 td.n { font: 700 11pt/1.45 var(--sans); }
+table.tf3 td.c { font: 400 11pt/1.45 var(--serif); padding-right: 5mm; }
+table.tf3 td.b { text-align: center; font: 400 11pt/1.45 var(--sans); }
+table.tf3 td.b .bxs { margin-right: 0; }
+table.tf3 td.corr { height: 7.6mm; border-bottom: .6pt solid var(--ink-3); }
+.tf .evd { grid-column: 2 / span 2; grid-row: 3; }
+.tf.just > .it + .it { margin-top: 4.2mm; }
+table.tf3.just tbody + tbody > tr:first-child > td { padding-top: 4.2mm; }
 
 /* ---- kind: writing+ ---- */
+/* who the text is for and its register; the text to answer, in a box as wide
+   as the story column; the points to cover as a tick list; with "paragraphs",
+   one numbered block of lines per point (the number in the gutter) */
+.writing .wmeta { font: 400 10pt/1.4 var(--sans); margin: -1.2mm 0 3mm; break-after: avoid; }
+.writing .wmeta .cap { display: inline; margin: 0 2mm 0 0; }
+.writing .wmeta .reg { display: inline-block; margin-left: 3.5mm; padding: .3mm 1.4mm .2mm;
+  border: .6pt solid #000; font: 700 7.5pt/1.3 var(--sans); letter-spacing: .1em;
+  text-transform: uppercase; vertical-align: .3mm; }
+.writing .wmeta .reg:first-child { margin-left: 0; }
+.writing .input { max-width: calc(var(--main) - var(--gut)); margin: 0 0 3.6mm;
+  break-inside: avoid; }
+.writing .input p { font: 400 10.5pt/1.45 var(--serif); }
+.writing .input.src p { font-family: var(--sans); }
+.writing .input p + p { margin-top: 1.8mm; }
+.writing .points { display: flex; align-items: baseline; margin: 0 0 3mm; break-inside: avoid;
+  break-after: avoid; }
+.writing .points .cap { margin: 0 3mm 0 0; white-space: nowrap; }
+.writing .points ul { list-style: none; font: 400 11pt/1.45 var(--sans); }
+.writing .points li { padding-left: 5mm; text-indent: -5mm; }
+.writing .points li + li { margin-top: .6mm; }
+.writing .points .tick { display: inline-block; width: 3.4mm; height: 3.4mm;
+  border: .6pt solid #000; margin-right: 1.6mm; vertical-align: -.3mm; text-indent: 0; }
+.writing .pn { font: 700 9pt var(--sans); color: var(--ink-3); text-indent: 0; }
+.writing .points .pn { display: inline-block; min-width: 3.6mm; }
+.writing .numbered + .numbered { margin-top: 3.6mm; }
+.writing .numbered > div:first-child { position: relative; }
+.writing .numbered .pn { position: absolute; left: calc(0mm - var(--gut)); bottom: 1.2mm; }
+.writing .lines > div.starter.src { font-family: var(--sans); }
+.solutions .sb .model.src { font-family: var(--sans); }
+.solutions .sb .pts { list-style: none; margin-top: 1mm; }
+.solutions .sb .pts li { padding-left: 3.6mm; text-indent: -3.6mm; }
+.solutions .sb .pts li::before { content: "–"; display: inline-block; width: 3.6mm;
+  text-indent: 0; }
+.solutions .sb .pts li + li { margin-top: .5mm; }
 
 /* ---- kind: cloze choice ---- */
 
@@ -384,6 +441,17 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: proofread ---- */
 
 /* ---- kind: transform+ ---- */
+/* the key word at the right end of the prompt's row, in bold capitals; a
+   frame (the new sentence with its gap as a blank) after the arrow, on lines
+   as tall as a cloze item's, so there is room to write */
+.tr .kwr { display: grid; grid-template-columns: 1fr auto; column-gap: 5mm;
+  align-items: baseline; }
+.tr .kw { font: 700 10pt/1.45 var(--sans); letter-spacing: .08em; text-transform: uppercase;
+  white-space: nowrap; }
+.tr .frm { display: grid; grid-template-columns: auto 1fr; align-items: start; }
+.tr .frm .cue { font: italic 400 9.5pt/7.6mm var(--sans); color: var(--ink-2);
+  padding-right: 2.4mm; white-space: nowrap; }
+.tr .frm .tl { font: 400 11pt/7.6mm var(--serif); }
 
 /* ---- kind: questions+ media_search+ ---- */
 
@@ -532,8 +600,10 @@ EPAPER_CSS = r"""
 /* ---- kind: classify ---- */
 
 /* ---- kind: true_false+ ---- */
+table.tf3 th { font-size: 8.5pt; }
 
 /* ---- kind: writing+ ---- */
+.writing .wmeta .reg { font-size: 8.5pt; }
 
 /* ---- kind: cloze choice ---- */
 

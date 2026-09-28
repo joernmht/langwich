@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 from collections import Counter
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -166,14 +167,57 @@ def _match(b: Builder, pt: PlannedTask, task: MatchTask) -> Parts:
 
 
 def _true_false(b: Builder, pt: PlannedTask, task: TrueFalseTask) -> Parts:
-    boxes = (f'<span class="cks"><span class="ck"><span class="bxs"></span>{esc(b.t("true"))}</span>'
-             f'<span class="ck"><span class="bxs"></span>{esc(b.t("false"))}</span></span>')
-    items = "".join(
-        f'<div class="it"><span class="n">{i}</span><div class="c">{b.tl(item.statement)}</div>'
-        f'{boxes}<span class="corr"></span></div>'
+    # with "justify", a captioned line for the words of the story below the
+    # correction line (every statement gets both lines: the learner does not
+    # know yet which statements are false)
+    evidence = (f'<div class="wl evd"><span class="cue">{esc(b.t("evidence"))}</span>'
+                '<span class="line"></span></div>') if task.justify else ""
+    just = " just" if task.justify else ""  # (more room between statements)
+    if not task.not_given:
+        labels = "".join(f'<span class="ck"><span class="bxs"></span>{esc(b.t(key))}</span>'
+                         for key in ("true", "false"))
+        boxes = f'<span class="cks">{labels}</span>'
+        items = "".join(
+            f'<div class="it"><span class="n">{i}</span><div class="c">{b.tl(item.statement)}</div>'
+            f'{boxes}<span class="corr"></span>{evidence}</div>'
+            for i, item in enumerate(task.items, 1)
+        )
+        return Parts(f'<div class="items tf{just}">{items}</div>')
+    # three boxes: a table whose head row names the columns once instead of
+    # taking width on every line (a page break repeats it); the task stays
+    # whole where it can, one statement never splits
+    width = f' style="width:{tf_column_width(b):.1f}mm"'
+    heads = "".join(f'<th class="h"{width}>{esc(b.t(key))}</th>'
+                    for key in ("true", "false", "not_given"))
+    boxes = '<td class="b"><span class="bxs"></span></td>' * 3
+    rows = "".join(
+        f'<tbody><tr><td class="n">{i}</td><td class="c">{b.tl(item.statement)}</td>{boxes}</tr>'
+        '<tr><td></td><td class="corr" colspan="4"></td></tr>'
+        + (f'<tr><td></td><td colspan="4">{evidence}</td></tr>' if evidence else "")
+        + "</tbody>"
         for i, item in enumerate(task.items, 1)
     )
-    return Parts(f'<div class="items tf">{items}</div>')
+    return Parts(f'<table class="tf3{just}"><thead><tr><th class="n"></th><th></th>{heads}</tr>'
+                 f"</thead>{rows}</table>", keep=True)
+
+
+#: Size (pt) of the column heads of a true_false task with three boxes, on A4
+#: and on e-paper (the CSS below "true_false+" sets the same).
+TF_HEAD_PT = {"a4": 8.0, "epaper": 8.5}
+
+
+def tf_column_width(b: Builder) -> float:
+    """Width (mm) of each box column of a true_false task with three boxes:
+    every head ('true', 'false', 'not in the text') on at most two lines,
+    no word broken, at least 1 mm clear on either side."""
+    size = TF_HEAD_PT["epaper" if b.epaper else "a4"]
+    heads = [b.t(key) for key in ("true", "false", "not_given")]
+    longest = max(metrics.width_mm(w, "sans-bold", size) for h in heads for w in h.split())
+    width = max(12.0, math.ceil((longest + 2.0) * 2) / 2)
+    while width < 30.0 and any(metrics.line_count(h, width - 2.0, "sans-bold", size) > 2
+                               for h in heads):
+        width += 0.5
+    return width
 
 
 def _multiple_choice(b: Builder, pt: PlannedTask, task: MultipleChoiceTask) -> Parts:
@@ -230,13 +274,36 @@ def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
 
 
 def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
+    # the blanks of the frames share one width: the longest answer as
+    # handwriting (wider than print), so no blank gives its answer's length away
+    answers = [g.answer for item in task.items if item.frame for g in safe_gaps(item.frame)]
+    width = frame_blank_width(b, answers, b.has_aside(pt, False)) if answers else 0.0
     items = []
     for i, item in enumerate(task.items, 1):
+        prompt = b.tl(item.prompt, "p", "q")
+        keyword = (item.keyword or "").strip()
+        if keyword:
+            # the key word at the right end of the prompt's row, in capitals
+            prompt = (f'<div class="kwr">{prompt}<span class="kw"{b.lang_attr()}>'
+                      f"{esc(keyword)}</span></div>")
         cue = f"→ {esc(item.cue)}" if item.cue else "→"
-        items.append(_item(
-            i, f'{b.tl(item.prompt, "p", "q")}<div class="wl"><span class="cue">{cue}</span>'
-               '<span class="line"></span></div>'))
+        if item.frame is not None:
+            # the new sentence with its gap as a blank, instead of a line
+            second = (f'<div class="frm"><span class="cue">{cue}</span><span class="tl"'
+                      f"{b.lang_attr()}>{gapped_html(b, item.frame, width)}</span></div>")
+        else:
+            second = f'<div class="wl"><span class="cue">{cue}</span><span class="line"></span></div>'
+        items.append(_item(i, prompt + second))
     return Parts(f'<div class="items tr">{"".join(items)}</div>')
+
+
+def frame_blank_width(b: Builder, answers: list[str], with_aside: bool) -> float:
+    """Width (mm) of the blank in a transform frame: the longest answer a
+    fifth wider than print (it is handwritten, often several words), at least
+    30 mm, at most a whole line (a clause to write may need one)."""
+    widest = max(metrics.width_mm(a, "serif", 11.0) for a in answers)
+    avail = b.main_width(with_aside) - GUTTER_W - 8.0  # (the arrow, the full stop)
+    return round(min(max(widest * 1.2 + 6.0, 30.0), avail), 1)
 
 
 def _word_building(b: Builder, pt: PlannedTask, task: WordBuildingTask) -> Parts:
@@ -307,14 +374,64 @@ def _writing(b: Builder, pt: PlannedTask, task: WritingTask) -> Parts:
     if task.starter and not task.lines:
         count += 1
     count = max(1, min(count, 40))
+    # with "paragraphs": one numbered block of lines per point, at least three
+    # lines each (the starter, if any, on an extra first line)
+    blocks = [count]
+    if task.paragraphs and len(task.points) > 1:
+        head = 1 if task.starter else 0
+        per = max(3, math.ceil((count - head) / len(task.points)))
+        blocks = [per + head] + [per] * (len(task.points) - 1)
+    numbered = len(blocks) > 1
     parts = [f'<p class="prompt">{esc(task.prompt)}</p>']
+    # who the text is for, and its register as a small tag
+    meta = ""
+    if task.audience:
+        meta += f'<span class="cap">{esc(b.t("audience"))}</span>{esc(task.audience)}'
+    if task.register_:
+        meta += f'<span class="reg">{esc(b.t(f"register.{task.register_}"))}</span>'
+    if meta:
+        parts.append(f'<p class="wmeta">{meta}</p>')
+    if task.input:
+        # the text to answer or work from, as it would look: paragraphs and line breaks kept
+        paras = "".join("<p>" + esc(p.strip()).replace("\n", "<br>") + "</p>"
+                        for p in task.input.split("\n\n") if p.strip())
+        source = task.input_lang == "source"
+        attr = b.src_attr() if source else b.lang_attr()
+        parts.append(f'<div class="box input {"src" if source else "tl"}"{attr}>{paras}</div>')
+    if task.points:
+        points = "".join(
+            '<li><span class="tick"></span>'
+            + (f'<span class="pn">{k}</span>' if numbered else "")
+            + f"{esc(p.point)}</li>"
+            for k, p in enumerate(task.points, 1)
+        )
+        parts.append(f'<div class="points"><span class="cap">{esc(b.t("points"))}</span>'
+                     f"<ul>{points}</ul></div>")
     if task.must_use:
         words = "".join(f'<span class="w"><span class="tick"></span>{esc(w)}</span>'
                         for w in task.must_use)
         parts.append(f'<div class="usewords"><span class="cap">{esc(b.t("use_words"))}</span>'
                      f'<span class="tl"{b.lang_attr()}>{words}</span></div>')
-    parts.append(b.lines(count, task.starter))
+    parts.append(_writing_space(b, blocks, task.starter, task.output_lang == "source"))
     return Parts(f'<div class="writing">{"".join(parts)}</div>')
+
+
+def _writing_space(b: Builder, blocks: list[int], starter: str | None, source: bool) -> str:
+    """Writing lines: one block per count in ``blocks`` (numbered when there
+    are several); the starter, in the language the learner writes, on the
+    first line."""
+    attr, face = (b.src_attr(), "src") if source else (b.lang_attr(), "tl")
+    numbered = len(blocks) > 1
+    out = []
+    for k, count in enumerate(blocks):
+        num = f'<span class="pn">{k + 1}</span>' if numbered else ""
+        if k == 0 and starter:
+            first = f'<div class="starter {face}"{attr}>{num}{esc(starter)}</div>'
+        else:
+            first = f"<div>{num}</div>"
+        klass = "lines numbered" if numbered else "lines"
+        out.append(f'<div class="{klass}">{first}{"<div></div>" * (count - 1)}</div>')
+    return "".join(out)
 
 
 def _dialogue(b: Builder, pt: PlannedTask, task: DialogueTask) -> Parts:
@@ -421,7 +538,11 @@ _RENDERERS = {
 
 
 def _instruction_true_false(b: Builder, task: TrueFalseTask) -> str | None:
-    return None
+    """Three boxes name the third one; 'justify' asks for the words of the story."""
+    if not (task.not_given or task.justify):
+        return None
+    text = b.t("kind.true_false.not_given" if task.not_given else "kind.true_false.instruction")
+    return f'{text} {b.t("kind.true_false.justify")}' if task.justify else text
 
 
 def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:
@@ -437,6 +558,10 @@ def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
 
 
 def _instruction_transform(b: Builder, task: TransformTask) -> str | None:
+    """Key words: complete the second sentence with the word in capitals.
+    (Frames without a key word keep the plain 'rewrite as shown'.)"""
+    if any(item.keyword and item.keyword.strip() for item in task.items):
+        return b.t("kind.transform.keyword")
     return None
 
 
@@ -462,7 +587,15 @@ def default_instruction(b: Builder, pt: PlannedTask) -> str | None:
 
 
 def _suffix_transform(b: Builder, task: TransformTask) -> str:
-    return ""
+    """The word limit of the answers ('max_words') after the instruction's
+    last sentence, capitalised, unless the task's own instruction states the
+    number already."""
+    if task.max_words is None:
+        return ""
+    if task.instruction and re.search(rf"(?<!\d){task.max_words}(?!\d)", task.instruction):
+        return ""
+    limit = b.t("kind.transform.max", max=task.max_words)
+    return f' <span class="len">{esc(limit[:1].upper() + limit[1:])}</span>'
 
 
 _SUFFIXES: dict[str, Callable[[Builder, Any], str]] = {

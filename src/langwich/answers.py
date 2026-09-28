@@ -174,7 +174,8 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """true / false (with the correction) / not in the text, per statement."""
+    """true / false (with the correction) / not in the text, per statement, and
+    the words of the story that prove it: ``false – Sie soll … «Am Freitag …»``."""
     task = pt.task
     assert isinstance(task, TrueFalseTask)
     lang, ui = ws.source_lang, ws.ui
@@ -184,9 +185,31 @@ def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
             verdicts.append(t("not_given", lang, ui))
             continue
         word = t("true" if item.answer is True else "false", lang, ui)
-        verdicts.append(
-            f"{word} – {item.correction}" if item.answer is False and item.correction else word)
+        shown = [item.correction] if item.answer is False and item.correction else []
+        quote = _quoted(item.quote or "")
+        if quote:
+            shown.append(quote)
+        verdicts.append(f"{word} – {' '.join(shown)}" if shown else word)
     return verdicts
+
+
+#: Quote marks that open and close a passage (the story's own „…“ around
+#: direct speech included), and the double ones among them.
+_OPENING_QUOTES = "„“”«»‚‘’‹›\"'"
+_CLOSING_QUOTES = "“”«»‘’‹›\"'"
+_DOUBLE_QUOTES = "„“”«»\""
+
+
+def _quoted(text: str) -> str:
+    """Words of the story in the key's quote marks, «…», without the marks
+    of a passage that is one quotation already (``„Um sieben.“``, but not
+    ``„Morgen“, sagt er. „Um sieben.“``); ``""`` for no words."""
+    text = text.strip()
+    inner = text[1:-1]
+    if (len(text) > 1 and text[0] in _OPENING_QUOTES and text[-1] in _CLOSING_QUOTES
+            and not any(mark in inner for mark in _DOUBLE_QUOTES)):
+        text = inner.strip()
+    return f"«{text}»" if text else ""
 
 
 def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:
