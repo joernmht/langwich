@@ -366,6 +366,18 @@ table.match td.opt.tl { font-family: var(--serif); }
 .draw-words { margin-top: 3mm; }
 
 /* ---- kind: scramble ---- */
+/* word tiles in a wrapping row, the meaning, then the learner's line with
+   the end mark (a long sentence gets more lines above it) */
+.scr > .it + .it { margin-top: 3.4mm; }
+.scr > .it > .n { padding-top: .7mm; }       /* on the baseline of the framed tiles */
+.scr .tiles { font: 400 11pt/1.3 var(--serif); }
+.scr .tile { display: inline-block; border: .6pt solid #000; padding: .4mm 1.8mm .6mm;
+  margin: 0 1.2mm 1.6mm 0; }
+.scr .cue { font: italic 400 9.5pt/1.4 var(--sans); color: var(--ink-2); margin-top: -.4mm; }
+.scr .sl { display: grid; grid-template-columns: 1fr auto; align-items: end;
+  height: var(--pitch); break-inside: avoid; }
+.scr .sl .line { border-bottom: .6pt solid var(--ink-3); height: 6mm; }
+.scr .sl .end { font: 400 13pt/1 var(--serif); padding: 0 0 .3mm 1.2mm; }
 
 /* ---- kind: classify ---- */
 
@@ -495,6 +507,24 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 /* ---- kind: find_in_text ---- */
 
 /* ---- kind: proofread ---- */
+/* the character's draft in a frame, marked mistakes underlined and numbered;
+   below, a numbered field per correction (marked) or a row 'wrong → correct'
+   per mistake found (unmarked), the numbers in the gutter. The draft stays
+   with the first row, and no row stands alone on a page. */
+.proof .draft { margin-left: var(--gut); border: .6pt solid #000; padding: 2.2mm 4mm 2.6mm; }
+.proof .draft p { font: 400 11pt/6.4mm var(--serif); hyphens: manual; orphans: 2; widows: 2; }
+.proof .draft p + p { margin-top: 1.6mm; }
+.proof .draft u { text-decoration: underline; text-decoration-thickness: .8pt;
+  text-underline-offset: 1.8pt; }
+.proof .draft .gn { vertical-align: .45em; line-height: 1; margin-left: .5mm; }
+.proof .fixes { margin-top: 1.4mm; }
+.proof .fr { display: grid; column-gap: 7mm; break-inside: avoid; }
+.proof .draft:not(:last-child), .proof .fr:first-child:not(:last-child),
+.proof .fr:nth-last-child(2) { break-after: avoid; }
+.proof .fx { display: grid; grid-template-columns: var(--gut) 1fr 8mm 1fr; align-items: end;
+  height: var(--pitch); font: 700 11pt var(--sans); }
+.proof .fx .line { border-bottom: .6pt solid var(--ink-3); height: 6mm; }
+.proof .fx .ar { font: 400 14pt/1 var(--serif); text-align: center; }  /* on the lines */
 
 /* ---- kind: transform+ ---- */
 /* the key word at the right end of the prompt's row, in bold capitals; a
@@ -510,6 +540,9 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 .tr .frm .tl { font: 400 11pt/7.6mm var(--serif); }
 
 /* ---- kind: questions+ media_search+ ---- */
+/* questions in the learner's language; a starter longer than the line wraps */
+.it .q.src { font: 400 11pt/1.45 var(--sans); }
+.qs .lines > div.starter { height: auto; min-height: var(--pitch); padding-top: 1.6mm; }
 
 /* ---- kind: crossword ---- */
 

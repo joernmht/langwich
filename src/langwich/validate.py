@@ -39,7 +39,7 @@ from typing import Any, Literal
 from urllib.parse import unquote_to_bytes
 
 from langwich import locale, markup
-from langwich.answers import transform_sentence
+from langwich.answers import scramble_sentence, transform_sentence
 from langwich.model import (
     CEFR_LEVELS,
     POS_VALUES,
@@ -273,6 +273,20 @@ STORY_WORDS: dict[str, tuple[int, int]] = {
     "C2": (600, 1200),
 }
 assert set(STORY_WORDS) == set(CEFR_LEVELS)
+
+#: Tasks in total, per CEFR level (the recommended set of the brief).
+TASK_COUNT: dict[str, tuple[int, int]] = {
+    "A1": (8, 11),
+    "A2": (8, 12),
+    "B1": (10, 14),
+    "B2": (10, 14),
+    "C1": (10, 14),
+    "C2": (10, 14),
+}
+assert set(TASK_COUNT) == set(CEFR_LEVELS)
+#: Levels whose long stories need one comprehension task per one or two
+#: scenes only; the other levels have one per scene.
+PAIRED_SCENE_LEVELS = frozenset({"C1", "C2"})
 
 SCENES_MIN, SCENES_MAX = 2, 7
 TARGET_MIN, TARGET_MAX = 5, 15
@@ -765,7 +779,7 @@ class _Checker:
             out += [f"{i.prompt} {i.cue or ''} {transform_sentence(i)}" for i in task.items]
         elif isinstance(task, ScrambleTask):
             out += [c for i in task.items for c in i.chunks]
-            out += [" ".join(i.chunks) for i in task.items]
+            out += [scramble_sentence(i.chunks, i.end, self.target_lang) for i in task.items]
         elif isinstance(task, WordBuildingTask):
             out += [p for i in task.items for p in i.parts] + [i.answer for i in task.items]
         elif isinstance(task, TableTask):
@@ -937,18 +951,17 @@ class _Checker:
                 if single else ""
             )
             if hint == "proofread":
+                problem = "has no marked mistakes, so there is nothing to correct"
                 how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
                        "wrong form the character wrote.")
             elif hint == "gapped_text":
                 how = ("Write each sentence you take out in its place as {{sentence}}: the "
                        "whole sentence, with its full stop, inside double braces.")
             else:
+                problem = "has no gaps, so there is nothing to fill in"
                 how = (f"Mark each gap as {{{{answer}}}} inside the text, e.g. "
                        f"'… {{{{{self.example_word()}}}}} …'.")
-            self.error(
-                "cloze-without-gaps", where,
-                f"{what} has no gaps, so there is nothing to fill in.{extra} {how}",
-            )
+            self.error("cloze-without-gaps", where, f"{what} {problem}.{extra} {how}")
         if hint in ("base_form", "translation"):
             kind = "base form" if hint == "base_form" else "meaning in the source language"
             for gap in found:
@@ -993,7 +1006,8 @@ class _Checker:
                         "the correct word and there is nothing to correct. Write it as "
                         f"{{{{{body}::<the wrong form the character wrote>}}}}.",
                     )
-                elif gap.hint.casefold() in {a.casefold() for a in gap.accepted}:
+                # (case counts: 'kaffee' for 'Kaffee' is a mistake to correct)
+                elif " ".join(gap.hint.split()) in {" ".join(a.split()) for a in gap.accepted}:
                     self.warn(
                         "hint-is-answer", where,
                         f"the mistake {{{{{body}::{gap.hint}}}}} prints a correct form as the "
@@ -1413,6 +1427,100 @@ class _Checker:
 
     def check_scramble(self) -> None:
         """Scramble alternatives, punctuation in tiles, a capitalised first tile."""
+        if not any(isinstance(task, ScrambleTask) for task in self.ws.tasks):
+            return
+        capitals = {"de": "a name or a noun", "en": "a name or 'I'"}.get(self.target_lang, "a name")
+        # where the worksheet writes a word in lower case (a capital that it
+        # never drops belongs to a name or a German noun, not to the start)
+        texts = [s.text for s in self.ws.story.scenes] + [v.term for v in self.ws.vocabulary.items]
+        texts += [t for task in self.ws.tasks for t in self.task_texts(task)]
+
+        def difference(chunks: list[str], order: list[str]) -> tuple[list[str], list[str]]:
+            """The tiles of ``chunks`` that ``order`` lacks, and the ones it adds."""
+            extra = list(order)
+            missing = []
+            for chunk in chunks:
+                if chunk in extra:
+                    extra.remove(chunk)
+                else:
+                    missing.append(chunk)
+            return missing, extra
+
+        def gives_start_away(word: str) -> bool:
+            if not word[:1].isupper() or any(ch.isupper() for ch in word[1:]):
+                return False  # lower case, or an acronym or name (EU, McDonald)
+            if self._capitalised_anyway(word):
+                return False
+            lower = re.compile(r"(?<!\w)" + re.escape(word[0].lower() + word[1:]) + r"(?!\w)")
+            return any(lower.search(text) for text in texts)
+
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ScrambleTask):
+                continue
+            for j, item in enumerate(task.items):
+                where = f"/tasks/{i}/items/{j}"
+                starts = [0]  # the tiles that start a correct order
+                for k, alternative in enumerate(item.alternatives):
+                    missing, extra = difference(item.chunks, alternative)
+                    if not (missing or extra):
+                        starts.append(item.chunks.index(alternative[0]))
+                        continue
+                    wrong = " and ".join(
+                        [f"lacks {_one_of(missing)}"] * bool(missing)
+                        + [f"adds {_one_of(extra)}"] * bool(extra)
+                    )
+                    self.error(
+                        "scramble-alternative", f"{where}/alternatives/{k}",
+                        f"this alternative {wrong}, so it is not an order of the tiles in "
+                        "'chunks'. An alternative is another correct order of the same tiles: "
+                        "copy every tile of 'chunks' exactly (same spelling and capitals, each "
+                        "as often as there) and change only the order — or remove the "
+                        "alternative.",
+                    )
+                self._check_scramble_tiles(item.chunks, where)
+                for k in sorted(set(starts)):
+                    tile = item.chunks[k]
+                    word = re.search(r"\w+(?:['’]\w+)*", tile)
+                    if word is None or not gives_start_away(word.group(0)):
+                        continue
+                    at = word.start()
+                    self.warn(
+                        "scramble-capital", f"{where}/chunks/{k}",
+                        f"the tile {_q(tile)} starts the sentence and has a capital letter, so "
+                        "the learner can see which tile comes first. Write it in lower case "
+                        f"({_q(tile[:at] + tile[at].lower() + tile[at + 1:])}) here and in every "
+                        "alternative — the answer key capitalises the first word itself. Keep a "
+                        f"capital only for {capitals}, which is capitalised wherever it stands.",
+                    )
+
+    def _check_scramble_tiles(self, chunks: list[str], where: str) -> None:
+        """Sentence punctuation on a tile shows which tile ends the sentence
+        (with Spanish ¿ ¡, which one starts it). A full stop on a tile inside
+        the sentence ends an abbreviation or a German ordinal ('z. B.', 'am
+        3. Mai') and is fine."""
+        for k, chunk in enumerate(chunks):
+            tile = chunk.strip()
+            mark = re.search(r"[.?!…]+$", tile)
+            if mark and mark.start() == 0:
+                problem = (f"the tile {_q(tile)} is only punctuation, so it always comes last. "
+                           "Remove it from 'chunks' and from every alternative")
+            elif mark and (k == len(chunks) - 1 or mark.group(0) != "."):
+                problem = (f"the tile {_q(tile)} ends with '{mark.group(0)}', so the learner can "
+                           "see which tile ends the sentence. Write it as "
+                           f"{_q(tile[:mark.start()])} here and in every alternative")
+            elif tile[:1] in ("¿", "¡"):
+                problem = (f"the tile {_q(tile)} starts with '{tile[0]}', so the learner can see "
+                           f"which tile starts the sentence. Write it as {_q(tile[1:].lstrip())} "
+                           "here and in every alternative (the answer key adds the opening mark)")
+            else:
+                continue
+            marks = mark.group(0) if mark else {"¿": "?", "¡": "!"}[tile[0]]
+            end = "…" if "…" in marks or ".." in marks else marks[-1]
+            self.warn(
+                "scramble-punctuation", f"{where}/chunks/{k}",
+                f"{problem}, and set \"end\": \"{end}\" on the item — langwich prints the end "
+                "mark after the learner's answer line.",
+            )
 
     def check_classify(self) -> None:
         """Repeated classify items, unused categories."""
@@ -1776,6 +1884,27 @@ class _Checker:
 
     def check_proofread(self) -> None:
         """Proofread texts: every mistake as {{correct::wrong}}."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ProofreadTask):
+                continue
+            where = f"/tasks/{i}/text"
+            self._check_gap_text("proofread", task.text, where, "this proofread text")
+            for gap in _parse_gaps(task.text)[0]:
+                # '{{ist::sind|bist}}' is the markup of a choice gap: the
+                # draft can show only one wrong form, the rest would be
+                # printed with the '|'
+                wrong = markup.wrong_options(gap)
+                if len(wrong) > 1:
+                    body = "|".join(gap.accepted)
+                    keep = next((w for w in wrong if w not in gap.accepted), wrong[0])
+                    self.error(
+                        "missing-gap-hint", where,
+                        f"the mistake {{{{{body}::{gap.hint}}}}} has {len(wrong)} wrong forms, "
+                        "but the draft shows only the one the character wrote; here it would "
+                        f"print {_q(gap.hint or '')}, '|' included. Keep one wrong form after "
+                        f"the '::' ({{{{{body}::{keep}}}}}); other correct forms go before it "
+                        "({{correct|also_correct::wrong}}).",
+                    )
 
     def check_transform_extras(self) -> None:
         """Transform frames, key words and max_words."""
@@ -1906,11 +2035,62 @@ class _Checker:
     def check_question_starters(self) -> None:
         """Model answers begin with their question's starter."""
 
+        quotes = str.maketrans("‘’‚„“”«»", "'''" + '"' * 5)
+
+        def norm(text: str) -> str:
+            """Casefolded, whitespace collapsed, one kind of quote mark each."""
+            return " ".join(text.translate(quotes).casefold().split())
+
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, QuestionsTask):
+                continue
+            for j, item in enumerate(task.items):
+                if not (item.starter and item.answer):
+                    continue
+                # A '…' ('...', '___') in the starter is the learner's to fill:
+                # the answer begins with the words before the first one and
+                # has the words between them in the same order.
+                parts = [norm(p) for p in re.split(r"…|\.{3,}|_{2,}", item.starter)]
+                pattern = ".*?".join(re.escape(p) for p in parts)
+                if re.match(pattern, norm(item.answer), flags=re.DOTALL):
+                    continue
+                verb, fill = (("follow", " and fill in each '…'") if any(parts[1:])
+                              else ("begin with", " and complete the sentence"))
+                self.warn(
+                    "answer-ignores-starter", f"/tasks/{i}/items/{j}/answer",
+                    f"the model answer {_q(item.answer)} does not {verb} the starter "
+                    f"{_q(item.starter)}, which is printed on the learner's answer line. Begin "
+                    f"the model answer with the starter, word for word,{fill} — or change the "
+                    "starter so that it fits the answer.",
+                )
+
     def check_crosswords(self) -> None:
         """Crossword words, repeats, the grid and clues that give the answer away."""
 
     def check_task_count(self) -> None:
         """The number of tasks against the level's recommended range."""
+        level = self.ws.cefr_level
+        low, high = TASK_COUNT[level]
+        n = len(self.ws.tasks)
+        if low <= n <= high:
+            return
+        per_scene = "per one or two scenes" if level in PAIRED_SCENE_LEVELS else "per scene"
+        if n < low:
+            fix = (f"Add {low - n} or more tasks, from what the lesson still lacks: a "
+                   f"comprehension task {per_scene}, a picture task, a form task per grammar "
+                   "point, a practice task that continues the story, a personal question after "
+                   "the writing task, a warm_up prediction or a media_search epilogue.")
+        else:
+            fix = (f"Remove {n - high} or more tasks, the optional ones first (a prediction, a "
+                   "second task of one stage about the same scene), or merge two tasks of the "
+                   f"same kind; keep one comprehension task {per_scene}, the picture, form, "
+                   "practice and production tasks.")
+        article = "an" if level.startswith("A") else "a"
+        self.warn(
+            "task-count", "/tasks",
+            f"the worksheet has {n} task{'s' if n != 1 else ''}; {article} {level} worksheet "
+            f"should have {low}–{high}. {fix}",
+        )
 
     def _check_model_answer(self, task: WritingTask, where: str) -> None:
         answer = task.model_answer or ""
@@ -2090,7 +2270,8 @@ class _Checker:
                 ]
             elif isinstance(task, ScrambleTask):
                 checks += [
-                    (f"/tasks/{i}/items/{j}", " ".join(t.chunks)) for j, t in enumerate(task.items)
+                    (f"/tasks/{i}/items/{j}", scramble_sentence(t.chunks, t.end, self.target_lang))
+                    for j, t in enumerate(task.items)
                 ]
             elif isinstance(task, TableTask):
                 checks += [

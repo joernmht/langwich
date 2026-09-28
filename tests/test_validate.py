@@ -148,6 +148,17 @@ BASE: dict[str, Any] = {
             "must_use": ["der Kaffee", "trinken", "das Fenster"],
             "min_words": 20, "max_words": 40,
         },
+        # the last BASE_FILLERS tasks complete an A1 set (task-count: 8–11)
+        {"id": "t6", "kind": "questions", "stage": "warm_up",
+         "items": [{"question": "Was glaubst du: Wer ist Herr Kaya?", "lines": 1}]},
+        {
+            "id": "t7", "kind": "multiple_choice", "stage": "detail", "scene": "s2",
+            "items": [{"question": "Was bestellt Herr Kaya am Nachmittag?",
+                       "options": ["ein Stück Kuchen", "eine Zeitung", "ein Glas Wasser"],
+                       "answer": "ein Stück Kuchen"}],
+        },
+        {"id": "t8", "kind": "questions", "stage": "production",
+         "items": [{"question": "Wo trinkst du gern Kaffee oder Tee?"}]},
     ],
 }
 
@@ -168,8 +179,14 @@ def _task(data: dict[str, Any], task_id: str) -> dict[str, Any]:
     return next(t for t in data["tasks"] if t["id"] == task_id)
 
 
+#: The last tasks of BASE, which only complete an A1 set (task-count).
+BASE_FILLERS = 3
+
+
 def _add_task(task: dict[str, Any]) -> Mutation:
-    return lambda d: d["tasks"].append(task)
+    """Add ``task`` before the BASE_FILLERS, after any task added before it:
+    the first added task is /tasks/5, the next /tasks/6 …"""
+    return lambda d: d["tasks"].insert(len(d["tasks"]) - BASE_FILLERS, task)
 
 
 def _set(path: str, value: Any) -> Mutation:
@@ -314,8 +331,8 @@ CASES: list[tuple[str, Mutation, str | None]] = [
     ("dialogue-nothing-to-do", _add_task(DIALOGUE_DONE), "/tasks/5/lines"),
     ("word-range", _set("tasks/4/max_words", 10), "/tasks/4/min_words"),
     # --- warnings ---
-    ("no-production", _drop_tasks("t5"), "/tasks"),
-    ("no-comprehension", _drop_tasks("t2"), "/tasks"),
+    ("no-production", _drop_tasks("t5", "t8"), "/tasks"),
+    ("no-comprehension", _drop_tasks("t2", "t7"), "/tasks"),
     ("task-without-scene", lambda d: d["tasks"][1].pop("scene"), "/tasks/1/scene"),
     ("task-without-scene", _set("tasks/2/scene", []), "/tasks/2/scene"),
     ("scene-count", lambda d: d["story"]["scenes"].pop(0), "/story/scenes"),
@@ -498,10 +515,12 @@ PENDING_CODES = {
 
 
 def _kind_file_codes() -> set[str]:
-    """Codes that the per-kind test files (tests/test_kind_*.py) exercise:
-    each lists them in ``COVERED_CODES`` and has a test that triggers them."""
+    """Codes that the per-kind test files (tests/test_kind_*.py) and
+    tests/test_levels.py exercise: each lists them in ``COVERED_CODES`` and
+    has a test that triggers them."""
     codes: set[str] = set()
-    for path in sorted(Path(__file__).parent.glob("test_kind_*.py")):
+    here = Path(__file__).parent
+    for path in [*sorted(here.glob("test_kind_*.py")), here / "test_levels.py"]:
         module = importlib.import_module(f"tests.{path.stem}")
         codes |= set(getattr(module, "COVERED_CODES", ()))
     return codes

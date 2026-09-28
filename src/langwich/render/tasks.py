@@ -267,11 +267,16 @@ def _order_events(b: Builder, pt: PlannedTask, task: OrderEventsTask) -> Parts:
 
 
 def _questions(b: Builder, pt: PlannedTask, task: QuestionsTask) -> Parts:
-    items = "".join(
-        _item(i, b.tl(item.question, "p", "q") + b.lines(item.lines))
-        for i, item in enumerate(task.items, 1)
-    )
-    return Parts(f'<div class="items qs">{items}</div>')
+    items = []
+    for i, item in enumerate(task.items, 1):
+        if task.question_lang == "source":
+            question = f'<p class="q src"{b.src_attr()}>{esc(item.question)}</p>'
+        else:
+            question = b.tl(item.question, "p", "q")
+        # the starter is printed on the first answer line, so it needs one
+        count = max(item.lines, 1) if item.starter else item.lines
+        items.append(_item(i, question + b.lines(count, item.starter)))
+    return Parts(f'<div class="items qs">{"".join(items)}</div>')
 
 
 def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
@@ -591,9 +596,18 @@ def _dialogue(b: Builder, pt: PlannedTask, task: DialogueTask) -> Parts:
 
 
 def _media_search(b: Builder, pt: PlannedTask, task: MediaSearchTask) -> Parts:
-    sep = '<span class="sep">·</span>'
-    queries = sep.join(esc_nw(q) for q in task.queries)
-    search = (f'<div class="search"><span class="cap">{esc(b.t("search_for"))}</span>'
+    caption = f'{b.t("search_for")} · {b.t(f"media.{task.media}")}'
+    # A query that fits beside the caption stays on one line, and a line
+    # breaks only after a separator, so no line starts with one.
+    size = 8.5 if b.epaper else 7.5  # the caption: capitals, letter-spaced .1em
+    cap_w = (metrics.width_mm(caption.upper(), "sans-bold", size)
+             + len(caption) * 0.1 * size * metrics.PT_TO_MM)
+    room = b.main_width(b.has_aside(pt, False)) - 8.0 - cap_w - 4.0  # box padding, gap
+    queries = '<span class="sep">·</span><wbr>'.join(
+        f'<span class="nw">{esc_nw(q)}</span>' if metrics.width_mm(q) <= room else esc_nw(q)
+        for q in task.queries
+    )
+    search = (f'<div class="search"><span class="cap">{esc(caption)}</span>'
               f'<span class="q tl"{b.lang_attr()}>{queries}</span></div>')
     items = "".join(_item(i, b.tl(q, "p", "q") + b.lines(2)) for i, q in enumerate(task.questions, 1))
     return Parts(f'{search}<div class="items ms">{items}</div>')
@@ -636,7 +650,23 @@ def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
 
 
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the scramble renderer)
+    tiles = pt.tiles if pt.tiles is not None else [list(item.chunks) for item in task.items]
+    line_w = b.main_width(b.has_aside(pt, False)) - GUTTER_W - 4.0  # the end mark
+    items = []
+    for i, (item, shown) in enumerate(zip(task.items, tiles), 1):
+        row = " ".join(f'<span class="tile">{esc(c.strip())}</span>' for c in shown)
+        cue = f'<p class="cue"{b.src_attr()}>{esc(item.cue)}</p>' if item.cue else ""
+        # handwriting takes about half as much room again as the print, so
+        # a long sentence gets more than one line; the last one ends in 'end'
+        printed = metrics.width_mm(" ".join(item.chunks) + item.end, "serif", 11.0)
+        count = min(max(1, math.ceil(printed * 1.5 / line_w)), 4)
+        end = f'<span class="end">{esc(item.end)}</span>' if item.end else ""
+        lines = '<div class="sl"><span class="line"></span></div>' * (count - 1)
+        lines += f'<div class="sl"><span class="line"></span>{end}</div>'
+        items.append(_item(
+            i, f'<div class="tiles tl"{b.lang_attr()}>{row}</div>{cue}'
+               f'<div class="sls tl"{b.lang_attr()}>{lines}</div>'))
+    return Parts(f'<div class="items scr">{"".join(items)}</div>')
 
 
 #: Table cells (see the "table" rules in css.py), in mm: the padding
@@ -827,8 +857,72 @@ def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:
     return Parts(main, [box] if box and not above else [], keep=True)
 
 
+def _draft_html(b: Builder, text: str, marked: bool, numbers: Iterator[int]) -> str:
+    """One paragraph of a proofread draft, every mistake in its wrong form.
+
+    ``marked``: the wrong form is underlined and followed by its number; its
+    last word, the number and closing punctuation never split at a line end.
+    """
+    try:
+        parts = markup.split(text)
+    except ValueError:
+        b.warn(f"malformed gap markup in {text[:40]!r}…; printed as is.")
+        return esc(text)
+    out: list[str] = []
+    skip = 0  # characters of the next text part already printed with a mistake
+    for idx, part in enumerate(parts):
+        if isinstance(part, str):
+            out.append(esc(part[skip:]).replace("\n", "<br>"))
+            skip = 0
+            continue
+        wrong = part.hint or part.answer  # (no wrong form: the validator reports it)
+        if not marked:
+            out.append(esc(wrong))
+            continue
+        after = parts[idx + 1] if idx + 1 < len(parts) else ""
+        punct = trailing_punctuation(after) if isinstance(after, str) else ""
+        skip = len(punct)
+        tail = esc(punct.replace(" ", "\u00a0"))
+        head, space, last = wrong.rpartition(" ")
+        lead = f"<u>{esc(head)} </u>" if space else ""
+        out.append(f'{lead}<span class="nw"><u>{esc(last)}</u>'
+                   f'<span class="gn">{next(numbers)}</span>{tail}</span>')
+    return "".join(out)
+
+
 def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the proofread renderer)
+    gaps = safe_gaps(task.text)
+    counter = itertools.count(1)
+    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+    body = "".join(f"<p>{_draft_html(b, p, task.marked, counter)}</p>" for p in paras)
+    draft = f'<div class="draft tl"{b.lang_attr()}>{body}</div>'
+    # Below the draft, one numbered field per mistake: marked, for the
+    # correction; unmarked, a row 'wrong → correct' for each one the learner
+    # finds. Handwriting takes about half as much room again as the print.
+    written = [g.answer for g in gaps] + ([] if task.marked else [g.hint or "" for g in gaps])
+    widest = max((metrics.width_mm(w, "serif", 11.0) for w in written), default=0.0)
+    line_w = max(widest * 1.5 + 4.0, 28.0)
+    if task.marked:
+        cell_w = GUTTER_W + line_w
+        cells = [f'<div class="fld"><span>{n}</span><span class="line"></span></div>'
+                 for n in range(1, len(gaps) + 1)]
+    else:
+        cell_w = GUTTER_W + 2 * line_w + 8.0  # the arrow
+        cells = [f'<div class="fx"><span>{n}</span><span class="line"></span>'
+                 '<span class="ar">→</span><span class="line"></span></div>'
+                 for n in range(1, len(gaps) + 1)]
+    fixes = ""
+    if cells:
+        avail = b.main_width(b.has_aside(pt, False))
+        cols = max(1, min(4, len(cells), int((avail + 7.0) // (cell_w + 7.0))))  # 7 mm apart
+        cols = math.ceil(len(cells) / math.ceil(len(cells) / cols))  # 6 in 3 + 3, not 4 + 2
+        # one grid per row, so that a page breaks between rows (never after
+        # the first one or before the last one, see the CSS)
+        style = f' style="grid-template-columns:repeat({cols}, 1fr)"'
+        rows = "".join(f'<div class="fr"{style}>{"".join(cells[k:k + cols])}</div>'
+                       for k in range(0, len(cells), cols))
+        fixes = f'<div class="fixes">{rows}</div>'
+    return Parts(f'<div class="proof">{draft}{fixes}</div>', keep=True)
 
 
 def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
@@ -899,7 +993,9 @@ def _instruction_transform(b: Builder, task: TransformTask) -> str | None:
 
 
 def _instruction_proofread(b: Builder, task: ProofreadTask) -> str | None:
-    return None
+    if task.marked:
+        return b.t("kind.proofread.instruction")
+    return b.t("kind.proofread.count", n=len(safe_gaps(task.text)))
 
 
 _INSTRUCTIONS: dict[str, Callable[[Builder, Any], str | None]] = {
