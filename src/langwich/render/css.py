@@ -421,6 +421,19 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 .gtab tbody tr:first-child:not(:last-child) { break-after: avoid; }
 
 /* ---- kind: gapped_text ---- */
+/* The passage has a numbered box for a letter where each sentence was taken
+   out; below it, the sentences lettered A, B, C … in ruled rows (like the
+   right column of a match task). A task that has to break keeps its
+   sentences together: the learner compares all of them for every gap. */
+.k-gapped_text .passage .blank { border: .75pt solid #000; line-height: 5.2mm;
+  vertical-align: -1.5mm; }
+.gts { margin-top: 4mm; break-inside: avoid; }
+.gts > div { display: grid; grid-template-columns: var(--gut) 1fr; align-items: baseline;
+  min-height: 8.2mm; padding: 1.4mm 0 1.2mm; border-bottom: .5pt solid var(--hair);
+  break-inside: avoid; }
+.gts > div:first-child { border-top: .5pt solid var(--hair); }
+.gts .l { font: 700 11pt var(--sans); }
+.gts .tl { font: 400 11pt/1.35 var(--serif); }
 
 /* ---- kind: find_in_text ---- */
 

@@ -1215,7 +1215,16 @@ def _prepare_table(pt: PlannedTask, task: TableTask, seed: int) -> None:
 
 def _prepare_gapped_text(pt: PlannedTask, task: GappedTextTask, seed: int) -> None:
     """``pt.slot_options``: the removed sentences and the extras, shuffled."""
-    # (spine stub: the gapped_text implementation shuffles the sentences)
+    try:
+        answers = [g.answer for g in markup.gaps(task.text)]
+    except ValueError:  # an empty gap {{}}: reported by the validator
+        answers = []
+    slots = _shuffle_not_identity(answers + list(task.extra), _rng(seed, task.id, "slots"))
+    # Gap 1 → A, gap 2 → B … for every gap would be a pattern learners spot;
+    # a shuffle that only swaps the extra sentences still gives it.
+    if answers and slots[:len(answers)] == answers:
+        slots = slots[1:] + slots[:1]
+    pt.slot_options = slots
 
 
 def _prepare_crossword(pt: PlannedTask, task: CrosswordTask, seed: int) -> None:

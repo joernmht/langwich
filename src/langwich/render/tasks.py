@@ -497,8 +497,25 @@ def _find_in_text(b: Builder, pt: PlannedTask, task: FindInTextTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the find_in_text renderer)
 
 
+#: The box a learner writes a letter in, in place of a removed sentence (mm).
+_SLOT_W = 7.0
+
+
 def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the gapped_text renderer)
+    """The passage with a numbered box for a letter in place of each removed
+    sentence, then the removed and the extra sentences, lettered A, B, C …
+    in the planner's order (``pt.slot_options``)."""
+    counter = itertools.count(1)
+    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+    body = "".join(f"<p>{gapped_html(b, p, _SLOT_W, numbers=counter)}</p>" for p in paras)
+    shown = pt.slot_options
+    if shown is None:
+        shown = [g.answer for g in safe_gaps(task.text)] + list(task.extra)
+    rows = "".join(f'<div><span class="l">{letter(k)}</span>{b.tl(s)}</div>'
+                   for k, s in enumerate(shown))
+    main = (f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
+            f'<div class="gts">{rows}</div>')
+    return Parts(main, keep=True)
 
 
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:

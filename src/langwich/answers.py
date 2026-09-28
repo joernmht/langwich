@@ -234,7 +234,13 @@ def _key_choice(pt: PlannedTask, task: ClozeTask) -> list[str]:
 
 def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """The letter of the sentence that fills each gap."""
-    return []  # (spine stub: the gapped_text implementation fills this in)
+    task = pt.task
+    assert isinstance(task, GappedTextTask)
+    gaps = safe_gaps(task.text)
+    shown = pt.slot_options
+    if shown is None:
+        shown = [g.answer for g in gaps] + list(task.extra)
+    return [letter(shown.index(g.answer)) for g in gaps]
 
 
 def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:

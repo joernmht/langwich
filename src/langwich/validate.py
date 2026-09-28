@@ -896,8 +896,9 @@ class _Checker:
         dialogue lines, table cells, gapped_text and proofread texts.
 
         ``hint`` is the task's hint ('base_form', 'choice', … or 'proofread'
-        for a proofread text); ``None`` checks no hints (dialogue lines,
-        gapped_text). ``need_gaps``: a text without gaps is an error."""
+        for a proofread text, 'gapped_text' for a gapped text); ``None``
+        checks no hints (dialogue lines). ``need_gaps``: a text without gaps
+        is an error."""
         if markup.has_unbalanced_braces(text):
             self.error(
                 "unbalanced-braces", where,
@@ -938,6 +939,9 @@ class _Checker:
             if hint == "proofread":
                 how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
                        "wrong form the character wrote.")
+            elif hint == "gapped_text":
+                how = ("Write each sentence you take out in its place as {{sentence}}: the "
+                       "whole sentence, with its full stop, inside double braces.")
             else:
                 how = (f"Mark each gap as {{{{answer}}}} inside the text, e.g. "
                        f"'… {{{{{self.example_word()}}}}} …'.")
@@ -1549,6 +1553,73 @@ class _Checker:
 
     def check_gapped_texts(self) -> None:
         """Gapped-text gaps and extra sentences."""
+        # gaps: 3–6 work best; fewer leave no choice, more are too many letters
+        fewest, best, most = 3, 6, 8
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, GappedTextTask):
+                continue
+            where = f"/tasks/{i}"
+            self._check_gap_text("gapped_text", task.text, f"{where}/text", "this gapped text")
+            found = _parse_gaps(task.text)[0]  # (none: reported as empty-gap or no gaps)
+            n = len(found)
+            if found and n < fewest:
+                self.warn(
+                    "gapped-text-gaps", f"{where}/text",
+                    f"this gapped text has {n} gap{'s' if n != 1 else ''}, but a gapped text "
+                    f"needs {fewest}–{most}: with fewer, the learner hardly has to choose. Take "
+                    "more sentences out of the text, each written in its place as {{sentence}}, "
+                    f"until it has {fewest}–{best} gaps.",
+                )
+            elif n > most:
+                self.warn(
+                    "gapped-text-gaps", f"{where}/text",
+                    f"this gapped text has {n} gaps, but a gapped text works with {fewest}–{most}: "
+                    "with more, the text is mostly holes and the learner juggles too many "
+                    "letters. Put some of the sentences back into the text (without the braces) "
+                    f"until it has {fewest}–{best} gaps, or split the text into two gapped_text "
+                    "tasks.",
+                )
+            if found and not task.extra:
+                self.warn(
+                    "gapped-text-no-extra", f"{where}/extra",
+                    "this gapped text has no 'extra' sentence, so the last gap can be filled by "
+                    "elimination, without reading — and the instruction says that some sentences "
+                    "are left over. Add \"extra\": 1–2 target-language sentences on the same "
+                    "topic that fit none of the gaps (e.g. one about something the text does "
+                    "not mention).",
+                )
+            # Every lettered sentence must be different: gaps with the same
+            # sentence, or the same extra twice, would print it twice. (An
+            # extra that is also a removed sentence is a distractor-is-answer.)
+            gaps: dict[str, int] = {}
+            for k, gap in enumerate(found, 1):
+                key = " ".join(gap.answer.casefold().split())
+                if key in gaps:
+                    self.error(
+                        "duplicate-entry", f"{where}/text",
+                        f"gaps {gaps[key]} and {k} of this gapped text hold the same sentence "
+                        f"{_q(gap.answer)}, so the list of sentences would print it twice and "
+                        "the learner could not tell which letter goes where. Every removed "
+                        "sentence must be different: rewrite one of them, or put it back into "
+                        "the text (without the braces).",
+                    )
+                else:
+                    gaps[key] = k
+            extras: dict[str, int] = {}
+            for k, sentence in enumerate(task.extra):
+                key = " ".join(sentence.casefold().split())
+                if key in extras:
+                    self.error(
+                        "duplicate-entry", f"{where}/extra/{k}",
+                        f"the extra sentence {_q(sentence)} is already listed (extra/"
+                        f"{extras[key]}), so the list of sentences would print it twice. "
+                        "Replace the repeat with another sentence that fits none of the gaps, "
+                        "or remove it.",
+                    )
+                else:
+                    extras[key] = k
+            answers = [a for g in found for a in g.accepted]
+            self._check_distractors(i, task.extra, answers, field="extra")
 
     def check_find_in_text(self) -> None:
         """Find-in-text answers occur in their scenes."""
