@@ -17,7 +17,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from langwich import markup
+from langwich import crossword, markup
 from langwich.answers import cloze_texts, letter, safe_gaps
 from langwich.model import (
     ClassifyTask,
@@ -620,12 +620,106 @@ def _draw(b: Builder, pt: PlannedTask, task: DrawTask) -> Parts:
     return Parts(f'<p class="prompt">{esc(task.prompt)}</p>{b.frame_html(pt)}{labels}', keep_hard=True)
 
 
+#: classify grid (mm): a tick column is as wide as its heading on one line,
+#: or as its longest word when the headings must wrap to leave the items
+#: room, within these bounds (CLASSIFY_PAD: the space around a heading); the
+#: item column keeps at least CLASSIFY_TEXT_MIN.
+CLASSIFY_COL_MIN = 13.0
+CLASSIFY_COL_MAX = 30.0
+CLASSIFY_PAD = 4.5
+CLASSIFY_TEXT_MIN = 40.0
+#: classify grid: at most this many rows are always kept on one page.
+CLASSIFY_KEEP_ROWS = 10
+
+
 def _classify(b: Builder, pt: PlannedTask, task: ClassifyTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the classify renderer)
+    # The categories head the columns: serif when they are target-language
+    # words (der/die/das, names count as such), else sans.
+    target = b.column_is_target(task.categories)
+    face, size = ("serif-bold", 10.0) if target else ("sans-bold", 9.5)
+    klass = "cat tl" if target else "cat"
+    attr = b.lang_attr() if target else ""
+    heads = "".join(f'<th class="{klass}"{attr}>{esc(c)}</th>' for c in task.categories)
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    k = len(task.categories)
+    if task.layout == "columns":
+        # the word box, then a column per category with as many lines as the
+        # fullest category needs and one more, so the lines tell nothing
+        box = b.word_box(pt.bank or [item.text for item in task.items], row=True)
+        rows = max(Counter(item.answer for item in task.items).values()) + 1
+        body = f'<tr>{"<td><span></span></td>" * k}</tr>' * rows
+        return Parts(f'<div class="cls-sort">{box}<table class="cls cols" style="width:'
+                     f'{avail:.1f}mm"><thead><tr>{heads}</tr></thead><tbody>{body}</tbody>'
+                     "</table></div>", keep_hard=True)
+    # The headings stay on one line while every item still fits on one; else
+    # they wrap between words and the items get the room. The item column is
+    # only as wide as the longest item, so the boxes stay near the words.
+    def column(heading_w: float) -> float:
+        return min(max(heading_w + CLASSIFY_PAD, CLASSIFY_COL_MIN), CLASSIFY_COL_MAX)
+
+    widest = max(metrics.width_mm(item.text, "serif", 11.0) for item in task.items) + 4.0
+    whole = [column(metrics.width_mm(c, face, size)) for c in task.categories]
+    words = [column(max((metrics.width_mm(w, face, size) for w in c.split()), default=0.0))
+             for c in task.categories]
+    col_ws = whole if avail - sum(whole) >= widest else words
+    room = avail - CLASSIFY_TEXT_MIN
+    if sum(col_ws) > room:  # (many long headings: they hyphenate)
+        col_ws = [max(w * room / sum(col_ws), CLASSIFY_COL_MIN) for w in col_ws]
+    text_w = min(max(widest, CLASSIFY_TEXT_MIN), avail - sum(col_ws))
+    order = pt.row_order if pt.row_order is not None else list(range(len(task.items)))
+    ticks = '<td class="bx"><span></span></td>' * k
+    body = "".join(
+        f'<tr><td class="n">{n}</td><td class="t tl"{b.lang_attr()}>'
+        f"{esc(task.items[j].text)}</td>{ticks}</tr>"
+        for n, j in enumerate(order, 1)
+    )
+    cols = "".join(f'<col style="width:{w:.1f}mm">' for w in [GUTTER_W, text_w, *col_ws])
+    width = GUTTER_W + text_w + sum(col_ws)
+    table = (f'<table class="cls grid" style="width:{width:.1f}mm"><colgroup>{cols}</colgroup>'
+             f'<thead><tr><th></th><th></th>{heads}</tr></thead><tbody>{body}</tbody></table>')
+    rows_kept = len(task.items) <= CLASSIFY_KEEP_ROWS
+    return Parts(table, keep_hard=rows_kept, keep=True)
+
+
+#: find_in_text (mm): the arrow column between a clue and its line, and the
+#: least widths of the clue column and of the line when they share a row.
+FIND_ARROW_W = 6.0
+FIND_CLUE_MIN = 45.0
+FIND_LINE_MIN = 40.0
 
 
 def _find_in_text(b: Builder, pt: PlannedTask, task: FindInTextTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the find_in_text renderer)
+    # Clue → line on one row while every clue fits on two lines and the line
+    # still holds the longest answer in handwriting (about 1.2 × its width in
+    # type); else the line goes below the clue. The clue column is as wide as
+    # the widest clue needs (+ 3 mm padding), the same for every row, so the
+    # lines align.
+    target = task.clue_lang == "target"
+    face = "serif" if target else "sans"
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    widest = max(metrics.width_mm(item.answer, "serif", 11.0) for item in task.items)
+    line_min = max(FIND_LINE_MIN, widest * 1.2 + 6.0)
+    wanted = max(metrics.width_mm(item.clue, face, 11.0) for item in task.items) + 3.0
+    clue_w = min(wanted, avail - FIND_ARROW_W - line_min)
+    beside = clue_w >= min(wanted, FIND_CLUE_MIN) and all(
+        metrics.line_count(item.clue, clue_w - 3.0, face, 11.0) <= 2 for item in task.items)
+    columns = f"grid-template-columns:{clue_w:.1f}mm {FIND_ARROW_W:.1f}mm 1fr"
+    meaning = (f'<span class="cue">{esc(b.t("kind.find_in_text.explain_cap"))}</span>'
+               '<span class="line"></span>') if task.explain else ""
+    items = []
+    for i, item in enumerate(task.items, 1):
+        clue = b.tl(item.clue, "p", "q") if target else f'<p class="q src">{esc(item.clue)}</p>'
+        if beside:
+            body = (f'<div class="fr" style="{columns}">{clue}<span class="ar">→</span>'
+                    '<span class="line"></span></div>')
+            lines = meaning
+        else:
+            body = clue
+            lines = '<span class="cue">→</span><span class="line"></span>' + meaning
+        if lines:
+            body += f'<div class="fl">{lines}</div>'
+        items.append(_item(i, body))
+    return Parts(f'<div class="items fit">{"".join(items)}</div>')
 
 
 #: The box a learner writes a letter in, in place of a removed sentence (mm).
@@ -925,8 +1019,60 @@ def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
     return Parts(f'<div class="proof">{draft}{fixes}</div>', keep=True)
 
 
+#: Crossword cell size (mm). On e-paper a grid of more than
+#: CROSSWORD_EPAPER_ROWS rows gets the small cells, so its clues still fit
+#: below it on the page; a grid too wide for the column shrinks to fit.
+CROSSWORD_CELL = 7.0
+CROSSWORD_CELL_SMALL = 6.0
+CROSSWORD_EPAPER_ROWS = 12
+
+
 def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the crossword renderer)
+    grid = pt.crossword
+    if grid is None or not grid.placed:
+        b.warn(f"task {pt.number}: no crossword answer could be placed; the grid is left out.")
+        return Parts("", keep_hard=True)
+    if grid.unplaced:
+        left_out = ", ".join(f"'{task.entries[i].answer}'" for i in grid.unplaced)
+        b.warn(f"task {pt.number}: the crossword grid leaves out {left_out} (no crossing "
+               "found; see 'langwich validate').")
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    cell = CROSSWORD_CELL
+    if b.epaper and grid.rows > CROSSWORD_EPAPER_ROWS:
+        cell = CROSSWORD_CELL_SMALL
+    cell = min(cell, math.floor(avail / grid.cols * 10) / 10)
+    numbers = {(p.row, p.col): p.number for p in grid.placed}
+    holes = crossword.enclosed(grid)
+    rows = []
+    for r in range(grid.rows):
+        cells = []
+        for c in range(grid.cols):
+            if (r, c) in holes:
+                cells.append('<td class="bk"></td>')
+            elif (r, c) not in grid.cells:
+                cells.append("<td></td>")
+            elif (r, c) in numbers:
+                cells.append(f'<td class="x"><span class="cn">{numbers[(r, c)]}</span></td>')
+            else:
+                cells.append('<td class="x"></td>')
+        rows.append(f"<tr>{''.join(cells)}</tr>")
+    # (the target's lang and dir: a right-to-left grid runs its across words leftwards)
+    table = (f'<table class="cwg"{b.lang_attr()} style="--cell:{cell:.1f}mm;'
+             f'width:{cell * grid.cols:.1f}mm">{"".join(rows)}</table>')
+    target = task.clue_lang == "target"
+    lists = []
+    for across in (True, False):
+        items = "".join(
+            _item(p.number, esc(task.entries[p.index].clue), "c tl" if target else "c src",
+                  b.lang_attr() if target else "")
+            for p in grid.placed if p.across == across
+        )
+        if items:
+            cap = esc(b.t("across" if across else "down"))
+            lists.append(f'<div class="cwl"><span class="cap">{cap}</span>'
+                         f'<div class="items">{items}</div></div>')
+    return Parts(f'<div class="cw">{table}<div class="cwc">{"".join(lists)}</div></div>',
+                 keep_hard=True)
 
 
 _RENDERERS = {
@@ -970,11 +1116,11 @@ def _instruction_true_false(b: Builder, task: TrueFalseTask) -> str | None:
 
 
 def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:
-    return None
+    return b.t("kind.classify.columns") if task.layout == "columns" else None
 
 
 def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
-    return None
+    return b.t("kind.find_in_text.explain") if task.explain else None
 
 
 def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
@@ -1039,11 +1185,18 @@ def instruction_suffix(b: Builder, pt: PlannedTask) -> str:
 
 
 def _key_labels_classify(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
-    return False, None
+    """No numbers for the columns layout: each entry names its category."""
+    assert isinstance(pt.task, ClassifyTask)
+    return (True, None) if pt.task.layout == "columns" else (False, None)
 
 
 def _key_labels_crossword(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
-    return False, None
+    """'1 →' / '2 ↓': the clue number and direction of each answer (Literata,
+    second in the sans stack, has both arrows)."""
+    grid = pt.crossword
+    if grid is None or len(grid.placed) != count:
+        return False, None
+    return True, [f"{p.number}\u00a0{'→' if p.across else '↓'}" for p in grid.placed]
 
 
 _KEY_LABELS: dict[str, Callable[[Builder, PlannedTask, int], tuple[bool, list[str] | None]]] = {

@@ -32,6 +32,7 @@ from typing import Literal
 
 from langwich import markup
 from langwich.crossword import Layout
+from langwich.crossword import layout as crossword_layout
 from langwich.model import (
     STAGES,
     ClassifyTask,
@@ -1037,7 +1038,12 @@ def tested_terms(ws: Worksheet) -> set[str]:
         elif isinstance(task, (TableTask, ProofreadTask)):
             out.update(_norm(g.answer, lang) for g in _gaps_of(task))
         elif isinstance(task, FindInTextTask):
-            out.update(_norm(i.answer, lang) for i in task.items)
+            # the answers and every item they contain: a gloss of 'gelingen'
+            # would point at the answer 'der Milchschaum gelingt'
+            for find in task.items:
+                out.add(_norm(find.answer, lang))
+                out.update(_norm(v.term, lang) for v in ws.vocabulary.items
+                           if term_pattern(v, lang).search(find.answer))
         elif isinstance(task, CrosswordTask):
             out.update(_norm(e.answer, lang) for e in task.entries)
     return out
@@ -1190,11 +1196,12 @@ def _prepare_scramble(pt: PlannedTask, task: ScrambleTask, seed: int) -> None:
 
 def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:
     """``pt.row_order`` (grid) or ``pt.bank`` (columns: the item texts, shuffled)."""
+    # (the LLM may write the items category by category: never print its order)
     if task.layout == "columns":
-        words = [i.text for i in task.items]
-        _rng(seed, task.id, "bank").shuffle(words)
-        pt.bank = words
-    # (spine stub: the classify implementation adds the grid's row order)
+        pt.bank = _shuffle_not_identity([i.text for i in task.items], _rng(seed, task.id, "bank"))
+    else:
+        pt.row_order = _shuffle_not_identity(list(range(len(task.items))),
+                                             _rng(seed, task.id, "rows"))
 
 
 def _prepare_choice(pt: PlannedTask, task: ClozeTask, seed: int) -> None:
@@ -1245,7 +1252,7 @@ def _prepare_gapped_text(pt: PlannedTask, task: GappedTextTask, seed: int) -> No
 
 def _prepare_crossword(pt: PlannedTask, task: CrosswordTask, seed: int) -> None:
     """``pt.crossword``: the grid (seed-free, so the validator sees the same one)."""
-    # (spine stub: the crossword implementation calls crossword.layout)
+    pt.crossword = crossword_layout([e.answer for e in task.entries])
 
 
 def _phase(task: Task) -> Phase:

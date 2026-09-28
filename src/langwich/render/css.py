@@ -380,6 +380,24 @@ table.match td.opt.tl { font-family: var(--serif); }
 .scr .sl .end { font: 400 13pt/1 var(--serif); padding: 0 0 .3mm 1.2mm; }
 
 /* ---- kind: classify ---- */
+/* grid: number | item | a tick box under each category (the column widths
+   are set per task). columns: the word box, then a column per category with
+   a writing line in every row. The categories head the columns. */
+table.cls { border-collapse: collapse; table-layout: fixed; }
+table.cls th { vertical-align: bottom; text-align: center; padding: 0 1.2mm 1.4mm;
+  border-bottom: .75pt solid #000; font: 700 9.5pt/1.25 var(--sans); hyphens: auto; }
+table.cls th.tl { font: 600 10pt/1.25 var(--serif); }
+table.cls tr { break-inside: avoid; }
+table.cls.grid td { height: 8.2mm; border-bottom: .5pt solid var(--hair); vertical-align: middle; }
+table.cls.grid td.n { font: 700 11pt var(--sans); }
+table.cls.grid td.t { font: 400 11pt/1.35 var(--serif); padding: 1mm 3mm 1mm 0; }
+table.cls.grid td.bx span { display: block; width: 4.4mm; height: 4.4mm; margin: 0 auto;
+  border: .75pt solid #000; }
+.cls-sort { padding-left: var(--gut); }
+.cls-sort .wordbox { margin-bottom: 4mm; }
+table.cls.cols td { height: var(--pitch); padding: 0 2.5mm; vertical-align: bottom; }
+table.cls.cols td + td, table.cls.cols th + th { border-left: .5pt solid var(--hair); }
+table.cls.cols td span { display: block; height: 6mm; border-bottom: .6pt solid var(--ink-3); }
 
 /* ---- kind: true_false+ ---- */
 /* three boxes: a table whose head row names the box columns (repeated after
@@ -505,6 +523,21 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 .gts .tl { font: 400 11pt/1.35 var(--serif); }
 
 /* ---- kind: find_in_text ---- */
+/* clue → line on one row (.fr, its columns set per task) when the answers are
+   short, else the line below the clue (.fl); 'explain' adds a captioned line
+   (.fl). A line is one text line high, so it sits on the clue's last line. */
+.fit .q.src { font-family: var(--sans); }
+.fit .fr { display: grid; align-items: end; }
+.fit .fr > .q { grid-column: 1; grid-row: 1; padding-right: 3mm; }
+.fit .fr > .ar { grid-column: 2; grid-row: 1; font: 400 11pt/1.45 var(--sans);
+  color: var(--ink-2); text-align: center; }
+.fit .fr > .line { grid-column: 3; grid-row: 1; height: 5.6mm;
+  border-bottom: .6pt solid var(--ink-3); }
+.fit .fl { display: grid; grid-template-columns: auto 1fr; grid-auto-rows: var(--pitch);
+  align-items: end; }
+.fit .fl > .cue { justify-self: end; padding: 0 2.4mm 1mm 0;
+  font: italic 400 9.5pt var(--sans); color: var(--ink-2); }
+.fit .fl > .line { height: 6mm; border-bottom: .6pt solid var(--ink-3); }
 
 /* ---- kind: proofread ---- */
 /* the character's draft in a frame, marked mistakes underlined and numbered;
@@ -545,6 +578,21 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 .qs .lines > div.starter { height: auto; min-height: var(--pitch); padding-top: 1.6mm; }
 
 /* ---- kind: crossword ---- */
+/* the grid: bordered letter cells (their size is --cell, set per task), the
+   clue number top left; cells outside the words stay blank, those framed by
+   letter cells are black. Clues below it: across and down side by side. */
+.k-crossword .main { padding-left: var(--gut); }
+table.cwg { border-collapse: collapse; table-layout: fixed; break-inside: avoid; }
+table.cwg td { width: var(--cell); height: var(--cell); padding: 0; vertical-align: top; }
+table.cwg td.x { border: .75pt solid #000; }
+table.cwg td.bk { background: #000; }  /* a blank cell framed by letter cells */
+table.cwg .cn { display: block; font: 600 6.5pt/1 var(--sans); padding: .3mm .4mm 0; }
+.cwc { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7mm; margin-top: 5mm; }
+.cwl .cap { margin-bottom: 1.6mm; }
+.cwl .items > .it { grid-template-columns: 7mm 1fr; }
+.cwl .items > .it + .it { margin-top: 1.2mm; }
+.cwl .it > .n, .cwl .it > .c { font-size: 10.5pt; line-height: 1.4; }
+.cwl .it > .c.src { font-family: var(--sans); }
 
 /* pictures */
 .fig { break-inside: avoid; }
@@ -709,6 +757,8 @@ table.tf3 th { font-size: 8.5pt; }
 /* ---- kind: questions+ media_search+ ---- */
 
 /* ---- kind: crossword ---- */
+table.cwg .cn { font-size: 7pt; }
+.cwc { column-gap: 6mm; }
 
 """
 

@@ -71,6 +71,7 @@ from langwich.model import (
     WritingTask,
     parse_worksheet,
 )
+from langwich import crossword
 from langwich.images import ImageSource, resolve_image  # noqa: F401 (re-exported)
 from langwich.plan import plan as make_plan
 from langwich.plan import strip_article, term_pattern
@@ -1524,6 +1525,41 @@ class _Checker:
 
     def check_classify(self) -> None:
         """Repeated classify items, unused categories."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ClassifyTask):
+                continue
+            seen: dict[str, int] = {}
+            for j, item in enumerate(task.items):
+                key = " ".join(item.text.casefold().split())
+                if key in seen:
+                    same = task.items[seen[key]].answer == item.answer
+                    why = ("learners would sort it twice" if same else
+                           f"it belongs to both '{task.items[seen[key]].answer}' and "
+                           f"'{item.answer}', so neither answer is right")
+                    self.error(
+                        "duplicate-entry", f"/tasks/{i}/items/{j}/text",
+                        f"the item {_q(item.text)} is already listed (items/{seen[key]}); "
+                        f"{why}. Replace it with another word or sentence from the story, "
+                        "or remove it while keeping at least 2 items.",
+                    )
+                else:
+                    seen[key] = j
+            used = {item.answer for item in task.items}
+            for k, category in enumerate(task.categories):
+                if category in used:
+                    continue
+                if len(task.categories) > 2:
+                    fix = ("Add 1–2 items that belong to it, or remove the category from "
+                           "'categories'.")
+                else:
+                    fix = ("Add 1–2 items that belong to it, or replace it with a category "
+                           "that some of the items belong to (a classify task needs at least "
+                           "2 categories).")
+                self.warn(
+                    "category-unused", f"/tasks/{i}/categories/{k}",
+                    f"no item has the answer '{category}', so its column stays empty and "
+                    f"learners can rule it out at once. {fix}",
+                )
 
     def check_true_false_extras(self) -> None:
         """'not_given' and 'justify': the third box, quotes, corrections."""
@@ -1881,6 +1917,106 @@ class _Checker:
 
     def check_find_in_text(self) -> None:
         """Find-in-text answers occur in their scenes."""
+        scenes = self.ws.story.scenes
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, FindInTextTask):
+                continue
+            # the scenes the task is about (unknown ids are reported as unknown-scene)
+            own = [s.id for s in scenes if s.id in task.scene_ids] or [s.id for s in scenes]
+            for j, item in enumerate(task.items):
+                if not self._finds(item.answer, self._scene_texts(own)):
+                    self.warn("find-not-in-text", f"/tasks/{i}/items/{j}/answer",
+                              self._find_message(item.answer, own))
+
+    def _scene_texts(self, ids: list[str]) -> list[str]:
+        """The headings and texts of the scenes ``ids``: what learners search."""
+        return [t for s in self.ws.story.scenes if s.id in ids for t in (s.heading, s.text)]
+
+    def _find_message(self, answer: str, own: list[str]) -> str:
+        """The message for a find_in_text answer that the scenes ``own`` do not contain."""
+        scenes = self.ws.story.scenes
+        if len(own) == len(scenes):
+            where, about = "the story", ""
+        else:
+            where = f"scene{'s' if len(own) > 1 else ''} {_one_of(own)}"
+            about = ", which this task is about"
+        elsewhere = [s.id for s in scenes
+                     if s.id not in own and self._finds(answer, self._scene_texts([s.id]))]
+        if elsewhere:
+            return (f"the answer {_q(answer)} is not in {where}{about}, but in scene "
+                    f"'{elsewhere[0]}'. Learners look for it in the scenes the task follows: "
+                    f"replace it with a word or phrase of {where} that fits the clue, or add "
+                    f"'{elsewhere[0]}' to the task's 'scene'.")
+        close = self._closest_phrase(answer, self._scene_texts(own))
+        guess = f" (did you mean {_q(close)}?)" if close else ""
+        if "…" in answer or "..." in answer:
+            apart = "; '…' stands only for words between two parts of one sentence"
+        elif len(answer.split()) > 1:
+            apart = ", with '…' between words that stand apart in the scene"
+        else:
+            apart = ""
+        return (f"the answer {_q(answer)} does not occur in {where}{about}{guess}, so learners "
+                "cannot find it there. Copy the word or phrase exactly as the scene writes it "
+                f"(the same form and spelling, not the dictionary form{apart}), or choose "
+                f"another word of {where} for this clue.")
+
+    #: Apostrophes and quotation marks, each kind written one way for the
+    #: find_in_text search (soft hyphens dropped).
+    _FIND_MARKS = str.maketrans({
+        "’": "'", "‘": "'", "‚": "'", "ʼ": "'", "`": "'", "´": "'",
+        "„": '"', "“": '"', "”": '"', "«": '"', "»": '"',
+        "‹": '"', "›": '"', "\u00ad": None,
+    })
+    #: What an answer may start or end with that the search ignores.
+    _FIND_EDGES = " .,;:!?\"'()[]–—-"
+
+    @classmethod
+    def _find_key(cls, text: str) -> str:
+        """``text`` casefolded, with single spaces and one kind of apostrophe
+        and quotation mark."""
+        return " ".join(text.translate(cls._FIND_MARKS).casefold().split())
+
+    def _finds(self, answer: str, texts: list[str]) -> bool:
+        """Does one of ``texts`` contain ``answer`` as whole words (compared
+        by :meth:`_find_key`)? '…' in the answer stands for the words between
+        two parts of one sentence ('sperrt … auf')."""
+        parts = [p.strip(self._FIND_EDGES)
+                 for p in re.split(r"…|\.\.\.", self._find_key(answer))]
+        parts = [p for p in parts if p]
+        if not parts:
+            return False
+        bounded = self.target_lang not in _NO_SPACE_LANGS
+
+        def exact(part: str) -> str:
+            left = r"(?<!\w)" if bounded and re.match(r"\w", part) else ""
+            right = r"(?!\w)" if bounded and re.match(r"\w", part[-1]) else ""
+            return left + re.escape(part) + right
+
+        pattern = re.compile(r"[^.!?…]*?".join(exact(p) for p in parts))
+        return any(pattern.search(self._find_key(text)) for text in texts)
+
+    def _closest_phrase(self, answer: str, texts: list[str]) -> str | None:
+        """The words of one sentence of ``texts`` most like ``answer`` (one
+        word more or less allowed) — the inflected form of a dictionary
+        form, a compound that contains the word; ``None`` if none is close."""
+        n = len(_WORD_RE.findall(answer))
+        if not n or "…" in answer or "..." in answer or self.target_lang in _NO_SPACE_LANGS:
+            return None
+        key = self._find_key(answer).strip(self._FIND_EDGES)
+        phrases: dict[str, str] = {}
+        for text in texts:
+            for sentence in _sentences(text):
+                words = _WORD_RE.findall(sentence)
+                for size in sorted({max(n - 1, 1), n, n + 1}):
+                    for k in range(len(words) - size + 1):
+                        phrase = " ".join(words[k:k + size])
+                        phrases.setdefault(self._find_key(phrase), phrase)
+        close = difflib.get_close_matches(key, list(phrases), n=1, cutoff=0.7)
+        if close:
+            return phrases[close[0]]
+        if n == 1:  # a part of a longer word ('Dose' in 'Zuckerdose')
+            return next((p for k, p in phrases.items() if " " not in k and key in k), None)
+        return None
 
     def check_proofread(self) -> None:
         """Proofread texts: every mistake as {{correct::wrong}}."""
@@ -2066,6 +2202,77 @@ class _Checker:
 
     def check_crosswords(self) -> None:
         """Crossword words, repeats, the grid and clues that give the answer away."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, CrosswordTask):
+                continue
+            reported: set[int] = set()  # answers the layout error need not name again
+            seen: dict[str, int] = {}
+            for j, entry in enumerate(task.entries):
+                where = f"/tasks/{i}/entries/{j}"
+                answer = entry.answer
+                if not crossword.is_word(answer):
+                    reported.add(j)
+                    self.error("crossword-word", f"{where}/answer", self._crossword_word(answer))
+                key = " ".join(answer.casefold().split())
+                if key in seen:
+                    reported.add(j)
+                    self.error(
+                        "duplicate-entry", f"{where}/answer",
+                        f"the crossword answer '{answer}' is already listed as "
+                        f"entries/{seen[key]}, so the grid would hold it twice with two clues. "
+                        "Replace this entry with another key word from the story.",
+                    )
+                else:
+                    seen[key] = j
+                if _contains(entry.clue, answer):
+                    self.warn(
+                        "clue-is-answer", f"{where}/clue",
+                        f"the clue {_q(entry.clue)} contains its answer '{answer}', so the "
+                        "learner just copies it into the grid. Rewrite the clue without the "
+                        "word: a translation, a definition or a gap sentence with ___ in its "
+                        "place (for a word that is spelt the same in both languages, a "
+                        "definition or a gap sentence).",
+                    )
+            grid = crossword.layout([e.answer for e in task.entries])
+            long = [j for j in grid.unplaced
+                    if j not in reported and len(crossword.letters(task.entries[j].answer))
+                    > crossword.MAX_SIDE]
+            for j in long:
+                self.error(
+                    "crossword-layout", f"/tasks/{i}/entries/{j}/answer",
+                    f"the crossword answer '{task.entries[j].answer}' has "
+                    f"{len(crossword.letters(task.entries[j].answer))} letters, but the grid is "
+                    f"at most {crossword.MAX_SIDE} cells wide, so it is left out of the grid. "
+                    "Replace it with a shorter key word from the story.",
+                )
+            stuck = [j for j in grid.unplaced if j not in reported and j not in long]
+            if stuck:
+                names = ", ".join(f"'{task.entries[j].answer}' (entries/{j})" for j in stuck)
+                placed = len(task.entries) - len(grid.unplaced)
+                self.error(
+                    "crossword-layout", f"/tasks/{i}/entries",
+                    f"langwich cannot join {names} to the crossword grid: every answer must "
+                    "cross another answer at a letter they share, and words may touch only "
+                    f"where they cross. The other {placed} answer{'s' if placed != 1 else ''} "
+                    f"fit. Replace {'these words' if len(stuck) > 1 else 'this word'} with key "
+                    "words from the story that share several letters with the others, or "
+                    f"remove {'them' if len(stuck) > 1 else 'it'} while keeping at least 4 "
+                    "entries.",
+                )
+
+    def _crossword_word(self, answer: str) -> str:
+        """The message for a crossword answer that is not one word of letters."""
+        bare = strip_article(answer, self.target_lang)
+        if bare != answer.strip() and crossword.is_word(bare):
+            fix = f"Write it without its article: '{bare}'."
+        elif any(ch.isdigit() for ch in answer):
+            fix = "Write numbers as words, or choose another word."
+        else:
+            fix = ("Replace it with a single word (e.g. the key word of the phrase), or choose "
+                   "another key word from the story.")
+        return (f"the crossword answer '{answer}' is not one word of letters: the grid has one "
+                "letter per cell, so an answer cannot hold spaces, hyphens, apostrophes, "
+                f"digits or other signs. {fix}")
 
     def check_task_count(self) -> None:
         """The number of tasks against the level's recommended range."""

@@ -543,11 +543,12 @@ KIND_RULES: dict[str, str] = {
     "order_events": "4–6 events from different scenes, in the correct order.",
     "questions": 'need the story (why? how?), with a model "answer". At A1–A2 give a "starter" '
                  '(e.g. "Lena is sad because …") and a model answer that begins with it.',
-    "classify": '2–4 categories (names, der/die/das, formal/informal …), 5–10 items, every '
-                'category used, the items mixed; "answer" copied exactly from "categories".',
-    "find_in_text": "the answer is written exactly as in the scene; clues in S at A1–A2, T "
-                    "synonyms or paraphrases from B1, idioms or irony with \"explain\" and "
-                    '"explanation" at C1–C2.',
+    "classify": "2–4 categories (names, der/die/das, formal/informal …), 5–10 items that never "
+                'show their category, every category used; "answer" copied exactly.',
+    "find_in_text": "the answer is written exactly as in the scene (\"…\" between words that "
+                    "stand apart in one sentence); clues in S at A1–A2, T synonyms or "
+                    'paraphrases from B1, idioms or irony with "explain" and "explanation" at '
+                    "C1–C2.",
     "gapped_text": "a new text of 5–12 sentences with 3–6 sentences removed ({{…}} in place) "
                    'plus 1–2 "extra" sentences; each removed sentence fits only its gap (by '
                    "reference words, connectors, time).",
@@ -579,7 +580,7 @@ KIND_RULES: dict[str, str] = {
     "dialogue": 'the characters in a new situation; gaps in "text", or a line without "text" '
                 'that the learner writes from its S "cue", with a model "answer".',
     "crossword": "6–12 key words (no articles, one word each) that share letters; clues in S "
-                 "(A1–A2) or T definitions/gap sentences (B1).",
+                 "(A1–A2) or T definitions/gap sentences (B1), never containing the answer.",
     "media_search": 'homework a character sets in the story: T "queries" and two T "questions".',
     "draw": 'the learner draws a scene from an S "prompt" and writes 4–6 T "labels" into it.',
 }

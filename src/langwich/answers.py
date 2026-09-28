@@ -10,7 +10,7 @@ model answers); the renderer then prints the model answer or a
 
 from __future__ import annotations
 
-from langwich import markup
+from langwich import crossword, markup
 from langwich.locale import t
 from langwich.model import (
     ClassifyTask,
@@ -264,7 +264,18 @@ def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """The category of each displayed row (grid), or each category's words (columns)."""
-    return []  # (spine stub: the classify implementation fills this in)
+    task = pt.task
+    assert isinstance(task, ClassifyTask)
+    if task.layout == "columns":
+        # one entry per category, in category order: 'Lena: der Hafen, die Fähre'
+        # (a no-break space: a line never ends with a category's name)
+        key = []
+        for category in task.categories:
+            words = [i.text for i in task.items if i.answer == category]
+            key.append(f"{category}: {', '.join(words) or '–'}")
+        return key
+    order = pt.row_order if pt.row_order is not None else list(range(len(task.items)))
+    return [task.items[k].answer for k in order]
 
 
 def _key_table(pt: PlannedTask, ws: Worksheet) -> list[str]:
@@ -311,7 +322,14 @@ def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """Each word or phrase to find (with its explanation)."""
-    return []  # (spine stub: the find_in_text implementation fills this in)
+    task = pt.task
+    assert isinstance(task, FindInTextTask)
+    open_answer = t("open_answer", ws.source_lang, ws.ui)
+    key: list[str] = []
+    for item in task.items:
+        explanation = item.explanation or (open_answer if task.explain else None)
+        key.append(f"{item.answer} – {explanation}" if explanation else item.answer)
+    return key
 
 
 def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
@@ -323,5 +341,9 @@ def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_crossword(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """The answers in clue order (across, then down)."""
-    return []  # (spine stub: the crossword implementation fills this in)
+    """The answers in clue order (across, then down), in capitals as the
+    grid holds them; words the grid could not take have no clue."""
+    task = pt.task
+    assert isinstance(task, CrosswordTask)
+    grid = pt.crossword or crossword.layout([e.answer for e in task.entries])
+    return [crossword.printed(task.entries[p.index].answer) for p in grid.placed]
