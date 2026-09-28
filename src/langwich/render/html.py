@@ -609,8 +609,26 @@ class Builder:
             return h + sum(self._text_h(it.question, width - GUTTER_W, "serif", 11, 1.45)
                            + 1.4 + len(it.options) * 6.6 + 2.6 for it in task.items)
         if isinstance(task, TransformTask):
-            return h + sum(self._text_h(it.prompt, width - GUTTER_W, "serif", 11, 1.45) + 11.6
-                           for it in task.items)
+            # the prompt (narrower beside a key word), then the → line, or the
+            # frame on 7.6 mm lines with the task's blank (as wide as its longest
+            # answer and a fifth more, see tasks.frame_blank_width) for its gap
+            from langwich import markup
+            from langwich.answers import safe_gaps
+
+            avail = self.main_width(self.has_aside(pt, False)) - GUTTER_W
+            longest = max((g.answer for it in task.items if it.frame for g in safe_gaps(it.frame)),
+                          key=len, default="")
+            blank = longest + "n" * (len(longest) // 5 + 4)
+            for it in task.items:
+                kw_w = (metrics.width_mm(it.keyword.upper(), "sans-bold", 10.0) + 4.0
+                        if it.keyword else 0.0)
+                h += self._text_h(it.prompt, avail - kw_w, "serif", 11, 1.45)
+                if it.frame is None:
+                    h += 11.6
+                    continue
+                frame = f"→ {it.cue or ''} " + markup.GAP_RE.sub(lambda _: blank, it.frame)
+                h += metrics.line_count(frame, avail, "serif", 11.0) * 7.6 + 3.4
+            return h
         return h + 80.0
 
     def _pair_fits(self, label: PlannedTask, following: PlannedTask, scene: Scene) -> bool:

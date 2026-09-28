@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 from collections import Counter
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -273,13 +274,36 @@ def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
 
 
 def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
+    # the blanks of the frames share one width: the longest answer as
+    # handwriting (wider than print), so no blank gives its answer's length away
+    answers = [g.answer for item in task.items if item.frame for g in safe_gaps(item.frame)]
+    width = frame_blank_width(b, answers, b.has_aside(pt, False)) if answers else 0.0
     items = []
     for i, item in enumerate(task.items, 1):
+        prompt = b.tl(item.prompt, "p", "q")
+        keyword = (item.keyword or "").strip()
+        if keyword:
+            # the key word at the right end of the prompt's row, in capitals
+            prompt = (f'<div class="kwr">{prompt}<span class="kw"{b.lang_attr()}>'
+                      f"{esc(keyword)}</span></div>")
         cue = f"→ {esc(item.cue)}" if item.cue else "→"
-        items.append(_item(
-            i, f'{b.tl(item.prompt, "p", "q")}<div class="wl"><span class="cue">{cue}</span>'
-               '<span class="line"></span></div>'))
+        if item.frame is not None:
+            # the new sentence with its gap as a blank, instead of a line
+            second = (f'<div class="frm"><span class="cue">{cue}</span><span class="tl"'
+                      f"{b.lang_attr()}>{gapped_html(b, item.frame, width)}</span></div>")
+        else:
+            second = f'<div class="wl"><span class="cue">{cue}</span><span class="line"></span></div>'
+        items.append(_item(i, prompt + second))
     return Parts(f'<div class="items tr">{"".join(items)}</div>')
+
+
+def frame_blank_width(b: Builder, answers: list[str], with_aside: bool) -> float:
+    """Width (mm) of the blank in a transform frame: the longest answer a
+    fifth wider than print (it is handwritten, often several words), at least
+    30 mm, at most a whole line (a clause to write may need one)."""
+    widest = max(metrics.width_mm(a, "serif", 11.0) for a in answers)
+    avail = b.main_width(with_aside) - GUTTER_W - 8.0  # (the arrow, the full stop)
+    return round(min(max(widest * 1.2 + 6.0, 30.0), avail), 1)
 
 
 def _word_building(b: Builder, pt: PlannedTask, task: WordBuildingTask) -> Parts:
@@ -534,6 +558,10 @@ def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
 
 
 def _instruction_transform(b: Builder, task: TransformTask) -> str | None:
+    """Key words: complete the second sentence with the word in capitals.
+    (Frames without a key word keep the plain 'rewrite as shown'.)"""
+    if any(item.keyword and item.keyword.strip() for item in task.items):
+        return b.t("kind.transform.keyword")
     return None
 
 
@@ -559,7 +587,15 @@ def default_instruction(b: Builder, pt: PlannedTask) -> str | None:
 
 
 def _suffix_transform(b: Builder, task: TransformTask) -> str:
-    return ""
+    """The word limit of the answers ('max_words') after the instruction's
+    last sentence, capitalised, unless the task's own instruction states the
+    number already."""
+    if task.max_words is None:
+        return ""
+    if task.instruction and re.search(rf"(?<!\d){task.max_words}(?!\d)", task.instruction):
+        return ""
+    limit = b.t("kind.transform.max", max=task.max_words)
+    return f' <span class="len">{esc(limit[:1].upper() + limit[1:])}</span>'
 
 
 _SUFFIXES: dict[str, Callable[[Builder, Any], str]] = {

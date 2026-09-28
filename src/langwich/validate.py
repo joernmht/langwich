@@ -1586,6 +1586,129 @@ class _Checker:
 
     def check_transform_extras(self) -> None:
         """Transform frames, key words and max_words."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TransformTask):
+                continue
+            for j, item in enumerate(task.items):
+                where = f"/tasks/{i}/items/{j}"
+                # what the learner writes: every accepted answer of the frame's
+                # gap, else the rewritten sentence
+                written = [item.answer or ""]
+                field = "answer"
+                if item.frame is not None:
+                    field = "frame"
+                    # (broken markup is reported once, and nothing else is checked)
+                    before = len(self.issues)
+                    self._check_gap_text(None, item.frame, f"{where}/frame", "this frame",
+                                         need_gaps=False)
+                    found = _parse_gaps(item.frame)[0]
+                    written = list(found[0].accepted) if len(found) == 1 else []
+                    if len(self.issues) > before:
+                        written = []
+                    elif len(found) != 1:
+                        self._frame_gaps(item.frame, found, f"{where}/frame")
+                    if (item.answer or "").strip():
+                        self._frame_and_answer(item.answer or "", transform_sentence(item),
+                                               where)
+                if item.keyword and item.keyword.strip() and written:
+                    self._check_keyword(item.keyword, item.frame, written, f"{where}/keyword")
+                if task.max_words is not None and written:
+                    self._check_answer_length(task.max_words, written, field, f"{where}/{field}")
+
+    def _frame_gaps(self, frame: str, found: list[markup.Gap], where: str) -> None:
+        if not found:
+            self.error(
+                "frame-gaps", where,
+                f"the frame {_q(frame)} has no {{{{gap}}}}, so it prints the new sentence "
+                "complete and the learner has nothing to write. Put the words the learner "
+                "writes — the part that changes, with the key word — into one gap: "
+                "'the beginning {{words to write}} the end.'",
+            )
+            return
+        shown = ", ".join("{{" + "|".join(g.accepted) + "}}" for g in found)
+        self.error(
+            "frame-gaps", where,
+            f"the frame {_q(frame)} has {len(found)} gaps ({shown}), but a frame takes exactly "
+            "one: the learner writes one answer per item, and the answer key and max_words "
+            "count it as one. Join them into one gap that holds all the words the learner "
+            "writes (the words between them included), or split the item into two.",
+        )
+
+    def _frame_and_answer(self, answer: str, sentence: str, where: str) -> None:
+        differs = _norm_sentence(answer) != _norm_sentence(sentence)
+        note = (f" It also differs from the frame with its gap filled, {_q(sentence)}: make "
+                "sure the gap holds the words you meant." if differs else "")
+        self.warn(
+            "frame-and-answer", f"{where}/answer",
+            "this item has both a 'frame' and an 'answer'. With a frame, the learner writes "
+            "only the words of its {{gap}} and the answer key prints them, so 'answer' is never "
+            f"used.{note} Remove 'answer'.",
+        )
+
+    def _check_keyword(
+        self, keyword: str, frame: str | None, written: list[str], where: str,
+    ) -> None:
+        """The key word is part of every accepted answer (a key word
+        transformation uses it unchanged)."""
+        word = keyword.strip()
+
+        def uses(text: str) -> bool:
+            if self.target_lang in _NO_SPACE_LANGS:
+                return word.casefold() in text.casefold()
+            return _contains(text, word)
+
+        missing = [w for w in written if not uses(w)]
+        if not missing:
+            return
+        what = "the words in the gap" if frame is not None else "the answer"
+        if len(missing) < len(written):
+            having = next(w for w in written if uses(w))
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is in the accepted answer {_q(having)}, but not in "
+                f"{_q(missing[0])}, and every accepted answer of the gap must use it. Rewrite "
+                f"{_q(missing[0])} with the key word, or remove it from the gap.",
+            )
+        elif frame is not None and uses(markup.GAP_RE.sub(" ", frame)):
+            gap = "{{" + missing[0] + "}}"
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is printed in the frame, outside the gap {_q(gap)}, so "
+                "the learner never has to use it. Move it into the gap: the gap holds the words "
+                "the learner writes, the key word included.",
+            )
+        else:
+            self.warn(
+                "keyword-not-used", where,
+                f"the key word '{word}' is not in {what} {_q(missing[0])}, but the learner "
+                "must use the key word, unchanged (not inflected, not replaced). Rewrite the "
+                f"{'gap' if frame is not None else 'answer'} so that it contains '{word}' "
+                "exactly, or choose as key word a word the answer uses.",
+            )
+
+    def _check_answer_length(
+        self, limit: int, written: list[str], field: str, where: str,
+    ) -> None:
+        """No accepted answer is longer than the task's max_words."""
+        if self.target_lang in _NO_SPACE_LANGS:
+            return
+        longest = max(written, key=_word_count)
+        n = _word_count(longest)
+        if n <= limit:
+            return
+        if field == "frame":
+            how = ("Leave the words that do not change in the frame, outside the gap, so the "
+                   f"gap holds only the {limit} words or fewer that the learner must write; or "
+                   f"raise max_words to {n}.")
+        else:
+            how = ("Without a 'frame', the learner writes the whole new sentence. Give the item "
+                   "a 'frame' — the new sentence with one {{gap}} around the words that change "
+                   "— or remove max_words from the task.")
+        self.warn(
+            "answer-too-long", where,
+            f"the answer {_q(longest)} has {n} words, but the task's max_words allows at most "
+            f"{limit}, so the answer key breaks the task's own rule. {how}",
+        )
 
     def check_question_starters(self) -> None:
         """Model answers begin with their question's starter."""

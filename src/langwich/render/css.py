@@ -441,6 +441,17 @@ table.tf3.just tbody + tbody > tr:first-child > td { padding-top: 4.2mm; }
 /* ---- kind: proofread ---- */
 
 /* ---- kind: transform+ ---- */
+/* the key word at the right end of the prompt's row, in bold capitals; a
+   frame (the new sentence with its gap as a blank) after the arrow, on lines
+   as tall as a cloze item's, so there is room to write */
+.tr .kwr { display: grid; grid-template-columns: 1fr auto; column-gap: 5mm;
+  align-items: baseline; }
+.tr .kw { font: 700 10pt/1.45 var(--sans); letter-spacing: .08em; text-transform: uppercase;
+  white-space: nowrap; }
+.tr .frm { display: grid; grid-template-columns: auto 1fr; align-items: start; }
+.tr .frm .cue { font: italic 400 9.5pt/7.6mm var(--sans); color: var(--ink-2);
+  padding-right: 2.4mm; white-space: nowrap; }
+.tr .frm .tl { font: 400 11pt/7.6mm var(--serif); }
 
 /* ---- kind: questions+ media_search+ ---- */
 
