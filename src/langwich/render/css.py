@@ -372,6 +372,40 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: true_false+ ---- */
 
 /* ---- kind: writing+ ---- */
+/* who the text is for and its register; the text to answer, in a box as wide
+   as the story column; the points to cover as a tick list; with "paragraphs",
+   one numbered block of lines per point (the number in the gutter) */
+.writing .wmeta { font: 400 10pt/1.4 var(--sans); margin: -1.2mm 0 3mm; break-after: avoid; }
+.writing .wmeta .cap { display: inline; margin: 0 2mm 0 0; }
+.writing .wmeta .reg { display: inline-block; margin-left: 3.5mm; padding: .3mm 1.4mm .2mm;
+  border: .6pt solid #000; font: 700 7.5pt/1.3 var(--sans); letter-spacing: .1em;
+  text-transform: uppercase; vertical-align: .3mm; }
+.writing .wmeta .reg:first-child { margin-left: 0; }
+.writing .input { max-width: calc(var(--main) - var(--gut)); margin: 0 0 3.6mm;
+  break-inside: avoid; }
+.writing .input p { font: 400 10.5pt/1.45 var(--serif); }
+.writing .input.src p { font-family: var(--sans); }
+.writing .input p + p { margin-top: 1.8mm; }
+.writing .points { display: flex; align-items: baseline; margin: 0 0 3mm; break-inside: avoid;
+  break-after: avoid; }
+.writing .points .cap { margin: 0 3mm 0 0; white-space: nowrap; }
+.writing .points ul { list-style: none; font: 400 11pt/1.45 var(--sans); }
+.writing .points li { padding-left: 5mm; text-indent: -5mm; }
+.writing .points li + li { margin-top: .6mm; }
+.writing .points .tick { display: inline-block; width: 3.4mm; height: 3.4mm;
+  border: .6pt solid #000; margin-right: 1.6mm; vertical-align: -.3mm; text-indent: 0; }
+.writing .pn { font: 700 9pt var(--sans); color: var(--ink-3); text-indent: 0; }
+.writing .points .pn { display: inline-block; min-width: 3.6mm; }
+.writing .numbered + .numbered { margin-top: 3.6mm; }
+.writing .numbered > div:first-child { position: relative; }
+.writing .numbered .pn { position: absolute; left: calc(0mm - var(--gut)); bottom: 1.2mm; }
+.writing .lines > div.starter.src { font-family: var(--sans); }
+.solutions .sb .model.src { font-family: var(--sans); }
+.solutions .sb .pts { list-style: none; margin-top: 1mm; }
+.solutions .sb .pts li { padding-left: 3.6mm; text-indent: -3.6mm; }
+.solutions .sb .pts li::before { content: "–"; display: inline-block; width: 3.6mm;
+  text-indent: 0; }
+.solutions .sb .pts li + li { margin-top: .5mm; }
 
 /* ---- kind: cloze choice ---- */
 
@@ -534,6 +568,7 @@ EPAPER_CSS = r"""
 /* ---- kind: true_false+ ---- */
 
 /* ---- kind: writing+ ---- */
+.writing .wmeta .reg { font-size: 8.5pt; }
 
 /* ---- kind: cloze choice ---- */
 

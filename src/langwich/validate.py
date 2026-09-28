@@ -1418,6 +1418,91 @@ class _Checker:
 
     def check_writing_extras(self) -> None:
         """Writing 'input' and 'points': the model answer covers every point."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, WritingTask) or not (task.input or task.points):
+                continue
+            where = f"/tasks/{i}"
+            answer = task.model_answer or ""
+            if not answer.strip():
+                given = " and ".join(
+                    name for name, value in (("an 'input'", task.input), ("'points'", task.points))
+                    if value
+                )
+                lang = "target" if task.output_lang == "target" else "source"
+                covers = (
+                    "covers every point; give each point \"covered_by\": the words of the model "
+                    "answer that cover it" if task.points else "does what the prompt asks"
+                )
+                self.warn(
+                    "writing-no-model-answer", where,
+                    f"this writing task has {given} but no model answer, so the answer key has "
+                    f"nothing to compare the learner's text with. Add \"model_answer\": a "
+                    f"complete text in the {lang} language, as the learner should write it, that "
+                    f"{covers}.",
+                )
+                continue
+            text = self._passage_key(answer)
+            for j, point in enumerate(task.points):
+                covered = point.covered_by or ""
+                if not self._passage_key(covered):
+                    self.warn(
+                        "point-not-covered", f"{where}/points/{j}",
+                        f"the point {_q(point.point)} has no 'covered_by', so nobody can see "
+                        "where the model answer covers it. Add \"covered_by\": the words of the "
+                        "model answer that cover this point, copied exactly; if the model answer "
+                        "does not cover it yet, add a sentence that does.",
+                    )
+                elif not self._quotes(text, covered):
+                    close = self._closest_passage(answer, covered)
+                    guess = f" (did you mean {_q(close)}?)" if close else ""
+                    self.warn(
+                        "point-not-covered", f"{where}/points/{j}/covered_by",
+                        f"'covered_by' {_q(covered)} is not part of the model answer{guess}, so "
+                        "the answer key would quote words that the model answer does not "
+                        f"contain. Copy the words that cover the point {_q(point.point)} exactly "
+                        "from model_answer, or rewrite the model answer so that it covers the "
+                        "point with these words.",
+                    )
+
+    #: Punctuation and quote marks around a quoted passage (not part of it).
+    _PASSAGE_EDGES = string.punctuation + "„“”«»‚‘’‹›…–—" + string.whitespace
+    #: Typographic quote marks and apostrophes, unified for comparisons.
+    _QUOTE_MARKS = str.maketrans("„“”«»‹›‘’‚ʼ", '"""""""\'\'\'\'')
+
+    @classmethod
+    def _passage_key(cls, text: str) -> str:
+        """A passage for substring comparisons: case, spacing, quote marks and
+        the punctuation around it do not count."""
+        text = text.strip(cls._PASSAGE_EDGES).translate(cls._QUOTE_MARKS)
+        return " ".join(text.casefold().split())
+
+    @classmethod
+    def _quotes(cls, text: str, passage: str) -> bool:
+        """Does ``text`` (a :meth:`_passage_key`) contain ``passage``? A long
+        quote may leave out words with '…': its parts must occur in order."""
+        pos = 0
+        for part in re.split(r"…|\.\.\.", passage):
+            key = cls._passage_key(part)
+            found = text.find(key, pos)
+            if found < 0:
+                return False
+            pos = found + len(key)
+        return True
+
+    @classmethod
+    def _closest_passage(cls, text: str, passage: str) -> str | None:
+        """The run of words in ``text`` most like ``passage`` (as many words),
+        or ``None`` when no run is close."""
+        words = text.split()
+        size = min(len(passage.split()), len(words))
+        key = cls._passage_key(passage)
+        best, best_ratio = None, 0.0
+        for k in range(len(words) - size + 1):
+            run = " ".join(words[k:k + size]).strip(cls._PASSAGE_EDGES)
+            ratio = difflib.SequenceMatcher(None, cls._passage_key(run), key).ratio()
+            if ratio > best_ratio:
+                best, best_ratio = run, ratio
+        return best if best_ratio >= 0.6 else None
 
     def check_choice_gaps(self) -> None:
         """The options of cloze gaps with hint 'choice'."""
@@ -1449,7 +1534,9 @@ class _Checker:
     def _check_model_answer(self, task: WritingTask, where: str) -> None:
         answer = task.model_answer or ""
         low, high = task.min_words, task.max_words
-        if self.target_lang not in _NO_SPACE_LANGS and (low or high):
+        lang = (self.target_lang if task.output_lang == "target"
+                else locale.base_lang(self.ws.source_lang))
+        if lang not in _NO_SPACE_LANGS and (low or high):
             n = _word_count(answer)
             too_short = low is not None and n < low * (1 - MODEL_ANSWER_SLACK)
             too_long = high is not None and n > high * (1 + MODEL_ANSWER_SLACK)
@@ -1463,6 +1550,8 @@ class _Checker:
                     f"Rewrite it to {wanted} words, so the learner sees what a complete answer "
                     "of the right length looks like.",
                 )
+        if task.output_lang == "source":
+            return  # must_use words are target-language words: not in a source-language text
         for k, word in enumerate(task.must_use):
             if strip_article(word, self.target_lang) and not self.occurs(word, [answer]):
                 self.warn(

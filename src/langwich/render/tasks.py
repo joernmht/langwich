@@ -307,14 +307,64 @@ def _writing(b: Builder, pt: PlannedTask, task: WritingTask) -> Parts:
     if task.starter and not task.lines:
         count += 1
     count = max(1, min(count, 40))
+    # with "paragraphs": one numbered block of lines per point, at least three
+    # lines each (the starter, if any, on an extra first line)
+    blocks = [count]
+    if task.paragraphs and len(task.points) > 1:
+        head = 1 if task.starter else 0
+        per = max(3, math.ceil((count - head) / len(task.points)))
+        blocks = [per + head] + [per] * (len(task.points) - 1)
+    numbered = len(blocks) > 1
     parts = [f'<p class="prompt">{esc(task.prompt)}</p>']
+    # who the text is for, and its register as a small tag
+    meta = ""
+    if task.audience:
+        meta += f'<span class="cap">{esc(b.t("audience"))}</span>{esc(task.audience)}'
+    if task.register_:
+        meta += f'<span class="reg">{esc(b.t(f"register.{task.register_}"))}</span>'
+    if meta:
+        parts.append(f'<p class="wmeta">{meta}</p>')
+    if task.input:
+        # the text to answer or work from, as it would look: paragraphs and line breaks kept
+        paras = "".join("<p>" + esc(p.strip()).replace("\n", "<br>") + "</p>"
+                        for p in task.input.split("\n\n") if p.strip())
+        source = task.input_lang == "source"
+        attr = b.src_attr() if source else b.lang_attr()
+        parts.append(f'<div class="box input {"src" if source else "tl"}"{attr}>{paras}</div>')
+    if task.points:
+        points = "".join(
+            '<li><span class="tick"></span>'
+            + (f'<span class="pn">{k}</span>' if numbered else "")
+            + f"{esc(p.point)}</li>"
+            for k, p in enumerate(task.points, 1)
+        )
+        parts.append(f'<div class="points"><span class="cap">{esc(b.t("points"))}</span>'
+                     f"<ul>{points}</ul></div>")
     if task.must_use:
         words = "".join(f'<span class="w"><span class="tick"></span>{esc(w)}</span>'
                         for w in task.must_use)
         parts.append(f'<div class="usewords"><span class="cap">{esc(b.t("use_words"))}</span>'
                      f'<span class="tl"{b.lang_attr()}>{words}</span></div>')
-    parts.append(b.lines(count, task.starter))
+    parts.append(_writing_space(b, blocks, task.starter, task.output_lang == "source"))
     return Parts(f'<div class="writing">{"".join(parts)}</div>')
+
+
+def _writing_space(b: Builder, blocks: list[int], starter: str | None, source: bool) -> str:
+    """Writing lines: one block per count in ``blocks`` (numbered when there
+    are several); the starter, in the language the learner writes, on the
+    first line."""
+    attr, face = (b.src_attr(), "src") if source else (b.lang_attr(), "tl")
+    numbered = len(blocks) > 1
+    out = []
+    for k, count in enumerate(blocks):
+        num = f'<span class="pn">{k + 1}</span>' if numbered else ""
+        if k == 0 and starter:
+            first = f'<div class="starter {face}"{attr}>{num}{esc(starter)}</div>'
+        else:
+            first = f"<div>{num}</div>"
+        klass = "lines numbered" if numbered else "lines"
+        out.append(f'<div class="{klass}">{first}{"<div></div>" * (count - 1)}</div>')
+    return "".join(out)
 
 
 def _dialogue(b: Builder, pt: PlannedTask, task: DialogueTask) -> Parts:
