@@ -12,9 +12,9 @@ from __future__ import annotations
 import itertools
 import math
 from collections import Counter
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from langwich import markup
 from langwich.answers import cloze_texts, letter, safe_gaps
@@ -410,6 +410,91 @@ _RENDERERS = {
     "media_search": _media_search,
     "draw": _draw,
 }
+
+
+# ---------------------------------------------------------------------------
+# Instructions and answer-key labels that depend on a task's fields
+# ---------------------------------------------------------------------------
+#
+# Each kind that needs one has its own function; the tables below route to
+# them. A default instruction is used only when the task has none of its own.
+
+
+def _instruction_true_false(b: Builder, task: TrueFalseTask) -> str | None:
+    return None
+
+
+def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:
+    return None
+
+
+def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
+    return None
+
+
+def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
+    return None
+
+
+def _instruction_transform(b: Builder, task: TransformTask) -> str | None:
+    return None
+
+
+def _instruction_proofread(b: Builder, task: ProofreadTask) -> str | None:
+    return None
+
+
+_INSTRUCTIONS: dict[str, Callable[[Builder, Any], str | None]] = {
+    "true_false": _instruction_true_false,
+    "classify": _instruction_classify,
+    "find_in_text": _instruction_find_in_text,
+    "cloze": _instruction_cloze,
+    "transform": _instruction_transform,
+    "proofread": _instruction_proofread,
+}
+
+
+def default_instruction(b: Builder, pt: PlannedTask) -> str | None:
+    """The built-in instruction for a task without its own, when it depends
+    on the task's fields (``None``: the kind's plain default)."""
+    fn = _INSTRUCTIONS.get(pt.task.kind)
+    return fn(b, pt.task) if fn else None
+
+
+def _suffix_transform(b: Builder, task: TransformTask) -> str:
+    return ""
+
+
+_SUFFIXES: dict[str, Callable[[Builder, Any], str]] = {
+    "transform": _suffix_transform,
+}
+
+
+def instruction_suffix(b: Builder, pt: PlannedTask) -> str:
+    """HTML appended to the instruction (a word limit), or ``""``."""
+    fn = _SUFFIXES.get(pt.task.kind)
+    return fn(b, pt.task) if fn else ""
+
+
+def _key_labels_classify(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
+    return False, None
+
+
+def _key_labels_crossword(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
+    return False, None
+
+
+_KEY_LABELS: dict[str, Callable[[Builder, PlannedTask, int], tuple[bool, list[str] | None]]] = {
+    "classify": _key_labels_classify,
+    "crossword": _key_labels_crossword,
+}
+
+
+def key_labels(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
+    """``(True, labels)`` when a kind numbers its answer-key entries itself
+    (``labels`` ``None``: no numbers); ``(False, None)`` for the default."""
+    fn = _KEY_LABELS.get(pt.task.kind)
+    return fn(b, pt, count) if fn else (False, None)
 
 
 def render_task(b: Builder, pt: PlannedTask) -> Parts:

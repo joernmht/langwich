@@ -820,8 +820,13 @@ class Builder:
             heading = scene.heading if scene else task.scene
             before, _, after = self.t("kind.label.draw", scene="\x00").partition("\x00")
             return esc(before) + self.tl(heading) + esc(after)
+        from langwich.render import tasks  # local import: tasks imports this module's helpers
+
+        default = None if task.instruction else tasks.default_instruction(self, pt)
         if task.instruction:
             text = esc(task.instruction)
+        elif default is not None:
+            text = esc(default)
         elif isinstance(task, ClozeTask):
             key = f"kind.cloze.{task.hint}"
             if task.hint == "word_bank" and self.bank_is_exact(task):
@@ -829,6 +834,7 @@ class Builder:
             text = esc(self.t(key))
         else:
             text = esc(self.t(f"kind.{task.kind}.instruction"))
+        text += tasks.instruction_suffix(self, pt)
         if isinstance(task, WritingTask):
             length = None
             if task.min_words and task.max_words:
@@ -1267,6 +1273,11 @@ class Builder:
         return answer_key(pt, self.ws)
 
     def key_numbers(self, pt: PlannedTask, count: int) -> list[str] | None:
+        from langwich.render import tasks  # local import: tasks imports this module's helpers
+
+        own, labels = tasks.key_labels(self, pt, count)
+        if own:
+            return labels
         task = pt.task
         if isinstance(task, OrderEventsTask):
             return None
