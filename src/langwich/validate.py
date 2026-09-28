@@ -1415,6 +1415,71 @@ class _Checker:
 
     def check_true_false_extras(self) -> None:
         """'not_given' and 'justify': the third box, quotes, corrections."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, TrueFalseTask):
+                continue
+            where = f"/tasks/{i}"
+            if task.not_given and not any(item.answer == "not_given" for item in task.items):
+                self.warn(
+                    "tf-no-not-given", f"{where}/not_given",
+                    "this task prints a third box 'not in the text', but no statement has "
+                    "\"answer\": \"not_given\", so that box is never right. Add 1–2 statements "
+                    "about details the story never mentions (never about real-world facts) with "
+                    "\"answer\": \"not_given\", or remove \"not_given\": true.",
+                )
+            # quotes come from the task's scenes (the whole story for a task without one)
+            scenes = [s for ref in task.scene_ids if (s := self.ws.scene(ref)) is not None]
+            ids = [f"'{s.id}'" for s in scenes]
+            place = (
+                "the story" if not scenes
+                else f"scene {ids[0]}" if len(ids) == 1
+                else f"scenes {', '.join(ids[:-1])} and {ids[-1]}"
+            )
+            texts = [s.text for s in scenes or self.ws.story.scenes]
+            keys = [self._passage_key(text.translate(self._NO_QUOTE_MARKS)) for text in texts]
+            for j, item in enumerate(task.items):
+                if item.answer == "not_given":
+                    extra = [f"'{name}'" for name, value in
+                             (("correction", item.correction), ("quote", item.quote)) if value]
+                    if extra:
+                        them = "it" if len(extra) == 1 else "them"
+                        self.warn(
+                            "tf-not-given-correction", f"{where}/items/{j}",
+                            f"the statement {_q(item.statement)} is 'not_given' — the story "
+                            f"does not say — but it has {' and '.join(extra)}, and there is "
+                            f"nothing to correct or quote. Remove {them}; if the story does say "
+                            "whether the statement is right, answer true or false instead.",
+                        )
+                    continue
+                quote = item.quote or ""
+                if not self._passage_key(quote):
+                    if task.justify:
+                        verdict = "true" if item.answer is True else "false"
+                        self.warn(
+                            "tf-quote-missing", f"{where}/items/{j}",
+                            "the task has \"justify\": true, so learners copy the words that "
+                            f"prove each answer, but the statement {_q(item.statement)} has no "
+                            "'quote' and the answer key cannot show them. Add \"quote\": the "
+                            f"words of the story that show it is {verdict}, copied exactly (a "
+                            "few words up to one sentence).",
+                        )
+                    continue
+                bare = quote.translate(self._NO_QUOTE_MARKS)
+                if any(self._quotes(key, bare) for key in keys):
+                    continue
+                close = self._closest_passage("\n\n".join(texts), quote)
+                guess = f" (did you mean {_q(close)}?)" if close else ""
+                self.warn(
+                    "tf-quote-not-in-story", f"{where}/items/{j}/quote",
+                    f"the quote {_q(quote)} is not in {place}{guess}, so learners cannot find "
+                    "these words and the answer key would print words the story does not "
+                    "contain. Copy the words exactly from the story (leave words out with '…' "
+                    "if needed), or quote other words that prove the answer.",
+                )
+
+    #: Double quote marks, left out when a quote is compared with the story: a
+    #: quote may keep or drop the „…“ around direct speech.
+    _NO_QUOTE_MARKS = str.maketrans("", "", '„“”«»‹›"')
 
     def check_writing_extras(self) -> None:
         """Writing 'input' and 'points': the model answer covers every point."""

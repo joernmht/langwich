@@ -595,8 +595,16 @@ class Builder:
             return h + sum(self._text_h(it.question, width - GUTTER_W, "serif", 11, 1.45)
                            + it.lines * 9.0 + 1.6 for it in task.items)
         if isinstance(task, TrueFalseTask):
-            return h + sum(self._text_h(it.statement, width - 35, "serif", 11, 1.45) + 10.2
-                           for it in task.items)
+            # three boxes: narrower statements under a row of column heads;
+            # with "justify": one more line and more room per statement
+            from langwich.render import tasks  # local import: tasks imports this module's helpers
+
+            boxes, heads = 35.0, 0.0
+            if task.not_given:
+                boxes, heads = 3 * tasks.tf_column_width(self) + 5.0, 8.4
+            per_item = 10.2 + (11.0 if task.justify else 0.0)
+            return h + heads + sum(self._text_h(it.statement, width - boxes, "serif", 11, 1.45)
+                                   + per_item for it in task.items)
         if isinstance(task, MultipleChoiceTask):
             return h + sum(self._text_h(it.question, width - GUTTER_W, "serif", 11, 1.45)
                            + 1.4 + len(it.options) * 6.6 + 2.6 for it in task.items)

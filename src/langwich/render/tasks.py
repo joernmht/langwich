@@ -166,14 +166,57 @@ def _match(b: Builder, pt: PlannedTask, task: MatchTask) -> Parts:
 
 
 def _true_false(b: Builder, pt: PlannedTask, task: TrueFalseTask) -> Parts:
-    boxes = (f'<span class="cks"><span class="ck"><span class="bxs"></span>{esc(b.t("true"))}</span>'
-             f'<span class="ck"><span class="bxs"></span>{esc(b.t("false"))}</span></span>')
-    items = "".join(
-        f'<div class="it"><span class="n">{i}</span><div class="c">{b.tl(item.statement)}</div>'
-        f'{boxes}<span class="corr"></span></div>'
+    # with "justify", a captioned line for the words of the story below the
+    # correction line (every statement gets both lines: the learner does not
+    # know yet which statements are false)
+    evidence = (f'<div class="wl evd"><span class="cue">{esc(b.t("evidence"))}</span>'
+                '<span class="line"></span></div>') if task.justify else ""
+    just = " just" if task.justify else ""  # (more room between statements)
+    if not task.not_given:
+        labels = "".join(f'<span class="ck"><span class="bxs"></span>{esc(b.t(key))}</span>'
+                         for key in ("true", "false"))
+        boxes = f'<span class="cks">{labels}</span>'
+        items = "".join(
+            f'<div class="it"><span class="n">{i}</span><div class="c">{b.tl(item.statement)}</div>'
+            f'{boxes}<span class="corr"></span>{evidence}</div>'
+            for i, item in enumerate(task.items, 1)
+        )
+        return Parts(f'<div class="items tf{just}">{items}</div>')
+    # three boxes: a table whose head row names the columns once instead of
+    # taking width on every line (a page break repeats it); the task stays
+    # whole where it can, one statement never splits
+    width = f' style="width:{tf_column_width(b):.1f}mm"'
+    heads = "".join(f'<th class="h"{width}>{esc(b.t(key))}</th>'
+                    for key in ("true", "false", "not_given"))
+    boxes = '<td class="b"><span class="bxs"></span></td>' * 3
+    rows = "".join(
+        f'<tbody><tr><td class="n">{i}</td><td class="c">{b.tl(item.statement)}</td>{boxes}</tr>'
+        '<tr><td></td><td class="corr" colspan="4"></td></tr>'
+        + (f'<tr><td></td><td colspan="4">{evidence}</td></tr>' if evidence else "")
+        + "</tbody>"
         for i, item in enumerate(task.items, 1)
     )
-    return Parts(f'<div class="items tf">{items}</div>')
+    return Parts(f'<table class="tf3{just}"><thead><tr><th class="n"></th><th></th>{heads}</tr>'
+                 f"</thead>{rows}</table>", keep=True)
+
+
+#: Size (pt) of the column heads of a true_false task with three boxes, on A4
+#: and on e-paper (the CSS below "true_false+" sets the same).
+TF_HEAD_PT = {"a4": 8.0, "epaper": 8.5}
+
+
+def tf_column_width(b: Builder) -> float:
+    """Width (mm) of each box column of a true_false task with three boxes:
+    every head ('true', 'false', 'not in the text') on at most two lines,
+    no word broken, at least 1 mm clear on either side."""
+    size = TF_HEAD_PT["epaper" if b.epaper else "a4"]
+    heads = [b.t(key) for key in ("true", "false", "not_given")]
+    longest = max(metrics.width_mm(w, "sans-bold", size) for h in heads for w in h.split())
+    width = max(12.0, math.ceil((longest + 2.0) * 2) / 2)
+    while width < 30.0 and any(metrics.line_count(h, width - 2.0, "sans-bold", size) > 2
+                               for h in heads):
+        width += 0.5
+    return width
 
 
 def _multiple_choice(b: Builder, pt: PlannedTask, task: MultipleChoiceTask) -> Parts:
@@ -471,7 +514,11 @@ _RENDERERS = {
 
 
 def _instruction_true_false(b: Builder, task: TrueFalseTask) -> str | None:
-    return None
+    """Three boxes name the third one; 'justify' asks for the words of the story."""
+    if not (task.not_given or task.justify):
+        return None
+    text = b.t("kind.true_false.not_given" if task.not_given else "kind.true_false.instruction")
+    return f'{text} {b.t("kind.true_false.justify")}' if task.justify else text
 
 
 def _instruction_classify(b: Builder, task: ClassifyTask) -> str | None:

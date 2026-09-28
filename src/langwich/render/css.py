@@ -370,6 +370,29 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: classify ---- */
 
 /* ---- kind: true_false+ ---- */
+/* three boxes: a table whose head row names the box columns (repeated after
+   a page break); a statement and its lines never split. With "justify", a
+   captioned line for the words of the story below the correction line. */
+table.tf3 { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.tf3 th { font: 600 8pt/1.2 var(--sans); text-align: center; vertical-align: bottom;
+  padding: 0 0 1.4mm; }
+table.tf3 th.n { width: var(--gut); }
+table.tf3 tbody { break-inside: avoid; }
+/* (as in a flowing task: the first two statements stay below the head, the
+   last one never stands alone) */
+table.tf3 thead + tbody:not(:last-child), table.tf3 tbody:nth-last-child(2) {
+  break-after: avoid; }
+table.tf3 tbody > tr:first-child > td { vertical-align: baseline; }
+table.tf3 tbody + tbody > tr:first-child > td { padding-top: 2.6mm; }
+table.tf3 td { padding: 0; }
+table.tf3 td.n { font: 700 11pt/1.45 var(--sans); }
+table.tf3 td.c { font: 400 11pt/1.45 var(--serif); padding-right: 5mm; }
+table.tf3 td.b { text-align: center; font: 400 11pt/1.45 var(--sans); }
+table.tf3 td.b .bxs { margin-right: 0; }
+table.tf3 td.corr { height: 7.6mm; border-bottom: .6pt solid var(--ink-3); }
+.tf .evd { grid-column: 2 / span 2; grid-row: 3; }
+.tf.just > .it + .it { margin-top: 4.2mm; }
+table.tf3.just tbody + tbody > tr:first-child > td { padding-top: 4.2mm; }
 
 /* ---- kind: writing+ ---- */
 /* who the text is for and its register; the text to answer, in a box as wide
@@ -566,6 +589,7 @@ EPAPER_CSS = r"""
 /* ---- kind: classify ---- */
 
 /* ---- kind: true_false+ ---- */
+table.tf3 th { font-size: 8.5pt; }
 
 /* ---- kind: writing+ ---- */
 .writing .wmeta .reg { font-size: 8.5pt; }
