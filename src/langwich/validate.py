@@ -274,6 +274,20 @@ STORY_WORDS: dict[str, tuple[int, int]] = {
 }
 assert set(STORY_WORDS) == set(CEFR_LEVELS)
 
+#: Tasks in total, per CEFR level (the recommended set of the brief).
+TASK_COUNT: dict[str, tuple[int, int]] = {
+    "A1": (8, 11),
+    "A2": (8, 12),
+    "B1": (10, 14),
+    "B2": (10, 14),
+    "C1": (10, 14),
+    "C2": (10, 14),
+}
+assert set(TASK_COUNT) == set(CEFR_LEVELS)
+#: Levels whose long stories need one comprehension task per one or two
+#: scenes only; the other levels have one per scene.
+PAIRED_SCENE_LEVELS = frozenset({"C1", "C2"})
+
 SCENES_MIN, SCENES_MAX = 2, 7
 TARGET_MIN, TARGET_MAX = 5, 15
 COPY_RATIO = 0.85
@@ -1445,6 +1459,28 @@ class _Checker:
 
     def check_task_count(self) -> None:
         """The number of tasks against the level's recommended range."""
+        level = self.ws.cefr_level
+        low, high = TASK_COUNT[level]
+        n = len(self.ws.tasks)
+        if low <= n <= high:
+            return
+        per_scene = "per one or two scenes" if level in PAIRED_SCENE_LEVELS else "per scene"
+        if n < low:
+            fix = (f"Add {low - n} or more tasks, from what the lesson still lacks: a "
+                   f"comprehension task {per_scene}, a picture task, a form task per grammar "
+                   "point, a practice task that continues the story, a personal question after "
+                   "the writing task, a warm_up prediction or a media_search epilogue.")
+        else:
+            fix = (f"Remove {n - high} or more tasks, the optional ones first (a prediction, a "
+                   "second task of one stage about the same scene), or merge two tasks of the "
+                   f"same kind; keep one comprehension task {per_scene}, the picture, form, "
+                   "practice and production tasks.")
+        article = "an" if level.startswith("A") else "a"
+        self.warn(
+            "task-count", "/tasks",
+            f"the worksheet has {n} task{'s' if n != 1 else ''}; {article} {level} worksheet "
+            f"should have {low}–{high}. {fix}",
+        )
 
     def _check_model_answer(self, task: WritingTask, where: str) -> None:
         answer = task.model_answer or ""

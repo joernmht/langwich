@@ -8,11 +8,12 @@ complete ``langwich/3`` worksheet: a short story that carries true facts,
 and the tasks that walk a learner through it.
 
 The prompt covers story craft, CEFR calibration, which language goes where,
-vocabulary and grammar, the lesson arc, item quality, pictures (including a
-picture attached to the conversation), series continuation, a compact field
-reference for every task kind, a short example that validates, a self-check
-and the output rule. ``compact=True`` gives a shorter variant for small
-local models (7–14B) with the same contract.
+vocabulary and grammar, the lesson arc with the recommended task set of the
+learner's level, item quality (the rules of that level's task kinds), pictures
+(including a picture attached to the conversation), series continuation, a
+compact field reference for every task kind, a short example that validates,
+a self-check and the output rule. ``compact=True`` gives a shorter variant
+for small local models (7–14B) with the same contract.
 
 :func:`repair_prompt` turns a validation report into a short "fix these
 problems" prompt for the model that wrote the file (problems only the user
@@ -44,7 +45,7 @@ from langwich.model import (
     parse_json_text,
 )
 from langwich.series import Continuation, continuation, slugify
-from langwich.validate import ENVIRONMENT_CODES, SCENES_MAX, SCENES_MIN
+from langwich.validate import ENVIRONMENT_CODES, PAIRED_SCENE_LEVELS, SCENES_MAX, SCENES_MIN
 
 #: Built-in defaults when nothing else gives languages or level.
 DEFAULT_SOURCE_LANG = "en"
@@ -281,31 +282,160 @@ class LevelSpec:
     sentences: str
     structures: str
     dialogue: str
-    tasks: tuple[int, int]
+    tasks: tuple[int, int]          # tasks in total (the validator's TASK_COUNT)
     writing: tuple[int, int]        # words for the production writing task
     target_words: tuple[int, int]   # size of vocabulary.target
     plot_facts: tuple[int, int]     # true facts woven into the story itself
+    #: the recommended task set, one numbered line per step of the lesson arc
+    #: (markers such as ``<<picture_tasks>>`` are filled like the rest of the brief)
+    recipe: str
+    #: the kinds whose rules the brief prints: every kind the recipe and the
+    #: level-independent sections name, in :data:`TASK_KINDS` order
+    kinds: tuple[str, ...]
+
+
+# Recommended task sets. The steps are the same at every level (the lesson
+# arc); what changes is which kinds, and which of their fields, fit the level.
+# Only the learner's level is printed, so each recipe stands on its own.
+
+_RECIPE_A1 = """\
+1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra";
+   optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false, multiple_choice, classify ("who does what?",
+   the characters as "categories") or questions with a "starter" (no open why or how questions;
+   "question_lang": "source" is allowed).
+3. picture: <<picture_tasks>>
+4. form, one per grammar point with "grammar": scramble (word order) or a cloze with "hint":
+   "choice" or "first_letter".
+5. practice: a table (a form, ticket or menu with the story's facts as {{gaps}}) or a
+   word-bank cloze.
+6. production: writing, a short message with a "starter" and 2–3 "points"; plus one personal
+   question.
+7. epilogue (optional): a crossword of the key words (S clues); media_search with "media":
+   "image" or "video" ("find <<a_T>> <<T>> video about …")."""
+
+_RECIPE_A2 = """\
+1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra";
+   optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false, multiple_choice, classify ("who does what?"),
+   questions with a "starter", find_in_text with S clues, order_events (events from the whole
+   story; "scene": the last scene).
+3. picture: <<picture_tasks>>
+4. form, one per grammar point with "grammar": scramble, a cloze with "hint": "choice" or
+   "base_form", or transform (its "cue" says what to change).
+5. practice: a table (a timetable, receipt or form with the story's facts), a dialogue with
+   "bank": true, or a word-bank cloze.
+6. production: writing that answers a character's "input" message and covers its 3 "points",
+   with a "starter"; plus one personal question.
+7. epilogue (optional): a crossword of the key words (S clues); media_search as homework
+   ("find <<a_T>> <<T>> video about …")."""
+
+_RECIPE_B1 = """\
+1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra";
+   optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false (with "not_given" if it fits), multiple_choice,
+   questions that need the story (why? how?), classify (who said what?), find_in_text with T
+   synonyms as clues, order_events (events from the whole story; "scene": the last scene).
+3. picture: <<picture_tasks>>
+4. form, one per grammar point with "grammar": a cloze with "hint": "base_form", transform
+   (its "cue" says what to change) or word_building.
+5. practice: a word-bank cloze, a dialogue, or proofread ("marked": true) — a character's
+   message with mistakes in the grammar point.
+6. production: writing from a character's point of view — a message, a diary entry, or an
+   email that answers an "input" and covers its "points" — with a "starter"; plus one personal
+   question.
+7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> video about …")."""
+
+_RECIPE_B2 = """\
+1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra";
+   optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false with "not_given", questions on inference (what
+   does it show? why?), classify as multiple matching (which character …?), multiple_choice,
+   gapped_text (another character's account of the scene).
+3. picture: <<picture_tasks>>
+4. form, one per grammar point with "grammar": a cloze with "hint": "choice" and
+   "choice_layout": "below", an open cloze ("hint": "none"), transform with "keyword", "frame"
+   and "max_words", or word_building (word formation).
+5. practice: proofread ("marked": false) or an open cloze.
+6. production: writing with "register", "audience", 3–4 "points" and "paragraphs": true — a
+   character's opinion essay, formal complaint or review; plus one personal question.
+7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> video about …")."""
+
+_RECIPE_C1 = """\
+1. warm_up · match: key words or collocations (left, T) with T definitions (right), plus 1–2
+   "extra"; optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false with "not_given" and "justify",
+   gapped_text (another character's account), find_in_text with "explain" (idioms, irony,
+   connotation), multiple_choice or questions on inference and the writer's intent.
+3. picture (optional): <<picture_tasks>>
+4. form, one per grammar point with "grammar": transform as key word transformation
+   ("keyword", "frame", "max_words") or an open cloze ("hint": "none").
+5. practice: proofread ("marked": false).
+6. production: writing from an "input": a summary or a mediation (into S: "output_lang":
+   "source"), or a register rewrite (a text message as a formal email); plus one personal
+   question.
+7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> podcast about …")."""
+
+_RECIPE_C2 = """\
+1. warm_up · match: key words or collocations (left, T) with T definitions (right), plus 1–2
+   "extra"; optionally one prediction about the stakes (questions, no model answer).
+2. gist/detail, one task <<per_scene>>: true_false with "not_given" and "justify",
+   gapped_text (another character's account), find_in_text with "explain" (wordplay, style,
+   irony), multiple_choice or questions on the writer's intent and tone.
+3. picture (optional): <<picture_tasks>>
+4. form, one per grammar point with "grammar": transform as key word transformation
+   ("keyword", "frame", "max_words") or an open cloze ("hint": "none").
+5. practice: proofread ("marked": false).
+6. production: writing from an "input": a genre or voice rewrite (a scene as a news report, or
+   in another character's voice), a summary or a mediation (into S: "output_lang": "source");
+   plus one personal question.
+7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> podcast about …")."""
+
+#: Kinds that the brief asks for at every level: the warm-up match, the
+#: picture task (label or draw), questions, the writing task, the epilogue.
+_ARC_KINDS = ("match", "questions", "label", "writing", "media_search", "draw")
+
+
+def _kinds(*kinds: str) -> tuple[str, ...]:
+    """``kinds`` and :data:`_ARC_KINDS` in :data:`TASK_KINDS` order."""
+    wanted = set(kinds) | set(_ARC_KINDS)
+    return tuple(k for k in TASK_KINDS if k in wanted)
 
 
 LEVELS: dict[str, LevelSpec] = {
     "A1": LevelSpec((60, 200), 3, "4–8 words; main clauses", "present tense; and, but, because; "
-                    "simple questions; can, want", "short exchanges", (6, 9), (25, 40), (6, 8), (2, 3)),
+                    "simple questions; can, want", "short exchanges", (8, 11), (25, 40), (6, 8),
+                    (2, 3), _RECIPE_A1,
+                    _kinds("true_false", "multiple_choice", "classify", "cloze", "scramble",
+                           "table", "crossword")),
     "A2": LevelSpec((120, 300), 3, "5–12 words; simple because/when clauses", "present, the "
-                    "everyday past, modal verbs, comparisons", "about a third", (7, 10),
-                    (40, 70), (6, 8), (2, 4)),
+                    "everyday past, modal verbs, comparisons", "about a third", (8, 12),
+                    (40, 70), (6, 8), (2, 4), _RECIPE_A2,
+                    _kinds("true_false", "multiple_choice", "order_events", "classify",
+                           "find_in_text", "cloze", "transform", "scramble", "table", "dialogue",
+                           "crossword")),
     "B1": LevelSpec((220, 450), 4, "up to ~15 words; subordinate and relative clauses",
                     "narrative past tenses, simple passive, reported speech, real conditionals",
-                    "a quarter to a third", (10, 14), (60, 100), (8, 12), (3, 5)),
+                    "a quarter to a third", (10, 14), (60, 100), (8, 12), (3, 5), _RECIPE_B1,
+                    _kinds("true_false", "multiple_choice", "order_events", "classify",
+                           "find_in_text", "cloze", "transform", "word_building", "proofread",
+                           "dialogue")),
     "B2": LevelSpec((350, 700), 4, "varied; complex sentences", "all tenses, passive, "
                     "conditionals, subjunctive in reported speech where it exists",
                     "distinct voices, some register contrast", (10, 14), (100, 150), (8, 12),
-                    (3, 6)),
+                    (3, 6), _RECIPE_B2,
+                    _kinds("true_false", "multiple_choice", "classify", "gapped_text", "cloze",
+                           "transform", "word_building", "proofread")),
     "C1": LevelSpec((500, 1000), 5, "complex, idiomatic", "nuanced connectors, participle "
-                    "clauses, idioms, irony", "characterful, with subtext", (9, 13), (150, 220),
-                    (8, 12), (4, 7)),
+                    "clauses, idioms, irony", "characterful, with subtext", (10, 14), (150, 220),
+                    (8, 12), (4, 7), _RECIPE_C1,
+                    _kinds("true_false", "multiple_choice", "find_in_text", "gapped_text",
+                           "cloze", "transform", "proofread")),
     "C2": LevelSpec((600, 1200), 5, "literary, varied rhythm", "the full range, stylistic "
-                    "devices, wordplay", "as the story needs", (9, 13), (180, 260), (8, 12),
-                    (4, 8)),
+                    "devices, wordplay", "as the story needs", (10, 14), (180, 260), (8, 12),
+                    (4, 8), _RECIPE_C2,
+                    _kinds("true_false", "multiple_choice", "find_in_text", "gapped_text",
+                           "cloze", "transform", "proofread")),
 }
 assert set(LEVELS) == set(CEFR_LEVELS)
 
@@ -455,11 +585,21 @@ KIND_RULES: dict[str, str] = {
 assert list(KIND_RULES) == list(TASK_KINDS)
 
 
-def kind_rules(kinds: Iterable[str]) -> str:
+#: Where the first sentence of a rule ends (not after "e.g."): the sentences
+#: after it add the options of some levels (not_given, "choice", "input" …).
+_FIRST_SENTENCE_END_RE = re.compile(r'(?<!e\.g)\.\s+(?=["A-Z])')
+
+
+def kind_rules(kinds: Iterable[str], core: bool = False) -> str:
     """The rules of ``kinds`` (in :data:`TASK_KINDS` order) as one paragraph:
-    ``'true_false: … multiple_choice: …'``."""
+    ``'true_false: … multiple_choice: …'``. ``core`` keeps only the first
+    sentence of each rule, without the options that follow (compact prompt)."""
     wanted = set(kinds)
-    return " ".join(f"{k}: {KIND_RULES[k]}" for k in TASK_KINDS if k in wanted)
+    rules = {k: KIND_RULES[k] for k in TASK_KINDS if k in wanted}
+    if core:
+        rules = {k: _FIRST_SENTENCE_END_RE.split(r, maxsplit=1)[0].rstrip(".") + "."
+                 for k, r in rules.items()}
+    return " ".join(f"{k}: {rule}" for k, rule in rules.items())
 
 
 _FIELD_REFERENCE_HEAD = """\
@@ -540,7 +680,8 @@ _EXAMPLE_SVG = (
     "</svg>"
 )
 
-#: A short but complete English → German A2 worksheet (2 scenes, 7 tasks).
+#: A short but complete English → German A2 worksheet (2 scenes, 8 tasks: the
+#: fewest an A2 worksheet should have).
 MINI_EXAMPLE: dict[str, Any] = {
     "schema": "langwich/3",
     "title": "Zu Fuß zur Insel",
@@ -732,6 +873,10 @@ MINI_EXAMPLE: dict[str, Any] = {
                          "Morgen war Ebbe, und wir sind durch das Watt gelaufen. Ich wollte "
                          "einen Seehund fotografieren, aber Jan hat „Stopp!“ gerufen – die Flut "
                          "wartet nicht! Um halb eins waren wir am Leuchtturm. Liebe Grüße, Mia"},
+        {"id": "t8", "kind": "questions", "stage": "production", "title": "And you?",
+         "instruction": "Answer in German.",
+         "items": [{"question": "Warst du schon einmal am Meer? Was hast du dort gemacht?",
+                    "lines": 3}]},
     ],
 }
 
@@ -742,8 +887,8 @@ _COMPACT_EXTRA_ITEMS = ("der Stiefel", "der Priel", "verschwinden")
 
 def compact_example() -> dict[str, Any]:
     """The example as the compact prompt shows it: shorter (no translations,
-    no grammar table, one fact, fewer items) and with a draw task instead of
-    an SVG drawing with a label task."""
+    no grammar table, one fact, fewer vocabulary and task items, but as many
+    tasks) and with a draw task instead of an SVG drawing with a label task."""
     ex = copy.deepcopy(MINI_EXAMPLE)
     for scene in ex["story"]["scenes"]:
         scene.pop("translation", None)
@@ -754,10 +899,11 @@ def compact_example() -> dict[str, Any]:
     ex["facts"] = ex["facts"][:1]
     for gp in ex["grammar"]:
         gp.pop("table", None)
-    ex["tasks"] = [t for t in ex["tasks"] if t["kind"] != "multiple_choice"]
     for task in ex["tasks"]:
         if task["kind"] == "true_false":
             task["items"] = task["items"][:2]
+        elif task["kind"] == "multiple_choice":
+            task["items"] = task["items"][:1]
     keep = {t.casefold() for t in ex["vocabulary"]["target"] + list(_COMPACT_EXTRA_ITEMS)}
     ex["vocabulary"]["items"] = [
         v for v in ex["vocabulary"]["items"] if v["term"].casefold() in keep
@@ -1076,11 +1222,27 @@ def _values(b: _Brief) -> dict[str, object]:
         "forms_check": f'"forms" for every {_verb_kinds(b.tgt)} verb.',
         "no_picture": NO_PICTURE_SENTINEL,
         "example_langs": _example_langs(b),
+        "ex_tasks": len(MINI_EXAMPLE["tasks"]),
+        "per_scene": "per one or two scenes" if b.level in PAIRED_SCENE_LEVELS else "per scene",
+        "keep_simple": " Keep sentences simple." if b.level in _SIMPLE_LEVELS else "",
+        "c_questions": ('questions with a "starter" (the first words of the answer)'
+                        if b.level in _STARTER_LEVELS else "questions"),
     }
 
 
 #: Stages of the tasks that follow a scene, in the planner's order.
 _SCENE_STAGES = frozenset({"gist", "detail", "picture", "form", "practice"})
+
+#: Levels at which the compact prompt asks for simple sentences.
+_SIMPLE_LEVELS = frozenset({"A1", "A2", "B1"})
+#: Levels at which the compact prompt asks for questions with a "starter" (it
+#: prints only the first sentence of each rule, which leaves that out).
+_STARTER_LEVELS = frozenset({"A1", "A2"})
+#: The kinds the compact prompt's task list asks for, besides its picture task
+#: (draw, or label with an attached picture); it prints only their rules.
+_COMPACT_KINDS = frozenset({
+    "match", "true_false", "multiple_choice", "questions", "cloze", "writing", "media_search",
+})
 
 
 def _example_langs(b: _Brief) -> str:
@@ -1212,9 +1374,8 @@ _GRAMMAR = """\
 1–2 points the story really uses (at least twice), right for the level: "name" and
 "explanation" (1–3 sentences) in S, a compact "rule" ("<<ex_rule>>"), an optional
 small "table" (≤ 6 rows) and 2–3 "examples" from the story. Practise each point in a form task
-(cloze with base_form hints, transform or word_building) whose "grammar" is its id. The grammar
-box is printed beside that task, so it must never show that task's answers — not in the rule,
-the table or the examples. It may show the same pattern with OTHER words: a table of other verbs
+(see the lesson arc) whose "grammar" is its id. The grammar box is printed beside that task, so
+it must never show that task's answers — not in the rule, the table or the examples. It may show the same pattern with OTHER words: a table of other verbs
 (or nouns) that follow the rule, examples from the story that the task does not ask for. The
 example below shows können, wollen and sollen in its table; its form task asks for müssen and
 dürfen."""
@@ -1228,27 +1389,15 @@ that scene (several scenes: the last one), sorted <<scene_stages>> — so give e
 tasks its scene → **Your turn** (production) → **Take it further** (epilogue). Picture tasks
 come right after the comprehension tasks of their scene; form and practice tasks move on.
 
-Recommended set (<<t_low>>–<<t_high>> tasks):
-1. warm_up · match: the key words (left, T) with their S meanings (right), plus 1–2 "extra".
-2. warm_up · questions (optional): one prediction about the stakes, no model answer ("What
-   could go wrong? Check at the end.").
-3. gist/detail: one task per scene, varying true_false, multiple_choice, questions and
-   order_events (events from the whole story; scene = the last scene).
-4. picture: <<picture_tasks>>
-5. form: one task per grammar point, with "grammar".
-6. practice: a word-bank cloze that CONTINUES the story in new sentences — the next morning, a
-   note, a message, a moment the story skipped — with 5–7 key words and 2–3 distractors. Never
-   copy story sentences.
-7. production: a writing task that closes or continues the story from a character's point of
-   view (a message, a diary entry, a letter, a review): "starter", 5–7 key words in "must_use",
-   <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "lines" (about one per 8 words),
-   "model_answer". langwich prints the word range and the writing lines itself — don't repeat
-   them in the instruction. Plus one short personal question that links the topic to the
-   learner's life (questions, no model answer).
-8. epilogue (optional): media_search as homework that a character sets in the story ("find
-   <<a_T>> <<T>> video about …" — the topic of the story), with T queries and two T questions.
-Extras if they fit: a dialogue (the characters in a new situation), a transform, a
-word_building."""
+Recommended set for <<level>> (<<t_low>>–<<t_high>> tasks):
+<<recipe>>
+
+A practice text CONTINUES the story in new sentences — the next morning, a note, a message, a
+moment the story skipped — and never copies it; a word-bank cloze has 5–7 key words as gaps.
+The writing task: <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "lines" (about one per
+8 words), "model_answer" and, when written in T, 4–7 key words in "must_use"; langwich prints
+the word range and the lines itself — don't repeat them in the instruction. The personal
+question (no model answer) links the topic to the learner's life."""
 
 _ITEMS = """\
 ## 7. Item quality
@@ -1383,8 +1532,8 @@ translated into <<S>> (keep the keys and any {placeholders}):
 _EXAMPLE_HEAD = """\
 ## <<number>>. Example
 
-A shortened English → German A2 worksheet (2 scenes, 7 tasks) that shows the format and the
-craft in miniature. <<example_langs>> Yours follows the brief: <<n_scenes>>,
+A shortened English → German A2 worksheet (2 scenes, <<ex_tasks>> tasks) that shows the format and
+the craft in miniature. <<example_langs>> Yours follows the brief: <<n_scenes>>,
 <<t_low>>–<<t_high>> tasks, your own topic. Do not copy its story."""
 
 _CHECKLIST = """\
@@ -1427,8 +1576,8 @@ _C_INTRO = """\
 # Write a langwich worksheet as JSON (schema "langwich/3") — short version
 
 Write one worksheet for an adult who speaks <<S>> and learns <<T>> (<<level>>): a short story in
-<<n_scenes>> that mixes true facts with fiction, and about 8 tasks about it. Answer with one JSON
-object."""
+<<n_scenes>> that mixes true facts with fiction, and <<t_low>>–<<t_high>> tasks about it. Answer with
+one JSON object."""
 
 _C_BRIEF = """\
 ## Brief
@@ -1437,7 +1586,7 @@ _C_BRIEF = """\
 - Topic: <<topic_line>>
 - Frame: <<frame_line>>
 - Story: <<n_scenes>>, <<w_low>>–<<w_high>> words in total. Sentences: <<sentences>>; grammar:
-  <<structures>>. Keep sentences simple."""
+  <<structures>>.<<keep_simple>>"""
 
 _C_RULES = """\
 ## Rules
@@ -1461,17 +1610,20 @@ tasks, spelt as in "items". "items": the key words plus other words the learner 
 grammar box is printed beside that task: it may show the pattern with other words, never the
 task's answers.
 
-**Tasks.** Every task except warm_up and production gets a "scene".
+**Tasks.** <<t_low>>–<<t_high>> in all; every task except warm_up, production and epilogue gets a
+"scene".
 1. warm_up · match: the key words (T) and their meanings (S), plus 1 "extra".
-2. gist/detail: one task per scene (true_false, multiple_choice or questions).
+2. gist/detail: one task <<per_scene>> (true_false, multiple_choice or <<c_questions>>).
 3. picture: <<picture_tasks>>
-4. form: a cloze or transform that practises the grammar point; for verb forms a cloze with
-   "hint": "base_form" (<<ex_base>>).
+4. form: a cloze that practises the grammar point; for verb forms "hint": "base_form"
+   (<<ex_base>>).
 5. practice: a word-bank cloze that CONTINUES the story in NEW sentences (never copy the story),
    with 5–6 key words and 2 distractors.
 6. production: writing from a character's point of view: "starter", "must_use",
    <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "model_answer". langwich prints the
-   word range itself — don't repeat it in the instruction.
+   word range itself — don't repeat it in the instruction. Plus one personal question
+   (questions, no model answer).
+7. epilogue: media_search.
 
 **Items.** One right answer per gap; no gap at the start of a sentence. Titles (S) belong to
 the story ("Sunday: the way back"). Gap markup {{answer}}, {{answer|other}}, {{answer::hint}}
@@ -1541,8 +1693,13 @@ def _frame_advice(b: _Brief) -> str:
 
 
 def _level_rows(b: _Brief) -> str:
+    """The learner's level between the levels below and above it: enough to
+    calibrate, without the rows that are far away."""
+    order = list(LEVELS)
+    i = order.index(b.level)
     rows = []
-    for level, spec in LEVELS.items():
+    for level in order[max(i - 1, 0):i + 2]:
+        spec = LEVELS[level]
         n = b.scenes
         low, high = spec.words
         mark = f"**{level}**" if level == b.level else level
@@ -1701,8 +1858,10 @@ def build_prompt(opts: PromptOptions) -> str:
         "sentences": b.spec.sentences,
         "structures": b.spec.structures,
     }
-    # (the rules contain markers themselves: fill them before they are inserted)
-    values["kind_rules"] = _fill(kind_rules(TASK_KINDS), values)
+    # (the recipe and the rules contain markers themselves: fill them before
+    # they are inserted)
+    values["recipe"] = _fill(b.spec.recipe, values)
+    values["kind_rules"] = _fill(kind_rules(b.spec.kinds), values)
     if opts.compact:
         sections = _compact_sections(b, values)
     else:
@@ -1746,6 +1905,11 @@ def _normal_sections(b: _Brief, values: dict[str, object]) -> list[str | None]:
 
 def _compact_sections(b: _Brief, values: dict[str, object]) -> list[str | None]:
     picture = _C_PICTURE_ATTACHED if b.opts.image else _C_PICTURE_DRAWN
+    # the rules of the kinds its task list asks for — a small model needs no more
+    kinds = _COMPACT_KINDS | {"label" if b.opts.image else "draw"}
+    values = {**values,
+              "kind_rules": _fill(kind_rules((k for k in b.spec.kinds if k in kinds), core=True),
+                                  values)}
     sources = [re.sub(r"^## 9[a-z]?\. ", "## ", s) for s in _source_sections(b, values)]
     return [
         _fill(_C_INTRO, values),
@@ -1754,8 +1918,8 @@ def _compact_sections(b: _Brief, values: dict[str, object]) -> list[str | None]:
         *sources,
         _ui_section(b, values),
         "## Field reference\n\n" + field_reference(values, terse=True),
-        "## Example (shortened: 2 scenes, 6 tasks — do not copy its story)\n\n"
-        + _fence(example_json(compact=True), "json"),
+        f"## Example (shortened: 2 scenes, {len(compact_example()['tasks'])} tasks — do not "
+        "copy its story)\n\n" + _fence(example_json(compact=True), "json"),
         _material(b),
         _wishes(b),
         _C_CHECK,

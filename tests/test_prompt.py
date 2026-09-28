@@ -265,9 +265,12 @@ def test_normal_prompt_covers_craft_levels_and_arc(normal: str):
         "Before you answer, check", "Reply with the JSON object only", '"schema": "langwich/3"',
     ):
         assert phrase in flat, phrase
-    for level, spec in LEVELS.items():
+    order = list(LEVELS)
+    for level, spec in LEVELS.items():  # the learner's level (B1) between its neighbours
         low, high = spec.words
-        assert re.search(rf"\| \**{level}\** \| {low}–{high} \|", normal), level
+        row = re.search(rf"\| \**{level}\** \| {low}–{high} \|", normal)
+        assert bool(row) == (abs(order.index(level) - order.index("B1")) <= 1), level
+    assert "| **B1** |" in normal
     for stage in STAGES:
         assert stage in normal
     assert "Learner's wishes" not in normal
@@ -553,10 +556,12 @@ def test_compact_is_shorter_and_keeps_the_contract():
         assert "3 scenes" in compact
 
 
-def test_prompt_sizes_stay_reasonable(lena: Worksheet):
-    assert len(build_prompt(PromptOptions(topic="bread", frame="reportage"))) < 33_000
-    assert len(build_prompt(PromptOptions(continue_from=lena))) < 36_000
-    assert len(build_prompt(PromptOptions(compact=True, target_lang="es", level="A2"))) < 18_500
+@pytest.mark.parametrize("level", list(LEVELS))
+def test_prompt_sizes_stay_reasonable(lena: Worksheet, level: str):
+    # about 2% above the largest level, A2: its recipe names 17 kinds, whose rules it prints
+    assert len(build_prompt(PromptOptions(topic="bread", frame="reportage", level=level))) < 32_700
+    assert len(build_prompt(PromptOptions(continue_from=lena, level=level))) < 35_750
+    assert len(build_prompt(PromptOptions(compact=True, target_lang="es", level=level))) < 16_900
 
 
 # ---------------------------------------------------------------------------
@@ -738,7 +743,7 @@ def test_lesson_arc_puts_pictures_after_comprehension():
     flat = _flat(build_prompt(PromptOptions()))
     assert "sorted gist → detail → picture → form → practice" in flat
     assert "every gist, detail, picture, form and practice task has a \"scene\"" in flat
-    assert flat.index("4. picture:") < flat.index("5. form:") < flat.index("6. practice:")
+    assert flat.index("3. picture:") < flat.index("4. form") < flat.index("5. practice:")
     compact = _flat(build_prompt(PromptOptions(compact=True)))
     assert compact.index("3. picture:") < compact.index("4. form:")
     assert "stage: " + " | ".join(STAGES) in build_prompt(PromptOptions())
