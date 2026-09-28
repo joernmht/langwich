@@ -374,6 +374,25 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: writing+ ---- */
 
 /* ---- kind: cloze choice ---- */
+/* inline: each gap is its options in brackets, and the learner circles one
+   (an option never breaks, a line may break after a slash); below: numbered
+   blanks, and under the text one row of tick boxes per gap, the options in
+   columns of one width (tasks._choice_columns) so that a, b, c line up. */
+.choice .co { white-space: nowrap; }
+.choice .bo, .choice .bc, .choice .sl { color: var(--ink-3); }
+.choice .bo { margin-right: .5mm; }
+.choice .bc { margin-left: .5mm; }
+.choice .gn { margin-right: .3mm; }
+.chs { margin-top: 3.4mm; }
+.gapped .chs { margin: .6mm 0 2mm; }
+.chr { display: grid; align-items: start; break-inside: avoid; }
+.chr + .chr { margin-top: 1.4mm; }
+.chs > .chr:first-child:not(:last-child) { break-after: avoid; }
+/* (the number sits on a line of the options' face, so both share a baseline) */
+.chr > .n { font: 400 11pt/1.4 var(--serif); }
+.chr > .n .nn { font: 700 11pt var(--sans); }
+.chr > .n .gn { margin-left: 0; }
+.chw > .op + .op { margin-top: 1.2mm; }  /* (options too long for a row) */
 
 /* ---- kind: table ---- */
 /* A ruled table (a form, field | value, without 'head'). The column widths

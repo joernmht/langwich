@@ -74,8 +74,11 @@ def gapped_html(
     width: float,
     hint: str = "none",
     numbers: Iterator[int] | None = None,
+    choices: Iterator[list[str]] | None = None,
 ) -> str:
-    """Text with ``{{gaps}}`` turned into blanks of ``width`` mm.
+    """Text with ``{{gaps}}`` turned into blanks of ``width`` mm — or, with
+    ``choices`` (the options of each gap in turn), into the options in
+    brackets (see :func:`_choice_gap`).
 
     A blank sits flush after an elision (l', d', qu'), and closing
     punctuation right after it moves into the unbreakable gap, so neither
@@ -105,6 +108,9 @@ def gapped_html(
             after = f'\u00a0<span class="hint">({esc(part.hint)})</span>'
         punct = trailing_punctuation(nxt)
         skip = len(punct)
+        if choices is not None:
+            out.append(_choice_gap(next(choices, [part.answer]), num, punct))
+            continue
         classes = ["gap"]
         if prev[-1:] in ("'", "’"):
             classes.append("el")
@@ -114,6 +120,21 @@ def gapped_html(
         out.append(f'<span class="{" ".join(classes)}">{num}<span class="blank" '
                    f'style="width:{width:.1f}mm">{inner}</span>{after}{tail}</span>')
     return "".join(out)
+
+
+def _choice_gap(options: list[str], num: str, punct: str) -> str:
+    """An inline choice gap, ``(ist / sind / bist)``: the learner circles
+    one option. An option never breaks; a line may break after a slash, and
+    the brackets, the gap number and closing punctuation stay with their
+    options."""
+    last = len(options) - 1
+    pieces = []
+    for j, option in enumerate(options):
+        before = f'{num}<span class="bo">(</span>' if j == 0 else ""
+        after = ('<span class="bc">)</span>' + esc(punct.replace(" ", "\u00a0")) if j == last
+                 else '<span class="sl">\u00a0/</span>')
+        pieces.append(f'<span class="co">{before}<span class="o">{esc(option)}</span>{after}</span>')
+    return f'<span class="choice">{" ".join(pieces)}</span>'
 
 
 def bank_counts(answers: list[str]) -> dict[str, int]:
@@ -210,6 +231,8 @@ def _questions(b: Builder, pt: PlannedTask, task: QuestionsTask) -> Parts:
 
 
 def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
+    if task.hint == "choice":
+        return _cloze_choice(b, pt, task)
     texts = cloze_texts(task)
     answers = [g.answer for text in texts for g in safe_gaps(text)]
     bank = pt.bank if task.hint == "word_bank" and pt.bank else None
@@ -227,6 +250,112 @@ def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
         main = f'<div class="items gapped">{items}</div>'
     boxes = [b.word_box(unique_words(bank), counts=bank_counts(answers))] if bank else []
     return Parts(main, boxes, keep=bool(bank))
+
+
+#: Options under a choice text (see "cloze choice" in css.py), in mm: the
+#: tick box and the letter before an option, the space between two options,
+#: the gap number before the options of an item with several gaps, and the
+#: longest blank (the learner ticks a box below; nothing is written in it).
+_OPTION_LEAD = 10.4
+_OPTION_GAP = 5.0
+_ITEM_GAP_NUMBER = 6.0
+_CHOICE_BLANK = 24.0
+
+
+def _choice_columns(options: list[list[str]], avail: float) -> list[float] | None:
+    """Widths (mm) of the option columns under a choice text, the same for
+    every gap so that the options a, b, c … line up: all as wide as the
+    widest option, or each as wide as its own widest; ``None`` when not even
+    that fits ``avail`` mm."""
+    k = max((len(opts) for opts in options), default=0)
+    own = [  # (with 1 mm to spare for the measurement)
+        _OPTION_LEAD + 1.0 + max(metrics.width_mm(opts[j], "serif", 11.0)
+                                 for opts in options if j < len(opts))
+        for j in range(k)
+    ]
+    gaps = _OPTION_GAP * (k - 1)
+    if k and max(own) * k + gaps <= avail:
+        return [max(own) + (_OPTION_GAP if j < k - 1 else 0.0) for j in range(k)]
+    if k and sum(own) + gaps <= avail:
+        return [w + (_OPTION_GAP if j < k - 1 else 0.0) for j, w in enumerate(own)]
+    return None
+
+
+def _choice_rows(
+    b: Builder, rows: list[tuple[str, list[str]]], columns: list[float] | None, avail: float,
+    num_w: float = 0.0, small: bool = False,
+) -> str:
+    """The tick boxes under a choice text: one row per gap, with its number
+    (none when ``num_w`` is 0; ``small``: set like the gap numbers in the
+    text) and its options a, b, c … in the multiple_choice option styles.
+    The options stand in the shared ``columns``; without them a row gets
+    columns of its own when it fits ``avail`` mm, else one option per line."""
+    out = []
+    for label, options in rows:
+        opts = "".join(
+            f'<div class="op"><span class="bxs"></span><span class="lt">{letter(j, upper=False)}'
+            f'</span><span class="ot">{b.tl(o)}</span></div>'
+            for j, o in enumerate(options)
+        )
+        tracks = [f"{num_w:.1f}mm"] if num_w else []
+        number = ""
+        if num_w:
+            inner = f'<span class="{"gn" if small else "nn"}">{label}</span>' if label else ""
+            number = f'<span class="n">{inner}</span>'
+        own = columns or _choice_columns([options], avail)
+        if own is None:
+            tracks.append("1fr")
+            opts = f'<div class="chw">{opts}</div>'
+        else:
+            tracks += [f"{w:.1f}mm" for w in own]
+        out.append(f'<div class="chr" style="grid-template-columns:{" ".join(tracks)}">'
+                   f"{number}{opts}</div>")
+    return f'<div class="chs">{"".join(out)}</div>'
+
+
+def _cloze_choice(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
+    """A cloze with hint 'choice'. inline: every gap is its options in
+    brackets, and the learner circles one; below: numbered blanks, and under
+    the text (under each item) one row of tick boxes a, b, c … per gap."""
+    texts = cloze_texts(task)
+    units = [safe_gaps(text) for text in texts]
+    options = pt.gap_options or [[g.answer] for unit in units for g in unit]
+    shown = iter(options)
+    below = task.choice_layout == "below"
+    aside = b.has_aside(pt, False)
+    # (as wide for every gap: sized from all options, not from the answers)
+    width = min(b.blank_width([o for opts in options for o in opts], aside), _CHOICE_BLANK)
+    if task.text is not None:
+        counter = itertools.count(1)
+        paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
+        body = "".join(
+            f"<p>{gapped_html(b, p, width, task.hint, counter, None if below else shown)}</p>"
+            for p in paras
+        )
+        main = f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
+        if below and options:
+            avail = b.main_width(aside) - GUTTER_W
+            rows = [(str(n), opts) for n, opts in enumerate(options, 1)]
+            main += _choice_rows(b, rows, _choice_columns(options, avail), avail, GUTTER_W)
+    else:
+        # (an item with several gaps numbers them, 1, 2 … within the item)
+        num_w = _ITEM_GAP_NUMBER if any(len(unit) > 1 for unit in units) else 0.0
+        avail = b.main_width(aside) - GUTTER_W - num_w
+        columns = _choice_columns(options, avail)
+        items = []
+        for i, (text, unit) in enumerate(zip(texts, units), 1):
+            mine = [next(shown, [g.answer]) for g in unit]
+            if below:
+                several = len(unit) > 1
+                rows = [(str(n) if several else "", opts) for n, opts in enumerate(mine, 1)]
+                numbers = itertools.count(1) if several else None
+                content = (gapped_html(b, text, width, task.hint, numbers)
+                           + _choice_rows(b, rows, columns, avail, num_w, small=True))
+            else:
+                content = gapped_html(b, text, width, task.hint, None, iter(mine))
+            items.append(_item(i, content, "c tl", b.lang_attr()))
+        main = f'<div class="items gapped">{"".join(items)}</div>'
+    return Parts(main, keep=below)
 
 
 def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
@@ -617,6 +746,9 @@ def _instruction_find_in_text(b: Builder, task: FindInTextTask) -> str | None:
 
 
 def _instruction_cloze(b: Builder, task: ClozeTask) -> str | None:
+    if task.hint == "choice":
+        below = task.choice_layout == "below"
+        return b.t("kind.cloze.choice_below" if below else "kind.cloze.choice")
     return None
 
 

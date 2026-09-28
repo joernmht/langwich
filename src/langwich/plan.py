@@ -1183,7 +1183,26 @@ def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:
 
 def _prepare_choice(pt: PlannedTask, task: ClozeTask, seed: int) -> None:
     """``pt.gap_options``: the options of every choice gap, shuffled."""
-    # (spine stub: the cloze choice implementation shuffles the options)
+    # As for multiple_choice: three options or more never keep the written
+    # order (answer first), and the answer never sits in the same place
+    # three times in a row. Two options are shuffled freely — never keeping
+    # their order would always put the answer second.
+    orders: list[list[str]] = []
+    positions: list[int] = []
+    for k, gap in enumerate(_gaps_of(task)):
+        # (options that differ only in case are two options: 'Sie' / 'sie')
+        options = list(dict.fromkeys([gap.answer, *markup.wrong_options(gap)]))
+        rng = _rng(seed, task.id, "choice", str(k))
+        order = _shuffle_not_identity(options, rng, min_len=3)
+        for _ in range(12):
+            pos = order.index(gap.answer)
+            if len(positions) >= 2 and positions[-1] == positions[-2] == pos and len(options) > 1:
+                order = _shuffle_not_identity(options, rng, min_len=3)
+                continue
+            break
+        positions.append(order.index(gap.answer))
+        orders.append(order)
+    pt.gap_options = orders
 
 
 def _prepare_table(pt: PlannedTask, task: TableTask, seed: int) -> None:

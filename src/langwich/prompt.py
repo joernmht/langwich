@@ -424,8 +424,8 @@ KIND_RULES: dict[str, str] = {
     "cloze": '"hint": word_bank (a box of the answers + distractors), first_letter, base_form '
              "(<<ex_base>>), translation (<<ex_translation>>, the hint in S) — these two need "
              'the ::hint — or none. "choice": every gap {{right::wrong1|wrong2}} with 1–3 wrong '
-             'options of the same word class that are wrong in this sentence; "choice_layout": '
-             '"below" from B2.',
+             'options of the same word class that are wrong in this sentence (at the start of a '
+             'sentence all capitalised); "choice_layout": "below" from B2.',
     "transform": 'key word transformation (B2+): "frame" is the second sentence with one {{gap}} '
                  'of 2–5 words that must include "keyword"; set "max_words".',
     "scramble": "3–10 tiles per sentence, one word or a fixed group per tile, in the correct "

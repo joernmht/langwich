@@ -1421,6 +1421,77 @@ class _Checker:
 
     def check_choice_gaps(self) -> None:
         """The options of cloze gaps with hint 'choice'."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, ClozeTask) or task.hint != "choice":
+                continue
+            texts = (
+                [(f"/tasks/{i}/text", task.text)] if task.text is not None
+                else [(f"/tasks/{i}/items/{j}", t) for j, t in enumerate(task.items or [])]
+            )
+            for where, text in texts:
+                for m in markup.GAP_RE.finditer(text):
+                    try:
+                        gap = markup.parse_gap(m.group(1))
+                    except ValueError:
+                        continue  # reported as empty-gap
+                    wrong = markup.wrong_options(gap)
+                    if wrong:  # (none: reported as missing-gap-hint)
+                        self._check_choice_gap(
+                            gap, wrong, where, _at_sentence_start(_filled(text[:m.start()])),
+                        )
+
+    def _check_choice_gap(
+        self, gap: markup.Gap, wrong: list[str], where: str, starts_sentence: bool,
+    ) -> None:
+        most = 3  # wrong options: with the answer four, as in a multiple_choice item
+        body = "|".join(gap.accepted) + "::" + "|".join(wrong)
+        if len(wrong) > most:
+            self.warn(
+                "choice-options", where,
+                f"the gap {{{{{body}}}}} has {len(wrong)} wrong options, but a choice gap has "
+                f"1–{most}, so that it still reads as one choice in the text (and fits the tick "
+                f"boxes a–d below it). Keep the 1–{most} wrong options learners most easily "
+                f"confuse with '{gap.answer}' and remove the others.",
+            )
+        # Options are compared as printed: two that differ only in case
+        # ('Sie' / 'sie', 'Neues' / 'neues') are what a spelling gap asks.
+        accepted = {" ".join(a.split()) for a in gap.accepted}
+        seen: set[str] = set()
+        for option in wrong:
+            key = " ".join(option.split())
+            if key in accepted:
+                self.warn(
+                    "choice-options", where,
+                    f"the gap {{{{{body}}}}} lists '{option}' as a wrong option, but it is "
+                    "also an accepted answer (before the '::'), so the learner would have two "
+                    "right options. Replace it with a word that is wrong in this sentence, or "
+                    "remove it.",
+                )
+            elif key in seen:
+                self.warn(
+                    "choice-options", where,
+                    f"the gap {{{{{body}}}}} lists the wrong option '{option}' twice, so the "
+                    "choice would print it twice. List every option once: replace the repeat "
+                    "with another word that is wrong in this sentence, or remove it.",
+                )
+            seen.add(key)
+        # At the start of a sentence the answer has a capital letter: an
+        # option without one cannot be right, so the capital gives it away.
+        small = [w for w in wrong if w[:1].islower()]
+        if starts_sentence and gap.answer[:1].isupper() and small:
+            capitalised = [w[:1].upper() + w[1:] for w in wrong]
+            if accepted.isdisjoint(capitalised):
+                fix = ("Write every option with a capital letter here: "
+                       f"{{{{{'|'.join(gap.accepted)}::{'|'.join(capitalised)}}}}}.")
+            else:
+                fix = "Gap a word inside the sentence instead."
+            self.warn(
+                "choice-options", where,
+                f"the gap {{{{{body}}}}} starts a sentence, so its answer '{gap.answer}' has a "
+                f"capital letter, but the wrong option{'s' if len(small) > 1 else ''} "
+                f"{_one_of(small)} {'do' if len(small) > 1 else 'does'} not, and the capital "
+                f"shows which option is right. {fix}",
+            )
 
     def check_tables(self) -> None:
         """Table shape, gaps, width and distractors."""
@@ -2030,12 +2101,13 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
       rewritten sentence ('il a acheté' next to 'Mila a acheté des tomates');
     * a single gap answer the learner has to produce (it differs from its
       hint), in a table cell, the rule or an example — unless the hint word
-      is what the grammar point is about, i.e. it appears in its name or
-      rule ('wird::werden' beside 'werden + Partizip II' is the rule, not a
-      leak; a table that conjugates the very verb a gap asks for is one).
-      In a word-box task the words are printed anyway, so the rule or an
-      example counts only when it is a near-copy of the item (it shares
-      three more words);
+      (of a choice gap: any of its options) is what the grammar point is
+      about, i.e. it appears in its name or rule ('wird::werden' beside
+      'werden + Partizip II' is the rule, not a leak; a table that
+      conjugates the very verb a gap asks for is one). In a word-box or
+      choice task the words are printed anyway, so the rule or an example
+      counts only when it is a near-copy of the item (it shares three more
+      words);
     * a near-copy with several gaps: one example or table cell showing two
       answers of the same item ('werden … geröstet').
 
@@ -2055,14 +2127,18 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
                 if any(_contains(transform_sentence(item), core) for item in task.items):
                     return core
     about = f"{gp.name} {gp.rule or ''}"
-    bank = (isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank") or (
+    choice = isinstance(task, ClozeTask) and task.hint == "choice"
+    bank = choice or (isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank") or (
         isinstance(task, DialogueTask) and task.bank
     )
     for item_text, unit in _gap_units(task):
         for gap in unit:
             if gap.hint and gap.hint.casefold() == gap.answer.casefold():
                 continue  # the hint already shows it
-            if (gap.hint and _contains(about, gap.hint)) or not _significant(gap.answer):
+            # (a choice gap's options are its hint words: 'weil::denn|deshalb'
+            # beside 'weil or denn?' is the rule, not a leak)
+            hints = [gap.answer, *markup.wrong_options(gap)] if choice else [gap.hint or ""]
+            if any(_contains(about, h) for h in hints) or not _significant(gap.answer):
                 continue
             if any(_contains(cell, gap.answer) for cell in cells):
                 return gap.answer
