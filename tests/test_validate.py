@@ -495,24 +495,6 @@ def test_mutation_triggers_code(
 #: Codes found while reading the file (see the check_file tests below).
 FILE_CODES = {"contract", "legacy-format", "no-picture-attached", "wrapped-json", "normalized"}
 
-#: Codes of the new kinds and extensions whose checks are not written yet;
-#: each implementation removes its line here and exercises its codes.
-PENDING_CODES = {
-    "scramble-alternative", "scramble-punctuation", "scramble-capital",
-    "category-unused",
-    "tf-no-not-given", "tf-quote-missing", "tf-quote-not-in-story", "tf-not-given-correction",
-    "writing-no-model-answer", "point-not-covered",
-    "choice-options",
-    "table-shape", "table-nothing-to-do", "table-too-wide",
-    "gapped-text-gaps", "gapped-text-no-extra",
-    "find-not-in-text",
-    "frame-gaps", "keyword-not-used", "answer-too-long", "frame-and-answer",
-    "answer-ignores-starter",
-    "crossword-word", "crossword-layout", "clue-is-answer",
-    "duplicate-entry",
-    "task-count",
-}
-
 
 def _kind_file_codes() -> set[str]:
     """Codes that the per-kind test files (tests/test_kind_*.py) and
@@ -528,8 +510,7 @@ def _kind_file_codes() -> set[str]:
 
 def test_every_check_is_exercised() -> None:
     covered = {c[0] for c in CASES} | FILE_CODES | _kind_file_codes()
-    assert covered <= set(CHECKS)
-    assert set(CHECKS) - covered <= PENDING_CODES
+    assert covered == set(CHECKS)
 
 
 def test_environment_and_picture_codes_are_checks() -> None:

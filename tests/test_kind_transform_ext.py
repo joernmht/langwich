@@ -90,7 +90,9 @@ AT = "/tasks/14"
 
 
 def _issues(data: dict[str, Any], code: str | None = None) -> list[Issue]:
-    issues = validate(worksheet_from_dict(data)).issues
+    # (the example has the most tasks a B1 sheet should have, so one more is
+    # over budget; the budget is tested in test_levels.py)
+    issues = [i for i in validate(worksheet_from_dict(data)).issues if i.code != "task-count"]
     return [i for i in issues if code is None or i.code == code]
 
 

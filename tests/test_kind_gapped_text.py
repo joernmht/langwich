@@ -77,7 +77,9 @@ def _ws(*tasks: dict[str, Any]) -> Worksheet:
 
 
 def _issues(*tasks: dict[str, Any]) -> list[Issue]:
-    return validate(_ws(*tasks)).issues
+    # (the example has the most tasks a B1 sheet should have; the budget is
+    # tested in test_levels.py)
+    return [i for i in validate(_ws(*tasks)).issues if i.code != "task-count"]
 
 
 def _index(ws: Worksheet, task_id: str) -> int:
@@ -341,7 +343,7 @@ def test_the_sentences_stand_beside_a_grammar_box() -> None:
         if task["id"] == "t8":
             del task["grammar"]
     ws = worksheet_from_dict(data)
-    assert validate(ws).issues == []
+    assert [i for i in validate(ws).issues if i.code != "task-count"] == []
     section = _section(build_html(ws), ws, "gt1")
     main, aside = section.split('<aside class="aside-stack">', 1)
     assert 'class="gts"' in main and "Compound nouns" in aside

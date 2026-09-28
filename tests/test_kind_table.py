@@ -84,7 +84,9 @@ def _ws(*tasks: dict[str, Any]) -> Worksheet:
 
 
 def _issues(*tasks: dict[str, Any]) -> list[Issue]:
-    return validate(_ws(*tasks)).issues
+    # (the example has the most tasks a B1 sheet should have; the budget is
+    # tested in test_levels.py)
+    return [i for i in validate(_ws(*tasks)).issues if i.code != "task-count"]
 
 
 def _index(ws: Worksheet, task_id: str) -> int:

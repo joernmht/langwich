@@ -956,6 +956,7 @@ class _Checker:
                 how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
                        "wrong form the character wrote.")
             elif hint == "gapped_text":
+                problem = "has no gaps, so there is nothing to put back"
                 how = ("Write each sentence you take out in its place as {{sentence}}: the "
                        "whole sentence, with its full stop, inside double braces.")
             else:
