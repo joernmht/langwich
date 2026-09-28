@@ -15,11 +15,16 @@ from langwich.model import (
     STAGES,
     TASK_KINDS,
     Character,
+    ClassifyTask,
     ClozeTask,
+    CrosswordEntry,
+    CrosswordTask,
     DialogueLine,
     DialogueTask,
     DrawTask,
     Fact,
+    FindInTextTask,
+    GappedTextTask,
     GrammarPoint,
     GrammarTable,
     Label,
@@ -29,16 +34,20 @@ from langwich.model import (
     MultipleChoiceTask,
     OrderEventsTask,
     Picture,
+    ProofreadTask,
     QuestionsTask,
     Scene,
+    ScrambleTask,
     Series,
     Story,
+    TableTask,
     TransformTask,
     TrueFalseTask,
     VocabItem,
     Vocabulary,
     WordBuildingTask,
     Worksheet,
+    WritingPoint,
     WritingTask,
     load_worksheet,
     worksheet_from_dict,
@@ -46,6 +55,7 @@ from langwich.model import (
 from langwich.model import _TaskBase as TaskBase
 from langwich.prompt import (
     KIND_FIELDS,
+    KIND_RULES,
     LEVELS,
     MINI_EXAMPLE,
     PromptOptions,
@@ -53,6 +63,7 @@ from langwich.prompt import (
     build_prompt,
     compact_example,
     field_reference,
+    kind_rules,
     repair_prompt,
     resolve_options,
 )
@@ -82,14 +93,17 @@ LEGACY: dict = {
 
 KIND_MODELS = {
     "match": MatchTask, "true_false": TrueFalseTask, "multiple_choice": MultipleChoiceTask,
-    "order_events": OrderEventsTask, "questions": QuestionsTask, "cloze": ClozeTask,
-    "transform": TransformTask, "word_building": WordBuildingTask, "label": LabelTask,
-    "writing": WritingTask, "dialogue": DialogueTask, "media_search": MediaSearchTask,
+    "order_events": OrderEventsTask, "questions": QuestionsTask, "classify": ClassifyTask,
+    "find_in_text": FindInTextTask, "gapped_text": GappedTextTask, "cloze": ClozeTask,
+    "transform": TransformTask, "scramble": ScrambleTask, "word_building": WordBuildingTask,
+    "table": TableTask, "proofread": ProofreadTask, "label": LabelTask, "writing": WritingTask,
+    "dialogue": DialogueTask, "crossword": CrosswordTask, "media_search": MediaSearchTask,
     "draw": DrawTask,
 }
 ITEM_MODELS = {
     "true_false": TrueFalseTask, "multiple_choice": MultipleChoiceTask,
-    "questions": QuestionsTask, "transform": TransformTask, "word_building": WordBuildingTask,
+    "questions": QuestionsTask, "classify": ClassifyTask, "find_in_text": FindInTextTask,
+    "transform": TransformTask, "scramble": ScrambleTask, "word_building": WordBuildingTask,
 }
 
 
@@ -176,6 +190,13 @@ def test_every_task_kind_is_in_the_field_reference(normal: str):
         assert re.search(rf"(?m)^{kind} +\S", normal), f"{kind} missing from the reference"
 
 
+def test_every_task_kind_has_a_rule():
+    assert list(KIND_RULES) == list(TASK_KINDS)
+    rules = kind_rules(["draw", "match", "scramble"])  # printed in TASK_KINDS order
+    assert rules.startswith("match: ") and rules.index("scramble: ") < rules.index("draw: ")
+    assert "true_false" not in rules
+
+
 @pytest.mark.parametrize("kind", TASK_KINDS)
 def test_kind_line_names_every_field_of_its_model(kind: str):
     line = KIND_FIELDS[kind]
@@ -191,6 +212,12 @@ def test_kind_line_names_every_field_of_its_model(kind: str):
         assert '"left"' in line and '"right"' in line
     if kind == "dialogue":
         for name in _fields(DialogueLine):
+            assert f'"{name}"' in line
+    if kind == "writing":
+        for name in _fields(WritingPoint):
+            assert f'"{name}"' in line
+    if kind == "crossword":
+        for name in _fields(CrosswordEntry):
             assert f'"{name}"' in line
 
 
@@ -527,9 +554,9 @@ def test_compact_is_shorter_and_keeps_the_contract():
 
 
 def test_prompt_sizes_stay_reasonable(lena: Worksheet):
-    assert len(build_prompt(PromptOptions(topic="bread", frame="reportage"))) < 28_000
-    assert len(build_prompt(PromptOptions(continue_from=lena))) < 31_000
-    assert len(build_prompt(PromptOptions(compact=True, target_lang="es", level="A2"))) < 14_000
+    assert len(build_prompt(PromptOptions(topic="bread", frame="reportage"))) < 33_000
+    assert len(build_prompt(PromptOptions(continue_from=lena))) < 36_000
+    assert len(build_prompt(PromptOptions(compact=True, target_lang="es", level="A2"))) < 18_500
 
 
 # ---------------------------------------------------------------------------

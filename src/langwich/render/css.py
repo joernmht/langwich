@@ -365,6 +365,30 @@ table.match td.opt.tl { font-family: var(--serif); }
 .frame { border: .75pt solid #000; height: 90mm; }
 .draw-words { margin-top: 3mm; }
 
+/* ---- kind: scramble ---- */
+
+/* ---- kind: classify ---- */
+
+/* ---- kind: true_false+ ---- */
+
+/* ---- kind: writing+ ---- */
+
+/* ---- kind: cloze choice ---- */
+
+/* ---- kind: table ---- */
+
+/* ---- kind: gapped_text ---- */
+
+/* ---- kind: find_in_text ---- */
+
+/* ---- kind: proofread ---- */
+
+/* ---- kind: transform+ ---- */
+
+/* ---- kind: questions+ media_search+ ---- */
+
+/* ---- kind: crossword ---- */
+
 /* pictures */
 .fig { break-inside: avoid; }
 .pic { position: relative; border: 1pt solid #000; box-sizing: content-box;
@@ -502,6 +526,31 @@ EPAPER_CSS = r"""
 .ref-grammar, .loose-facts, .translations { columns: 1; }
 .solutions { columns: 2; column-gap: 6mm; }
 .solutions.cols { grid-template-columns: repeat(2, 1fr); column-gap: 6mm; }
+
+/* ---- kind: scramble ---- */
+
+/* ---- kind: classify ---- */
+
+/* ---- kind: true_false+ ---- */
+
+/* ---- kind: writing+ ---- */
+
+/* ---- kind: cloze choice ---- */
+
+/* ---- kind: table ---- */
+
+/* ---- kind: gapped_text ---- */
+
+/* ---- kind: find_in_text ---- */
+
+/* ---- kind: proofread ---- */
+
+/* ---- kind: transform+ ---- */
+
+/* ---- kind: questions+ media_search+ ---- */
+
+/* ---- kind: crossword ---- */
+
 """
 
 

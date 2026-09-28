@@ -515,7 +515,7 @@
         stages: warm up before you read, then scene by scene — read a little, check what
         happened, look at the picture, work with the language, read on — then write something
         of your own and take it further. The AI picks from
-        <span data-count="task-kinds">13</span> kinds of task; langwich puts each one right after
+        <span data-count="task-kinds">20</span> kinds of task; langwich puts each one right after
         the scene it belongs to. (These numbers aren’t hand-written, by the way — they’re read
         from the code on every deploy.)</p>
       </div>
@@ -539,10 +539,13 @@
             <p>After each scene: first the main events, then a closer look at facts, reasons
             and feelings.</p>
             <dl class="kinds sans">
-              <dt><code>true_false</code></dt><dd>Tick true or false, and correct the false statements.</dd>
+              <dt><code>true_false</code></dt><dd>Tick true, false or “not in the text”, and correct the false statements.</dd>
               <dt><code>multiple_choice</code></dt><dd>Tick the one right answer.</dd>
               <dt><code>order_events</code></dt><dd>Number the events in the order they happened.</dd>
-              <dt><code>questions</code></dt><dd>Answer in writing, on lines sized for handwriting.</dd>
+              <dt><code>questions</code></dt><dd>Answer in writing, on lines sized for handwriting — at the start with a sentence to finish.</dd>
+              <dt><code>classify</code></dt><dd>Tick the right column for each line: who did what, which group a word belongs to.</dd>
+              <dt><code>find_in_text</code></dt><dd>Find the word or phrase in the story that fits a clue.</dd>
+              <dt><code>gapped_text</code></dt><dd>Put the missing sentences back into a text; one or two are left over.</dd>
             </dl>
           </div>
           <div class="family">
@@ -566,9 +569,13 @@
             sentences that carry the story on. A grammar box sits beside the task that
             practises it.</p>
             <dl class="kinds sans">
-              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
-              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
+              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations, a choice of words or no help at all.</dd>
+              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue — another tense, another person — or complete them with a key word.</dd>
+              <dt><code>scramble</code></dt><dd>Put the word tiles in order and write the sentence.</dd>
               <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
+              <dt><code>table</code></dt><dd>Fill in a form, a timetable or a table of word forms.</dd>
+              <dt><code>proofread</code></dt><dd>Correct the mistakes in a character’s message.</dd>
+              <dt><code>crossword</code></dt><dd>Solve a crossword of the key words; langwich builds the grid.</dd>
               <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation — with a few wrong words in the box.</dd>
             </dl>
           </div>
@@ -580,7 +587,7 @@
             <p>Write about the story or about yourself, then go looking for more in the
             language you are learning.</p>
             <dl class="kinds sans">
-              <dt><code>writing</code></dt><dd>Write a text: a prompt, a first line, words to use, a word count — and a model answer at the back.</dd>
+              <dt><code>writing</code></dt><dd>Write a text — a reply to a message, a summary, an essay: a prompt, a first line, points to cover, words to use, a word count — and a model answer at the back.</dd>
               <dt><code>media_search</code></dt><dd>Search online in the target language: search terms instead of links, and what to find out.</dd>
             </dl>
           </div>

@@ -64,7 +64,7 @@ fields are errors (a worksheet has no `$schema` key). Top level:
 | `facts[]` | target | true, checkable facts shown as sidebars next to a scene |
 | `vocabulary` | | `target[]` (5–15 key words; the brief narrows the range per level) + `items[]` (term, translation, pos, plural, forms) |
 | `grammar[]` | source + target | explanation, rule, table, examples; shown beside the task that practises it |
-| `tasks[]` | source (titles, instructions) + target (items) | one of 13 kinds, each with a `stage` |
+| `tasks[]` | source (titles, instructions) + target (items) | one of 20 kinds, each with a `stage` |
 | `ui` | source | furniture strings for languages without built-in labels |
 
 ### Task kinds
@@ -72,16 +72,23 @@ fields are errors (a worksheet has no `$schema` key). Top level:
 | kind | learner does | key fields |
 |---|---|---|
 | `match` | match left to right (letters in boxes) | `pairs[{left,right}]`, `extra[]` |
-| `true_false` | tick, correct false ones | `items[{statement, answer, correction}]` |
+| `true_false` | tick true, false (or not in the text), correct false ones | `not_given`, `justify`, `items[{statement, answer, correction, quote}]` |
 | `multiple_choice` | tick one option | `items[{question, options[], answer}]` |
 | `order_events` | number events in story order | `events[]` (correct order) |
-| `questions` | answer in writing | `items[{question, answer, lines}]` |
-| `cloze` | fill gaps | `text` or `items[]` with `{{answer\|alt::hint}}`, `hint`, `distractors[]` |
-| `transform` | rewrite sentences | `items[{prompt, cue, answer}]` |
+| `questions` | answer in writing | `question_lang`, `items[{question, starter, answer, lines}]` |
+| `classify` | tick a column per line, or sort words into columns | `categories[]`, `layout`, `items[{text, answer}]` |
+| `find_in_text` | find the word in the story that fits a clue | `clue_lang`, `explain`, `items[{clue, answer, explanation}]` |
+| `gapped_text` | put removed sentences back (letters) | `text` with `{{sentences}}`, `extra[]` |
+| `cloze` | fill gaps, or circle the right word (`choice`) | `text` or `items[]` with `{{answer\|alt::hint}}`, `hint`, `choice_layout`, `distractors[]` |
+| `transform` | rewrite sentences, or complete them with a key word | `max_words`, `items[{prompt, cue, answer, keyword, frame}]` |
+| `scramble` | put word tiles in order, write the sentence | `items[{chunks[], end, alternatives[][], cue}]` (correct order) |
 | `word_building` | combine parts | `items[{parts[], answer}]` |
+| `table` | fill the gaps in a table or form | `caption`, `head[]`, `rows[[cell \| null]]`, `hint`, `distractors[]` |
+| `proofread` | correct the mistakes in a character's draft | `text` with `{{correct::wrong}}`, `marked` |
 | `label` | name numbered objects in a scene picture | `scene`, `bank` (terms shown without articles) |
-| `writing` | write a text | `prompt`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
+| `writing` | write a text (a reply, a summary, an essay) | `prompt`, `input`, `input_lang`, `output_lang`, `register`, `audience`, `points[{point, covered_by}]`, `paragraphs`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
 | `dialogue` | fill or write dialogue lines | `lines[{speaker, text \| cue, answer}]`, `bank`, `distractors[]` |
+| `crossword` | solve a crossword (langwich lays out the grid) | `clue_lang`, `entries[{answer, clue}]` |
 | `media_search` | search online in the target language | `media`, `queries[]`, `questions[]` |
 | `draw` | draw and label | `prompt`, `labels[]` |
 
@@ -91,7 +98,9 @@ Stages, in lesson order: `warm_up`, `gist`, `detail`, `picture`, `form`,
 ### Gap markup
 
 `{{geröstet}}`, alternatives `{{schwarz|ohne Milch}}`, hint `{{geröstet::rösten}}`.
-The first answer goes into the answer key and the word bank. See
+The first answer goes into the answer key and the word bank. After the `::` a cloze with
+`"hint": "choice"` lists the wrong options (`{{ist::sind|bist}}`), and a proofread text the
+wrong form the character wrote (`{{ist::sind}}`). See
 [`markup.py`](../src/langwich/markup.py).
 
 ## Modules
@@ -99,11 +108,12 @@ The first answer goes into the answer key and the word bank. See
 | Module | Responsibility | Public interface |
 |---|---|---|
 | `model.py` | the contract, lenient loading with friendly errors | `Worksheet`, `load_worksheet(path, notes=None)`, `parse_worksheet(text) -> (Worksheet, [LoadNote])`, `normalize_quirks(data)`, `worksheet_from_dict(d)`, `ContractError`, `json_schema()`, `STAGES`, `TASK_KINDS` |
-| `markup.py` | gap parsing | `split`, `gaps`, `fill`, `Gap` |
+| `markup.py` | gap parsing | `split`, `gaps`, `fill`, `wrong_options`, `Gap` |
+| `crossword.py` | the grid of a crossword task (arrangement, not content; no seed) | `layout(answers) -> Layout`, `letters(word)`, `MAX_SIDE` |
 | `locale.py` | page furniture strings (en, de, fr, es, it, pt) | `t(key, lang, overrides, **fmt)`, `endonym(code)`, `missing_keys` |
 | `plan.py` | lesson arc, glosses, sidebars, word boxes, seeded shuffles | `plan(ws, seed=None) -> Plan`, `PlannedTask`, `SceneBlock`, `strip_article`, `term_pattern` |
 | `validate.py` | semantic checks beyond the schema | `validate(ws, base_dir) -> Report`, `check_file(path) -> Report`, `Issue`, `Report`, `CHECKS` (every check code), `ENVIRONMENT_CODES` |
-| `answers.py` | renderer-neutral answer key | `answer_key(pt, ws) -> list[str]` |
+| `answers.py` | renderer-neutral answer key | `answer_key(pt, ws) -> list[str]`, `transform_answer(item)`, `transform_sentence(item)` |
 | `images.py` | load / convert / sanitise / embed pictures, never crash | `prepare_picture(picture, base_dir, monochrome, warnings) -> PreparedPicture \| None`, `sanitize_svg(root)` |
 | `render/` | HTML + CSS, fonts, PDF via WeasyPrint (offline URL fetcher) | `RenderOptions`, `RenderResult`, `render_worksheet(ws, out_pdf, options)`, `build_html(ws, options)`, `is_allowed_url(url)` |
 | `prompt.py` | authoring and repair prompts for any LLM | `PromptOptions`, `resolve_options(opts)`, `build_prompt(opts)`, `repair_prompt(report, json_text)` (leaves out `ENVIRONMENT_CODES`; raises `ValueError` for a `no-picture-attached` file), `field_reference(values, terse=False)` |

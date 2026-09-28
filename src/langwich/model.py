@@ -66,7 +66,12 @@ POS_VALUES: tuple[str, ...] = (
     "pronoun", "phrase", "other",
 )
 
-ClozeHint = Literal["word_bank", "first_letter", "base_form", "translation", "none"]
+ClozeHint = Literal["word_bank", "first_letter", "base_form", "translation", "choice", "none"]
+TableHint = Literal["word_bank", "first_letter", "base_form", "translation", "none"]
+ScrambleEnd = Literal[".", "?", "!", "…", ""]
+Register = Literal["informal", "neutral", "formal"]
+#: The language a field is written in: the target or the source language.
+TextLang = Literal["target", "source"]
 
 _ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
 _LANG_PATTERN = r"^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$"
@@ -262,13 +267,33 @@ class MatchTask(_TaskBase):
 
 class TrueFalseItem(_Model):
     statement: str = Field(min_length=1)
-    answer: bool
+    answer: bool | Literal["not_given"]
     correction: str | None = Field(default=None, description="The true version, for false statements.")
+    quote: str | None = Field(
+        default=None, description="The words of the story that prove the answer.",
+    )
 
 
 class TrueFalseTask(_TaskBase):
     kind: Literal["true_false"]
+    not_given: bool = Field(default=False, description="Add a third box: 'not in the text'.")
+    justify: bool = Field(
+        default=False, description="Learners copy the words that prove each answer.",
+    )
     items: list[TrueFalseItem] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _not_given_offered(self) -> TrueFalseTask:
+        if self.not_given:
+            return self
+        bad = [f"items[{j}]" for j, item in enumerate(self.items) if item.answer == "not_given"]
+        if bad:
+            has = "has" if len(bad) == 1 else "have"
+            raise ValueError(
+                f"{' and '.join(bad)} {has} answer 'not_given', but the task does not offer that "
+                "box; set \"not_given\": true on the task, or answer true or false"
+            )
+        return self
 
 
 class ChoiceItem(_Model):
@@ -304,24 +329,105 @@ class OrderEventsTask(_TaskBase):
 
 class QuestionItem(_Model):
     question: str = Field(min_length=1)
+    starter: str | None = Field(
+        default=None,
+        description="Target-language sentence frame printed on the first answer line.",
+    )
     answer: str | None = Field(default=None, description="Model answer for the answer key.")
     lines: int = Field(default=2, ge=0, le=20)
 
 
 class QuestionsTask(_TaskBase):
     kind: Literal["questions"]
+    question_lang: TextLang = Field(
+        default="target",
+        description="'source' prints the questions in the learner's language (A1).",
+    )
     items: list[QuestionItem] = Field(min_length=1)
+
+
+class ClassifyItem(_Model):
+    text: str = Field(min_length=1)
+    answer: str = Field(min_length=1, description="The category, copied exactly from 'categories'.")
+
+
+class ClassifyTask(_TaskBase):
+    """Sort lines into categories: tick a column per line (``grid``) or
+    write each word into its column (``columns``)."""
+
+    kind: Literal["classify"]
+    categories: list[str] = Field(min_length=2, max_length=6)
+    layout: Literal["grid", "columns"] = Field(
+        default="grid",
+        description="grid = tick one column per line; columns = write each word into its column.",
+    )
+    items: list[ClassifyItem] = Field(min_length=2)
+
+    @model_validator(mode="after")
+    def _answers_are_categories(self) -> ClassifyTask:
+        if len({c.casefold() for c in self.categories}) != len(self.categories):
+            raise ValueError("categories must be distinct")
+        options = ", ".join(repr(c) for c in self.categories)
+        problems = []
+        for j, item in enumerate(self.items):
+            if item.answer in self.categories:
+                continue
+            same = [c for c in self.categories if c.casefold() == item.answer.casefold()]
+            close = same or difflib.get_close_matches(item.answer, self.categories, n=1, cutoff=0.6)
+            guess = f" — did you mean {close[0]!r}?" if close else "."
+            problems.append(
+                f"items[{j}].answer {item.answer!r} is not one of the categories ({options}); "
+                f"copy the category exactly{guess}"
+            )
+        if problems:
+            raise ValueError(" ".join(problems))
+        return self
+
+
+class FindItem(_Model):
+    clue: str = Field(
+        min_length=1, description="What to look for: a meaning, synonym or description.",
+    )
+    answer: str = Field(
+        min_length=1, description="The word or phrase exactly as the scene writes it.",
+    )
+    explanation: str | None = Field(
+        default=None, description="Model explanation (with 'explain').",
+    )
+
+
+class FindInTextTask(_TaskBase):
+    kind: Literal["find_in_text"]
+    clue_lang: TextLang = Field(default="target", description="Language of the clues.")
+    explain: bool = Field(default=False, description="Learners also explain meaning or effect.")
+    items: list[FindItem] = Field(min_length=1)
+
+
+class GappedTextTask(_TaskBase):
+    kind: Literal["gapped_text"]
+    text: str = Field(
+        min_length=1,
+        description="A passage; each removed sentence is written in place as {{sentence}}.",
+    )
+    extra: list[str] = Field(
+        default_factory=list, description="1–2 sentences that fit no gap (distractors).",
+    )
 
 
 class ClozeTask(_TaskBase):
     """Gap text. Mark every gap as ``{{answer}}``, ``{{answer|alternative}}``
     or ``{{answer::hint}}`` (the hint is required for ``base_form`` and
-    ``translation`` hints)."""
+    ``translation`` hints). A ``choice`` gap lists its wrong options after
+    the ``::``: ``{{right|also_right::wrong1|wrong2}}``."""
 
     kind: Literal["cloze"]
     text: str | None = Field(default=None, description="One connected passage with gaps.")
     items: list[str] | None = Field(default=None, description="Separate sentences with gaps.")
     hint: ClozeHint = "word_bank"
+    choice_layout: Literal["inline", "below"] = Field(
+        default="inline",
+        description="choice: options in brackets in the text, or numbered gaps with options below.",
+    )
     distractors: list[str] = Field(default_factory=list, description="Extra word-bank words.")
 
     @model_validator(mode="after")
@@ -336,12 +442,49 @@ class ClozeTask(_TaskBase):
 class TransformItem(_Model):
     prompt: str = Field(min_length=1)
     cue: str | None = None
-    answer: str = Field(min_length=1)
+    answer: str | None = Field(
+        default=None, description="The rewritten sentence (not needed with 'frame').",
+    )
+    keyword: str | None = Field(
+        default=None, description="A word the answer must contain (printed in capitals).",
+    )
+    frame: str | None = Field(
+        default=None,
+        description="The new sentence with one {{gap}} holding the answer (key word "
+                    "transformation).",
+    )
+
+    @model_validator(mode="after")
+    def _answer_or_frame(self) -> TransformItem:
+        if self.frame is None and not (self.answer or "").strip():
+            raise ValueError("a transform item needs an 'answer' (the rewritten sentence), or a "
+                             "'frame' whose {{gap}} holds the answer")
+        return self
 
 
 class TransformTask(_TaskBase):
     kind: Literal["transform"]
+    max_words: int | None = Field(
+        default=None, ge=1, le=10, description="At most this many words in each gap of a frame.",
+    )
     items: list[TransformItem] = Field(min_length=1)
+
+
+class ScrambleItem(_Model):
+    chunks: list[Annotated[str, Field(min_length=1)]] = Field(
+        min_length=3, max_length=12,
+        description="Word tiles in the CORRECT order; langwich shuffles them.",
+    )
+    end: ScrambleEnd = Field(default=".", description="Punctuation printed after the answer line.")
+    alternatives: list[list[str]] = Field(
+        default_factory=list, description="Other correct orders of the same tiles.",
+    )
+    cue: str | None = Field(default=None, description="Source-language meaning (optional help).")
+
+
+class ScrambleTask(_TaskBase):
+    kind: Literal["scramble"]
+    items: list[ScrambleItem] = Field(min_length=1)
 
 
 class WordBuildingItem(_Model):
@@ -354,6 +497,38 @@ class WordBuildingTask(_TaskBase):
     items: list[WordBuildingItem] = Field(min_length=1)
 
 
+class TableTask(_TaskBase):
+    """A table or form with gaps: every cell may hold ``{{gaps}}``; ``null``
+    is an open cell the learner fills with their own words."""
+
+    kind: Literal["table"]
+    caption: str | None = Field(
+        default=None, description="Target-language caption, e.g. a form's name.",
+    )
+    head: list[str] = Field(
+        default_factory=list,
+        description="Column headings; empty = a two-column form (field | value).",
+    )
+    rows: list[list[str | None]] = Field(
+        min_length=1,
+        description="Cells with {{gaps}}; null = an open cell the learner fills with own words.",
+    )
+    hint: TableHint = "none"
+    distractors: list[str] = Field(default_factory=list, description="Extra word-box words.")
+
+
+class ProofreadTask(_TaskBase):
+    kind: Literal["proofread"]
+    text: str = Field(
+        min_length=1,
+        description="A character's draft; each mistake as {{correct|alternative::wrong}}.",
+    )
+    marked: bool = Field(
+        default=True,
+        description="Underline and number the mistakes; false = only say how many there are.",
+    )
+
+
 class LabelTask(_TaskBase):
     """Name the numbered objects in a scene picture (``scene`` is required)."""
 
@@ -362,9 +537,39 @@ class LabelTask(_TaskBase):
     bank: bool = Field(default=True, description="Show the terms as a word bank.")
 
 
+class WritingPoint(_Model):
+    point: str = Field(
+        min_length=1, description="Source-language content point, printed as a tick list.",
+    )
+    covered_by: str | None = Field(
+        default=None,
+        description="The words of model_answer that cover the point (copied exactly).",
+    )
+
+
 class WritingTask(_TaskBase):
     kind: Literal["writing"]
     prompt: str = Field(min_length=1)
+    input: str | None = Field(
+        default=None,
+        description="A text to respond to or work from (a message, notice, passage), printed "
+                    "in a box.",
+    )
+    input_lang: TextLang = Field(default="target", description="Language of 'input'.")
+    output_lang: TextLang = Field(
+        default="target",
+        description="Language the learner writes in ('source' for mediation into S).",
+    )
+    #: (``register`` in the JSON: a pydantic field of that name would shadow
+    #: ``BaseModel.register``)
+    register_: Register | None = Field(
+        default=None, alias="register", description="The register the learner writes in.",
+    )
+    audience: str | None = Field(
+        default=None, description="Source-language: who the text is for.",
+    )
+    points: list[WritingPoint] = Field(default_factory=list, max_length=6)
+    paragraphs: bool = Field(default=False, description="One block of lines per point.")
     starter: str | None = None
     must_use: list[str] = Field(default_factory=list)
     min_words: int | None = Field(default=None, ge=1)
@@ -400,18 +605,36 @@ class DrawTask(_TaskBase):
     labels: list[str] = Field(default_factory=list)
 
 
+class CrosswordEntry(_Model):
+    answer: str = Field(
+        min_length=2, description="One target-language word, no article, no spaces.",
+    )
+    clue: str = Field(min_length=1)
+
+
+class CrosswordTask(_TaskBase):
+    """A crossword: the LLM writes the words and clues, langwich lays out the grid."""
+
+    kind: Literal["crossword"]
+    clue_lang: TextLang = Field(default="source", description="Language of the clues.")
+    entries: list[CrosswordEntry] = Field(min_length=4, max_length=16)
+
+
 Task = Annotated[
     Union[
         MatchTask, TrueFalseTask, MultipleChoiceTask, OrderEventsTask, QuestionsTask,
-        ClozeTask, TransformTask, WordBuildingTask, LabelTask, WritingTask,
-        DialogueTask, MediaSearchTask, DrawTask,
+        ClassifyTask, FindInTextTask, GappedTextTask, ClozeTask, TransformTask, ScrambleTask,
+        WordBuildingTask, TableTask, ProofreadTask, LabelTask, WritingTask, DialogueTask,
+        CrosswordTask, MediaSearchTask, DrawTask,
     ],
     Field(discriminator="kind"),
 ]
 
+#: The task kinds in display order (``langwich kinds``, the schema, the docs).
 TASK_KINDS: tuple[str, ...] = (
-    "match", "true_false", "multiple_choice", "order_events", "questions", "cloze",
-    "transform", "word_building", "label", "writing", "dialogue", "media_search", "draw",
+    "match", "true_false", "multiple_choice", "order_events", "questions", "classify",
+    "find_in_text", "gapped_text", "cloze", "transform", "scramble", "word_building", "table",
+    "proofread", "label", "writing", "dialogue", "crossword", "media_search", "draw",
 )
 
 
@@ -549,6 +772,36 @@ KIND_ALIASES: dict[str, str] = {
     "dialog": "dialogue",
     "transformation": "transform",
     "word_formation": "word_building",
+    "word_order": "scramble",
+    "unscramble": "scramble",
+    "jumbled_sentences": "scramble",
+    "sentence_scramble": "scramble",
+    "scrambled_sentences": "scramble",
+    "categorize": "classify",
+    "categorise": "classify",
+    "categorization": "classify",
+    "sorting": "classify",
+    "sort": "classify",
+    "multiple_matching": "classify",
+    "who_said_what": "classify",
+    "form_filling": "table",
+    "fill_in_the_form": "table",
+    "grid_completion": "table",
+    "table_completion": "table",
+    "missing_sentences": "gapped_text",
+    "gapped_sentences": "gapped_text",
+    "sentence_insertion": "gapped_text",
+    "text_completion": "gapped_text",
+    "find_the_word": "find_in_text",
+    "word_hunt": "find_in_text",
+    "scanning": "find_in_text",
+    "find_in_the_text": "find_in_text",
+    "error_correction": "proofread",
+    "proofreading": "proofread",
+    "find_the_mistakes": "proofread",
+    "correct_the_mistakes": "proofread",
+    "crossword_puzzle": "crossword",
+    "crosswords": "crossword",
 }
 
 #: Language names an LLM may write instead of a language code.
@@ -663,7 +916,7 @@ def _json_location(loc: tuple[Any, ...], data: Any) -> tuple[Any, ...]:
         elif isinstance(node, list) and isinstance(part, int) and 0 <= part < len(node):
             out.append(part)
             node = node[part]
-        elif last and isinstance(node, dict) and isinstance(part, str):
+        elif last and isinstance(node, dict) and isinstance(part, str) and part != node.get("kind"):
             out.append(part)  # a missing field
             node = None
         # anything else is a union tag: drop it
@@ -825,6 +1078,11 @@ def _friendly(error: Mapping[str, Any], parts: tuple[Any, ...], data: Any) -> st
         return f"{subject} must not be empty."
     if kind == "too_short":
         return f"'{name}' needs at least {ctx.get('min_length')} entries."
+    if kind == "too_long":
+        return (
+            f"'{name}' has {ctx.get('actual_length')} entries, but at most "
+            f"{ctx.get('max_length')} are allowed; leave out or merge the extra ones."
+        )
     if kind == "value_error":
         return re.sub(r"^Value error, ", "", msg)
     return msg

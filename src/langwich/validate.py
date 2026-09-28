@@ -39,13 +39,18 @@ from typing import Any, Literal
 from urllib.parse import unquote_to_bytes
 
 from langwich import locale, markup
+from langwich.answers import transform_sentence
 from langwich.model import (
     CEFR_LEVELS,
     POS_VALUES,
+    ClassifyTask,
     ClozeTask,
     ContractError,
+    CrosswordTask,
     DialogueTask,
     DrawTask,
+    FindInTextTask,
+    GappedTextTask,
     GrammarPoint,
     LabelTask,
     MatchTask,
@@ -53,7 +58,10 @@ from langwich.model import (
     MultipleChoiceTask,
     OrderEventsTask,
     Picture,
+    ProofreadTask,
     QuestionsTask,
+    ScrambleTask,
+    TableTask,
     Task,
     TransformTask,
     TrueFalseTask,
@@ -83,8 +91,13 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "unknown-grammar": ("error", "a task references a grammar id that does not exist"),
     "target-not-in-items": ("error", "a vocabulary.target word has no entry in vocabulary.items"),
     "same-language": ("error", "source_lang and target_lang are the same"),
-    "cloze-without-gaps": ("error", "a cloze text or item without {{gaps}}"),
-    "missing-gap-hint": ("error", "a base_form/translation cloze gap without a ::hint"),
+    "cloze-without-gaps": (
+        "error", "a cloze, table, gapped_text or proofread text without {{gaps}}",
+    ),
+    "missing-gap-hint": (
+        "error", "a gap without the ::hint its task needs (base_form/translation hint, choice "
+        "options, proofread mistake)",
+    ),
     "empty-gap": ("error", "an empty gap {{}}"),
     "unbalanced-braces": (
         "error", "a stray '{{' or '}}', a triple brace or a gap across a blank line in a cloze "
@@ -110,6 +123,19 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "duplicate-event": ("error", "an order_events task lists the same event twice"),
     "dialogue-nothing-to-do": ("error", "a dialogue task without gaps or lines to write"),
     "word-range": ("error", "a writing task with min_words > max_words"),
+    "scramble-alternative": (
+        "error", "a scramble alternative that does not use exactly the same tiles",
+    ),
+    "duplicate-entry": (
+        "error", "a classify, gapped_text or crossword task lists the same entry twice",
+    ),
+    "table-shape": (
+        "error", "a table row with a different number of cells than the head (2 without head)",
+    ),
+    "table-nothing-to-do": ("error", "a table without gaps or open (null) cells"),
+    "frame-gaps": ("error", "a transform frame without exactly one {{gap}}"),
+    "crossword-word": ("error", "a crossword answer that is not one word of letters"),
+    "crossword-layout": ("error", "crossword answers that cannot all be joined into one grid"),
     # warnings
     "wrapped-json": ("warning", "text or a Markdown code fence around the JSON object (ignored)"),
     "normalized": (
@@ -133,12 +159,18 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "copies-story": (
         "warning", "a form, practice or production item copies a sentence from the story",
     ),
-    "distractor-is-answer": ("warning", "a cloze or dialogue distractor is also one of the answers"),
+    "distractor-is-answer": (
+        "warning", "a cloze, dialogue or table distractor or a gapped_text extra sentence is also "
+        "one of the answers",
+    ),
     "gap-starts-sentence": (
         "warning", "a word-box gap at the start of a sentence (its capital letter gives the "
         "position away)",
     ),
-    "hint-is-answer": ("warning", "a translation hint that is the answer itself"),
+    "hint-is-answer": (
+        "warning", "a hint that is the answer itself (a translation hint, a proofread 'mistake' "
+        "that is correct)",
+    ),
     "bank-without-gaps": ("warning", "a dialogue asks for a word bank but has no gaps"),
     "markup-outside-gaps": ("warning", "gap markup in a field where it is printed literally"),
     "tf-missing-correction": ("warning", "a false true_false statement without a 'correction'"),
@@ -165,6 +197,50 @@ CHECKS: dict[str, tuple[Level, str]] = {
         "warning", "an svg that links external files or contains scripts (they are removed)",
     ),
     "grammar-gives-away": ("warning", "a grammar box beside a task shows one of its answers"),
+    "scramble-punctuation": (
+        "warning", "a scramble tile with sentence punctuation (it belongs in 'end')",
+    ),
+    "scramble-capital": (
+        "warning", "a scramble whose first tile is capitalised (it shows where the sentence "
+        "starts)",
+    ),
+    "category-unused": ("warning", "a classify category that no item belongs to"),
+    "tf-no-not-given": (
+        "warning", "a true_false task offers 'not in the text' but no statement needs it",
+    ),
+    "tf-quote-missing": (
+        "warning", "a true/false statement without 'quote' in a task with 'justify'",
+    ),
+    "tf-quote-not-in-story": ("warning", "a true_false quote that the story does not contain"),
+    "tf-not-given-correction": ("warning", "a 'not_given' statement with a correction or quote"),
+    "writing-no-model-answer": (
+        "warning", "a writing task with 'points' or 'input' but no model answer",
+    ),
+    "point-not-covered": (
+        "warning", "a writing point whose 'covered_by' is not part of the model answer",
+    ),
+    "choice-options": (
+        "warning", "a choice gap with more than 3 wrong options, a repeated option or a wrong "
+        "option that is correct",
+    ),
+    "table-too-wide": ("warning", "a table with more than 5 columns (too wide for e-paper)"),
+    "gapped-text-gaps": ("warning", "a gapped_text with fewer than 3 or more than 8 gaps"),
+    "gapped-text-no-extra": (
+        "warning", "a gapped_text without an extra sentence (the last gap is free by "
+        "elimination)",
+    ),
+    "find-not-in-text": ("warning", "a find_in_text answer that its scenes do not contain"),
+    "keyword-not-used": ("warning", "a transform key word that the answer does not contain"),
+    "answer-too-long": ("warning", "a transform gap answer longer than max_words"),
+    "frame-and-answer": (
+        "warning", "a transform item with both 'frame' and 'answer' (the frame's gap holds the "
+        "answer)",
+    ),
+    "answer-ignores-starter": (
+        "warning", "a model answer that does not begin with its question's starter",
+    ),
+    "clue-is-answer": ("warning", "a crossword clue that contains its answer"),
+    "task-count": ("warning", "fewer or more tasks than the brief recommends for the CEFR level"),
 }
 
 #: Problems in the user's environment (files, formats) rather than in the
@@ -515,7 +591,7 @@ def _similar_file(path: Path) -> str:
 
 #: Sample values for the placeholders of page-furniture strings, of the
 #: types the renderer passes.
-_UI_SAMPLES: dict[str, object] = {"min": 60, "max": 80, "scene": "Scene"}
+_UI_SAMPLES: dict[str, object] = {"min": 60, "max": 80, "scene": "Scene", "n": 5}
 
 
 def _format_fields(text: str) -> list[str]:
@@ -658,7 +734,8 @@ class _Checker:
         return any(p.search(t) for p in pats for t in texts)
 
     def task_texts(self, task: Task) -> list[str]:
-        """The item strings of a task (gaps filled, hints kept). Titles and
+        """The item strings of a task (gaps filled, hints kept): the
+        target-language text the learner reads or writes. Titles and
         instructions are source-language furniture and do not count."""
         out: list[str] = []
         if isinstance(task, MatchTask):
@@ -670,20 +747,48 @@ class _Checker:
         elif isinstance(task, OrderEventsTask):
             out += task.events
         elif isinstance(task, QuestionsTask):
-            out += [i.question for i in task.items] + [i.answer or "" for i in task.items]
+            if task.question_lang == "target":
+                out += [i.question for i in task.items]
+            out += [i.starter or "" for i in task.items] + [i.answer or "" for i in task.items]
+        elif isinstance(task, ClassifyTask):
+            out += task.categories + [i.text for i in task.items]
+        elif isinstance(task, FindInTextTask):
+            if task.clue_lang == "target":
+                out += [i.clue for i in task.items]
+            out += [i.answer for i in task.items]
+        elif isinstance(task, GappedTextTask):
+            out += [_gap_text(task.text), *task.extra]
         elif isinstance(task, ClozeTask):
             texts = [task.text] if task.text is not None else list(task.items or [])
             out += [_gap_text(t) for t in texts] + task.distractors
         elif isinstance(task, TransformTask):
-            out += [f"{i.prompt} {i.cue or ''} {i.answer}" for i in task.items]
+            out += [f"{i.prompt} {i.cue or ''} {transform_sentence(i)}" for i in task.items]
+        elif isinstance(task, ScrambleTask):
+            out += [c for i in task.items for c in i.chunks]
+            out += [" ".join(i.chunks) for i in task.items]
         elif isinstance(task, WordBuildingTask):
             out += [p for i in task.items for p in i.parts] + [i.answer for i in task.items]
+        elif isinstance(task, TableTask):
+            out += [task.caption or "", *task.head]
+            out += [_gap_text(cell) for row in task.rows for cell in row if cell]
+            out += task.distractors
+        elif isinstance(task, ProofreadTask):
+            out.append(_filled(task.text))  # the correct forms, not the mistakes
         elif isinstance(task, LabelTask):
             scene = self.ws.scene(task.scene)
             if scene and scene.picture:
                 out += [lb.term for lb in scene.picture.labels]
         elif isinstance(task, WritingTask):
-            out += [task.prompt, task.starter or "", task.model_answer or "", *task.must_use]
+            out += [task.prompt, *task.must_use]
+            if task.input_lang == "target":
+                out.append(task.input or "")
+            if task.output_lang == "target":
+                out += [task.starter or "", task.model_answer or ""]
+                out += [p.covered_by or "" for p in task.points]
+        elif isinstance(task, CrosswordTask):
+            out += [e.answer for e in task.entries]
+            if task.clue_lang == "target":
+                out += [e.clue for e in task.entries]
         elif isinstance(task, DialogueTask):
             for line in task.lines:
                 out += [_gap_text(line.text or ""), line.cue or "", line.answer or ""]
@@ -784,8 +889,15 @@ class _Checker:
                 f"'{term}' is listed in vocabulary.target but not in vocabulary.items.{hint}",
             )
 
-    def _check_gap_text(self, task: ClozeTask | None, text: str, where: str, what: str) -> None:
-        """Checks shared by cloze texts/items and dialogue lines."""
+    def _check_gap_text(
+        self, hint: str | None, text: str, where: str, what: str, *, need_gaps: bool = True,
+    ) -> None:
+        """Checks shared by every text with gap markup: cloze texts/items,
+        dialogue lines, table cells, gapped_text and proofread texts.
+
+        ``hint`` is the task's hint ('base_form', 'choice', … or 'proofread'
+        for a proofread text); ``None`` checks no hints (dialogue lines,
+        gapped_text). ``need_gaps``: a text without gaps is an error."""
         if markup.has_unbalanced_braces(text):
             self.error(
                 "unbalanced-braces", where,
@@ -817,32 +929,35 @@ class _Checker:
                 f"e.g. {{{{{self.example_word()}}}}}, or with a hint {{{{answer::hint}}}}.",
             )
             return
-        if task is None:
-            return
-        if not found and problem is None:
+        if need_gaps and not found:
             single = _SINGLE_BRACE_RE.search(text)
             extra = (
                 f" It uses single braces ({single.group(0)}); gaps need double braces."
                 if single else ""
             )
+            if hint == "proofread":
+                how = ("Write each mistake as {{correct::wrong}}: the correct form, then the "
+                       "wrong form the character wrote.")
+            else:
+                how = (f"Mark each gap as {{{{answer}}}} inside the text, e.g. "
+                       f"'… {{{{{self.example_word()}}}}} …'.")
             self.error(
                 "cloze-without-gaps", where,
-                f"{what} has no gaps, so there is nothing to fill in.{extra} Mark each gap as "
-                f"{{{{answer}}}} inside the sentence, e.g. '… {{{{{self.example_word()}}}}} …'.",
+                f"{what} has no gaps, so there is nothing to fill in.{extra} {how}",
             )
-        if task.hint in ("base_form", "translation"):
-            kind = "base form" if task.hint == "base_form" else "meaning in the source language"
+        if hint in ("base_form", "translation"):
+            kind = "base form" if hint == "base_form" else "meaning in the source language"
             for gap in found:
                 if not gap.hint:
                     body = "|".join(gap.accepted)
                     self.error(
                         "missing-gap-hint", where,
                         f"the gap {{{{{body}}}}} has no hint, but the task uses hint "
-                        f"'{task.hint}', which prints a hint in brackets after every gap. "
+                        f"'{hint}', which prints a hint in brackets after every gap. "
                         f"Write it as {{{{{body}::<{kind}>}}}}, or change the task's hint to "
                         "'word_bank'.",
                     )
-        if task.hint == "translation":
+        if hint == "translation":
             for gap in found:
                 if gap.hint and gap.hint.casefold() in {a.casefold() for a in gap.accepted}:
                     self.warn(
@@ -852,17 +967,50 @@ class _Checker:
                         "translation differs from it, or give this task the hint 'base_form' "
                         "or 'word_bank'.",
                     )
+        if hint == "choice":
+            for gap in found:
+                if not markup.wrong_options(gap):
+                    body = "|".join(gap.accepted)
+                    self.error(
+                        "missing-gap-hint", where,
+                        f"the gap {{{{{body}}}}} has no wrong options, but the task uses hint "
+                        "'choice', which prints every gap as a choice between the right word "
+                        f"and wrong ones. Write it as {{{{{body}::<wrong>|<wrong>}}}} with 1–3 "
+                        "wrong options of the same word class, or change the task's hint to "
+                        "'word_bank'.",
+                    )
+        if hint == "proofread":
+            for gap in found:
+                body = "|".join(gap.accepted)
+                if not gap.hint:
+                    self.error(
+                        "missing-gap-hint", where,
+                        f"the mistake {{{{{body}}}}} has no wrong form, so the text would show "
+                        "the correct word and there is nothing to correct. Write it as "
+                        f"{{{{{body}::<the wrong form the character wrote>}}}}.",
+                    )
+                elif gap.hint.casefold() in {a.casefold() for a in gap.accepted}:
+                    self.warn(
+                        "hint-is-answer", where,
+                        f"the mistake {{{{{body}::{gap.hint}}}}} prints a correct form as the "
+                        "mistake, so there is nothing to correct. Write the wrong form after the "
+                        "'::' ({{correct::wrong}}), or remove the braces.",
+                    )
 
     def check_cloze_and_dialogue(self) -> None:
         for i, task in enumerate(self.ws.tasks):
             if isinstance(task, ClozeTask):
                 if task.text is not None:
-                    self._check_gap_text(task, task.text, f"/tasks/{i}/text", "this cloze text")
+                    self._check_gap_text(
+                        task.hint, task.text, f"/tasks/{i}/text", "this cloze text",
+                    )
                     answers = [a for g in _parse_gaps(task.text)[0] for a in g.accepted]
                 else:
                     answers = []
                     for j, item in enumerate(task.items or []):
-                        self._check_gap_text(task, item, f"/tasks/{i}/items/{j}", "this cloze item")
+                        self._check_gap_text(
+                            task.hint, item, f"/tasks/{i}/items/{j}", "this cloze item",
+                        )
                         answers += [a for g in _parse_gaps(item)[0] for a in g.accepted]
                 self._check_distractors(i, task.distractors, answers)
             elif isinstance(task, DialogueTask):
@@ -873,7 +1021,10 @@ class _Checker:
                     if line.text is None:
                         writes = True
                         continue
-                    self._check_gap_text(None, line.text, f"/tasks/{i}/lines/{j}/text", "this line")
+                    self._check_gap_text(
+                        None, line.text, f"/tasks/{i}/lines/{j}/text", "this line",
+                        need_gaps=False,
+                    )
                     line_gaps = _parse_gaps(line.text)[0]
                     answers += [a for g in line_gaps for a in g.accepted]
                     if line_gaps:
@@ -894,20 +1045,30 @@ class _Checker:
                         "Add gaps to some lines or set bank to false.",
                     )
 
-    def _check_distractors(self, i: int, distractors: list[str], answers: list[str]) -> None:
-        keys = {a.casefold() for a in answers}
+    def _check_distractors(
+        self, i: int, distractors: list[str], answers: list[str], field: str = "distractors",
+    ) -> None:
+        """Distractors (or a gapped_text's ``extra`` sentences, ``field``) that
+        are also the answer to a gap."""
+        keys = {" ".join(a.casefold().split()) for a in answers}
         for k, word in enumerate(distractors):
-            if word.casefold() in keys:
-                self.warn(
-                    "distractor-is-answer", f"/tasks/{i}/distractors/{k}",
-                    f"the distractor '{word}' is also the answer to a gap, so it is not "
-                    "a distractor. Replace it with a word that fits none of the gaps.",
-                )
+            if " ".join(word.casefold().split()) not in keys:
+                continue
+            if field == "extra":
+                message = (f"the extra sentence {_q(word)} is also one of the removed sentences, "
+                           "so it is not a distractor. Replace it with a sentence that fits none "
+                           "of the gaps.")
+            else:
+                message = (f"the distractor '{word}' is also the answer to a gap, so it is not "
+                           "a distractor. Replace it with a word that fits none of the gaps.")
+            self.warn("distractor-is-answer", f"/tasks/{i}/{field}/{k}", message)
 
     def check_markup_placement(self) -> None:
         data = self.ws.model_dump(by_alias=True, mode="json", exclude_none=True)
         story_fields = re.compile(r"^/story/scenes/\d+/(text|heading|translation)$")
-        gap_fields = re.compile(r"^/tasks/\d+/(text|items/\d+|lines/\d+/text)$")
+        gap_fields = re.compile(
+            r"^/tasks/\d+/(text|items/\d+|lines/\d+/text|rows/\d+/\d+|items/\d+/frame)$",
+        )
         skip = re.compile(r"^/story/scenes/\d+/picture/(svg|prompt)$")
 
         def walk(obj: Any, where: str) -> Iterator[tuple[str, str]]:
@@ -929,23 +1090,33 @@ class _Checker:
                 self.error(
                     "markup-in-story", where,
                     "the story contains gap markup '{{…}}', but scenes are printed as plain "
-                    "prose. Remove the braces here; put gaps only in cloze tasks or dialogue "
-                    "lines (with new sentences, not copied from the story).",
+                    "prose. Remove the braces here; put gaps only in task fields that take them, "
+                    "such as cloze texts or dialogue lines (with new sentences, not copied from "
+                    "the story).",
                 )
             elif gap_fields.match(where) and self._is_gap_field(where):
                 continue
             else:
                 self.warn(
                     "markup-outside-gaps", where,
-                    "gap markup '{{…}}' is only read in cloze texts/items and dialogue lines; "
-                    "here it would be printed literally, braces included. Remove the braces "
-                    "(or turn this into a cloze task).",
+                    "gap markup '{{…}}' is only read in cloze texts/items, dialogue lines, "
+                    "table cells, gapped_text and proofread texts and transform frames; here it "
+                    "would be printed literally, braces included. Remove the braces (or turn "
+                    "this into a cloze task).",
                 )
 
     def _is_gap_field(self, where: str) -> bool:
-        index = int(where.split("/")[2])
-        task = self.ws.tasks[index]
-        return isinstance(task, (ClozeTask, DialogueTask))
+        parts = where.split("/")
+        task = self.ws.tasks[int(parts[2])]
+        if isinstance(task, (ClozeTask, DialogueTask)):
+            return True
+        if isinstance(task, TableTask):
+            return parts[3] == "rows"
+        if isinstance(task, (GappedTextTask, ProofreadTask)):
+            return parts[3] == "text"
+        if isinstance(task, TransformTask):
+            return parts[-1] == "frame"
+        return False
 
     def check_pictures(self) -> None:
         for si, scene in enumerate(self.ws.story.scenes):
@@ -1198,7 +1369,7 @@ class _Checker:
                         seen[key] = j
             elif isinstance(task, TrueFalseTask):
                 for j, item in enumerate(task.items):
-                    if not item.answer and not (item.correction or "").strip():
+                    if item.answer is False and not (item.correction or "").strip():
                         self.warn(
                             "tf-missing-correction", f"{where}/items/{j}",
                             f"the statement {_q(item.statement)} is false but has no "
@@ -1233,6 +1404,47 @@ class _Checker:
                             "picture.svg (simple black line art) or picture.image to the scene, "
                             "or give the task another stage.",
                         )
+
+    # -- per-kind checks: one method per new kind or extension ---------------
+
+    def check_scramble(self) -> None:
+        """Scramble alternatives, punctuation in tiles, a capitalised first tile."""
+
+    def check_classify(self) -> None:
+        """Repeated classify items, unused categories."""
+
+    def check_true_false_extras(self) -> None:
+        """'not_given' and 'justify': the third box, quotes, corrections."""
+
+    def check_writing_extras(self) -> None:
+        """Writing 'input' and 'points': the model answer covers every point."""
+
+    def check_choice_gaps(self) -> None:
+        """The options of cloze gaps with hint 'choice'."""
+
+    def check_tables(self) -> None:
+        """Table shape, gaps, width and distractors."""
+
+    def check_gapped_texts(self) -> None:
+        """Gapped-text gaps and extra sentences."""
+
+    def check_find_in_text(self) -> None:
+        """Find-in-text answers occur in their scenes."""
+
+    def check_proofread(self) -> None:
+        """Proofread texts: every mistake as {{correct::wrong}}."""
+
+    def check_transform_extras(self) -> None:
+        """Transform frames, key words and max_words."""
+
+    def check_question_starters(self) -> None:
+        """Model answers begin with their question's starter."""
+
+    def check_crosswords(self) -> None:
+        """Crossword words, repeats, the grid and clues that give the answer away."""
+
+    def check_task_count(self) -> None:
+        """The number of tasks against the level's recommended range."""
 
     def _check_model_answer(self, task: WritingTask, where: str) -> None:
         answer = task.model_answer or ""
@@ -1402,7 +1614,21 @@ class _Checker:
                     checks.append((f"/tasks/{i}/text", _filled(task.text)))
                 checks += [(f"/tasks/{i}/items/{j}", _filled(t)) for j, t in enumerate(task.items or [])]
             elif isinstance(task, TransformTask):
-                checks += [(f"/tasks/{i}/items/{j}", t.answer) for j, t in enumerate(task.items)]
+                checks += [
+                    (f"/tasks/{i}/items/{j}", transform_sentence(t))
+                    for j, t in enumerate(task.items)
+                ]
+            elif isinstance(task, ScrambleTask):
+                checks += [
+                    (f"/tasks/{i}/items/{j}", " ".join(t.chunks)) for j, t in enumerate(task.items)
+                ]
+            elif isinstance(task, TableTask):
+                checks += [
+                    (f"/tasks/{i}/rows/{r}", " ".join(_filled(cell) for cell in row if cell))
+                    for r, row in enumerate(task.rows)
+                ]
+            elif isinstance(task, (GappedTextTask, ProofreadTask)):
+                checks.append((f"/tasks/{i}/text", _filled(task.text)))
             elif isinstance(task, DialogueTask):
                 checks += [
                     (f"/tasks/{i}/lines/{j}/text", _filled(line.text))
@@ -1600,6 +1826,19 @@ class _Checker:
         self.check_markup_placement()
         self.check_pictures()
         self.check_tasks()
+        self.check_scramble()
+        self.check_classify()
+        self.check_true_false_extras()
+        self.check_writing_extras()
+        self.check_choice_gaps()
+        self.check_tables()
+        self.check_gapped_texts()
+        self.check_find_in_text()
+        self.check_proofread()
+        self.check_transform_extras()
+        self.check_question_starters()
+        self.check_crosswords()
+        self.check_task_count()
         self.check_arc()
         self.check_task_scenes()
         self.check_story()
@@ -1702,12 +1941,19 @@ def _drop_subject(cell: str) -> str:
 
 def _gap_units(task: Task) -> list[tuple[str, list[markup.Gap]]]:
     """The gaps of a task grouped by item — a cloze item, a sentence of a
-    cloze text, a dialogue line — with the item's text (gaps filled)."""
+    cloze or proofread text, a dialogue line, a table cell, a transform
+    frame — with the item's text (gaps filled)."""
     texts: list[str] = []
     if isinstance(task, ClozeTask):
         texts = _sentences(task.text) if task.text is not None else list(task.items or [])
     elif isinstance(task, DialogueTask):
         texts = [line.text for line in task.lines if line.text]
+    elif isinstance(task, TableTask):
+        texts = [cell for row in task.rows for cell in row if cell]
+    elif isinstance(task, ProofreadTask):
+        texts = _sentences(task.text)  # the box must not show the corrections
+    elif isinstance(task, TransformTask):
+        texts = [item.frame for item in task.items if item.frame]
     units = []
     for text in texts:
         gaps = _parse_gaps(text)[0]
@@ -1755,10 +2001,10 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
         for cell in cells:
             core = _drop_subject(cell)
             if len(core.split()) >= 2 and not re.search(r"…|\.\.\.", core):
-                if any(_contains(item.answer, core) for item in task.items):
+                if any(_contains(transform_sentence(item), core) for item in task.items):
                     return core
     about = f"{gp.name} {gp.rule or ''}"
-    bank = (isinstance(task, ClozeTask) and task.hint == "word_bank") or (
+    bank = (isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank") or (
         isinstance(task, DialogueTask) and task.bank
     )
     for item_text, unit in _gap_units(task):
@@ -1788,7 +2034,7 @@ def _leakable_answers(task: Task, lang: str) -> list[str]:
     if isinstance(task, WordBuildingTask):
         return [strip_article(i.answer, lang) for i in task.items]
     if isinstance(task, TransformTask):
-        return [i.answer.rstrip(".!?…") for i in task.items]
+        return [transform_sentence(i).strip().rstrip(".!?…") for i in task.items]
     if isinstance(task, ClozeTask) and task.items:
         out = []
         for item in task.items:

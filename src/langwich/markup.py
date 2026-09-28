@@ -1,4 +1,5 @@
-"""Gap markup used in cloze and dialogue texts.
+"""Gap markup used in cloze, dialogue, table, gapped_text and proofread
+texts and transform frames.
 
 A gap is written ``{{answer}}``. Accepted alternatives follow a ``|``,
 a hint (base form, translation, …) follows ``::``::
@@ -7,7 +8,10 @@ a hint (base form, translation, …) follows ``::``::
     Sie trinkt ihren Kaffee {{schwarz|ohne Milch}}.
 
 The first answer is the one printed in the answer key and used in word
-banks; alternatives are also accepted.
+banks; alternatives are also accepted. What follows ``::`` depends on the
+task: the wrong options of a ``choice`` gap (``{{ist::sind|bist}}``, see
+:func:`wrong_options`), the wrong form of a proofread mistake
+(``{{ist::sind}}``).
 """
 
 from __future__ import annotations
@@ -61,6 +65,11 @@ def gaps(text: str) -> list[Gap]:
 def fill(text: str) -> str:
     """The text with every gap replaced by its first answer."""
     return "".join(p.answer if isinstance(p, Gap) else p for p in split(text))
+
+
+def wrong_options(gap: Gap) -> list[str]:
+    """The wrong options of a choice gap ({{right::wrong1|wrong2}})."""
+    return [w.strip() for w in (gap.hint or "").split("|") if w.strip()]
 
 
 def has_unbalanced_braces(text: str) -> bool:

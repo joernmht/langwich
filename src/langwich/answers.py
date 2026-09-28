@@ -13,15 +13,23 @@ from __future__ import annotations
 from langwich import markup
 from langwich.locale import t
 from langwich.model import (
+    ClassifyTask,
     ClozeTask,
+    CrosswordTask,
     DialogueTask,
     DrawTask,
+    FindInTextTask,
+    GappedTextTask,
     LabelTask,
     MatchTask,
     MediaSearchTask,
     MultipleChoiceTask,
     OrderEventsTask,
+    ProofreadTask,
     QuestionsTask,
+    ScrambleTask,
+    TableTask,
+    TransformItem,
     TransformTask,
     TrueFalseTask,
     WordBuildingTask,
@@ -29,6 +37,7 @@ from langwich.model import (
     WritingTask,
 )
 from langwich.plan import LETTERS, PlannedTask
+
 
 def letter(index: int, upper: bool = True) -> str:
     """``0 → A``, ``25 → Z``, ``26 → AA`` … (never runs out)."""
@@ -57,6 +66,25 @@ def cloze_texts(task: ClozeTask) -> list[str]:
     return [task.text] if task.text is not None else list(task.items or [])
 
 
+def transform_answer(item: TransformItem) -> str:
+    """What the learner writes: the frame's gap answer(s), else the rewritten sentence."""
+    if item.frame is not None:
+        gaps = safe_gaps(item.frame)
+        if gaps:
+            return " … ".join(gap_answer(g) for g in gaps)
+    return item.answer or ""
+
+
+def transform_sentence(item: TransformItem) -> str:
+    """The complete new sentence: the frame with its gap filled, else the answer."""
+    if item.frame is not None:
+        try:
+            return markup.fill(item.frame)
+        except ValueError:
+            return markup.GAP_RE.sub(" ", item.frame)
+    return item.answer or ""
+
+
 def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
     task = pt.task
     lang, ui = ws.source_lang, ws.ui
@@ -67,12 +95,7 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
         return [letter(order.index(i)) for i in range(len(task.pairs))]
 
     if isinstance(task, TrueFalseTask):
-        verdicts: list[str] = []
-        for item in task.items:
-            word = t("true" if item.answer else "false", lang, ui)
-            verdicts.append(
-                f"{word} – {item.correction}" if not item.answer and item.correction else word)
-        return verdicts
+        return _key_true_false(pt, ws)
 
     if isinstance(task, MultipleChoiceTask):
         choices: list[str] = []
@@ -91,16 +114,34 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
             return []
         return [a or t("open_answer", lang, ui) for a in answers]
 
+    if isinstance(task, ClassifyTask):
+        return _key_classify(pt, ws)
+
+    if isinstance(task, FindInTextTask):
+        return _key_find_in_text(pt, ws)
+
+    if isinstance(task, GappedTextTask):
+        return _key_gapped_text(pt, ws)
+
     if isinstance(task, ClozeTask):
         if task.text is not None:
             return [gap_answer(g) for g in safe_gaps(task.text)]
         return [" … ".join(gap_answer(g) for g in safe_gaps(item)) for item in task.items or []]
 
     if isinstance(task, TransformTask):
-        return [item.answer for item in task.items]
+        return [transform_answer(item) for item in task.items]
+
+    if isinstance(task, ScrambleTask):
+        return _key_scramble(pt, ws)
 
     if isinstance(task, WordBuildingTask):
         return [item.answer for item in task.items]
+
+    if isinstance(task, TableTask):
+        return _key_table(pt, ws)
+
+    if isinstance(task, ProofreadTask):
+        return _key_proofread(pt, ws)
 
     if isinstance(task, LabelTask):
         scene = ws.scene(task.scene)
@@ -123,7 +164,61 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
                 has_model = has_model or bool(line.answer)
         return lines if has_model else []
 
+    if isinstance(task, CrosswordTask):
+        return _key_crossword(pt, ws)
+
     if isinstance(task, (WritingTask, MediaSearchTask, DrawTask)):
         return []
 
     return []  # pragma: no cover - every kind is handled above
+
+
+def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """true / false (with the correction) / not in the text, per statement."""
+    task = pt.task
+    assert isinstance(task, TrueFalseTask)
+    lang, ui = ws.source_lang, ws.ui
+    verdicts: list[str] = []
+    for item in task.items:
+        if item.answer == "not_given":
+            verdicts.append(t("not_given", lang, ui))
+            continue
+        word = t("true" if item.answer is True else "false", lang, ui)
+        verdicts.append(
+            f"{word} – {item.correction}" if item.answer is False and item.correction else word)
+    return verdicts
+
+
+def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The sentence of each scramble item (and its other correct orders)."""
+    return []  # (spine stub: the scramble implementation fills this in)
+
+
+def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The category of each displayed row (grid), or each category's words (columns)."""
+    return []  # (spine stub: the classify implementation fills this in)
+
+
+def _key_table(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The gap answers of a table, row by row."""
+    return []  # (spine stub: the table implementation fills this in)
+
+
+def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The letter of the sentence that fills each gap."""
+    return []  # (spine stub: the gapped_text implementation fills this in)
+
+
+def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """Each word or phrase to find (with its explanation)."""
+    return []  # (spine stub: the find_in_text implementation fills this in)
+
+
+def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """'wrong → correct' per mistake."""
+    return []  # (spine stub: the proofread implementation fills this in)
+
+
+def _key_crossword(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The answers in clue order (across, then down)."""
+    return []  # (spine stub: the crossword implementation fills this in)

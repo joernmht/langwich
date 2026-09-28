@@ -30,17 +30,25 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from langwich import markup
+from langwich.crossword import Layout
 from langwich.model import (
     STAGES,
+    ClassifyTask,
     ClozeTask,
+    CrosswordTask,
     DialogueTask,
     Fact,
+    FindInTextTask,
+    GappedTextTask,
     GrammarPoint,
     LabelTask,
     MatchTask,
     MultipleChoiceTask,
     OrderEventsTask,
+    ProofreadTask,
     Scene,
+    ScrambleTask,
+    TableTask,
     Task,
     VocabItem,
     WordBuildingTask,
@@ -98,8 +106,21 @@ class PlannedTask:
     option_orders: list[list[str]] | None = None
     #: order_events — events in display (shuffled) order.
     events: list[str] | None = None
-    #: word bank for cloze (hint=word_bank), label (bank=True), dialogue (bank=True).
+    #: word bank for cloze and table (hint=word_bank), label (bank=True),
+    #: dialogue (bank=True) and classify (layout=columns: the item texts).
     bank: list[str] | None = None
+    #: scramble — each item's chunks in display (shuffled) order.
+    tiles: list[list[str]] | None = None
+    #: classify (layout=grid) — display order of the items, as indices.
+    row_order: list[int] | None = None
+    #: cloze (hint=choice) — the options of every gap in text order: the
+    #: answer and the wrong options, shuffled.
+    gap_options: list[list[str]] | None = None
+    #: gapped_text — the removed sentences and the extra ones in display
+    #: order (lettered A, B, C …).
+    slot_options: list[str] | None = None
+    #: crossword — the grid (see :func:`langwich.crossword.layout`).
+    crossword: Layout | None = None
     sidebars: list[Sidebar] = field(default_factory=list)
 
     @property
@@ -156,7 +177,11 @@ class Plan:
 
 
 def default_seed(ws: Worksheet) -> int:
-    digest = hashlib.sha256(ws.model_dump_json(by_alias=True).encode("utf-8")).hexdigest()
+    """The seed derived from what the worksheet says: fields left at their
+    default do not count, so a new optional field in the contract does not
+    reshuffle the worksheets written before it."""
+    dump = ws.model_dump_json(by_alias=True, exclude_defaults=True)
+    digest = hashlib.sha256(dump.encode("utf-8")).hexdigest()
     return int(digest[:8], 16)
 
 
@@ -1006,6 +1031,14 @@ def tested_terms(ws: Worksheet) -> set[str]:
             for line in task.lines:
                 if line.text:
                     out.update(_norm(g.answer, lang) for g in markup.gaps(line.text))
+        elif isinstance(task, ClassifyTask) and task.layout == "columns":
+            out.update(_norm(i.text, lang) for i in task.items)
+        elif isinstance(task, (TableTask, ProofreadTask)):
+            out.update(_norm(g.answer, lang) for g in _gaps_of(task))
+        elif isinstance(task, FindInTextTask):
+            out.update(_norm(i.answer, lang) for i in task.items)
+        elif isinstance(task, CrosswordTask):
+            out.update(_norm(e.answer, lang) for e in task.entries)
     return out
 
 
@@ -1063,6 +1096,10 @@ def _gaps_of(task: Task) -> list[markup.Gap]:
         return [g for text in texts for g in markup.gaps(text)]
     if isinstance(task, DialogueTask):
         return [g for line in task.lines if line.text for g in markup.gaps(line.text)]
+    if isinstance(task, TableTask):
+        return [g for row in task.rows for cell in row if cell for g in markup.gaps(cell)]
+    if isinstance(task, ProofreadTask):
+        return markup.gaps(task.text)
     return []
 
 
@@ -1100,6 +1137,18 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
         pt.option_orders = orders
     elif isinstance(task, OrderEventsTask):
         pt.events = _shuffle_not_identity(task.events, _rng(seed, task.id, "events"))
+    elif isinstance(task, ScrambleTask):
+        _prepare_scramble(pt, task, seed)
+    elif isinstance(task, ClassifyTask):
+        _prepare_classify(pt, task, seed)
+    elif isinstance(task, ClozeTask) and task.hint == "choice":
+        _prepare_choice(pt, task, seed)
+    elif isinstance(task, TableTask):
+        _prepare_table(pt, task, seed)
+    elif isinstance(task, GappedTextTask):
+        _prepare_gapped_text(pt, task, seed)
+    elif isinstance(task, CrosswordTask):
+        _prepare_crossword(pt, task, seed)
     elif isinstance(task, ClozeTask) and task.hint == "word_bank":
         words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
         _rng(seed, task.id, "bank").shuffle(words)
@@ -1116,6 +1165,43 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
                              for lb in scene.picture.labels])
             _rng(seed, task.id, "bank").shuffle(words)
             pt.bank = words
+
+
+def _prepare_scramble(pt: PlannedTask, task: ScrambleTask, seed: int) -> None:
+    """``pt.tiles``: each item's chunks shuffled, never in a correct order."""
+    # (spine stub: the scramble implementation shuffles the tiles)
+
+
+def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:
+    """``pt.row_order`` (grid) or ``pt.bank`` (columns: the item texts, shuffled)."""
+    if task.layout == "columns":
+        words = [i.text for i in task.items]
+        _rng(seed, task.id, "bank").shuffle(words)
+        pt.bank = words
+    # (spine stub: the classify implementation adds the grid's row order)
+
+
+def _prepare_choice(pt: PlannedTask, task: ClozeTask, seed: int) -> None:
+    """``pt.gap_options``: the options of every choice gap, shuffled."""
+    # (spine stub: the cloze choice implementation shuffles the options)
+
+
+def _prepare_table(pt: PlannedTask, task: TableTask, seed: int) -> None:
+    """``pt.bank`` for a table with a word box (like a word-bank cloze)."""
+    if task.hint == "word_bank":
+        words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
+        _rng(seed, task.id, "bank").shuffle(words)
+        pt.bank = words
+
+
+def _prepare_gapped_text(pt: PlannedTask, task: GappedTextTask, seed: int) -> None:
+    """``pt.slot_options``: the removed sentences and the extras, shuffled."""
+    # (spine stub: the gapped_text implementation shuffles the sentences)
+
+
+def _prepare_crossword(pt: PlannedTask, task: CrosswordTask, seed: int) -> None:
+    """``pt.crossword``: the grid (seed-free, so the validator sees the same one)."""
+    # (spine stub: the crossword implementation calls crossword.layout)
 
 
 def _phase(task: Task) -> Phase:

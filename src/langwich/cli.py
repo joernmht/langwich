@@ -22,6 +22,7 @@ import json
 import os
 import re
 import sys
+import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, get_args
 
@@ -63,18 +64,35 @@ PAGES: tuple[PageSize, ...] = ("a4", "epaper")
 #: kind -> (what the learner does, key JSON fields)
 KIND_INFO: dict[str, tuple[str, str]] = {
     "match": ("match left to right (letters in boxes)", "pairs[{left, right}], extra[]"),
-    "true_false": ("tick true/false, correct the false ones", "items[{statement, answer, correction}]"),
+    "true_false": ("tick true/false (or not in the text), correct the false ones",
+                   "not_given, justify, items[{statement, answer, correction, quote}]"),
     "multiple_choice": ("tick one option", "items[{question, options[], answer}]"),
     "order_events": ("number events in story order", "events[] (in the correct order)"),
-    "questions": ("answer in writing", "items[{question, answer, lines}]"),
-    "cloze": ("fill gaps", "text | items[] with {{answer|alt::hint}}, hint, distractors[]"),
-    "transform": ("rewrite sentences", "items[{prompt, cue, answer}]"),
+    "questions": ("answer in writing", "question_lang, items[{question, starter, answer, lines}]"),
+    "classify": ("tick a column per line, or sort words into columns",
+                 "categories[], layout, items[{text, answer}]"),
+    "find_in_text": ("find the word in the story that fits a clue",
+                     "clue_lang, explain, items[{clue, answer, explanation}]"),
+    "gapped_text": ("put removed sentences back (letters)", "text with {{sentences}}, extra[]"),
+    "cloze": ("fill gaps, or circle the right word (choice)",
+              "text | items[] with {{answer|alt::hint}}, hint, choice_layout, distractors[]"),
+    "transform": ("rewrite sentences, or complete them with a key word",
+                  "max_words, items[{prompt, cue, answer, keyword, frame}]"),
+    "scramble": ("put word tiles in order, write the sentence",
+                 "items[{chunks[], end, alternatives[][], cue}]"),
     "word_building": ("combine parts into a word", "items[{parts[], answer}]"),
+    "table": ("fill the gaps in a table or form",
+              "caption, head[], rows[[cell|null]], hint, distractors[]"),
+    "proofread": ("correct the mistakes in a draft", "text with {{correct::wrong}}, marked"),
     "label": ("name numbered objects in a scene picture",
               "scene, bank (a word box of the terms without articles)"),
-    "writing": ("write a text", "prompt, starter, must_use[], min_words, max_words, model_answer"),
+    "writing": ("write a text (a reply, a summary, an essay)",
+                "prompt, input, input_lang, output_lang, register, audience, "
+                "points[{point, covered_by}], paragraphs, starter, must_use[], min_words, "
+                "max_words, lines, model_answer"),
     "dialogue": ("fill or write dialogue lines",
                  "lines[{speaker, text | cue, answer}], bank, distractors[]"),
+    "crossword": ("solve a crossword built from the answers", "clue_lang, entries[{answer, clue}]"),
     "media_search": ("search online in the target language", "media, queries[], questions[]"),
     "draw": ("draw and label", "prompt, labels[]"),
 }
@@ -469,13 +487,19 @@ def _cmd_schema(args: argparse.Namespace) -> int:
     return 0
 
 
+#: Line width of 'langwich kinds' (long field lists wrap).
+_KINDS_WIDTH = 96
+
+
 def _cmd_kinds(args: argparse.Namespace | None = None) -> int:
     width = max(len(k) for k in TASK_KINDS) + 2
     lines = [f"Task kinds ({len(TASK_KINDS)}): what the learner does, and the key JSON fields", ""]
     for kind in TASK_KINDS:
         does, fields = KIND_INFO[kind]
         lines.append(f"  {kind:<{width}}{does}")
-        lines.append(f"  {'':<{width}}{fields}")
+        lines += textwrap.wrap(fields, width=_KINDS_WIDTH, initial_indent=" " * (width + 2),
+                               subsequent_indent=" " * (width + 4), break_long_words=False,
+                               break_on_hyphens=False)
     swidth = max(len(s) for s in STAGES) + 2
     lines += ["", f"Stages ({len(STAGES)}), in lesson order", ""]
     for stage in STAGES:

@@ -65,9 +65,155 @@
       "title": "ChoiceItem",
       "type": "object"
     },
+    "ClassifyItem": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "answer": {
+          "description": "The category, copied exactly from 'categories'.",
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "answer"
+      ],
+      "title": "ClassifyItem",
+      "type": "object"
+    },
+    "ClassifyTask": {
+      "additionalProperties": false,
+      "description": "Sort lines into categories: tick a column per line (``grid``) or\nwrite each word into its column (``columns``).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "classify",
+          "title": "Kind",
+          "type": "string"
+        },
+        "categories": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 2,
+          "title": "Categories",
+          "type": "array"
+        },
+        "layout": {
+          "default": "grid",
+          "description": "grid = tick one column per line; columns = write each word into its column.",
+          "enum": [
+            "grid",
+            "columns"
+          ],
+          "title": "Layout",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ClassifyItem"
+          },
+          "minItems": 2,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "categories",
+        "items"
+      ],
+      "title": "ClassifyTask",
+      "type": "object"
+    },
     "ClozeTask": {
       "additionalProperties": false,
-      "description": "Gap text. Mark every gap as ``{{answer}}``, ``{{answer|alternative}}``\nor ``{{answer::hint}}`` (the hint is required for ``base_form`` and\n``translation`` hints).",
+      "description": "Gap text. Mark every gap as ``{{answer}}``, ``{{answer|alternative}}``\nor ``{{answer::hint}}`` (the hint is required for ``base_form`` and\n``translation`` hints). A ``choice`` gap lists its wrong options after\nthe ``::``: ``{{right|also_right::wrong1|wrong2}}``.",
       "properties": {
         "id": {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
@@ -187,9 +333,20 @@
             "first_letter",
             "base_form",
             "translation",
+            "choice",
             "none"
           ],
           "title": "Hint",
+          "type": "string"
+        },
+        "choice_layout": {
+          "default": "inline",
+          "description": "choice: options in brackets in the text, or numbered gaps with options below.",
+          "enum": [
+            "inline",
+            "below"
+          ],
+          "title": "Choice Layout",
           "type": "string"
         },
         "distractors": {
@@ -207,6 +364,143 @@
         "kind"
       ],
       "title": "ClozeTask",
+      "type": "object"
+    },
+    "CrosswordEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "description": "One target-language word, no article, no spaces.",
+          "minLength": 2,
+          "title": "Answer",
+          "type": "string"
+        },
+        "clue": {
+          "minLength": 1,
+          "title": "Clue",
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer",
+        "clue"
+      ],
+      "title": "CrosswordEntry",
+      "type": "object"
+    },
+    "CrosswordTask": {
+      "additionalProperties": false,
+      "description": "A crossword: the LLM writes the words and clues, langwich lays out the grid.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "crossword",
+          "title": "Kind",
+          "type": "string"
+        },
+        "clue_lang": {
+          "default": "source",
+          "description": "Language of the clues.",
+          "enum": [
+            "target",
+            "source"
+          ],
+          "title": "Clue Lang",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/CrosswordEntry"
+          },
+          "maxItems": 16,
+          "minItems": 4,
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "entries"
+      ],
+      "title": "CrosswordTask",
       "type": "object"
     },
     "DialogueLine": {
@@ -550,6 +844,270 @@
         "text"
       ],
       "title": "Fact",
+      "type": "object"
+    },
+    "FindInTextTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "find_in_text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "clue_lang": {
+          "default": "target",
+          "description": "Language of the clues.",
+          "enum": [
+            "target",
+            "source"
+          ],
+          "title": "Clue Lang",
+          "type": "string"
+        },
+        "explain": {
+          "default": false,
+          "description": "Learners also explain meaning or effect.",
+          "title": "Explain",
+          "type": "boolean"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/FindItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "FindInTextTask",
+      "type": "object"
+    },
+    "FindItem": {
+      "additionalProperties": false,
+      "properties": {
+        "clue": {
+          "description": "What to look for: a meaning, synonym or description.",
+          "minLength": 1,
+          "title": "Clue",
+          "type": "string"
+        },
+        "answer": {
+          "description": "The word or phrase exactly as the scene writes it.",
+          "minLength": 1,
+          "title": "Answer",
+          "type": "string"
+        },
+        "explanation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model explanation (with 'explain').",
+          "title": "Explanation"
+        }
+      },
+      "required": [
+        "clue",
+        "answer"
+      ],
+      "title": "FindItem",
+      "type": "object"
+    },
+    "GappedTextTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "gapped_text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "description": "A passage; each removed sentence is written in place as {{sentence}}.",
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "extra": {
+          "description": "1–2 sentences that fit no gap (distractors).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Extra",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "text"
+      ],
+      "title": "GappedTextTask",
       "type": "object"
     },
     "GrammarPoint": {
@@ -1341,6 +1899,113 @@
       "title": "Picture",
       "type": "object"
     },
+    "ProofreadTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "proofread",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "description": "A character's draft; each mistake as {{correct|alternative::wrong}}.",
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "marked": {
+          "default": true,
+          "description": "Underline and number the mistakes; false = only say how many there are.",
+          "title": "Marked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "text"
+      ],
+      "title": "ProofreadTask",
+      "type": "object"
+    },
     "QuestionItem": {
       "additionalProperties": false,
       "properties": {
@@ -1348,6 +2013,19 @@
           "minLength": 1,
           "title": "Question",
           "type": "string"
+        },
+        "starter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Target-language sentence frame printed on the first answer line.",
+          "title": "Starter"
         },
         "answer": {
           "anyOf": [
@@ -1461,6 +2139,16 @@
           "title": "Kind",
           "type": "string"
         },
+        "question_lang": {
+          "default": "target",
+          "description": "'source' prints the questions in the learner's language (A1).",
+          "enum": [
+            "target",
+            "source"
+          ],
+          "title": "Question Lang",
+          "type": "string"
+        },
         "items": {
           "items": {
             "$ref": "#/$defs/QuestionItem"
@@ -1550,6 +2238,167 @@
         "text"
       ],
       "title": "Scene",
+      "type": "object"
+    },
+    "ScrambleItem": {
+      "additionalProperties": false,
+      "properties": {
+        "chunks": {
+          "description": "Word tiles in the CORRECT order; langwich shuffles them.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 3,
+          "title": "Chunks",
+          "type": "array"
+        },
+        "end": {
+          "default": ".",
+          "description": "Punctuation printed after the answer line.",
+          "enum": [
+            ".",
+            "?",
+            "!",
+            "…",
+            ""
+          ],
+          "title": "End",
+          "type": "string"
+        },
+        "alternatives": {
+          "description": "Other correct orders of the same tiles.",
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "cue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language meaning (optional help).",
+          "title": "Cue"
+        }
+      },
+      "required": [
+        "chunks"
+      ],
+      "title": "ScrambleItem",
+      "type": "object"
+    },
+    "ScrambleTask": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "scramble",
+          "title": "Kind",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ScrambleItem"
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "items"
+      ],
+      "title": "ScrambleTask",
       "type": "object"
     },
     "Series": {
@@ -1658,6 +2507,162 @@
       "title": "Story",
       "type": "object"
     },
+    "TableTask": {
+      "additionalProperties": false,
+      "description": "A table or form with gaps: every cell may hold ``{{gaps}}``; ``null``\nis an open cell the learner fills with their own words.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "warm_up",
+            "gist",
+            "detail",
+            "picture",
+            "form",
+            "practice",
+            "production",
+            "epilogue"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scene id(s) the task belongs to; the task follows the last one.",
+          "title": "Scene"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language title tied to the story.",
+          "title": "Title"
+        },
+        "instruction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language instruction.",
+          "title": "Instruction"
+        },
+        "grammar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a grammar point shown beside it.",
+          "title": "Grammar"
+        },
+        "kind": {
+          "const": "table",
+          "title": "Kind",
+          "type": "string"
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Target-language caption, e.g. a form's name.",
+          "title": "Caption"
+        },
+        "head": {
+          "description": "Column headings; empty = a two-column form (field | value).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Head",
+          "type": "array"
+        },
+        "rows": {
+          "description": "Cells with {{gaps}}; null = an open cell the learner fills with own words.",
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        },
+        "hint": {
+          "default": "none",
+          "enum": [
+            "word_bank",
+            "first_letter",
+            "base_form",
+            "translation",
+            "none"
+          ],
+          "title": "Hint",
+          "type": "string"
+        },
+        "distractors": {
+          "description": "Extra word-box words.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Distractors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "stage",
+        "kind",
+        "rows"
+      ],
+      "title": "TableTask",
+      "type": "object"
+    },
     "TransformItem": {
       "additionalProperties": false,
       "properties": {
@@ -1679,14 +2684,47 @@
           "title": "Cue"
         },
         "answer": {
-          "minLength": 1,
-          "title": "Answer",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The rewritten sentence (not needed with 'frame').",
+          "title": "Answer"
+        },
+        "keyword": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A word the answer must contain (printed in capitals).",
+          "title": "Keyword"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The new sentence with one {{gap}} holding the answer (key word transformation).",
+          "title": "Frame"
         }
       },
       "required": [
-        "prompt",
-        "answer"
+        "prompt"
       ],
       "title": "TransformItem",
       "type": "object"
@@ -1776,6 +2814,21 @@
           "title": "Kind",
           "type": "string"
         },
+        "max_words": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "At most this many words in each gap of a frame.",
+          "title": "Max Words"
+        },
         "items": {
           "items": {
             "$ref": "#/$defs/TransformItem"
@@ -1803,8 +2856,16 @@
           "type": "string"
         },
         "answer": {
-          "title": "Answer",
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "not_given",
+              "type": "string"
+            }
+          ],
+          "title": "Answer"
         },
         "correction": {
           "anyOf": [
@@ -1818,6 +2879,19 @@
           "default": null,
           "description": "The true version, for false statements.",
           "title": "Correction"
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The words of the story that prove the answer.",
+          "title": "Quote"
         }
       },
       "required": [
@@ -1911,6 +2985,18 @@
           "const": "true_false",
           "title": "Kind",
           "type": "string"
+        },
+        "not_given": {
+          "default": false,
+          "description": "Add a third box: 'not in the text'.",
+          "title": "Not Given",
+          "type": "boolean"
+        },
+        "justify": {
+          "default": false,
+          "description": "Learners copy the words that prove each answer.",
+          "title": "Justify",
+          "type": "boolean"
         },
         "items": {
           "items": {
@@ -2159,6 +3245,35 @@
       "title": "WordBuildingTask",
       "type": "object"
     },
+    "WritingPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "point": {
+          "description": "Source-language content point, printed as a tick list.",
+          "minLength": 1,
+          "title": "Point",
+          "type": "string"
+        },
+        "covered_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The words of model_answer that cover the point (copied exactly).",
+          "title": "Covered By"
+        }
+      },
+      "required": [
+        "point"
+      ],
+      "title": "WritingPoint",
+      "type": "object"
+    },
     "WritingTask": {
       "additionalProperties": false,
       "properties": {
@@ -2248,6 +3363,84 @@
           "minLength": 1,
           "title": "Prompt",
           "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A text to respond to or work from (a message, notice, passage), printed in a box.",
+          "title": "Input"
+        },
+        "input_lang": {
+          "default": "target",
+          "description": "Language of 'input'.",
+          "enum": [
+            "target",
+            "source"
+          ],
+          "title": "Input Lang",
+          "type": "string"
+        },
+        "output_lang": {
+          "default": "target",
+          "description": "Language the learner writes in ('source' for mediation into S).",
+          "enum": [
+            "target",
+            "source"
+          ],
+          "title": "Output Lang",
+          "type": "string"
+        },
+        "register": {
+          "anyOf": [
+            {
+              "enum": [
+                "informal",
+                "neutral",
+                "formal"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The register the learner writes in.",
+          "title": "Register"
+        },
+        "audience": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source-language: who the text is for.",
+          "title": "Audience"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/WritingPoint"
+          },
+          "maxItems": 6,
+          "title": "Points",
+          "type": "array"
+        },
+        "paragraphs": {
+          "default": false,
+          "description": "One block of lines per point.",
+          "title": "Paragraphs",
+          "type": "boolean"
         },
         "starter": {
           "anyOf": [
@@ -2443,15 +3636,22 @@
       "items": {
         "discriminator": {
           "mapping": {
+            "classify": "#/$defs/ClassifyTask",
             "cloze": "#/$defs/ClozeTask",
+            "crossword": "#/$defs/CrosswordTask",
             "dialogue": "#/$defs/DialogueTask",
             "draw": "#/$defs/DrawTask",
+            "find_in_text": "#/$defs/FindInTextTask",
+            "gapped_text": "#/$defs/GappedTextTask",
             "label": "#/$defs/LabelTask",
             "match": "#/$defs/MatchTask",
             "media_search": "#/$defs/MediaSearchTask",
             "multiple_choice": "#/$defs/MultipleChoiceTask",
             "order_events": "#/$defs/OrderEventsTask",
+            "proofread": "#/$defs/ProofreadTask",
             "questions": "#/$defs/QuestionsTask",
+            "scramble": "#/$defs/ScrambleTask",
+            "table": "#/$defs/TableTask",
             "transform": "#/$defs/TransformTask",
             "true_false": "#/$defs/TrueFalseTask",
             "word_building": "#/$defs/WordBuildingTask",
@@ -2476,13 +3676,31 @@
             "$ref": "#/$defs/QuestionsTask"
           },
           {
+            "$ref": "#/$defs/ClassifyTask"
+          },
+          {
+            "$ref": "#/$defs/FindInTextTask"
+          },
+          {
+            "$ref": "#/$defs/GappedTextTask"
+          },
+          {
             "$ref": "#/$defs/ClozeTask"
           },
           {
             "$ref": "#/$defs/TransformTask"
           },
           {
+            "$ref": "#/$defs/ScrambleTask"
+          },
+          {
             "$ref": "#/$defs/WordBuildingTask"
+          },
+          {
+            "$ref": "#/$defs/TableTask"
+          },
+          {
+            "$ref": "#/$defs/ProofreadTask"
           },
           {
             "$ref": "#/$defs/LabelTask"
@@ -2492,6 +3710,9 @@
           },
           {
             "$ref": "#/$defs/DialogueTask"
+          },
+          {
+            "$ref": "#/$defs/CrosswordTask"
           },
           {
             "$ref": "#/$defs/MediaSearchTask"

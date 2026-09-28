@@ -314,21 +314,28 @@ Then come the teaser for the next episode (in a series), the word list, any gram
 beside a task, the solutions and the scene translations. A grammar box appears beside the task
 that practises it.
 
-### The 13 task kinds
+### The 20 task kinds
 
 | Kind | The learner … | Key fields |
 |---|---|---|
 | `match` | matches left to right (letters in boxes) | `pairs[{left, right}]`, `extra[]` |
-| `true_false` | ticks true or false and corrects the false ones | `items[{statement, answer, correction}]` |
+| `true_false` | ticks true or false (or "not in the text") and corrects the false ones | `not_given`, `justify`, `items[{statement, answer, correction, quote}]` |
 | `multiple_choice` | ticks one option | `items[{question, options[], answer}]` |
 | `order_events` | numbers events in story order | `events[]` (in the correct order; langwich shuffles) |
-| `questions` | answers in writing | `items[{question, answer, lines}]` |
-| `cloze` | fills gaps | `text` or `items[]` with gap markup, `hint`, `distractors[]` |
-| `transform` | rewrites sentences | `items[{prompt, cue, answer}]` |
+| `questions` | answers in writing | `question_lang`, `items[{question, starter, answer, lines}]` |
+| `classify` | ticks a column per line, or sorts words into columns | `categories[]`, `layout`, `items[{text, answer}]` |
+| `find_in_text` | finds the word in the story that fits a clue | `clue_lang`, `explain`, `items[{clue, answer, explanation}]` |
+| `gapped_text` | puts removed sentences back (letters) | `text` with `{{sentences}}`, `extra[]` |
+| `cloze` | fills gaps, or circles the right word (`choice`) | `text` or `items[]` with gap markup, `hint`, `choice_layout`, `distractors[]` |
+| `transform` | rewrites sentences, or completes them with a key word | `max_words`, `items[{prompt, cue, answer, keyword, frame}]` |
+| `scramble` | puts word tiles in order and writes the sentence | `items[{chunks[], end, alternatives[][], cue}]` (tiles in the correct order; langwich shuffles) |
 | `word_building` | combines parts into a word | `items[{parts[], answer}]` |
+| `table` | fills the gaps in a table or form | `caption`, `head[]`, `rows[[cell \| null]]`, `hint`, `distractors[]` |
+| `proofread` | corrects the mistakes in a character's draft | `text` with `{{correct::wrong}}`, `marked` |
 | `label` | names the numbered objects in a scene picture | `scene`, `bank` (the box shows the terms without articles) |
-| `writing` | writes a text | `prompt`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
+| `writing` | writes a text: a reply, a summary, an essay | `prompt`, `input`, `input_lang`, `output_lang`, `register`, `audience`, `points[{point, covered_by}]`, `paragraphs`, `starter`, `must_use[]`, `min_words`, `max_words`, `lines`, `model_answer` |
 | `dialogue` | fills or writes dialogue lines | `lines[{speaker, text \| cue, answer}]`, `bank`, `distractors[]` |
+| `crossword` | solves a crossword built from the answers (langwich lays out the grid) | `clue_lang`, `entries[{answer, clue}]` |
 | `media_search` | searches online in the target language (no links — searching is the task) | `media`, `queries[]`, `questions[]` |
 | `draw` | draws and labels | `prompt`, `labels[]` |
 
@@ -645,6 +652,7 @@ langwich/
 ├── src/langwich/
 │   ├── model.py        the langwich/3 contract (pydantic): the single source of truth
 │   ├── markup.py       {{gap}} markup
+│   ├── crossword.py    lays out the grid of a crossword task
 │   ├── validate.py     checks beyond the schema; issues with locations and fixes
 │   ├── plan.py         the lesson arc, glosses, sidebars, seeded shuffles
 │   ├── answers.py      the answer key, independent of the renderer
@@ -656,7 +664,7 @@ langwich/
 │   ├── cli.py          render, validate, schema, prompt, kinds
 │   ├── render/         HTML + print CSS, converted to PDF by WeasyPrint
 │   │   ├── html.py     the worksheet along the lesson arc
-│   │   ├── tasks.py    the 13 task kinds
+│   │   ├── tasks.py    the 20 task kinds
 │   │   ├── css.py      print CSS for A4 and e-paper
 │   │   ├── metrics.py  text measurement with the bundled fonts
 │   │   └── options.py  render options and results

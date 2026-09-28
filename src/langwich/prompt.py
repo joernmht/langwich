@@ -346,31 +346,121 @@ def _short_name(code: str) -> str:
 #: One line per task kind: the fields that kind adds to the common task fields.
 KIND_FIELDS: dict[str, str] = {
     "match": '"pairs": [{"left": T, "right": S or T}] (≥ 2), "extra": [S or T]? (distractors)',
-    "true_false": '"items": [{"statement": T, "answer": true | false, "correction": T? '
-                  "(for false ones)}]",
+    "true_false": '"not_given": true | false? (third box "not in the text"), "justify": true | '
+                  'false? (learners copy the proof), "items": [{"statement": T, "answer": true | '
+                  'false | "not_given", "correction": T? (for false ones), "quote": T? (words of '
+                  "the story that prove it)}]",
     "multiple_choice": '"items": [{"question": T, "options": [T, T, T], "answer": T '
                        "(copied exactly from options)}]",
     "order_events": '"events": [T] (≥ 3, in the correct order — langwich shuffles them)',
-    "questions": '"items": [{"question": T, "answer": T? (model answer), "lines": 0–20? '
-                 "(answer lines, default 2)}]",
+    "questions": '"question_lang": "target" | "source"? (default target), "items": [{"question": '
+                 'T or S, "starter": T? (sentence frame on the answer line), "answer": T? (model '
+                 'answer), "lines": 0–20? (answer lines, default 2)}]',
+    "classify": '"categories": [T or S] (2–6, printed in this order), "layout": "grid" | '
+                '"columns"? (grid: tick a column per line; columns: write the words into '
+                'columns), "items": [{"text": T, "answer": category (copied exactly)}]',
+    "find_in_text": '"clue_lang": "target" | "source"?, "explain": true | false?, "items": '
+                    '[{"clue": T or S, "answer": T (exactly as in the scene), "explanation": T '
+                    "or S?}]",
+    "gapped_text": '"text": T with each removed sentence in place as {{sentence}} (3–8), '
+                   '"extra": [T] (1–2 sentences that fit no gap)',
     "cloze": '"text": T with gaps OR "items": [T with gaps] (exactly one of the two), '
-             '"hint": "word_bank" | "first_letter" | "base_form" | "translation" | "none", '
+             '"hint": "word_bank" | "first_letter" | "base_form" | "translation" | "choice" | '
+             '"none", "choice_layout": "inline" | "below"? (choice: {{right::wrong|wrong}}), '
              '"distractors": [T]?',
-    "transform": '"items": [{"prompt": T, "cue": S or T? (what to change), "answer": T}]',
+    "transform": '"max_words": n? (gap length limit), "items": [{"prompt": T, "cue": S or T? '
+                 '(what to change), "answer": T (the new sentence; omit with "frame"), '
+                 '"keyword": T? (must be used), "frame": T? (the new sentence with one {{gap}})}]',
+    "scramble": '"items": [{"chunks": [T] (3–12 tiles in the CORRECT order; langwich shuffles), '
+                '"end": "." | "?" | "!" | "…" | ""?, "alternatives": [[T]]? (other correct '
+                'orders), "cue": S?}]',
     "word_building": '"items": [{"parts": [T, T, …], "answer": T}]',
+    "table": '"caption": T?, "head": [T]? (none = form: field | value), "rows": [[T with '
+             '{{gaps}} or null (open cell)]], "hint": "none" | "word_bank" | "first_letter" | '
+             '"base_form" | "translation"?, "distractors": [T]?',
+    "proofread": '"text": T with each mistake as {{correct::wrong}}, "marked": true | false? '
+                 "(false: only the number of mistakes is given)",
     "label": '"scene": scene id (required; its picture has labels), "bank": true | false? '
              "(default true: a word box with the terms, printed without their articles)",
-    "writing": '"prompt": S, "starter": T?, "must_use": [T]?, "min_words": n?, '
-               '"max_words": n?, "lines": 1–40?, "model_answer": T?',
+    "writing": '"prompt": S, "input": T or S? (text to answer, in a box), "input_lang": '
+               '"target" | "source"?, "output_lang": "target" | "source"?, "register": '
+               '"informal" | "neutral" | "formal"?, "audience": S?, "points": [{"point": S, '
+               '"covered_by": words of model_answer}]? (2–5), "paragraphs": true | false?, '
+               '"starter": T?, "must_use": [T]?, "min_words": n?, "max_words": n?, "lines": '
+               '1–40?, "model_answer": T?',
     "dialogue": '"lines": [{"speaker": name, "text": T with gaps?, "cue": S?, "answer": T?}] '
                 '(≥ 2; a line without "text" is written by the learner from its "cue"), '
                 '"bank": true | false? (a word box of the gap answers), "distractors": [T]? '
                 "(extra words for the box)",
+    "crossword": '"clue_lang": "source" | "target"?, "entries": [{"answer": T (one word, no '
+                 'article), "clue": S or T}] (4–16; langwich builds the grid)',
     "media_search": '"media": "video" | "article" | "podcast" | "image", "queries": [T], '
                     '"questions": [T]',
     "draw": '"prompt": S, "labels": [T]?',
 }
 assert set(KIND_FIELDS) == set(TASK_KINDS)
+
+#: The item rules of each task kind (T/S-neutral English), printed in the
+#: item-quality section for the kinds a brief asks for (see :func:`kind_rules`).
+#: Markers such as ``<<ex_base>>`` are filled like the rest of the brief.
+KIND_RULES: dict[str, str] = {
+    "match": 'every entry unique, "extra" included.',
+    "true_false": '3–5 statements, both kinds; a false one changes one detail and has a '
+                  '"correction". From B1, "not_given": true with 1–2 statements about details '
+                  "the story never mentions (never about real-world facts); with \"justify\", "
+                  'every true and false item has a "quote" copied exactly from the story.',
+    "multiple_choice": '3 similar options, one right, "answer" copied exactly.',
+    "order_events": "4–6 events from different scenes, in the correct order.",
+    "questions": 'need the story (why? how?), with a model "answer". At A1–A2 give a "starter" '
+                 '(e.g. "Lena is sad because …") and a model answer that begins with it.',
+    "classify": '2–4 categories (names, der/die/das, formal/informal …), 5–10 items, every '
+                'category used, the items mixed; "answer" copied exactly from "categories".',
+    "find_in_text": "the answer is written exactly as in the scene; clues in S at A1–A2, T "
+                    "synonyms or paraphrases from B1, idioms or irony with \"explain\" and "
+                    '"explanation" at C1–C2.',
+    "gapped_text": "a new text of 5–12 sentences with 3–6 sentences removed ({{…}} in place) "
+                   'plus 1–2 "extra" sentences; each removed sentence fits only its gap (by '
+                   "reference words, connectors, time).",
+    "cloze": '"hint": word_bank (a box of the answers + distractors), first_letter, base_form '
+             "(<<ex_base>>), translation (<<ex_translation>>, the hint in S) — these two need "
+             'the ::hint — or none. "choice": every gap {{right::wrong1|wrong2}} with 1–3 wrong '
+             'options of the same word class that are wrong in this sentence; "choice_layout": '
+             '"below" from B2.',
+    "transform": 'key word transformation (B2+): "frame" is the second sentence with one {{gap}} '
+                 'of 2–5 words that must include "keyword"; set "max_words".',
+    "scramble": "3–10 tiles per sentence, one word or a fixed group per tile, in the correct "
+                "order; the first tile in lower case unless it is always capitalised; "
+                'punctuation only in "end"; list every other correct order in "alternatives".',
+    "word_building": '"parts" (words, prefixes, suffixes) that join into one new word, the '
+                     '"answer".',
+    "table": "a form, timetable, price list or verb/word-family table with 3–8 rows; every row "
+             'as long as "head" (2 cells for a form); {{gaps}} for facts from the story or '
+             "forms; null for the learner's own answer.",
+    "proofread": "a character's draft (message, note, review) of 60–150 words with 4–8 mistakes "
+                 'of the kinds practised, each {{correct::wrong}}; "marked": false from B2.',
+    "label": 'only on a scene whose picture has "labels" and an "image" or "svg" (else draw).',
+    "writing": 'the model answer keeps to the word range and uses every "must_use" word; the '
+               "instruction does not repeat the word range (langwich prints it). To answer a "
+               'message, give it as "input" and 2–5 "points" the reply must cover, each with '
+               '"covered_by": the words of the model answer that cover it. For a summary or '
+               'mediation, "input" is the text and "output_lang" the language to write in; '
+               '"register" and "audience" say who it is for.',
+    "dialogue": 'the characters in a new situation; gaps in "text", or a line without "text" '
+                'that the learner writes from its S "cue", with a model "answer".',
+    "crossword": "6–12 key words (no articles, one word each) that share letters; clues in S "
+                 "(A1–A2) or T definitions/gap sentences (B1).",
+    "media_search": 'homework a character sets in the story: T "queries" and two T "questions".',
+    "draw": 'the learner draws a scene from an S "prompt" and writes 4–6 T "labels" into it.',
+}
+assert list(KIND_RULES) == list(TASK_KINDS)
+
+
+def kind_rules(kinds: Iterable[str]) -> str:
+    """The rules of ``kinds`` (in :data:`TASK_KINDS` order) as one paragraph:
+    ``'true_false: … multiple_choice: …'``."""
+    wanted = set(kinds)
+    return " ".join(f"{k}: {KIND_RULES[k]}" for k in TASK_KINDS if k in wanted)
+
 
 _FIELD_REFERENCE_HEAD = """\
 `T` = text in <<T>>, `S` = text in <<S>>, `?` = optional (leave it out when unused),
@@ -1171,18 +1261,11 @@ _ITEMS = """\
   last gap is not free by elimination. Distractors match the answers in word class and form
   (capitals and endings reveal nothing) and are plausible but wrong in every gap.
 - **New sentences** for form and practice items; comprehension items paraphrase, not quote.
-- true_false: 3–5 statements, both kinds; a false one changes one detail and has a
-  "correction". multiple_choice: 3 similar options, one right, "answer" copied exactly.
-  questions: need the story (why? how?), with a model "answer". order_events: 4–6 events from
-  different scenes, in the correct order. match: every entry unique, "extra" included.
-  writing: the model answer keeps to the word range and uses every "must_use" word; the
-  instruction does not repeat the word range (langwich prints it).
-- Cloze "hint": word_bank (a box of the answers + distractors), first_letter, base_form
-  (<<ex_base>>), translation (<<ex_translation>>, the hint in S) — these two need the ::hint —
-  or none.
+- <<kind_rules>>
 
-**Gap markup** only in cloze "text"/"items" and dialogue "lines[].text": {{answer}},
-{{answer|alternative}}, {{answer::hint}}. Never in the story or any other field."""
+**Gap markup** only in cloze "text"/"items", dialogue "lines[].text", table "rows",
+gapped_text and proofread "text" and transform "frame": {{answer}}, {{answer|alternative}},
+{{answer::hint}}. Never in the story or any other field."""
 
 _PICTURE_DRAWN = """\
 ## 8. The picture
@@ -1390,11 +1473,11 @@ task's answers.
    <<wr_low>>–<<wr_high>> words ("min_words", "max_words"), "model_answer". langwich prints the
    word range itself — don't repeat it in the instruction.
 
-**Items.** One right answer per gap; no gap at the start of a sentence; multiple_choice: 3
-options, "answer" copied exactly; a "correction" for each false true_false statement;
-order_events listed in story order. Titles (S)
-belong to the story ("Sunday: the way back"). Gap markup {{answer}}, {{answer|other}},
-{{answer::hint}} only in cloze and dialogue."""
+**Items.** One right answer per gap; no gap at the start of a sentence. Titles (S) belong to
+the story ("Sunday: the way back"). Gap markup {{answer}}, {{answer|other}}, {{answer::hint}}
+only in cloze, dialogue, table, gapped_text, proofread and a transform "frame".
+
+**Kinds.** <<kind_rules>>"""
 
 _C_PICTURE_DRAWN = """\
 **Picture.** Give one scene a "picture" with a "caption" (T) and an English "prompt" (a
@@ -1618,6 +1701,8 @@ def build_prompt(opts: PromptOptions) -> str:
         "sentences": b.spec.sentences,
         "structures": b.spec.structures,
     }
+    # (the rules contain markers themselves: fill them before they are inserted)
+    values["kind_rules"] = _fill(kind_rules(TASK_KINDS), values)
     if opts.compact:
         sections = _compact_sections(b, values)
     else:

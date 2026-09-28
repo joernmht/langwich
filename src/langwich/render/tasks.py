@@ -1,4 +1,4 @@
-"""HTML for the 13 task kinds.
+"""HTML for the 20 task kinds.
 
 Each renderer returns :class:`Parts`: the main column, the side-column notes
 (word boxes; grammar sidebars are added by the builder) and optional
@@ -19,15 +19,22 @@ from typing import TYPE_CHECKING
 from langwich import markup
 from langwich.answers import cloze_texts, letter, safe_gaps
 from langwich.model import (
+    ClassifyTask,
     ClozeTask,
+    CrosswordTask,
     DialogueTask,
     DrawTask,
+    FindInTextTask,
+    GappedTextTask,
     LabelTask,
     MatchTask,
     MediaSearchTask,
     MultipleChoiceTask,
     OrderEventsTask,
+    ProofreadTask,
     QuestionsTask,
+    ScrambleTask,
+    TableTask,
     TransformTask,
     TrueFalseTask,
     WordBuildingTask,
@@ -353,18 +360,53 @@ def _draw(b: Builder, pt: PlannedTask, task: DrawTask) -> Parts:
     return Parts(f'<p class="prompt">{esc(task.prompt)}</p>{b.frame_html(pt)}{labels}', keep_hard=True)
 
 
+def _classify(b: Builder, pt: PlannedTask, task: ClassifyTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the classify renderer)
+
+
+def _find_in_text(b: Builder, pt: PlannedTask, task: FindInTextTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the find_in_text renderer)
+
+
+def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the gapped_text renderer)
+
+
+def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the scramble renderer)
+
+
+def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the table renderer)
+
+
+def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the proofread renderer)
+
+
+def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
+    return Parts('<div class="todo"></div>')  # (spine stub: the crossword renderer)
+
+
 _RENDERERS = {
     "match": _match,
     "true_false": _true_false,
     "multiple_choice": _multiple_choice,
     "order_events": _order_events,
     "questions": _questions,
+    "classify": _classify,
+    "find_in_text": _find_in_text,
+    "gapped_text": _gapped_text,
     "cloze": _cloze,
     "transform": _transform,
+    "scramble": _scramble,
     "word_building": _word_building,
+    "table": _table,
+    "proofread": _proofread,
     "label": _label,
     "writing": _writing,
     "dialogue": _dialogue,
+    "crossword": _crossword,
     "media_search": _media_search,
     "draw": _draw,
 }

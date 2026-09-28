@@ -78,6 +78,45 @@ def test_cloze_needs_text_or_items():
         worksheet_from_dict(data)
 
 
+def test_task_level_errors_point_at_the_task():
+    data = _lena()
+    i, cloze = next((i, t) for i, t in enumerate(data["tasks"]) if t["kind"] == "cloze")
+    cloze["text"] = "Ein {{Test}}."
+    with pytest.raises(ContractError) as exc:
+        worksheet_from_dict(data)
+    assert [loc for loc, _ in exc.value.problems] == [f"/tasks/{i}"]  # not /tasks/{i}/cloze
+
+
+def test_too_long_lists_get_a_friendly_message():
+    data = _lena()
+    data["tasks"].append({
+        "id": "sort", "kind": "classify", "stage": "detail", "scene": "s1",
+        "categories": list("abcdefg"),
+        "items": [{"text": "x", "answer": "a"}, {"text": "y", "answer": "b"}],
+    })
+    with pytest.raises(ContractError) as exc:
+        worksheet_from_dict(data)
+    (where, message), = exc.value.problems
+    assert where == f"/tasks/{len(data['tasks']) - 1}/categories"
+    assert message.startswith("'categories' has 7 entries, but at most 6 are allowed")
+
+
+def test_true_false_answer_is_a_bool_or_not_given():
+    data = _lena()
+    tf = next(t for t in data["tasks"] if t["kind"] == "true_false")
+    tf["not_given"] = True
+    tf["items"][0]["answer"] = "not_given"
+    tf["items"][1]["answer"] = False
+    ws = worksheet_from_dict(data)
+    answers = [item.answer for t in ws.tasks if t.kind == "true_false" for item in t.items]
+    assert answers[0] == "not_given"
+    assert answers[1] is False
+    assert all(a is True or a is False for a in answers[1:])
+    tf["not_given"] = False
+    with pytest.raises(ContractError, match="does not offer that box"):
+        worksheet_from_dict(data)
+
+
 def test_pos_is_normalised_and_checked():
     data = _lena()
     data["vocabulary"]["items"][0]["pos"] = "NOUN"

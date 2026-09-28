@@ -274,6 +274,7 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      "/tasks/2/text"),
     ("missing-gap-hint", _set("tasks/2/hint", "base_form"), "/tasks/2/items/0"),
     ("missing-gap-hint", _set("tasks/2/hint", "translation"), "/tasks/2/items/0"),
+    ("missing-gap-hint", _set("tasks/2/hint", "choice"), "/tasks/2/items/0"),
     ("empty-gap", _set("tasks/2/items/0", "Mein Bruder trinkt {{ }} mit Milch."),
      "/tasks/2/items/0"),
     ("unbalanced-braces", _set("tasks/2/items/0", "Mein Bruder trinkt {{Kaffee}} mit {{Milch."),
@@ -476,10 +477,28 @@ def test_mutation_triggers_code(
 #: Codes found while reading the file (see the check_file tests below).
 FILE_CODES = {"contract", "legacy-format", "no-picture-attached", "wrapped-json", "normalized"}
 
+#: Codes of the new kinds and extensions whose checks are not written yet;
+#: each implementation removes its line here and exercises its codes.
+PENDING_CODES = {
+    "scramble-alternative", "scramble-punctuation", "scramble-capital",
+    "category-unused",
+    "tf-no-not-given", "tf-quote-missing", "tf-quote-not-in-story", "tf-not-given-correction",
+    "writing-no-model-answer", "point-not-covered",
+    "choice-options",
+    "table-shape", "table-nothing-to-do", "table-too-wide",
+    "gapped-text-gaps", "gapped-text-no-extra",
+    "find-not-in-text",
+    "frame-gaps", "keyword-not-used", "answer-too-long", "frame-and-answer",
+    "answer-ignores-starter",
+    "crossword-word", "crossword-layout", "clue-is-answer",
+    "duplicate-entry",
+    "task-count",
+}
+
 
 def test_every_check_is_exercised() -> None:
     covered = {c[0] for c in CASES} | FILE_CODES
-    assert covered == set(CHECKS)
+    assert covered == set(CHECKS) - PENDING_CODES
 
 
 def test_environment_and_picture_codes_are_checks() -> None:
@@ -696,6 +715,32 @@ def test_transform_answer_copying_the_story_is_flagged() -> None:
                        "answer": "Dann trinkt er noch eine Tasse Kaffee."}]}
     issues = _issues(_mutated(_add_task(task)))
     assert ("copies-story", "/tasks/5/items/0") in {(i.code, i.where) for i in issues}
+
+
+def test_transform_frame_copying_the_story_is_flagged() -> None:
+    task = {"id": "t9", "kind": "transform", "stage": "form", "scene": "s2",
+            "items": [{"prompt": "Er trinkt noch eine Tasse Kaffee. (dann)", "keyword": "dann",
+                       "frame": "{{Dann trinkt er}} noch eine Tasse Kaffee."}]}
+    issues = _issues(_mutated(_add_task(task)))
+    assert ("copies-story", "/tasks/5/items/0") in {(i.code, i.where) for i in issues}
+
+
+def test_gap_markup_is_read_in_every_gap_field() -> None:
+    tasks = [
+        {"id": "t9", "kind": "table", "stage": "practice", "scene": "s1",
+         "caption": "Die {{Karte}}", "head": ["Getränk", "Preis"],
+         "rows": [["{{Kaffee}}", "2 Euro"], ["Tee", None]]},
+        {"id": "t10", "kind": "proofread", "stage": "practice", "scene": "s2",
+         "text": "Anna {{backt::backen}} einen Kuchen."},
+        {"id": "t11", "kind": "gapped_text", "stage": "practice", "scene": "s2",
+         "text": "Anna backt. {{Der Kuchen ist warm.}} Herr Kaya isst.",
+         "extra": ["Es {{regnet}}."]},
+        {"id": "t12", "kind": "transform", "stage": "form", "scene": "s2",
+         "items": [{"prompt": "Anna backt.", "frame": "Anna {{hat gebacken}}."}]},
+    ]
+    data = _mutated(_chain(*(_add_task(t) for t in tasks)))
+    outside = {i.where for i in _issues(data) if i.code == "markup-outside-gaps"}
+    assert outside == {"/tasks/5/caption", "/tasks/7/extra/0"}
 
 
 def test_missing_target_item_is_reported_once() -> None:

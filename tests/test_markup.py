@@ -37,3 +37,24 @@ def test_unbalanced_braces():
     assert markup.has_unbalanced_braces("Ein {{Test} hier.")
     assert markup.has_unbalanced_braces("Ein Test}} hier.")
     assert not markup.has_unbalanced_braces("Ein {{Test}} hier.")
+
+
+def test_wrong_options_of_a_choice_gap():
+    gap = markup.gaps("Lena {{ist|wird::sind| bist |}} müde.")[0]
+    assert gap.accepted == ("ist", "wird")
+    assert markup.wrong_options(gap) == ["sind", "bist"]
+    assert markup.wrong_options(markup.Gap("ist")) == []
+
+
+def test_transform_answer_and_sentence():
+    from langwich.answers import transform_answer, transform_sentence
+    from langwich.model import TransformItem
+
+    framed = TransformItem(prompt="Ich muss gehen.", keyword="nötig",
+                           frame="Es ist {{nötig, dass ich|notwendig, dass ich}} gehe.")
+    assert transform_answer(framed) == "nötig, dass ich / notwendig, dass ich"
+    assert transform_sentence(framed) == "Es ist nötig, dass ich gehe."
+    plain = TransformItem(prompt="Er kommt.", answer="Er ist gekommen.")
+    assert transform_answer(plain) == transform_sentence(plain) == "Er ist gekommen."
+    with pytest.raises(ValueError, match="needs an 'answer'"):
+        TransformItem(prompt="Er kommt.")

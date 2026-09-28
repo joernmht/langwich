@@ -1,5 +1,5 @@
 > **Historical:** a brainstorm from langwich 1 (9 exercise types). It does not describe the current code.
-> For langwich 3 — story worksheets, 13 task kinds, the lesson arc — see [docs/architecture.md](architecture.md).
+> For langwich 3 — story worksheets, 20 task kinds, the lesson arc — see [docs/architecture.md](architecture.md).
 
 # Exercise Types Brainstorm
 
