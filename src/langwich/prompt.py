@@ -448,7 +448,7 @@ KIND_RULES: dict[str, str] = {
     "dialogue": 'the characters in a new situation; gaps in "text", or a line without "text" '
                 'that the learner writes from its S "cue", with a model "answer".',
     "crossword": "6–12 key words (no articles, one word each) that share letters; clues in S "
-                 "(A1–A2) or T definitions/gap sentences (B1).",
+                 "(A1–A2) or T definitions/gap sentences (B1), never containing the answer.",
     "media_search": 'homework a character sets in the story: T "queries" and two T "questions".',
     "draw": 'the learner draws a scene from an S "prompt" and writes 4–6 T "labels" into it.',
 }

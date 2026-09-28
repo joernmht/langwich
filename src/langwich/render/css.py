@@ -388,6 +388,21 @@ table.match td.opt.tl { font-family: var(--serif); }
 /* ---- kind: questions+ media_search+ ---- */
 
 /* ---- kind: crossword ---- */
+/* the grid: bordered letter cells (their size is --cell, set per task), the
+   clue number top left; cells outside the words stay blank, those framed by
+   letter cells are black. Clues below it: across and down side by side. */
+.k-crossword .main { padding-left: var(--gut); }
+table.cwg { border-collapse: collapse; table-layout: fixed; break-inside: avoid; }
+table.cwg td { width: var(--cell); height: var(--cell); padding: 0; vertical-align: top; }
+table.cwg td.x { border: .75pt solid #000; }
+table.cwg td.bk { background: #000; }  /* a blank cell framed by letter cells */
+table.cwg .cn { display: block; font: 600 6.5pt/1 var(--sans); padding: .3mm .4mm 0; }
+.cwc { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7mm; margin-top: 5mm; }
+.cwl .cap { margin-bottom: 1.6mm; }
+.cwl .items > .it { grid-template-columns: 7mm 1fr; }
+.cwl .items > .it + .it { margin-top: 1.2mm; }
+.cwl .it > .n, .cwl .it > .c { font-size: 10.5pt; line-height: 1.4; }
+.cwl .it > .c.src { font-family: var(--sans); }
 
 /* pictures */
 .fig { break-inside: avoid; }
@@ -550,6 +565,8 @@ EPAPER_CSS = r"""
 /* ---- kind: questions+ media_search+ ---- */
 
 /* ---- kind: crossword ---- */
+table.cwg .cn { font-size: 7pt; }
+.cwc { column-gap: 6mm; }
 
 """
 

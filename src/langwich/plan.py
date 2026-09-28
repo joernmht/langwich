@@ -31,6 +31,7 @@ from typing import Literal
 
 from langwich import markup
 from langwich.crossword import Layout
+from langwich.crossword import layout as crossword_layout
 from langwich.model import (
     STAGES,
     ClassifyTask,
@@ -1201,7 +1202,7 @@ def _prepare_gapped_text(pt: PlannedTask, task: GappedTextTask, seed: int) -> No
 
 def _prepare_crossword(pt: PlannedTask, task: CrosswordTask, seed: int) -> None:
     """``pt.crossword``: the grid (seed-free, so the validator sees the same one)."""
-    # (spine stub: the crossword implementation calls crossword.layout)
+    pt.crossword = crossword_layout([e.answer for e in task.entries])
 
 
 def _phase(task: Task) -> Phase:

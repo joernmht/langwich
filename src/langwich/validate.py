@@ -71,6 +71,7 @@ from langwich.model import (
     WritingTask,
     parse_worksheet,
 )
+from langwich import crossword
 from langwich.images import ImageSource, resolve_image  # noqa: F401 (re-exported)
 from langwich.plan import plan as make_plan
 from langwich.plan import strip_article, term_pattern
@@ -1442,6 +1443,77 @@ class _Checker:
 
     def check_crosswords(self) -> None:
         """Crossword words, repeats, the grid and clues that give the answer away."""
+        for i, task in enumerate(self.ws.tasks):
+            if not isinstance(task, CrosswordTask):
+                continue
+            reported: set[int] = set()  # answers the layout error need not name again
+            seen: dict[str, int] = {}
+            for j, entry in enumerate(task.entries):
+                where = f"/tasks/{i}/entries/{j}"
+                answer = entry.answer
+                if not crossword.is_word(answer):
+                    reported.add(j)
+                    self.error("crossword-word", f"{where}/answer", self._crossword_word(answer))
+                key = " ".join(answer.casefold().split())
+                if key in seen:
+                    reported.add(j)
+                    self.error(
+                        "duplicate-entry", f"{where}/answer",
+                        f"the crossword answer '{answer}' is already listed as "
+                        f"entries/{seen[key]}, so the grid would hold it twice with two clues. "
+                        "Replace this entry with another key word from the story.",
+                    )
+                else:
+                    seen[key] = j
+                if _contains(entry.clue, answer):
+                    self.warn(
+                        "clue-is-answer", f"{where}/clue",
+                        f"the clue {_q(entry.clue)} contains its answer '{answer}', so the "
+                        "learner just copies it into the grid. Rewrite the clue without the "
+                        "word: a translation, a definition or a gap sentence with ___ in its "
+                        "place (for a word that is spelt the same in both languages, a "
+                        "definition or a gap sentence).",
+                    )
+            grid = crossword.layout([e.answer for e in task.entries])
+            long = [j for j in grid.unplaced
+                    if j not in reported and len(crossword.letters(task.entries[j].answer))
+                    > crossword.MAX_SIDE]
+            for j in long:
+                self.error(
+                    "crossword-layout", f"/tasks/{i}/entries/{j}/answer",
+                    f"the crossword answer '{task.entries[j].answer}' has "
+                    f"{len(crossword.letters(task.entries[j].answer))} letters, but the grid is "
+                    f"at most {crossword.MAX_SIDE} cells wide, so it is left out of the grid. "
+                    "Replace it with a shorter key word from the story.",
+                )
+            stuck = [j for j in grid.unplaced if j not in reported and j not in long]
+            if stuck:
+                names = ", ".join(f"'{task.entries[j].answer}' (entries/{j})" for j in stuck)
+                placed = len(task.entries) - len(grid.unplaced)
+                self.error(
+                    "crossword-layout", f"/tasks/{i}/entries",
+                    f"langwich cannot join {names} to the crossword grid: every answer must "
+                    "cross another answer at a letter they share, and words may touch only "
+                    f"where they cross. The other {placed} answer{'s' if placed != 1 else ''} "
+                    f"fit. Replace {'these words' if len(stuck) > 1 else 'this word'} with key "
+                    "words from the story that share several letters with the others, or "
+                    f"remove {'them' if len(stuck) > 1 else 'it'} while keeping at least 4 "
+                    "entries.",
+                )
+
+    def _crossword_word(self, answer: str) -> str:
+        """The message for a crossword answer that is not one word of letters."""
+        bare = strip_article(answer, self.target_lang)
+        if bare != answer.strip() and crossword.is_word(bare):
+            fix = f"Write it without its article: '{bare}'."
+        elif any(ch.isdigit() for ch in answer):
+            fix = "Write numbers as words, or choose another word."
+        else:
+            fix = ("Replace it with a single word (e.g. the key word of the phrase), or choose "
+                   "another key word from the story.")
+        return (f"the crossword answer '{answer}' is not one word of letters: the grid has one "
+                "letter per cell, so an answer cannot hold spaces, hyphens, apostrophes, "
+                f"digits or other signs. {fix}")
 
     def check_task_count(self) -> None:
         """The number of tasks against the level's recommended range."""

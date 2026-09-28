@@ -16,7 +16,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from langwich import markup
+from langwich import crossword, markup
 from langwich.answers import cloze_texts, letter, safe_gaps
 from langwich.model import (
     ClassifyTask,
@@ -384,8 +384,60 @@ def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
     return Parts('<div class="todo"></div>')  # (spine stub: the proofread renderer)
 
 
+#: Crossword cell size (mm). On e-paper a grid of more than
+#: CROSSWORD_EPAPER_ROWS rows gets the small cells, so its clues still fit
+#: below it on the page; a grid too wide for the column shrinks to fit.
+CROSSWORD_CELL = 7.0
+CROSSWORD_CELL_SMALL = 6.0
+CROSSWORD_EPAPER_ROWS = 12
+
+
 def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
-    return Parts('<div class="todo"></div>')  # (spine stub: the crossword renderer)
+    grid = pt.crossword
+    if grid is None or not grid.placed:
+        b.warn(f"task {pt.number}: no crossword answer could be placed; the grid is left out.")
+        return Parts("", keep_hard=True)
+    if grid.unplaced:
+        left_out = ", ".join(f"'{task.entries[i].answer}'" for i in grid.unplaced)
+        b.warn(f"task {pt.number}: the crossword grid leaves out {left_out} (no crossing "
+               "found; see 'langwich validate').")
+    avail = b.main_width(b.has_aside(pt, False)) - GUTTER_W
+    cell = CROSSWORD_CELL
+    if b.epaper and grid.rows > CROSSWORD_EPAPER_ROWS:
+        cell = CROSSWORD_CELL_SMALL
+    cell = min(cell, math.floor(avail / grid.cols * 10) / 10)
+    numbers = {(p.row, p.col): p.number for p in grid.placed}
+    holes = crossword.enclosed(grid)
+    rows = []
+    for r in range(grid.rows):
+        cells = []
+        for c in range(grid.cols):
+            if (r, c) in holes:
+                cells.append('<td class="bk"></td>')
+            elif (r, c) not in grid.cells:
+                cells.append("<td></td>")
+            elif (r, c) in numbers:
+                cells.append(f'<td class="x"><span class="cn">{numbers[(r, c)]}</span></td>')
+            else:
+                cells.append('<td class="x"></td>')
+        rows.append(f"<tr>{''.join(cells)}</tr>")
+    # (the target's lang and dir: a right-to-left grid runs its across words leftwards)
+    table = (f'<table class="cwg"{b.lang_attr()} style="--cell:{cell:.1f}mm;'
+             f'width:{cell * grid.cols:.1f}mm">{"".join(rows)}</table>')
+    target = task.clue_lang == "target"
+    lists = []
+    for across in (True, False):
+        items = "".join(
+            _item(p.number, esc(task.entries[p.index].clue), "c tl" if target else "c src",
+                  b.lang_attr() if target else "")
+            for p in grid.placed if p.across == across
+        )
+        if items:
+            cap = esc(b.t("across" if across else "down"))
+            lists.append(f'<div class="cwl"><span class="cap">{cap}</span>'
+                         f'<div class="items">{items}</div></div>')
+    return Parts(f'<div class="cw">{table}<div class="cwc">{"".join(lists)}</div></div>',
+                 keep_hard=True)
 
 
 _RENDERERS = {
@@ -481,7 +533,12 @@ def _key_labels_classify(b: Builder, pt: PlannedTask, count: int) -> tuple[bool,
 
 
 def _key_labels_crossword(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
-    return False, None
+    """'1 →' / '2 ↓': the clue number and direction of each answer (Literata,
+    second in the sans stack, has both arrows)."""
+    grid = pt.crossword
+    if grid is None or len(grid.placed) != count:
+        return False, None
+    return True, [f"{p.number}\u00a0{'→' if p.across else '↓'}" for p in grid.placed]
 
 
 _KEY_LABELS: dict[str, Callable[[Builder, PlannedTask, int], tuple[bool, list[str] | None]]] = {

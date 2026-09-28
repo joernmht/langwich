@@ -10,7 +10,7 @@ model answers); the renderer then prints the model answer or a
 
 from __future__ import annotations
 
-from langwich import markup
+from langwich import crossword, markup
 from langwich.locale import t
 from langwich.model import (
     ClassifyTask,
@@ -220,5 +220,9 @@ def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_crossword(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """The answers in clue order (across, then down)."""
-    return []  # (spine stub: the crossword implementation fills this in)
+    """The answers in clue order (across, then down), in capitals as the
+    grid holds them; words the grid could not take have no clue."""
+    task = pt.task
+    assert isinstance(task, CrosswordTask)
+    grid = pt.crossword or crossword.layout([e.answer for e in task.entries])
+    return [crossword.printed(task.entries[p.index].answer) for p in grid.placed]
