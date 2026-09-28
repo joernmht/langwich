@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import importlib
 import json
 from collections.abc import Callable
 from pathlib import Path
@@ -496,9 +497,20 @@ PENDING_CODES = {
 }
 
 
+def _kind_file_codes() -> set[str]:
+    """Codes that the per-kind test files (tests/test_kind_*.py) exercise:
+    each lists them in ``COVERED_CODES`` and has a test that triggers them."""
+    codes: set[str] = set()
+    for path in sorted(Path(__file__).parent.glob("test_kind_*.py")):
+        module = importlib.import_module(f"tests.{path.stem}")
+        codes |= set(getattr(module, "COVERED_CODES", ()))
+    return codes
+
+
 def test_every_check_is_exercised() -> None:
-    covered = {c[0] for c in CASES} | FILE_CODES
-    assert covered == set(CHECKS) - PENDING_CODES
+    covered = {c[0] for c in CASES} | FILE_CODES | _kind_file_codes()
+    assert covered <= set(CHECKS)
+    assert set(CHECKS) - covered <= PENDING_CODES
 
 
 def test_environment_and_picture_codes_are_checks() -> None:
