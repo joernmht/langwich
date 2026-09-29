@@ -32,7 +32,7 @@ import json
 import re
 import string
 import xml.etree.ElementTree as ET
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -43,6 +43,7 @@ from langwich.answers import scramble_sentence, transform_sentence
 from langwich.model import (
     CEFR_LEVELS,
     POS_VALUES,
+    ClassifyItem,
     ClassifyTask,
     ClozeTask,
     ContractError,
@@ -60,6 +61,7 @@ from langwich.model import (
     Picture,
     ProofreadTask,
     QuestionsTask,
+    ScrambleItem,
     ScrambleTask,
     TableTask,
     Task,
@@ -92,17 +94,15 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "unknown-grammar": ("error", "a task references a grammar id that does not exist"),
     "target-not-in-items": ("error", "a vocabulary.target word has no entry in vocabulary.items"),
     "same-language": ("error", "source_lang and target_lang are the same"),
-    "cloze-without-gaps": (
-        "error", "a cloze, table, gapped_text or proofread text without {{gaps}}",
-    ),
+    "cloze-without-gaps": ("error", "a cloze, gapped_text or proofread text without {{gaps}}"),
     "missing-gap-hint": (
         "error", "a gap without the ::hint its task needs (base_form/translation hint, choice "
         "options, proofread mistake)",
     ),
     "empty-gap": ("error", "an empty gap {{}}"),
     "unbalanced-braces": (
-        "error", "a stray '{{' or '}}', a triple brace or a gap across a blank line in a cloze "
-        "or dialogue text",
+        "error", "a stray '{{' or '}}', a triple brace or a gap across a blank line in any text "
+        "with gap markup (cloze, dialogue, table cell, gapped_text, proofread, transform frame)",
     ),
     "markup-in-story": ("error", "gap markup {{…}} inside a scene"),
     "label-without-labels": ("error", "a label task on a scene whose picture has no labels"),
@@ -212,7 +212,10 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "tf-quote-missing": (
         "warning", "a true/false statement without 'quote' in a task with 'justify'",
     ),
-    "tf-quote-not-in-story": ("warning", "a true_false quote that the story does not contain"),
+    "tf-quote-not-in-story": (
+        "warning", "a true_false quote that the task's scenes (without one: the story) do not "
+        "contain",
+    ),
     "tf-not-given-correction": ("warning", "a 'not_given' statement with a correction or quote"),
     "writing-no-model-answer": (
         "warning", "a writing task with 'points' or 'input' but no model answer",
@@ -221,8 +224,9 @@ CHECKS: dict[str, tuple[Level, str]] = {
         "warning", "a writing point whose 'covered_by' is not part of the model answer",
     ),
     "choice-options": (
-        "warning", "a choice gap with more than 3 wrong options, a repeated option or a wrong "
-        "option that is correct",
+        "warning", "a choice gap with more than 3 wrong options, a repeated option, a wrong "
+        "option that is correct, options joined by ',', ';' or '/' instead of '|', or options "
+        "whose capital letters show the answer",
     ),
     "table-too-wide": ("warning", "a table with more than 5 columns (too wide for e-paper)"),
     "gapped-text-gaps": ("warning", "a gapped_text with fewer than 3 or more than 8 gaps"),
@@ -241,6 +245,10 @@ CHECKS: dict[str, tuple[Level, str]] = {
         "warning", "a model answer that does not begin with its question's starter",
     ),
     "clue-is-answer": ("warning", "a crossword clue that contains its answer"),
+    "unused-field": (
+        "warning", "a field that has no effect: distractors without a word box, choice_layout "
+        "without the hint 'choice'",
+    ),
     "task-count": ("warning", "fewer or more tasks than the brief recommends for the CEFR level"),
 }
 
@@ -299,6 +307,14 @@ NEAR_COPY_WORDS = 3
 MODEL_ANSWER_SLACK = 0.15
 #: The renderer leaves out picture files larger than this (images.MAX_BYTES).
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
+#: Wrong options of a choice gap: with the answer four at most, as in a
+#: multiple_choice item.
+CHOICE_WRONG_MAX = 3
+#: Columns of a table task: wider tables get too narrow on an e-paper page.
+TABLE_COLUMNS_MAX = 5
+#: Gaps of a gapped_text — fewest, best most, most: fewer leave no choice,
+#: more are too many letters.
+GAPPED_TEXT_GAPS = (3, 6, 8)
 
 #: Articles a noun must start with, per target language.
 NOUN_ARTICLES: dict[str, tuple[str, ...]] = {
@@ -322,10 +338,25 @@ _ARTICLE_EXAMPLE: dict[str, str] = {
 
 #: Scripts written without spaces between words: word counts are meaningless.
 _NO_SPACE_LANGS = frozenset({"zh", "ja", "th", "lo", "km", "my", "bo"})
+#: Languages that write every noun with a capital letter.
+_NOUN_CAPITAL_LANGS = frozenset({"de", "lb"})
+#: German formal address, capitalised wherever it stands ('Möchten Sie …?').
+_GERMAN_FORMAL_RE = re.compile(r"(?:Sie|Ihr|Ihnen|Ihre[mnrs]?)(?!\w)")
+#: Sentence end marks on a scramble tile: the Latin ones, which the item's
+#: 'end' can print, and those of other scripts, which it cannot.
+_TILE_END_RE = re.compile(r"[.?!…。？！؟।]+$")
 
 _WORD_RE = re.compile(r"\w+(?:['’-]\w+)*")
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?…])\s+|\n+")
 _SINGLE_BRACE_RE = re.compile(r"(?<!\{)\{[^{}\n]+\}(?!\})")
+
+#: Apostrophes and quotation marks, each kind written one way for text
+#: comparisons (soft hyphens dropped).
+_FOLD_MARKS = str.maketrans({
+    "’": "'", "‘": "'", "‚": "'", "ʼ": "'", "`": "'", "´": "'",
+    "„": '"', "“": '"', "”": '"', "«": '"', "»": '"', "‹": '"', "›": '"',
+    "\u00ad": None,
+})
 
 
 # ---------------------------------------------------------------------------
@@ -468,6 +499,29 @@ def _filled(text: str) -> str:
         return markup.fill(text)
     except ValueError:
         return markup.GAP_RE.sub(" ", text)
+
+
+def _key(text: str) -> str:
+    """``text`` for comparisons: casefolded, with single spaces."""
+    return " ".join(text.casefold().split())
+
+
+def _marks_key(text: str) -> str:
+    """:func:`_key` with one kind of apostrophe and of quotation mark, and
+    without soft hyphens."""
+    return _key(text.translate(_FOLD_MARKS))
+
+
+def _repeats(values: Iterable[str]) -> Iterator[tuple[int, int]]:
+    """``(index, first index)`` of every value that repeats an earlier one
+    (compared by :func:`_key`)."""
+    first: dict[str, int] = {}
+    for k, value in enumerate(values):
+        key = _key(value)
+        if key in first:
+            yield k, first[key]
+        else:
+            first[key] = k
 
 
 def _word_count(text: str) -> int:
@@ -1070,9 +1124,9 @@ class _Checker:
     ) -> None:
         """Distractors (or a gapped_text's ``extra`` sentences, ``field``) that
         are also the answer to a gap."""
-        keys = {" ".join(a.casefold().split()) for a in answers}
+        keys = {_key(a) for a in answers}
         for k, word in enumerate(distractors):
-            if " ".join(word.casefold().split()) not in keys:
+            if _key(word) not in keys:
                 continue
             if field == "extra":
                 message = (f"the extra sentence {_q(word)} is also one of the removed sentences, "
@@ -1376,17 +1430,12 @@ class _Checker:
                     else:
                         rights[key] = rel
             elif isinstance(task, OrderEventsTask):
-                seen: dict[str, int] = {}
-                for j, event in enumerate(task.events):
-                    key = " ".join(event.casefold().split())
-                    if key in seen:
-                        self.error(
-                            "duplicate-event", f"{where}/events/{j}",
-                            f"the event {_q(event)} is already listed (events/{seen[key]}); "
-                            "each event must be different, or the order is ambiguous.",
-                        )
-                    else:
-                        seen[key] = j
+                for j, first in _repeats(task.events):
+                    self.error(
+                        "duplicate-event", f"{where}/events/{j}",
+                        f"the event {_q(task.events[j])} is already listed (events/{first}); "
+                        "each event must be different, or the order is ambiguous.",
+                    )
             elif isinstance(task, TrueFalseTask):
                 for j, item in enumerate(task.items):
                     if item.answer is False and not (item.correction or "").strip():
@@ -1431,11 +1480,15 @@ class _Checker:
         """Scramble alternatives, punctuation in tiles, a capitalised first tile."""
         if not any(isinstance(task, ScrambleTask) for task in self.ws.tasks):
             return
-        capitals = {"de": "a name or a noun", "en": "a name or 'I'"}.get(self.target_lang, "a name")
-        # where the worksheet writes a word in lower case (a capital that it
-        # never drops belongs to a name or a German noun, not to the start)
-        texts = [s.text for s in self.ws.story.scenes] + [v.term for v in self.ws.vocabulary.items]
-        texts += [t for task in self.ws.tasks for t in self.task_texts(task)]
+        # Where the worksheet writes a word in lower case. Only needed where
+        # every noun has a capital: there a capital that the worksheet never
+        # drops belongs to a noun that vocabulary.items does not list, not
+        # to the start. Elsewhere only names (and English 'I') keep theirs.
+        texts: list[str] = []
+        if self.target_lang in _NOUN_CAPITAL_LANGS:
+            texts = [s.text for s in self.ws.story.scenes]
+            texts += [v.term for v in self.ws.vocabulary.items]
+            texts += [t for task in self.ws.tasks for t in self.task_texts(task)]
 
         def difference(chunks: list[str], order: list[str]) -> tuple[list[str], list[str]]:
             """The tiles of ``chunks`` that ``order`` lacks, and the ones it adds."""
@@ -1448,11 +1501,18 @@ class _Checker:
                     missing.append(chunk)
             return missing, extra
 
-        def gives_start_away(word: str) -> bool:
+        def gives_start_away(word: str, tile: str, item: ScrambleItem) -> bool:
             if not word[:1].isupper() or any(ch.isupper() for ch in word[1:]):
                 return False  # lower case, or an acronym or name (EU, McDonald)
             if self._capitalised_anyway(word):
                 return False
+            # an alternative that puts the tile inside the sentence shows that
+            # the capital belongs to the word ('möchten Sie …', 'um zwölf gibt
+            # es Essen')
+            if any(tile in alternative[1:] for alternative in item.alternatives):
+                return False
+            if self.target_lang not in _NOUN_CAPITAL_LANGS:
+                return True
             lower = re.compile(r"(?<!\w)" + re.escape(word[0].lower() + word[1:]) + r"(?!\w)")
             return any(lower.search(text) for text in texts)
 
@@ -1483,26 +1543,32 @@ class _Checker:
                 for k in sorted(set(starts)):
                     tile = item.chunks[k]
                     word = re.search(r"\w+(?:['’]\w+)*", tile)
-                    if word is None or not gives_start_away(word.group(0)):
+                    if word is None or not gives_start_away(word.group(0), tile, item):
                         continue
                     at = word.start()
+                    lowered = tile[:at] + tile[at].lower() + tile[at + 1:]
+                    # (never simply 'write it in lower case': a capital that
+                    # belongs to the word — 'Sie' / 'sie' — changes the meaning)
                     self.warn(
                         "scramble-capital", f"{where}/chunks/{k}",
                         f"the tile {_q(tile)} starts the sentence and has a capital letter, so "
-                        "the learner can see which tile comes first. Write it in lower case "
-                        f"({_q(tile[:at] + tile[at].lower() + tile[at + 1:])}) here and in every "
-                        "alternative — the answer key capitalises the first word itself. Keep a "
-                        f"capital only for {capitals}, which is capitalised wherever it stands.",
+                        "the learner can see which tile comes first. If the word is written in "
+                        f"lower case inside a sentence, write the tile so ({_q(lowered)}) here "
+                        "and in every alternative — the answer key capitalises the first word "
+                        "itself. If the word keeps its capital wherever it stands "
+                        f"({self._capital_words()}), keep the capital: start the sentence with "
+                        "another tile, or add a correct order that puts this tile inside the "
+                        "sentence to 'alternatives'.",
                     )
 
     def _check_scramble_tiles(self, chunks: list[str], where: str) -> None:
-        """Sentence punctuation on a tile shows which tile ends the sentence
-        (with Spanish ¿ ¡, which one starts it). A full stop on a tile inside
-        the sentence ends an abbreviation or a German ordinal ('z. B.', 'am
-        3. Mai') and is fine."""
+        """Sentence punctuation on a tile (also 。？！؟।) shows which tile ends
+        the sentence (with Spanish ¿ ¡, which one starts it). A full stop on
+        a tile inside the sentence ends an abbreviation or a German ordinal
+        ('z. B.', 'am 3. Mai') and is fine."""
         for k, chunk in enumerate(chunks):
             tile = chunk.strip()
-            mark = re.search(r"[.?!…]+$", tile)
+            mark = _TILE_END_RE.search(tile)
             if mark and mark.start() == 0:
                 problem = (f"the tile {_q(tile)} is only punctuation, so it always comes last. "
                            "Remove it from 'chunks' and from every alternative")
@@ -1518,33 +1584,30 @@ class _Checker:
                 continue
             marks = mark.group(0) if mark else {"¿": "?", "¡": "!"}[tile[0]]
             end = "…" if "…" in marks or ".." in marks else marks[-1]
-            self.warn(
-                "scramble-punctuation", f"{where}/chunks/{k}",
-                f"{problem}, and set \"end\": \"{end}\" on the item — langwich prints the end "
-                "mark after the learner's answer line.",
-            )
+            if end in ".?!…":
+                how = (f"set \"end\": \"{end}\" on the item — langwich prints the end mark "
+                       "after the learner's answer line")
+            else:  # (with the default "end" '.', the answer key would print both marks)
+                how = (f"set \"end\": \"\" on the item: 'end' can only be '.', '?', '!' or "
+                       f"'…', so the answer key ends the sentence without '{end}'")
+            self.warn("scramble-punctuation", f"{where}/chunks/{k}", f"{problem}, and {how}.")
 
     def check_classify(self) -> None:
         """Repeated classify items, unused categories."""
         for i, task in enumerate(self.ws.tasks):
             if not isinstance(task, ClassifyTask):
                 continue
-            seen: dict[str, int] = {}
-            for j, item in enumerate(task.items):
-                key = " ".join(item.text.casefold().split())
-                if key in seen:
-                    same = task.items[seen[key]].answer == item.answer
-                    why = ("learners would sort it twice" if same else
-                           f"it belongs to both '{task.items[seen[key]].answer}' and "
-                           f"'{item.answer}', so neither answer is right")
-                    self.error(
-                        "duplicate-entry", f"/tasks/{i}/items/{j}/text",
-                        f"the item {_q(item.text)} is already listed (items/{seen[key]}); "
-                        f"{why}. Replace it with another word or sentence from the story, "
-                        "or remove it while keeping at least 2 items.",
-                    )
-                else:
-                    seen[key] = j
+            for j, first in _repeats([item.text for item in task.items]):
+                item, earlier = task.items[j], task.items[first]
+                why = ("learners would sort it twice" if earlier.answer == item.answer else
+                       f"it belongs to both '{earlier.answer}' and '{item.answer}', so neither "
+                       "answer is right")
+                self.error(
+                    "duplicate-entry", f"/tasks/{i}/items/{j}/text",
+                    f"the item {_q(item.text)} is already listed (items/{first}); {why}. "
+                    "Replace it with another word or sentence from the story, or remove it "
+                    "while keeping at least 2 items.",
+                )
             used = {item.answer for item in task.items}
             for k, category in enumerate(task.categories):
                 if category in used:
@@ -1616,6 +1679,21 @@ class _Checker:
                 bare = quote.translate(self._NO_QUOTE_MARKS)
                 if any(self._quotes(key, bare) for key in keys):
                     continue
+                # (words of another scene: say which, as find_in_text does)
+                own = {s.id for s in scenes}
+                other = next((s.id for s in self.ws.story.scenes if own and s.id not in own and (
+                    self._quotes(self._passage_key(s.text.translate(self._NO_QUOTE_MARKS)), bare)
+                )), None)
+                if other is not None:
+                    both = [s.id for s in self.ws.story.scenes if s.id in own or s.id == other]
+                    self.warn(
+                        "tf-quote-not-in-story", f"{where}/items/{j}/quote",
+                        f"the quote {_q(quote)} is not in {place}, which this task is about, but "
+                        f"in scene '{other}'. Learners look for the words in the scenes the task "
+                        f"follows: quote words of {place} that prove the answer, or add "
+                        f"'{other}' to the task's 'scene' (\"scene\": {json.dumps(both)}).",
+                    )
+                    continue
                 close = self._closest_passage("\n\n".join(texts), quote)
                 guess = f" (did you mean {_q(close)}?)" if close else ""
                 self.warn(
@@ -1680,15 +1758,12 @@ class _Checker:
 
     #: Punctuation and quote marks around a quoted passage (not part of it).
     _PASSAGE_EDGES = string.punctuation + "„“”«»‚‘’‹›…–—" + string.whitespace
-    #: Typographic quote marks and apostrophes, unified for comparisons.
-    _QUOTE_MARKS = str.maketrans("„“”«»‹›‘’‚ʼ", '"""""""\'\'\'\'')
 
     @classmethod
     def _passage_key(cls, text: str) -> str:
-        """A passage for substring comparisons: case, spacing, quote marks and
-        the punctuation around it do not count."""
-        text = text.strip(cls._PASSAGE_EDGES).translate(cls._QUOTE_MARKS)
-        return " ".join(text.casefold().split())
+        """A passage for substring comparisons: case, spacing, the kind of
+        quote mark or apostrophe and the punctuation around it do not count."""
+        return _marks_key(text.strip(cls._PASSAGE_EDGES))
 
     @classmethod
     def _quotes(cls, text: str, passage: str) -> bool:
@@ -1735,14 +1810,15 @@ class _Checker:
                         continue  # reported as empty-gap
                     wrong = markup.wrong_options(gap)
                     if wrong:  # (none: reported as missing-gap-hint)
-                        self._check_choice_gap(
-                            gap, wrong, where, _at_sentence_start(_filled(text[:m.start()])),
-                        )
+                        self._check_choice_gap(gap, wrong, where, _filled(text[:m.start()]),
+                                               _filled(text[m.end():]))
 
     def _check_choice_gap(
-        self, gap: markup.Gap, wrong: list[str], where: str, starts_sentence: bool,
+        self, gap: markup.Gap, wrong: list[str], where: str, before: str, after: str,
     ) -> None:
-        most = 3  # wrong options: with the answer four, as in a multiple_choice item
+        """The wrong options of one choice gap; ``before`` and ``after`` are
+        the text around the gap (gaps filled)."""
+        most = CHOICE_WRONG_MAX
         body = "|".join(gap.accepted) + "::" + "|".join(wrong)
         if len(wrong) > most:
             self.warn(
@@ -1774,10 +1850,44 @@ class _Checker:
                     "with another word that is wrong in this sentence, or remove it.",
                 )
             seen.add(key)
+        self._check_choice_separators(gap, wrong, where, body)
+        self._check_choice_case(gap, wrong, where, body, before, after)
+
+    def _check_choice_separators(
+        self, gap: markup.Gap, wrong: list[str], where: str, body: str,
+    ) -> None:
+        """Wrong options joined by ',', ';' or '/' ('des, du') are printed as
+        one option (unless an accepted answer has that sign too)."""
+        def parts(option: str) -> list[str]:
+            signs = [ch for ch in ",;/" if ch in option and all(ch not in a for a in gap.accepted)]
+            if not signs:
+                return [option]
+            pattern = "|".join(re.escape(ch) for ch in signs)
+            return [part.strip() for part in re.split(pattern, option) if part.strip()]
+
+        joined = [w for w in wrong if parts(w) != [w]]
+        if not joined:
+            return
+        fixed = "|".join(gap.accepted) + "::" + "|".join(p for w in wrong for p in parts(w))
+        self.warn(
+            "choice-options", where,
+            f"the gap {{{{{body}}}}} has the wrong option{'s' if len(joined) > 1 else ''} "
+            f"{_one_of(joined)}, which the choice would print as one option, signs included. "
+            "Separate the wrong options with '|', not with ',', ';' or '/': "
+            f"{{{{{fixed}}}}}.",
+        )
+
+    def _check_choice_case(
+        self, gap: markup.Gap, wrong: list[str], where: str, body: str, before: str, after: str,
+    ) -> None:
+        """Every option is printed as written, so a capital letter that some
+        options have and others lack shows which one is right; at the start
+        of a sentence every option needs one."""
+        accepted = {" ".join(a.split()) for a in gap.accepted}
         # At the start of a sentence the answer has a capital letter: an
         # option without one cannot be right, so the capital gives it away.
         small = [w for w in wrong if w[:1].islower()]
-        if starts_sentence and gap.answer[:1].isupper() and small:
+        if _at_sentence_start(before) and gap.answer[:1].isupper() and small:
             capitalised = [w[:1].upper() + w[1:] for w in wrong]
             if accepted.isdisjoint(capitalised):
                 fix = ("Write every option with a capital letter here: "
@@ -1791,10 +1901,60 @@ class _Checker:
                 f"{_one_of(small)} {'do' if len(small) > 1 else 'does'} not, and the capital "
                 f"shows which option is right. {fix}",
             )
+            return
+        # ... and without one the answer key prints a sentence that starts
+        # with a small letter (an item without an end mark may be a phrase:
+        # '{{der::die|das}} Kaffee').
+        if gap.answer[:1].islower() and _sentence_begins(before) and re.search(r"[.!?…]", after):
+            accepted_up = [a[:1].upper() + a[1:] for a in gap.accepted]
+            wrong_up = [w[:1].upper() + w[1:] for w in wrong]
+            if set(accepted_up).isdisjoint(wrong_up):
+                fix = ("Write every option with a capital letter here: "
+                       f"{{{{{'|'.join(accepted_up)}::{'|'.join(wrong_up)}}}}}.")
+            else:
+                fix = "Gap a word inside the sentence instead."
+            big = [w for w in wrong if w[:1].isupper()]
+            shows = (
+                f", and the capital letter of {_one_of(big)} shows that "
+                f"{'they are' if len(big) > 1 else 'it is'} wrong" if big else ""
+            )
+            self.warn(
+                "choice-options", where,
+                f"the gap {{{{{body}}}}} starts a sentence, but its answer '{gap.answer}' has no "
+                f"capital letter, so the answer key would print the sentence with a small "
+                f"letter{shows}. {fix}",
+            )
+            return
+        # Inside a sentence the options start alike, unless a capital belongs
+        # to the word (a name, a German noun) or is what the gap asks: 'Sie' /
+        # 'sie', 'Neues' / 'neues' in a spelling choice.
+        options = list(dict.fromkeys([gap.answer, *wrong]))
+        if len({o.casefold() for o in options}) < len(options):
+            return
+        big = [o for o in options if o[:1].isupper()]
+        small = [o for o in options if o[:1].islower()]
+        if not (big and small) or all(self._capitalised_anyway(o) for o in big):
+            return
+
+        def lowered(option: str) -> str:
+            if self._capitalised_anyway(option):
+                return option
+            return option[:1].lower() + option[1:]
+
+        fixed = "|".join(map(lowered, gap.accepted)) + "::" + "|".join(map(lowered, wrong))
+        self.warn(
+            "choice-options", where,
+            f"the options of the gap {{{{{body}}}}} do not start alike: {_one_of(big)} "
+            f"{'have' if len(big) > 1 else 'has'} a capital letter and {_one_of(small)} "
+            f"{'do' if len(small) > 1 else 'does'} not, so the capital shows which option is "
+            "right. If these words are written in lower case inside a sentence, write them so: "
+            f"{{{{{fixed}}}}}. If a capital belongs to the word ({self._capital_words()}), keep "
+            "it and choose wrong options that start alike: words of the same kind as the answer.",
+        )
 
     def check_tables(self) -> None:
         """Table shape, gaps, width and distractors."""
-        most = 5  # columns: wider tables get too narrow on an e-paper page
+        most = TABLE_COLUMNS_MAX
         for i, task in enumerate(self.ws.tasks):
             if not isinstance(task, TableTask):
                 continue
@@ -1848,8 +2008,7 @@ class _Checker:
 
     def check_gapped_texts(self) -> None:
         """Gapped-text gaps and extra sentences."""
-        # gaps: 3–6 work best; fewer leave no choice, more are too many letters
-        fewest, best, most = 3, 6, 8
+        fewest, best, most = GAPPED_TEXT_GAPS
         for i, task in enumerate(self.ws.tasks):
             if not isinstance(task, GappedTextTask):
                 continue
@@ -1886,33 +2045,22 @@ class _Checker:
             # Every lettered sentence must be different: gaps with the same
             # sentence, or the same extra twice, would print it twice. (An
             # extra that is also a removed sentence is a distractor-is-answer.)
-            gaps: dict[str, int] = {}
-            for k, gap in enumerate(found, 1):
-                key = " ".join(gap.answer.casefold().split())
-                if key in gaps:
-                    self.error(
-                        "duplicate-entry", f"{where}/text",
-                        f"gaps {gaps[key]} and {k} of this gapped text hold the same sentence "
-                        f"{_q(gap.answer)}, so the list of sentences would print it twice and "
-                        "the learner could not tell which letter goes where. Every removed "
-                        "sentence must be different: rewrite one of them, or put it back into "
-                        "the text (without the braces).",
-                    )
-                else:
-                    gaps[key] = k
-            extras: dict[str, int] = {}
-            for k, sentence in enumerate(task.extra):
-                key = " ".join(sentence.casefold().split())
-                if key in extras:
-                    self.error(
-                        "duplicate-entry", f"{where}/extra/{k}",
-                        f"the extra sentence {_q(sentence)} is already listed (extra/"
-                        f"{extras[key]}), so the list of sentences would print it twice. "
-                        "Replace the repeat with another sentence that fits none of the gaps, "
-                        "or remove it.",
-                    )
-                else:
-                    extras[key] = k
+            for k, first in _repeats([gap.answer for gap in found]):
+                self.error(
+                    "duplicate-entry", f"{where}/text",
+                    f"gaps {first + 1} and {k + 1} of this gapped text hold the same sentence "
+                    f"{_q(found[k].answer)}, so the list of sentences would print it twice and "
+                    "the learner could not tell which letter goes where. Every removed "
+                    "sentence must be different: rewrite one of them, or put it back into "
+                    "the text (without the braces).",
+                )
+            for k, first in _repeats(task.extra):
+                self.error(
+                    "duplicate-entry", f"{where}/extra/{k}",
+                    f"the extra sentence {_q(task.extra[k])} is already listed (extra/"
+                    f"{first}), so the list of sentences would print it twice. Replace the "
+                    "repeat with another sentence that fits none of the gaps, or remove it.",
+                )
             answers = [a for g in found for a in g.accepted]
             self._check_distractors(i, task.extra, answers, field="extra")
 
@@ -1961,28 +2109,15 @@ class _Checker:
                 f"(the same form and spelling, not the dictionary form{apart}), or choose "
                 f"another word of {where} for this clue.")
 
-    #: Apostrophes and quotation marks, each kind written one way for the
-    #: find_in_text search (soft hyphens dropped).
-    _FIND_MARKS = str.maketrans({
-        "’": "'", "‘": "'", "‚": "'", "ʼ": "'", "`": "'", "´": "'",
-        "„": '"', "“": '"', "”": '"', "«": '"', "»": '"',
-        "‹": '"', "›": '"', "\u00ad": None,
-    })
     #: What an answer may start or end with that the search ignores.
     _FIND_EDGES = " .,;:!?\"'()[]–—-"
 
-    @classmethod
-    def _find_key(cls, text: str) -> str:
-        """``text`` casefolded, with single spaces and one kind of apostrophe
-        and quotation mark."""
-        return " ".join(text.translate(cls._FIND_MARKS).casefold().split())
-
     def _finds(self, answer: str, texts: list[str]) -> bool:
         """Does one of ``texts`` contain ``answer`` as whole words (compared
-        by :meth:`_find_key`)? '…' in the answer stands for the words between
+        by :func:`_marks_key`)? '…' in the answer stands for the words between
         two parts of one sentence ('sperrt … auf')."""
         parts = [p.strip(self._FIND_EDGES)
-                 for p in re.split(r"…|\.\.\.", self._find_key(answer))]
+                 for p in re.split(r"…|\.\.\.", _marks_key(answer))]
         parts = [p for p in parts if p]
         if not parts:
             return False
@@ -1994,7 +2129,7 @@ class _Checker:
             return left + re.escape(part) + right
 
         pattern = re.compile(r"[^.!?…]*?".join(exact(p) for p in parts))
-        return any(pattern.search(self._find_key(text)) for text in texts)
+        return any(pattern.search(_marks_key(text)) for text in texts)
 
     def _closest_phrase(self, answer: str, texts: list[str]) -> str | None:
         """The words of one sentence of ``texts`` most like ``answer`` (one
@@ -2003,7 +2138,7 @@ class _Checker:
         n = len(_WORD_RE.findall(answer))
         if not n or "…" in answer or "..." in answer or self.target_lang in _NO_SPACE_LANGS:
             return None
-        key = self._find_key(answer).strip(self._FIND_EDGES)
+        key = _marks_key(answer).strip(self._FIND_EDGES)
         phrases: dict[str, str] = {}
         for text in texts:
             for sentence in _sentences(text):
@@ -2011,7 +2146,7 @@ class _Checker:
                 for size in sorted({max(n - 1, 1), n, n + 1}):
                     for k in range(len(words) - size + 1):
                         phrase = " ".join(words[k:k + size])
-                        phrases.setdefault(self._find_key(phrase), phrase)
+                        phrases.setdefault(_marks_key(phrase), phrase)
         close = difflib.get_close_matches(key, list(phrases), n=1, cutoff=0.7)
         if close:
             return phrases[close[0]]
@@ -2170,14 +2305,8 @@ class _Checker:
         )
 
     def check_question_starters(self) -> None:
-        """Model answers begin with their question's starter."""
-
-        quotes = str.maketrans("‘’‚„“”«»", "'''" + '"' * 5)
-
-        def norm(text: str) -> str:
-            """Casefolded, whitespace collapsed, one kind of quote mark each."""
-            return " ".join(text.translate(quotes).casefold().split())
-
+        """Model answers begin with their question's starter (compared by
+        :func:`_marks_key`)."""
         for i, task in enumerate(self.ws.tasks):
             if not isinstance(task, QuestionsTask):
                 continue
@@ -2187,9 +2316,9 @@ class _Checker:
                 # A '…' ('...', '___') in the starter is the learner's to fill:
                 # the answer begins with the words before the first one and
                 # has the words between them in the same order.
-                parts = [norm(p) for p in re.split(r"…|\.{3,}|_{2,}", item.starter)]
+                parts = [_marks_key(p) for p in re.split(r"…|\.{3,}|_{2,}", item.starter)]
                 pattern = ".*?".join(re.escape(p) for p in parts)
-                if re.match(pattern, norm(item.answer), flags=re.DOTALL):
+                if re.match(pattern, _marks_key(item.answer), flags=re.DOTALL):
                     continue
                 verb, fill = (("follow", " and fill in each '…'") if any(parts[1:])
                               else ("begin with", " and complete the sentence"))
@@ -2207,24 +2336,21 @@ class _Checker:
             if not isinstance(task, CrosswordTask):
                 continue
             reported: set[int] = set()  # answers the layout error need not name again
-            seen: dict[str, int] = {}
+            repeats = dict(_repeats([e.answer for e in task.entries]))
             for j, entry in enumerate(task.entries):
                 where = f"/tasks/{i}/entries/{j}"
                 answer = entry.answer
                 if not crossword.is_word(answer):
                     reported.add(j)
                     self.error("crossword-word", f"{where}/answer", self._crossword_word(answer))
-                key = " ".join(answer.casefold().split())
-                if key in seen:
+                if j in repeats:
                     reported.add(j)
                     self.error(
                         "duplicate-entry", f"{where}/answer",
                         f"the crossword answer '{answer}' is already listed as "
-                        f"entries/{seen[key]}, so the grid would hold it twice with two clues. "
+                        f"entries/{repeats[j]}, so the grid would hold it twice with two clues. "
                         "Replace this entry with another key word from the story.",
                     )
-                else:
-                    seen[key] = j
                 if _contains(entry.clue, answer):
                     self.warn(
                         "clue-is-answer", f"{where}/clue",
@@ -2259,6 +2385,41 @@ class _Checker:
                     "words from the story that share several letters with the others, or "
                     f"remove {'them' if len(stuck) > 1 else 'it'} while keeping at least 4 "
                     "entries.",
+                )
+
+    def check_unused_fields(self) -> None:
+        """Fields that have no effect: distractors without a word box,
+        choice_layout without choice gaps."""
+        for i, task in enumerate(self.ws.tasks):
+            where = f"/tasks/{i}"
+            if isinstance(task, (ClozeTask, TableTask)) and task.distractors and (
+                task.hint != "word_bank"
+            ):
+                choice = (" (a choice gap lists its wrong options in the gap itself, after the "
+                          "'::': {{right::wrong|wrong}})" if task.hint == "choice" else "")
+                self.warn(
+                    "unused-field", f"{where}/distractors",
+                    f"this {task.kind} task has 'distractors', but its hint is '{task.hint}', "
+                    f"which prints no word box, so the distractors are never printed{choice}. "
+                    "Remove 'distractors', or set \"hint\": \"word_bank\" to print a word box "
+                    "with the gap answers and the distractors.",
+                )
+            elif isinstance(task, DialogueTask) and task.distractors and not task.bank:
+                self.warn(
+                    "unused-field", f"{where}/distractors",
+                    "this dialogue has 'distractors' but no word box (\"bank\" is false), so "
+                    "the distractors are never printed. Remove 'distractors', or set \"bank\": "
+                    "true to print a word box with the gap answers and the distractors.",
+                )
+            if isinstance(task, ClozeTask) and task.choice_layout != "inline" and (
+                task.hint != "choice"
+            ):
+                self.warn(
+                    "unused-field", f"{where}/choice_layout",
+                    f"'choice_layout' \"{task.choice_layout}\" arranges the options of choice "
+                    f"gaps, but this cloze has the hint '{task.hint}', so it has no effect. "
+                    "Remove 'choice_layout', or give the task \"hint\": \"choice\" with every "
+                    "gap written as {{right::wrong|wrong}}.",
                 )
 
     def _crossword_word(self, answer: str) -> str:
@@ -2549,7 +2710,8 @@ class _Checker:
                         f"the ui string for '{key}' {problem}. The English original is "
                         f"{json.dumps(locale.STRINGS['en'][key], ensure_ascii=False)}.",
                     )
-        missing = locale.missing_keys(ws.source_lang, ws.ui)
+        unprinted = _unprinted_ui_keys(ws)
+        missing = [k for k in locale.missing_keys(ws.source_lang, ws.ui) if k not in unprinted]
         if missing:
             english = {k: locale.STRINGS["en"][k] for k in missing}
             self.warn(
@@ -2594,11 +2756,8 @@ class _Checker:
         loose: dict[tuple[str, str], int] = {}
         for i, item in enumerate(items):
             where = f"/vocabulary/items/{i}"
-            key = " ".join(item.term.casefold().split())
-            pair = (
-                strip_article(item.term, lang).casefold(),
-                " ".join(item.translation.casefold().split()),
-            )
+            key = _key(item.term)
+            pair = (strip_article(item.term, lang).casefold(), _key(item.translation))
             first = exact.get(key, loose.get(pair))
             if first is not None:
                 self.warn(
@@ -2655,16 +2814,26 @@ class _Checker:
                         "instead, or rephrase so that the sentence starts with another word.",
                     )
 
+    def _capital_words(self) -> str:
+        """The words that keep their capital inside a sentence in the target
+        language (for messages; see :meth:`_capitalised_anyway`)."""
+        return {
+            "de": "a name, a noun or the formal Sie", "en": "a name or 'I'",
+        }.get(self.target_lang, "a name")
+
     def _capitalised_anyway(self, answer: str) -> bool:
-        """Names, German nouns, English 'I': words that are capitalised
-        wherever they stand, so the capital gives nothing away."""
+        """Names, German nouns and the formal Sie, English 'I': words that
+        are capitalised wherever they stand, so the capital gives nothing
+        away."""
         lang = self.target_lang
         if lang == "en" and re.match(r"I\b", answer):
+            return True
+        if lang == "de" and _GERMAN_FORMAL_RE.match(answer):
             return True
         names = {w.casefold() for c in self.ws.story.characters for w in c.name.split()}
         if answer.casefold() in names:
             return True
-        if lang == "de" and any(
+        if lang in _NOUN_CAPITAL_LANGS and any(
             item.pos == "noun" and term_pattern(item, lang).fullmatch(answer)
             for item in self.ws.vocabulary.items
         ):
@@ -2697,6 +2866,7 @@ class _Checker:
         self.check_transform_extras()
         self.check_question_starters()
         self.check_crosswords()
+        self.check_unused_fields()
         self.check_task_count()
         self.check_arc()
         self.check_task_scenes()
@@ -2734,11 +2904,63 @@ class _Checker:
                     )
 
 
+#: Page-furniture strings that only a task feature prints (see
+#: :func:`_unprinted_ui_keys`); ``register.*`` and ``media.*`` too.
+_FEATURE_UI_KEYS = frozenset({"not_given", "evidence", "points", "audience", "across", "down"})
+
+
+def _unprinted_ui_keys(ws: Worksheet) -> set[str]:
+    """Page-furniture keys this worksheet never prints: those of task kinds
+    it does not use, and those of features none of its tasks turns on (a
+    third true_false box, writing points …)."""
+    kinds = {task.kind for task in ws.tasks}
+    if "label" in kinds:
+        kinds.add("draw")  # a label task without image or svg is a 'draw and label' task
+    true_false = [task for task in ws.tasks if isinstance(task, TrueFalseTask)]
+    writing = [task for task in ws.tasks if isinstance(task, WritingTask)]
+    printed = {
+        key for key, used in (
+            ("not_given", any(task.not_given for task in true_false)),
+            ("evidence", any(task.justify for task in true_false)),
+            ("points", any(task.points for task in writing)),
+            ("audience", any(task.audience for task in writing)),
+            ("across", "crossword" in kinds),
+            ("down", "crossword" in kinds),
+        ) if used
+    }
+    printed |= {f"register.{task.register_}" for task in writing if task.register_}
+    printed |= {f"media.{task.media}" for task in ws.tasks if isinstance(task, MediaSearchTask)}
+    unprinted = set()
+    for key in locale.STRINGS["en"]:
+        if key.startswith("kind."):
+            if key.split(".")[1] not in kinds:
+                unprinted.add(key)
+        elif (key in _FEATURE_UI_KEYS or key.startswith(("register.", "media."))) and (
+            key not in printed
+        ):
+            unprinted.add(key)
+    return unprinted
+
+
+#: Spaces, opening quote marks, brackets and dashes at the end of a prefix.
+_OPENING_RE = re.compile(r"[\s\"'„“”«»‹›‘’‚(\[¿¡\-–—]+$")
+
+
 def _at_sentence_start(prefix: str) -> bool:
     """True when text ending in ``prefix`` is at the start of a sentence
     (also after an opening quote, bracket or dash)."""
-    rest = re.sub(r"[\s\"'„“”«»‹›‘’‚(\[¿¡\-–—]+$", "", prefix)
+    rest = _OPENING_RE.sub("", prefix)
     return not rest or rest[-1] in ".!?…:"
+
+
+def _sentence_begins(prefix: str) -> bool:
+    """A stricter :func:`_at_sentence_start`: at the start of the text or
+    after '.', '?' or '!' — not after ':' or '…', an abbreviation ('z. B.')
+    or an ordinal ('am 3.'), which a small letter may follow."""
+    rest = _OPENING_RE.sub("", prefix)
+    if not rest or rest[-1] in "?!":
+        return True
+    return rest[-1] == "." and re.search(r"(?:^|[\s.])\w\.$|\d\.$|\.\.$", rest) is None
 
 
 def _contains(text: str, word: str) -> bool:
@@ -2848,7 +3070,9 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
       ('dont' beside 'Relative pronouns: dont, où, lequel' is the topic),
       in its table too;
     * a near-copy with several gaps: one example or table cell showing two
-      answers of the same item ('werden … geröstet').
+      answers of the same item ('werden … geröstet');
+    * a classify item in the table column headed by its category ('Sack'
+      under 'der').
 
     Answers shorter than four letters (articles, auxiliaries) only count
     together with another answer.
@@ -2859,6 +3083,13 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
     for answer in _leakable_answers(task, lang):
         if any(_contains(text, answer) for text in box):
             return answer
+    if isinstance(task, ClassifyTask) and gp.table and gp.table.head:
+        heads = [h.strip().casefold() for h in gp.table.head]
+        for item in task.items:
+            category = item.answer.strip().casefold()
+            if any(head == category and _contains(cell, item.text)
+                   for row in gp.table.rows for head, cell in zip(heads, row)):
+                return _with_category(item)
     if isinstance(task, TransformTask):
         for cell in cells:
             core = _drop_subject(cell)
@@ -2894,13 +3125,30 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
     return None
 
 
+def _with_category(item: ClassifyItem) -> str:
+    """A classify item with its category in front: 'der Sack', "l'eau"."""
+    space = "" if item.answer.endswith(("'", "’")) else " "
+    return f"{item.answer}{space}{item.text}"
+
+
 def _leakable_answers(task: Task, lang: str) -> list[str]:
     """Whole answers that must not appear in a grammar box beside the task:
-    built words, rewritten sentences and completed gap sentences."""
+    built words, rewritten and unscrambled sentences, completed gap
+    sentences, the sentences taken out of a gapped text, crossword words
+    and classify items with their category ('der Sack')."""
     if isinstance(task, WordBuildingTask):
         return [strip_article(i.answer, lang) for i in task.items]
     if isinstance(task, TransformTask):
         return [transform_sentence(i).strip().rstrip(".!?…") for i in task.items]
+    if isinstance(task, ScrambleTask):
+        return [scramble_sentence(order, "", lang).strip().rstrip(".!?…")
+                for i in task.items for order in (i.chunks, *i.alternatives)]
+    if isinstance(task, GappedTextTask):
+        return [g.answer.strip().rstrip(".!?…") for g in _parse_gaps(task.text)[0]]
+    if isinstance(task, CrosswordTask):
+        return [e.answer for e in task.entries if _significant(e.answer)]
+    if isinstance(task, ClassifyTask):
+        return [_with_category(i) for i in task.items]
     if isinstance(task, ClozeTask) and task.items:
         out = []
         for item in task.items:

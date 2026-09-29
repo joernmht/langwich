@@ -216,12 +216,28 @@ def test_a_quote_from_another_scene() -> None:
     # (true, but from Tuesday: the learner reads scene 1 for this task)
     data = _items({1: {"quote": "Diese Bohnen kommen aus Äthiopien"}})
     (hit,) = _issues(data, "tf-quote-not-in-story")
-    assert "is not in scene 's1'" in hit.message and "did you mean" not in hit.message
+    assert "did you mean" not in hit.message
+    # the story does contain the words: the message says where, and the two fixes
+    assert ("the quote 'Diese Bohnen kommen aus Äthiopien' is not in scene 's1', which this "
+            "task is about, but in scene 's2'.") in hit.message
+    assert "the story does not contain" not in hit.message
+    assert ("quote words of scene 's1' that prove the answer, or add 's2' to the task's "
+            "'scene' (\"scene\": [\"s1\", \"s2\"])") in hit.message
     # a task about the whole story may quote any scene
     data["tasks"][2]["scene"] = ["s1", "s2"]
     assert _issues(data, "tf-quote-not-in-story") == []
     del data["tasks"][2]["scene"]
     assert _issues(data, "tf-quote-not-in-story") == []
+
+
+def test_the_scene_to_add_is_named_in_story_order() -> None:
+    # a task on scene 2 that quotes scene 1
+    data = _items({1: {"quote": "Seit vierzig Jahren trinkt er hier jeden Morgen eine Melange"}})
+    data["tasks"][2]["scene"] = "s2"
+    hits = _issues(data, "tf-quote-not-in-story")
+    hit = next(h for h in hits if h.where == "/tasks/2/items/1/quote")
+    assert "is not in scene 's2', which this task is about, but in scene 's1'" in hit.message
+    assert '"scene": ["s1", "s2"]' in hit.message
 
 
 def test_a_task_about_several_scenes_names_them() -> None:

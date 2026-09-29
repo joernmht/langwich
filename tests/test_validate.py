@@ -11,15 +11,22 @@ from typing import Any
 
 import pytest
 
+from langwich import locale
 from langwich.model import worksheet_from_dict
+from langwich.prompt import KIND_RULES
 from langwich.validate import (
     CHECKS,
+    CHOICE_WRONG_MAX,
     ENVIRONMENT_CODES,
+    GAPPED_TEXT_GAPS,
     MORE_CHECKS_NOTE,
     PICTURE_CODES,
     STORY_WORDS,
+    TABLE_COLUMNS_MAX,
     Issue,
     Report,
+    _marks_key,
+    _repeats,
     check_file,
     resolve_image,
     validate,
@@ -27,6 +34,7 @@ from langwich.validate import (
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 LENA = REPO_ROOT / "examples" / "lena_01_en_de.json"
+SHOWCASE = REPO_ROOT / "tests" / "fixtures" / "kinds_showcase.json"
 
 SVG = '<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="60"/></svg>'
 BROKEN_SVG = SVG.replace("<rect", "<text>Kaffee & Kuchen</text><rect")
@@ -234,6 +242,27 @@ def test_lena_example_has_no_errors() -> None:
     assert report.warnings == [], report.format_text()
 
 
+def test_the_limits_are_the_same_in_checks_and_brief() -> None:
+    fewest, best, most = GAPPED_TEXT_GAPS
+    assert f"more than {CHOICE_WRONG_MAX} wrong options" in CHECKS["choice-options"][1]
+    assert f"more than {TABLE_COLUMNS_MAX} columns" in CHECKS["table-too-wide"][1]
+    assert f"fewer than {fewest} or more than {most} gaps" in CHECKS["gapped-text-gaps"][1]
+    assert f"1–{CHOICE_WRONG_MAX} wrong options" in KIND_RULES["cloze"]
+    assert f"at most {TABLE_COLUMNS_MAX} columns" in KIND_RULES["table"]
+    assert f"{fewest}–{best} sentences removed" in KIND_RULES["gapped_text"]
+
+
+def test_repeats_compare_case_and_spacing_alike() -> None:
+    values = ["Der Sack", "die Bohne", "der  sack", "das Heu", " DIE BOHNE", "der Sack"]
+    assert list(_repeats(values)) == [(2, 0), (4, 1), (5, 0)]
+
+
+def test_one_kind_of_apostrophe_and_quote_mark() -> None:
+    assert {_marks_key(f"C{a}est") for a in "'’‘‚ʼ`´"} == {"c'est"}
+    assert {_marks_key(f"{o}Ja{c}") for o, c in ("„“", "“”", "«»", "‹›", '""')} == {'"ja"'}
+    assert _marks_key("Kaffee\u00adbohne  IM  Sack") == "kaffeebohne im sack"
+
+
 def test_every_issue_code_is_kebab_case() -> None:
     for code in CHECKS:
         assert code == code.lower() and " " not in code and "_" not in code
@@ -410,6 +439,9 @@ CASES: list[tuple[str, Mutation, str | None]] = [
     ("ui-placeholders", _set("ui", {"kind.writing.length": "Write {min.real.imag} words."}),
      "/ui/kind.writing.length"),
     ("ui-placeholders", _set("ui", {"solutions": "Lösungen {n}"}), "/ui/solutions"),
+    # a dialogue without a word box never prints its distractors
+    ("unused-field", _add_task({**DIALOGUE_BANK, "bank": False, "distractors": ["Kuchen"]}),
+     "/tasks/5/distractors"),
     ("bank-without-gaps", _add_task({**DIALOGUE_DONE, "bank": True, "lines": [
         {"speaker": "Anna", "text": "Möchten Sie Kaffee?"},
         {"speaker": "Herr Kaya", "text": None, "cue": "Say yes, please."},
@@ -839,6 +871,57 @@ def test_valid_ui_overrides_pass() -> None:
     ui = {"kind.writing.length": "Schreibe {min} bis {max} Wörter.",
           "kind.label.draw": "Zeichne „{scene}“.", "solutions": "Lösungen {:"}
     assert "ui-placeholders" not in {i.code for i in _issues(_mutated(_set("ui", ui)))}
+
+
+def _missing_ui(data: dict[str, Any]) -> dict[str, str] | None:
+    """The strings a missing-ui-strings warning asks for (None: no warning)."""
+    issue = next((i for i in _issues(data) if i.code == "missing-ui-strings"), None)
+    if issue is None:
+        return None
+    listed: dict[str, str] = json.loads(issue.message[issue.message.index(': {"') + 2:])
+    assert f"so {len(listed)} strings would be printed in English" in issue.message
+    return listed
+
+
+def test_missing_ui_strings_are_only_those_the_worksheet_prints() -> None:
+    listed = _missing_ui(_mutated(_set("source_lang", "pl")))
+    assert listed is not None
+    # the kinds of BASE, and the draw strings of its label task (no image: draw and label)
+    assert {"solutions", "kind.cloze.title", "kind.label.title", "kind.label.draw",
+            "kind.draw.title", "kind.writing.length"} <= set(listed)
+    # not the strings of kinds and features BASE does not use
+    assert not [k for k in listed if k.startswith(
+        ("kind.crossword.", "kind.classify.", "kind.scramble.", "media.", "register."))]
+    assert not {"not_given", "evidence", "points", "audience", "across", "down"} & set(listed)
+    # a sheet that translates them all is fine, however many other strings are missing
+    ui = {key: f"[{text}]" for key, text in listed.items()}
+    assert _missing_ui(_mutated(_chain(_set("source_lang", "pl"), _set("ui", ui)))) is None
+    assert len(ui) < len(locale.STRINGS["en"])
+
+
+def test_missing_ui_strings_follow_the_features_in_use() -> None:
+    def features(d: dict[str, Any]) -> None:
+        d["source_lang"] = "pl"
+        d["tasks"][1]["not_given"] = True
+        d["tasks"][4].update(register="formal", audience="Herr Kaya",
+                             points=[{"point": "Say thank you."}])
+    listed = _missing_ui(_mutated(features))
+    assert listed is not None
+    assert {"not_given", "register.formal", "audience", "points"} <= set(listed)
+    assert not {"evidence", "register.informal", "register.neutral"} & set(listed)
+
+
+@pytest.mark.parametrize("apostrophe", ["'", "’", "ʼ", "´", "`"])
+def test_every_check_reads_every_kind_of_apostrophe_alike(apostrophe: str) -> None:
+    """find_in_text answers, true_false quotes and question starters compare
+    text in the same way: the story writes "C'est" and "s'arrête"."""
+    data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
+    baseline = {(i.code, i.where) for i in _issues(data)}
+    tasks = {t["id"]: t for t in data["tasks"]}
+    tasks["t16"]["items"][3]["answer"] = f"s{apostrophe}arrête"
+    tasks["t2"]["items"][1]["quote"] = f"C{apostrophe}est samedi matin"
+    tasks["t9"]["items"][2]["starter"] = f"La prochaine fois, c{apostrophe}est …"
+    assert {(i.code, i.where) for i in _issues(data)} == baseline
 
 
 def test_grammar_about_the_hinted_word_is_not_a_leak() -> None:

@@ -243,6 +243,18 @@ def test_an_extra_sentence_that_fills_a_gap() -> None:
     assert _hits(ws, "duplicate-entry") == []
 
 
+def test_a_grammar_box_beside_the_task_must_not_show_a_removed_sentence() -> None:
+    # g1 (the passive) is printed beside the first task that names it: gt2
+    data = _data({**JOURNEY, "grammar": "g1"})
+    assert [x for x in validate(worksheet_from_dict(data)).issues
+            if x.code == "grammar-gives-away"] == []
+    data["grammar"][0]["examples"].append(_sentences(JOURNEY)[2])
+    hits = _hits(worksheet_from_dict(data), "grammar-gives-away")
+    assert [x.where for x in hits] == ["/grammar/0"]
+    assert "beside task 'gt2'" in hits[0].message
+    assert "'Dort werden die Bohnen geröstet, zum Beispiel im Café Lindner'" in hits[0].message
+
+
 def test_gap_markup_belongs_in_the_text_only() -> None:
     ws = _ws({**JOURNEY, "extra": ["{{Herr Novak sitzt am Fenster.}}"]})
     i = _index(ws, "gt2")

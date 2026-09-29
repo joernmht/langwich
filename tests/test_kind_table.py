@@ -226,6 +226,18 @@ def test_a_distractor_must_not_be_an_answer() -> None:
     assert [x.where for x in hits] == [f"/tasks/{i}/distractors/1"]
 
 
+@pytest.mark.parametrize("hint", ["none", "first_letter", "base_form"])
+def test_distractors_without_a_word_box_are_never_printed(hint: str) -> None:
+    ws = _ws({**CHART, "hint": hint})
+    i = _index(ws, "tab2")
+    hits = [x for x in validate(ws).issues if x.code == "unused-field"]
+    assert [(x.where, x.level) for x in hits] == [(f"/tasks/{i}/distractors", "warning")]
+    assert (f"this table task has 'distractors', but its hint is '{hint}', which prints no word "
+            "box, so the distractors are never printed.") in hits[0].message
+    assert 'set "hint": "word_bank"' in hits[0].message
+    assert not [x for x in validate(_ws(CHART)).issues if x.code == "unused-field"]
+
+
 def test_gap_markup_belongs_in_the_cells_only() -> None:
     chart = {**CHART, "head": ["Röstung", "{{Farbe}}", "Geschmack", "Mein Tipp"]}
     ws = _ws(chart)

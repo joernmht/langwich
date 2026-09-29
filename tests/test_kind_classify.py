@@ -222,6 +222,43 @@ def test_every_empty_category_is_named():
         f"/tasks/{AT}/categories/3", f"/tasks/{AT}/categories/4"]
 
 
+#: A grammar box on the genders of scene 2, printed beside the classify task.
+GENDER_BOX: dict[str, Any] = {
+    "id": "g3", "name": "der, die, das", "explanation": "Every noun has a gender.",
+    "rule": "der (masculine), die (feminine), das (neuter)",
+}
+
+
+@pytest.mark.parametrize(("box", "shown"), [
+    # the table sorts the items into the columns of their categories
+    ({"table": {"head": ["der", "die", "das"], "rows": [["Sack", "Bohne", "Schiff"]]}},
+     "der Sack"),
+    ({"table": {"head": ["", "der", "die"], "rows": [["Nomen", "der Tisch", "die Sonne"]]}},
+     "die Sonne"),
+    # an example gives an item with its category
+    ({"examples": ["Der Bauer bringt die Kirschen."]}, "der Bauer"),
+])
+def test_a_grammar_box_beside_the_task_must_not_sort_its_items(
+    box: dict[str, Any], shown: str,
+) -> None:
+    data = _nouns(grammar="g3")
+    data["grammar"].append({**GENDER_BOX, "examples": ["Der Tisch ist groß."]})
+    assert not _hits(data, "grammar-gives-away")
+    data["grammar"][-1].update(box)
+    hits = _hits(data, "grammar-gives-away")
+    assert [i.where for i in hits] == ["/grammar/2"]
+    assert f"shows its answer '{shown}'" in hits[0].message
+
+
+def test_a_grammar_box_may_show_the_items_in_another_column():
+    # the categories of other nouns, or the items without their category
+    data = _nouns(grammar="g3")
+    data["grammar"].append({**GENDER_BOX, "examples": ["Wo ist ein Sack?"],
+                            "table": {"head": ["der", "die", "das"],
+                                      "rows": [["Tisch", "Lampe", "Buch"]]}})
+    assert not _hits(data, "grammar-gives-away")
+
+
 def test_covered_codes_are_checks():
     assert COVERED_CODES <= set(CHECKS)
     assert CHECKS["duplicate-entry"][0] == "error"
