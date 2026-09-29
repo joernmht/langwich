@@ -140,6 +140,21 @@ def test_contract_rejects_bad_tables(change: dict[str, Any], where: str) -> None
     assert any(where in loc for loc, _ in err.value.problems), err.value.problems
 
 
+def test_a_table_nested_under_the_kind_is_located_in_the_task() -> None:
+    # {"kind": "table", "table": {"head": …, "rows": …}}: 'rows' is missing
+    # from the task, and the key 'table' is not a field of it
+    task = {k: v for k, v in CHART.items() if k not in ("head", "rows")}
+    task["table"] = {"head": CHART["head"], "rows": CHART["rows"]}
+    with pytest.raises(ContractError) as err:
+        _ws(task)
+    at = len(_lena()["tasks"])
+    problems = dict(err.value.problems)
+    assert set(problems) == {f"/tasks/{at}/rows", f"/tasks/{at}/table"}
+    assert problems[f"/tasks/{at}/rows"].startswith("the required field 'rows' is missing")
+    assert problems[f"/tasks/{at}/table"].startswith("'table' is not a field here (write the "
+                                                     "task's fields straight into the task")
+
+
 # ---------------------------------------------------------------------------
 # Checks
 # ---------------------------------------------------------------------------

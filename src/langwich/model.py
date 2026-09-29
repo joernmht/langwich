@@ -81,6 +81,14 @@ class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+def _closest(value: str, options: list[str]) -> str | None:
+    """The option ``value`` most likely stands for: the same apart from
+    capitals, else the closest spelling (``None`` when nothing is close)."""
+    same = [o for o in options if o.casefold() == value.casefold()]
+    close = same or difflib.get_close_matches(value, options, n=1, cutoff=0.6)
+    return close[0] if close else None
+
+
 # ---------------------------------------------------------------------------
 # Story
 # ---------------------------------------------------------------------------
@@ -305,9 +313,8 @@ class ChoiceItem(_Model):
     def _answer_in_options(self) -> ChoiceItem:
         if self.answer not in self.options:
             options = ", ".join(repr(o) for o in self.options)
-            same = [o for o in self.options if o.casefold() == self.answer.casefold()]
-            close = same or difflib.get_close_matches(self.answer, self.options, n=1, cutoff=0.6)
-            guess = f" — did you mean {close[0]!r}?" if close else ""
+            close = _closest(self.answer, self.options)
+            guess = f" — did you mean {close!r}?" if close else ""
             raise ValueError(
                 f"answer {self.answer!r} is not one of the options ({options}); copy the right "
                 f"option exactly, letter for letter{guess}"
@@ -356,25 +363,42 @@ class ClassifyTask(_TaskBase):
     write each word into its column (``columns``)."""
 
     kind: Literal["classify"]
-    categories: list[str] = Field(min_length=2, max_length=6)
+    categories: list[Annotated[str, Field(min_length=1)]] = Field(min_length=2, max_length=6)
     layout: Literal["grid", "columns"] = Field(
         default="grid",
         description="grid = tick one column per line; columns = write each word into its column.",
     )
     items: list[ClassifyItem] = Field(min_length=2)
 
+    @field_validator("categories")
+    @classmethod
+    def _distinct_categories(cls, v: list[str]) -> list[str]:
+        first: dict[str, str] = {}
+        clashes = []
+        for category in v:
+            seen = first.get(category.casefold())
+            if seen is None:
+                first[category.casefold()] = category
+            elif seen == category:
+                clashes.append(f"{category!r} is listed twice")
+            else:
+                clashes.append(f"{seen!r} and {category!r} are the same")
+        if clashes:
+            raise ValueError(
+                f"categories must be distinct (capitals aside): {'; '.join(clashes)}; merge "
+                "them into one category, or rename one"
+            )
+        return v
+
     @model_validator(mode="after")
     def _answers_are_categories(self) -> ClassifyTask:
-        if len({c.casefold() for c in self.categories}) != len(self.categories):
-            raise ValueError("categories must be distinct")
         options = ", ".join(repr(c) for c in self.categories)
         problems = []
         for j, item in enumerate(self.items):
             if item.answer in self.categories:
                 continue
-            same = [c for c in self.categories if c.casefold() == item.answer.casefold()]
-            close = same or difflib.get_close_matches(item.answer, self.categories, n=1, cutoff=0.6)
-            guess = f" — did you mean {close[0]!r}?" if close else "."
+            close = _closest(item.answer, self.categories)
+            guess = f" — did you mean {close!r}?" if close else "."
             problems.append(
                 f"items[{j}].answer {item.answer!r} is not one of the categories ({options}); "
                 f"copy the category exactly{guess}"
@@ -409,7 +433,7 @@ class GappedTextTask(_TaskBase):
         min_length=1,
         description="A passage; each removed sentence is written in place as {{sentence}}.",
     )
-    extra: list[str] = Field(
+    extra: list[Annotated[str, Field(min_length=1)]] = Field(
         default_factory=list, description="1–2 sentences that fit no gap (distractors).",
     )
 
@@ -780,8 +804,6 @@ KIND_ALIASES: dict[str, str] = {
     "categorize": "classify",
     "categorise": "classify",
     "categorization": "classify",
-    "sorting": "classify",
-    "sort": "classify",
     "multiple_matching": "classify",
     "who_said_what": "classify",
     "form_filling": "table",
@@ -791,7 +813,6 @@ KIND_ALIASES: dict[str, str] = {
     "missing_sentences": "gapped_text",
     "gapped_sentences": "gapped_text",
     "sentence_insertion": "gapped_text",
-    "text_completion": "gapped_text",
     "find_the_word": "find_in_text",
     "word_hunt": "find_in_text",
     "scanning": "find_in_text",
@@ -802,6 +823,14 @@ KIND_ALIASES: dict[str, str] = {
     "correct_the_mistakes": "proofread",
     "crossword_puzzle": "crossword",
     "crosswords": "crossword",
+}
+
+#: Kind names that could mean more than one kind: never read as either, the
+#: contract error names both.
+AMBIGUOUS_KINDS: dict[str, tuple[str, ...]] = {
+    "sort": ("classify", "order_events"),
+    "sorting": ("classify", "order_events"),
+    "text_completion": ("gapped_text", "cloze"),
 }
 
 #: Language names an LLM may write instead of a language code.
@@ -816,10 +845,14 @@ LANGUAGE_NAMES: dict[str, str] = {
 }
 
 
+def _kind_key(kind: str) -> str:
+    return re.sub(r"[\s-]+", "_", kind.strip().lower())
+
+
 def canonical_kind(kind: str) -> str | None:
     """The task kind an LLM meant (``'Multiple-Choice'`` -> ``'multiple_choice'``),
     or ``None`` when the name is unknown."""
-    key = re.sub(r"[\s-]+", "_", kind.strip().lower())
+    key = _kind_key(kind)
     if key in TASK_KINDS:
         return key
     return KIND_ALIASES.get(key)
@@ -837,7 +870,9 @@ def normalize_quirks(data: Any) -> list[LoadNote]:
       ``fill_in_the_blanks``, ``true_or_false``, ``matching``, ``ordering``,
       ``short_answer``, ``essay``, ``drawing``, …);
     * facts given as plain strings (read as ``{"text": …}``);
-    * a lower-case CEFR level (``b1``) and upper-case language codes (``DE``).
+    * a lower-case CEFR level (``b1``) and upper-case language codes (``DE``);
+    * a true_false answer ``not_given`` spelt differently (``Not Given``,
+      ``not-given``, ``NOT_GIVEN``).
 
     Nothing else is guessed: everything else is reported by the contract.
     """
@@ -889,6 +924,25 @@ def normalize_quirks(data: Any) -> list[LoadNote]:
                     f"the task kind {kind!r} was read as {canon!r}; write it exactly as "
                     f"{canon!r}.",
                 ))
+            if task["kind"] == "true_false":
+                notes += _normalize_not_given(task, f"/tasks/{i}")
+    return notes
+
+
+def _normalize_not_given(task: dict[str, Any], where: str) -> list[LoadNote]:
+    """Read the answers ``Not Given``, ``not-given`` … of a true_false task as ``not_given``."""
+    notes: list[LoadNote] = []
+    items = task.get("items")
+    for j, item in enumerate(items if isinstance(items, list) else []):
+        answer = item.get("answer") if isinstance(item, dict) else None
+        if (isinstance(answer, str) and answer != "not_given"
+                and re.sub(r"[\s_-]+", "", answer.casefold()) == "notgiven"):
+            item["answer"] = "not_given"
+            notes.append(LoadNote(
+                "normalized", f"{where}/items/{j}/answer",
+                f"the answer {answer!r} was read as 'not_given'; write it exactly as "
+                "\"not_given\".",
+            ))
     return notes
 
 
@@ -904,19 +958,23 @@ def _json_location(loc: tuple[Any, ...], data: Any) -> tuple[Any, ...]:
 
     pydantic adds union member tags to locations (the task kind ``'match'``,
     ``'str'``, ``'list[constrained-str]'``, ``'function-after[…]'``); they
-    are not keys of the file. A location part is kept when it is a key or
-    index of the data at that point (or the missing last field)."""
+    are not keys of the file. The kind right after a task's index is always
+    dropped (even when the task wrongly nests its fields under a key of
+    that name); any other part is kept when it is a key or index of the
+    data at that point (or the missing last field)."""
     out: list[Any] = []
     node: Any = data
     for i, part in enumerate(loc):
         last = i == len(loc) - 1
+        if i == 2 and loc[0] == "tasks" and isinstance(node, dict) and part == node.get("kind"):
+            continue  # the task's union tag
         if isinstance(node, dict) and isinstance(part, str) and part in node:
             out.append(part)
             node = node[part]
         elif isinstance(node, list) and isinstance(part, int) and 0 <= part < len(node):
             out.append(part)
             node = node[part]
-        elif last and isinstance(node, dict) and isinstance(part, str) and part != node.get("kind"):
+        elif last and isinstance(node, dict) and isinstance(part, str):
             out.append(part)  # a missing field
             node = None
         # anything else is a union tag: drop it
@@ -977,11 +1035,37 @@ def _field_names(model: type[BaseModel]) -> list[str]:
 
 
 def _did_you_mean(value: str, options: list[str]) -> str:
-    lowered = {o.casefold(): o for o in options}
-    if value.casefold() in lowered:
-        return f" (did you mean '{lowered[value.casefold()]}'?)"
-    close = difflib.get_close_matches(value, options, n=1, cutoff=0.6)
-    return f" (did you mean '{close[0]}'?)" if close else ""
+    close = _closest(value, options)
+    return f" (did you mean '{close}'?)" if close else ""
+
+
+#: Field names LLMs write in place of the contract's, per model: the field
+#: meant, or what to do instead (checked before a did-you-mean by spelling,
+#: which would point elsewhere: 'distractors' is closest to 'instruction').
+_FIELD_SYNONYMS: dict[type[BaseModel], dict[str, str]] = {
+    GappedTextTask: {"distractors": "extra", "distractor": "extra", "options": "extra",
+                     "sentences": "extra"},
+    ScrambleItem: {"words": "chunks", "tiles": "chunks"},
+    CrosswordTask: {"words": "entries", "clues": "entries"},
+    CrosswordEntry: {"word": "answer"},
+    ProofreadTask: {
+        mistake: "write each mistake into 'text' as {{correct::wrong}}"
+        for mistake in ("mistakes", "errors", "corrections")
+    },
+}
+
+
+def _not_a_field_hint(model: type[BaseModel], name: str) -> str:
+    """What an unknown field ``name`` of ``model`` probably stands for."""
+    fields = _field_names(model)
+    kind = model.model_fields.get("kind")
+    if kind is not None and get_args(kind.annotation) == (name,):
+        return (" (write the task's fields straight into the task object, not under a key "
+                "named after its kind)")
+    meant = _FIELD_SYNONYMS.get(model, {}).get(name.casefold())
+    if meant is None:
+        return _did_you_mean(name, fields)
+    return f" (did you mean '{meant}'?)" if meant in fields else f" ({meant})"
 
 
 def _object_example(model: Any) -> str:
@@ -994,6 +1078,16 @@ def _object_example(model: Any) -> str:
         return ""
     body = ", ".join(f'"{name}": …' for name in required)
     return f", e.g. {{{body}}}"
+
+
+def _shown(value: Any) -> str:
+    """A value as the message quotes it: text in quotes, anything else as JSON."""
+    if isinstance(value, str):
+        return repr(value)
+    try:
+        return json.dumps(value, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return repr(value)
 
 
 def _describe(value: Any) -> str:
@@ -1033,8 +1127,8 @@ def _friendly(error: Mapping[str, Any], parts: tuple[Any, ...], data: Any) -> st
         if isinstance(parent, type) and issubclass(parent, BaseModel):
             fields = _field_names(parent)
             return (
-                f"'{name}' is not a field here{_did_you_mean(name, fields)}; remove it, or move "
-                f"its content into one of the fields defined here: {', '.join(fields)}."
+                f"'{name}' is not a field here{_not_a_field_hint(parent, name)}; remove it, or "
+                f"move its content into one of the fields defined here: {', '.join(fields)}."
             )
         return f"'{name}' is not a field here; remove it (see 'langwich schema')."
     if kind == "union_tag_not_found":
@@ -1042,15 +1136,32 @@ def _friendly(error: Mapping[str, Any], parts: tuple[Any, ...], data: Any) -> st
     if kind == "union_tag_invalid":
         tag = str(ctx.get("tag", value))
         guess = canonical_kind(tag)
-        hint = f" (did you mean '{guess}'?)" if guess else _did_you_mean(tag, list(TASK_KINDS))
+        either = AMBIGUOUS_KINDS.get(_kind_key(tag))
+        if guess:
+            hint = f" (did you mean '{guess}'?)"
+        elif either:
+            hint = f" (did you mean {' or '.join(repr(k) for k in either)}?)"
+        else:
+            hint = _did_you_mean(tag, list(TASK_KINDS))
         return f"'{tag}' is not a task kind{hint}. Use one of {_KINDS_TEXT}."
     if kind in ("model_type", "model_attributes_type", "dict_type"):
         example = _object_example(_model_at(data, parts))
         return f"this must be a JSON object {{…}}{example}, not {_describe(value)}."
+    if (name == "answer" and kind in ("bool_type", "bool_parsing", "literal_error")
+            and _model_at(data, parts[:-1]) is TrueFalseItem):
+        # one message for both members of bool | "not_given"
+        return (
+            "'answer' must be true or false (without quotes), or \"not_given\" (in quotes: the "
+            "story does not say; the task then needs \"not_given\": true), not "
+            f"{_shown(value)}."
+        )
     if kind == "literal_error":
         options = re.findall(r"'([^']*)'", str(ctx.get("expected", "")))
         hint = _did_you_mean(str(value), options) if isinstance(value, str) else ""
-        return f"{value!r} is not allowed for '{name}'{hint}; use one of {', '.join(repr(o) for o in options)}."
+        return (
+            f"{_shown(value)} is not allowed for '{name}'{hint}; use one of "
+            f"{', '.join(repr(o) for o in options)}."
+        )
     if kind == "string_pattern_mismatch":
         if name in ("source_lang", "target_lang") and isinstance(value, str):
             code = LANGUAGE_NAMES.get(value.strip().casefold())
@@ -1075,7 +1186,12 @@ def _friendly(error: Mapping[str, Any], parts: tuple[Any, ...], data: Any) -> st
     if kind in ("int_type", "int_parsing", "int_from_float"):
         return f"{subject} must be a whole number."
     if kind == "string_too_short":
-        return f"{subject} must not be empty."
+        least = ctx.get("min_length", 1)
+        if least <= 1:
+            return f"{subject} must not be empty."
+        why = (": a crossword answer is one word of 2 letters or more, without article or spaces"
+               if _model_at(data, parts[:-1]) is CrosswordEntry else "")
+        return f"{subject} needs at least {least} characters, not {_shown(value)}{why}."
     if kind == "too_short":
         return f"'{name}' needs at least {ctx.get('min_length')} entries."
     if kind == "too_long":

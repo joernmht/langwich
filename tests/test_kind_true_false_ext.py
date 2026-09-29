@@ -14,7 +14,7 @@ import pytest
 
 from langwich.answers import answer_key
 from langwich.locale import BUILTIN_LANGUAGES
-from langwich.model import ContractError, TrueFalseTask, worksheet_from_dict
+from langwich.model import ContractError, TrueFalseTask, parse_worksheet, worksheet_from_dict
 from langwich.plan import plan
 from langwich.render import RenderOptions, build_html, metrics, render_worksheet
 from langwich.render.html import Builder, esc
@@ -160,10 +160,47 @@ def test_the_contract_rejects(changes: dict[str, Any], where: str) -> None:
     assert where in [loc for loc, _ in exc.value.problems]
 
 
-def test_an_answer_other_than_true_false_or_not_given_is_rejected() -> None:
+@pytest.mark.parametrize(("answer", "shown"), [
+    ("maybe", "'maybe'"), ("NG", "'NG'"), ("not in the text", "'not in the text'"),
+    (None, "null"), (2, "2"),
+])
+def test_an_answer_other_than_true_false_or_not_given_is_rejected(
+        answer: Any, shown: str) -> None:
+    data = _lena()
+    data["tasks"][2]["items"][1]["answer"] = answer
     with pytest.raises(ContractError) as exc:
-        worksheet_from_dict(_items({1: {"answer": "maybe"}}))
-    assert "/tasks/2/items/1/answer" in [loc for loc, _ in exc.value.problems]
+        worksheet_from_dict(data)
+    # one message for bool | "not_given", with the value as JSON writes it
+    assert exc.value.problems == [(
+        "/tasks/2/items/1/answer",
+        "'answer' must be true or false (without quotes), or \"not_given\" (in quotes: the "
+        f"story does not say; the task then needs \"not_given\": true), not {shown}.",
+    )]
+
+
+@pytest.mark.parametrize("answer", ["Not Given", "not given", "not-given", "NOT_GIVEN",
+                                    " Not_Given ", "notgiven"])
+def test_lenient_loading_reads_not_given_spelt_differently(answer: str) -> None:
+    data = _lena()
+    data["tasks"][2]["kind"] = "True-False"
+    data["tasks"][2]["items"][1]["answer"] = answer
+    ws, notes = parse_worksheet(json.dumps(data, ensure_ascii=False))
+    task = ws.tasks[2]
+    assert isinstance(task, TrueFalseTask) and task.items[1].answer == "not_given"
+    note = next(n for n in notes if n.where == "/tasks/2/items/1/answer")
+    assert note.code == "normalized"
+    assert note.message == (f"the answer {answer!r} was read as 'not_given'; write it exactly "
+                            "as \"not_given\".")
+
+
+def test_only_true_false_answers_are_read_as_not_given() -> None:
+    data = _lena()
+    data["tasks"][2]["items"][1]["answer"] = "not_given"
+    mc = next(t for t in data["tasks"] if t["kind"] == "multiple_choice")
+    mc["items"][0]["answer"] = "Not Given"  # (not an option: stays a contract error)
+    with pytest.raises(ContractError) as exc:
+        parse_worksheet(json.dumps(data, ensure_ascii=False))
+    assert exc.value.notes == []
 
 
 # ---------------------------------------------------------------------------

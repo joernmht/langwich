@@ -108,6 +108,16 @@ def test_invalid_tasks_are_contract_errors(fields: dict[str, Any]) -> None:
         worksheet_from_dict(_lena(**fields))
 
 
+@pytest.mark.parametrize("field", ["mistakes", "errors", "corrections"])
+def test_a_list_of_mistakes_is_sent_to_the_markup(field: str) -> None:
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(_lena(**{field: [{"wrong": "Arbeittag", "right": "Arbeitstag"}]}))
+    ((where, message),) = err.value.problems
+    assert where == f"/tasks/{INDEX}/{field}"
+    assert message.startswith(f"'{field}' is not a field here (write each mistake into 'text' "
+                              "as {{correct::wrong}})")
+
+
 def test_a_task_without_text_is_a_contract_error() -> None:
     data = _lena()
     del data["tasks"][INDEX]["text"]

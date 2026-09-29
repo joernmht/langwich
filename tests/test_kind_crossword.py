@@ -180,6 +180,55 @@ def test_contract_rejects_bad_crosswords(change):
         worksheet_from_dict(data)
 
 
+@pytest.mark.parametrize("answer", ["B", "b "])
+def test_a_one_letter_answer_is_not_called_empty(answer):
+    data = _data()
+    data["tasks"][-1]["entries"][0]["answer"] = answer
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(data)
+    at = len(data["tasks"]) - 1
+    assert err.value.problems == [(
+        f"/tasks/{at}/entries/0/answer",
+        f"'answer' needs at least 2 characters, not {answer!r}: a crossword answer is one word "
+        "of 2 letters or more, without article or spaces.",
+    )]
+
+
+@pytest.mark.parametrize(("field", "where", "meant"), [
+    ("words", "", "entries"), ("clues", "", "entries"), ("word", "/entries/0", "answer"),
+])
+def test_other_names_for_the_fields_point_at_the_right_one(field, where, meant):
+    data = _data()
+    task = data["tasks"][-1]
+    if where:
+        task["entries"][0][field] = task["entries"][0].pop(meant)
+    else:
+        task[field] = task.pop(meant)
+    at = len(data["tasks"]) - 1
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(data)
+    problems = dict(err.value.problems)
+    assert problems[f"/tasks/{at}{where}/{field}"].startswith(
+        f"'{field}' is not a field here (did you mean '{meant}'?)")
+
+
+def test_fields_nested_under_the_kind_are_located_in_the_task():
+    # {"kind": "crossword", "crossword": [...]}: the key named after the kind
+    # is no union tag of the error location, and 'entries' is what is missing
+    data = _data()
+    task = data["tasks"][-1]
+    task["crossword"] = task.pop("entries")
+    at = len(data["tasks"]) - 1
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(data)
+    problems = dict(err.value.problems)
+    assert set(problems) == {f"/tasks/{at}/entries", f"/tasks/{at}/crossword"}
+    assert problems[f"/tasks/{at}/entries"].startswith("the required field 'entries' is missing")
+    assert problems[f"/tasks/{at}/crossword"].startswith(
+        "'crossword' is not a field here (write the task's fields straight into the task "
+        "object, not under a key named after its kind)")
+
+
 def test_lenient_loading_reads_crossword_puzzle_as_crossword():
     data = _data()
     data["tasks"][-1]["kind"] = "crossword-puzzle"

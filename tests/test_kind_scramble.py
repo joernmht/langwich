@@ -96,6 +96,27 @@ def test_invalid_items_are_contract_errors(item: dict[str, Any]) -> None:
         worksheet_from_dict(_lena(item))
 
 
+@pytest.mark.parametrize("field", ["words", "tiles"])
+def test_other_names_for_the_chunks_point_at_chunks(field: str) -> None:
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(_lena({field: ["heute", "regnet", "es"]}))
+    problems = dict(err.value.problems)
+    assert problems[f"/tasks/{INDEX}/items/0/{field}"].startswith(
+        f"'{field}' is not a field here (did you mean 'chunks'?)")
+    assert problems[f"/tasks/{INDEX}/items/0/chunks"].startswith(
+        "the required field 'chunks' is missing")
+
+
+def test_items_nested_under_the_kind_are_located_in_the_task() -> None:
+    data = _lena()
+    data["tasks"][INDEX]["scramble"] = {"items": data["tasks"][INDEX].pop("items")}
+    with pytest.raises(ContractError) as err:
+        worksheet_from_dict(data)
+    assert sorted(loc for loc, _ in err.value.problems) == [
+        f"/tasks/{INDEX}/items", f"/tasks/{INDEX}/scramble",
+    ]
+
+
 def test_no_items_is_a_contract_error() -> None:
     data = _lena()
     data["tasks"][INDEX]["items"] = []

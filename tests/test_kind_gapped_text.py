@@ -147,6 +147,36 @@ def test_other_names_for_the_kind_are_read(alias: str) -> None:
     assert any(n.code == "normalized" and "gapped_text" in n.message for n in notes)
 
 
+@pytest.mark.parametrize("extra", [["Ein Satz.", ""], ["  "]])
+def test_an_extra_sentence_must_not_be_empty(extra: list[str]) -> None:
+    # (a blank one would print as an empty lettered option)
+    with pytest.raises(ContractError) as err:
+        _ws({**JOURNEY, "extra": extra})
+    at = len(_lena()["tasks"])
+    assert err.value.problems == [(f"/tasks/{at}/extra/{len(extra) - 1}",
+                                   "each entry of 'extra' must not be empty.")]
+
+
+@pytest.mark.parametrize("field", ["distractors", "options", "sentences"])
+def test_other_names_for_extra_point_at_extra(field: str) -> None:
+    task = {**JOURNEY, field: JOURNEY["extra"]}
+    del task["extra"]
+    with pytest.raises(ContractError) as err:
+        _ws(task)
+    ((where, message),) = err.value.problems
+    assert where.endswith(f"/{field}")
+    assert message.startswith(f"'{field}' is not a field here (did you mean 'extra'?)")
+
+
+def test_text_completion_is_not_read_as_a_gapped_text() -> None:
+    # (a word-bank cloze is a text completion too: the error names both)
+    data = _data({**JOURNEY, "kind": "text_completion"})
+    with pytest.raises(ContractError) as err:
+        parse_worksheet(json.dumps(data, ensure_ascii=False))
+    ((_, message),) = err.value.problems
+    assert "(did you mean 'gapped_text' or 'cloze'?)" in message
+
+
 # ---------------------------------------------------------------------------
 # Checks
 # ---------------------------------------------------------------------------
