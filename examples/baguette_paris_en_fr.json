@@ -1,0 +1,831 @@
+{
+ "schema": "langwich/3",
+ "title": "La baguette du président",
+ "standfirst": "Five o’clock in the morning on the day of the Paris baguette contest — and Hugo, a 19-year-old apprentice, has to bake on his own. Find out what goes into a real Paris baguette, and what the winner gets.",
+ "source_lang": "en",
+ "target_lang": "fr",
+ "cefr_level": "A1",
+ "topic": "baguette contest",
+ "frame": "episode",
+ "story": {
+  "logline": "Hugo, a 19-year-old apprentice baker, must bake the baguettes for the Paris baguette contest on his own — and the winner bakes for the President.",
+  "setting": "Nadia’s bakery in Paris and the contest; one day, from five in the morning to the next morning",
+  "characters": [
+   {
+    "id": "hugo",
+    "name": "Hugo",
+    "role": "19, apprentice in Nadia’s bakery"
+   },
+   {
+    "id": "nadia",
+    "name": "Nadia",
+    "role": "baker, owner of the bakery; ill today"
+   }
+  ],
+  "scenes": [
+   {
+    "id": "s1",
+    "heading": "Cinq heures du matin",
+    "beat": "setup",
+    "text": "Il est cinq heures. Paris dort, mais Hugo travaille. Il a dix-neuf ans. Il est apprenti dans la boulangerie de Nadia. Ça sent le pain chaud.\n\nAujourd’hui, c’est le concours de la meilleure baguette de Paris. Mais Nadia est malade. Elle téléphone : « Hugo, tu fais les baguettes pour le concours ! Le gagnant fait le pain du président, pendant un an. » Hugo a peur : « Moi ? Seul ? »",
+    "translation": "It’s five o’clock. Paris is asleep, but Hugo is working. He is nineteen. He is an apprentice in Nadia’s bakery. It smells of warm bread.\n\nToday is the contest for the best baguette in Paris. But Nadia is ill. She phones: “Hugo, you’re making the baguettes for the contest! The winner makes the President’s bread for a year.” Hugo is scared: “Me? On my own?”"
+   },
+   {
+    "id": "s2",
+    "heading": "Huit heures : trop longues !",
+    "beat": "complication",
+    "text": "Hugo fait la pâte : de la farine, de l’eau, du sel et de la levure. C’est tout. Il a une idée : « Pour le président, des baguettes très longues ! »\n\nMais sur le mur, il y a le règlement du concours : « Longueur : 50 à 55 cm. » Hugo prend une règle : 65 centimètres ! Vite, il refait les baguettes : 55 centimètres. Il met les baguettes dans le four chaud.",
+    "translation": "Hugo makes the dough: flour, water, salt and yeast. That’s all. He has an idea: “For the President, extra-long baguettes!”\n\nBut on the wall there are the contest rules: “Length: 50 to 55 cm.” Hugo picks up a ruler: 65 centimetres! Quickly, he shapes the baguettes again: 55 centimetres. He puts the baguettes in the hot oven.",
+    "picture": {
+     "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 120' fill='none' stroke='#000' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'><path d='M0 112 H200'/><rect x='6' y='20' width='56' height='84' rx='2'/><path d='M6 32 H62'/><circle cx='14' cy='26' r='2.5'/><circle cx='22' cy='26' r='2.5'/><rect x='40' y='23' width='16' height='6' rx='1'/><rect x='11' y='37' width='46' height='28' rx='1.5'/><rect x='17' y='40' width='34' height='2.4' rx='1.2'/><rect x='16' y='45' width='36' height='16' rx='1' stroke-width='1'/><path d='M21.8 48.2 H46.2 A1.8 1.8 0 0 1 46.2 51.8 H21.8 A1.8 1.8 0 0 1 21.8 48.2 Z' stroke-width='1'/><path d='M21.8 54.2 H46.2 A1.8 1.8 0 0 1 46.2 57.8 H21.8 A1.8 1.8 0 0 1 21.8 54.2 Z' stroke-width='1'/><path d='M26 49.2 L29 50.8 M32 49.2 L35 50.8 M38 49.2 L41 50.8 M26 55.2 L29 56.8 M32 55.2 L35 56.8 M38 55.2 L41 56.8' stroke-width='.7'/><rect x='11' y='70' width='46' height='28' rx='1.5'/><rect x='17' y='73' width='34' height='2.4' rx='1.2'/><rect x='16' y='78' width='36' height='16' rx='1' stroke-width='1'/><path d='M10 104 V112 M58 104 V112'/><path d='M22 15 q2.5 -2.5 0 -5 q-2.5 -2.5 0 -5 M34 15 q2.5 -2.5 0 -5 q-2.5 -2.5 0 -5 M46 15 q2.5 -2.5 0 -5 q-2.5 -2.5 0 -5' stroke-width='.9'/><rect x='86' y='8' width='32' height='42' rx='1'/><circle cx='102' cy='11.5' r='1.2'/><path d='M92 17 H112' stroke-width='2'/><path d='M91 23 H113 M91 27.5 H109 M91 32 H113' stroke-width='.8'/><path d='M94.5 37 H109.5 A1.5 1.5 0 0 1 109.5 40 H94.5 A1.5 1.5 0 0 1 94.5 37 Z' stroke-width='.9'/><path d='M93 44.5 H111 M93 44.5 l2 -1.4 M93 44.5 l2 1.4 M111 44.5 l-2 -1.4 M111 44.5 l-2 1.4' stroke-width='.8'/><circle cx='158' cy='26' r='10'/><path d='M158 17.5 V19 M166.5 26 H165 M158 34.5 V33 M149.5 26 H151' stroke-width='1'/><path d='M158 26 V18.8 M158 26 L153.2 28.8'/><path d='M78 64 H184 L190 78 H72 Z'/><path d='M72 78 V82 H190 V78'/><path d='M75 82 V112 H79 V82 M183 82 V112 H187 V82'/><path d='M88.5 65.5 H137.5 A2.5 2.5 0 0 1 137.5 70.5 H88.5 A2.5 2.5 0 0 1 88.5 65.5 Z'/><path d='M95 66.6 L100 69.4 M104 66.6 L109 69.4 M113 66.6 L118 69.4 M122 66.6 L127 69.4 M131 66.6 L136 69.4' stroke-width='.9'/><rect x='84' y='72.5' width='64' height='3.6' rx='.4' stroke-width='1'/><path d='M88 72.5 v1.7 M92 72.5 v1 M96 72.5 v1.7 M100 72.5 v1 M104 72.5 v1.7 M108 72.5 v1 M112 72.5 v1.7 M116 72.5 v1 M120 72.5 v1.7 M124 72.5 v1 M128 72.5 v1.7 M132 72.5 v1 M136 72.5 v1.7 M140 72.5 v1 M144 72.5 v1.7' stroke-width='.6'/><path d='M157.5 65.4 Q159 56 168 56 Q177 56 178.5 65.4'/><ellipse cx='168' cy='66' rx='13' ry='2.5'/><path d='M155 66 Q156.5 76 168 76 Q179.5 76 181 66'/><path d='M114 95 Q112 104 112.5 110 Q112.6 112 115 112 H141 Q143.4 112 143.5 110 Q144 104 142 95 Z'/><path d='M113 95 H143 L141.5 89.5 H114.5 Z'/><path d='M116.5 89.5 Q128 82.5 139.5 89.5'/><path d='M116.5 109.5 q1.2 -5 -.2 -10 M139.5 109.5 q-1.2 -5 .2 -10' stroke-width='.7'/><path d='M122 109 V98.5 M122 102 q-3 -.5 -3.2 -3.5 q3 .5 3.2 3.5 M122 102 q3 -.5 3.2 -3.5 q-3 .5 -3.2 3.5 M122 106 q-3 -.5 -3.2 -3.5 q3 .5 3.2 3.5 M122 106 q3 -.5 3.2 -3.5 q-3 .5 -3.2 3.5 M122 98.5 q-.9 -2 0 -3.6 q.9 1.6 0 3.6' stroke-width='.8'/></svg>",
+     "caption": "Huit heures, dans la boulangerie de Nadia",
+     "prompt": "Black-and-white line drawing of a small Paris bakery workroom at eight in the morning: on the left a large deck oven with two doors, baguettes visible through the upper window and a little heat above it; on the wall a sheet of contest rules pinned up and a round clock showing eight o’clock; in the middle a long work table with a shaped baguette, a ruler lying in front of it and a bowl of dough; under the table an open sack of flour with an ear of wheat on it. Clean outlines, no shading, no text.",
+     "labels": [
+      {
+       "n": 1,
+       "term": "le four",
+       "x": 0.17,
+       "y": 0.717
+      },
+      {
+       "n": 2,
+       "term": "le règlement",
+       "x": 0.51,
+       "y": 0.25
+      },
+      {
+       "n": 3,
+       "term": "la baguette",
+       "x": 0.5,
+       "y": 0.567
+      },
+      {
+       "n": 4,
+       "term": "la règle",
+       "x": 0.69,
+       "y": 0.619
+      },
+      {
+       "n": 5,
+       "term": "la pâte",
+       "x": 0.84,
+       "y": 0.5
+      },
+      {
+       "n": 6,
+       "term": "la farine",
+       "x": 0.67,
+       "y": 0.867
+      }
+     ]
+    }
+   },
+   {
+    "id": "s3",
+    "heading": "Au concours",
+    "beat": "resolution",
+    "text": "À midi, Hugo apporte ses baguettes au concours. Sur les tables, il y a beaucoup de baguettes. L’après-midi, le jury regarde, sent et goûte le pain. Une dame du jury mesure une baguette : 58 centimètres. « Trop longue ! »\n\nLe soir, Nadia téléphone : « Hugo, tu es le gagnant ! » Le lendemain, à cinq heures, Paris dort, mais Hugo travaille. Il chante.",
+    "translation": "At noon Hugo takes his baguettes to the contest. On the tables there are lots of baguettes. In the afternoon the jury looks at, smells and tastes the bread. A lady from the jury measures a baguette: 58 centimetres. “Too long!”\n\nIn the evening Nadia phones: “Hugo, you’re the winner!” The next day, at five o’clock, Paris is asleep, but Hugo is working. He is singing."
+   }
+  ]
+ },
+ "facts": [
+  {
+   "id": "f1",
+   "scene": "s1",
+   "title": "Depuis 1994",
+   "text": "La Ville de Paris organise ce concours depuis 1994. Le gagnant reçoit aussi 4 000 euros.",
+   "source": "Ville de Paris (paris.fr)"
+  },
+  {
+   "id": "f2",
+   "scene": "s2",
+   "title": "« De tradition »",
+   "text": "Depuis 1993, un décret protège le pain « de tradition française » : pas d’additifs, et la pâte n’est jamais congelée.",
+   "source": "Décret n° 93-1074 du 13 septembre 1993 (« décret pain »)"
+  },
+  {
+   "id": "f3",
+   "scene": "s3",
+   "title": "La baguette et l’UNESCO",
+   "text": "Depuis 2022, le savoir-faire et la culture de la baguette sont sur une liste de l’UNESCO : le patrimoine culturel immatériel de l’humanité.",
+   "source": "UNESCO, 2022"
+  }
+ ],
+ "vocabulary": {
+  "target": [
+   "la pâte",
+   "la farine",
+   "le sel",
+   "la levure",
+   "le four",
+   "la règle",
+   "le concours",
+   "le gagnant"
+  ],
+  "items": [
+   {
+    "term": "la pâte",
+    "translation": "dough",
+    "pos": "noun",
+    "note": "les pâtes = pasta"
+   },
+   {
+    "term": "la farine",
+    "translation": "flour",
+    "pos": "noun"
+   },
+   {
+    "term": "le sel",
+    "translation": "salt",
+    "pos": "noun"
+   },
+   {
+    "term": "la levure",
+    "translation": "yeast",
+    "pos": "noun"
+   },
+   {
+    "term": "le four",
+    "translation": "oven",
+    "pos": "noun",
+    "plural": "les fours"
+   },
+   {
+    "term": "la règle",
+    "translation": "ruler",
+    "pos": "noun",
+    "plural": "les règles",
+    "note": "also: rule"
+   },
+   {
+    "term": "le concours",
+    "translation": "contest, competition",
+    "pos": "noun",
+    "plural": "les concours"
+   },
+   {
+    "term": "goûter",
+    "translation": "to taste",
+    "pos": "verb"
+   },
+   {
+    "term": "dormir",
+    "translation": "to sleep",
+    "pos": "verb",
+    "forms": "je dors, il dort, nous dormons, j’ai dormi"
+   },
+   {
+    "term": "l’apprenti",
+    "translation": "apprentice, trainee",
+    "pos": "noun",
+    "plural": "les apprentis",
+    "note": "m"
+   },
+   {
+    "term": "la boulangerie",
+    "translation": "bakery",
+    "pos": "noun",
+    "plural": "les boulangeries"
+   },
+   {
+    "term": "sentir",
+    "translation": "to smell",
+    "pos": "verb",
+    "forms": "je sens, il sent, nous sentons, j’ai senti",
+    "note": "ça sent bon = it smells good"
+   },
+   {
+    "term": "chaud",
+    "translation": "hot, warm",
+    "pos": "adjective",
+    "note": "f.: chaude"
+   },
+   {
+    "term": "meilleur",
+    "translation": "best, better",
+    "pos": "adjective",
+    "note": "f.: meilleure"
+   },
+   {
+    "term": "malade",
+    "translation": "ill, sick",
+    "pos": "adjective"
+   },
+   {
+    "term": "le gagnant",
+    "translation": "winner",
+    "pos": "noun",
+    "plural": "les gagnants",
+    "note": "f.: la gagnante"
+   },
+   {
+    "term": "pendant",
+    "translation": "for, during",
+    "pos": "preposition",
+    "note": "pendant un an = for a year"
+   },
+   {
+    "term": "avoir peur",
+    "translation": "to be afraid, to be scared",
+    "pos": "phrase",
+    "forms": "j’ai peur, il a peur, nous avons peur",
+    "scene": "s1"
+   },
+   {
+    "term": "seul",
+    "translation": "alone, on one’s own",
+    "pos": "adjective",
+    "note": "f.: seule"
+   },
+   {
+    "term": "l’eau",
+    "translation": "water",
+    "pos": "noun",
+    "note": "f"
+   },
+   {
+    "term": "le mur",
+    "translation": "wall",
+    "pos": "noun",
+    "plural": "les murs"
+   },
+   {
+    "term": "le règlement",
+    "translation": "rules (of a contest)",
+    "pos": "noun",
+    "plural": "les règlements"
+   },
+   {
+    "term": "la longueur",
+    "translation": "length",
+    "pos": "noun"
+   },
+   {
+    "term": "prendre",
+    "translation": "to take, to pick up",
+    "pos": "verb",
+    "forms": "je prends, il prend, nous prenons, j’ai pris"
+   },
+   {
+    "term": "vite",
+    "translation": "quickly, fast",
+    "pos": "adverb"
+   },
+   {
+    "term": "refaire",
+    "translation": "to make again, to redo",
+    "pos": "verb",
+    "forms": "je refais, il refait, nous refaisons, j’ai refait"
+   },
+   {
+    "term": "mettre",
+    "translation": "to put",
+    "pos": "verb",
+    "forms": "je mets, il met, nous mettons, j’ai mis"
+   },
+   {
+    "term": "apporter",
+    "translation": "to bring, to take (to)",
+    "pos": "verb"
+   },
+   {
+    "term": "beaucoup de",
+    "translation": "a lot of, lots of",
+    "pos": "phrase"
+   },
+   {
+    "term": "l’après-midi",
+    "translation": "afternoon; in the afternoon",
+    "pos": "noun",
+    "note": "m"
+   },
+   {
+    "term": "mesurer",
+    "translation": "to measure",
+    "pos": "verb"
+   },
+   {
+    "term": "la dame",
+    "translation": "lady",
+    "pos": "noun",
+    "plural": "les dames"
+   },
+   {
+    "term": "trop",
+    "translation": "too",
+    "pos": "adverb",
+    "note": "trop longue = too long"
+   },
+   {
+    "term": "le lendemain",
+    "translation": "the next day",
+    "pos": "noun"
+   },
+   {
+    "term": "chanter",
+    "translation": "to sing",
+    "pos": "verb"
+   },
+   {
+    "term": "depuis",
+    "translation": "since",
+    "pos": "preposition"
+   },
+   {
+    "term": "recevoir",
+    "translation": "to receive, to get",
+    "pos": "verb",
+    "forms": "je reçois, il reçoit, nous recevons, j’ai reçu"
+   },
+   {
+    "term": "le décret",
+    "translation": "decree (a kind of law)",
+    "pos": "noun",
+    "plural": "les décrets"
+   },
+   {
+    "term": "l’additif",
+    "translation": "additive",
+    "pos": "noun",
+    "plural": "les additifs",
+    "note": "m"
+   },
+   {
+    "term": "congelé",
+    "translation": "frozen",
+    "pos": "adjective",
+    "note": "f.: congelée"
+   },
+   {
+    "term": "le savoir-faire",
+    "translation": "know-how, craft skills",
+    "pos": "noun"
+   },
+   {
+    "term": "le patrimoine culturel immatériel",
+    "translation": "intangible cultural heritage",
+    "pos": "noun"
+   },
+   {
+    "term": "l’argent",
+    "translation": "money",
+    "pos": "noun",
+    "note": "m"
+   },
+   {
+    "term": "gagner",
+    "translation": "to win; to earn",
+    "pos": "verb"
+   },
+   {
+    "term": "le beurre",
+    "translation": "butter",
+    "pos": "noun"
+   },
+   {
+    "term": "le sucre",
+    "translation": "sugar",
+    "pos": "noun"
+   },
+   {
+    "term": "l’œuf",
+    "translation": "egg",
+    "pos": "noun",
+    "plural": "les œufs",
+    "note": "m"
+   },
+   {
+    "term": "la confiture",
+    "translation": "jam",
+    "pos": "noun",
+    "plural": "les confitures"
+   },
+   {
+    "term": "le gâteau",
+    "translation": "cake",
+    "pos": "noun",
+    "plural": "les gâteaux"
+   },
+   {
+    "term": "acheter",
+    "translation": "to buy",
+    "pos": "verb",
+    "forms": "j’achète, il achète, nous achetons, j’ai acheté"
+   },
+   {
+    "term": "la fiche d’inscription",
+    "translation": "entry form",
+    "pos": "noun"
+   },
+   {
+    "term": "le prénom",
+    "translation": "first name",
+    "pos": "noun",
+    "plural": "les prénoms"
+   },
+   {
+    "term": "le métier",
+    "translation": "job, trade",
+    "pos": "noun",
+    "plural": "les métiers"
+   },
+   {
+    "term": "le boulanger",
+    "translation": "baker",
+    "pos": "noun",
+    "plural": "les boulangers",
+    "note": "f.: la boulangère"
+   }
+  ]
+ },
+ "grammar": [
+  {
+   "id": "g1",
+   "name": "Some flour, some water: du, de la, de l’, des",
+   "explanation": "For food and other things you do not count, French puts du, de la or de l’ before the noun. It means “some” — in English you often say nothing: “flour and water”. Before a plural noun, use des.",
+   "rule": "du + masculine · de la + feminine · de l’ + vowel or silent h · des + plural",
+   "table": {
+    "head": [
+     "le, la, l’, les",
+     "du, de la, de l’, des"
+    ],
+    "rows": [
+     [
+      "le fromage",
+      "du fromage"
+     ],
+     [
+      "la soupe",
+      "de la soupe"
+     ],
+     [
+      "l’huile",
+      "de l’huile"
+     ],
+     [
+      "les fruits",
+      "des fruits"
+     ]
+    ]
+   },
+   "examples": [
+    "Hugo fait la pâte : de la farine, de l’eau, du sel et de la levure.",
+    "Pour le président, des baguettes très longues !"
+   ],
+   "scene": "s2"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "kind": "match",
+   "stage": "warm_up",
+   "title": "Words from the bakery",
+   "instruction": "Match the French words to their English meanings. Write the letter in the box. One meaning is left over.",
+   "pairs": [
+    {
+     "left": "la pâte",
+     "right": "dough"
+    },
+    {
+     "left": "la farine",
+     "right": "flour"
+    },
+    {
+     "left": "le sel",
+     "right": "salt"
+    },
+    {
+     "left": "la levure",
+     "right": "yeast"
+    },
+    {
+     "left": "le four",
+     "right": "oven"
+    },
+    {
+     "left": "la règle",
+     "right": "ruler"
+    },
+    {
+     "left": "le concours",
+     "right": "contest"
+    },
+    {
+     "left": "le gagnant",
+     "right": "winner"
+    }
+   ],
+   "extra": [
+    "butter"
+   ]
+  },
+  {
+   "id": "t2",
+   "kind": "true_false",
+   "stage": "gist",
+   "scene": "s1",
+   "title": "Five o’clock at Nadia’s",
+   "instruction": "True or false? Tick the box. Correct the false sentences.",
+   "items": [
+    {
+     "statement": "À cinq heures du matin, Hugo est déjà au travail.",
+     "answer": true
+    },
+    {
+     "statement": "La boulangerie est à Hugo.",
+     "answer": false,
+     "correction": "La boulangerie est à Nadia. Hugo est apprenti."
+    },
+    {
+     "statement": "Aujourd’hui, Nadia va bien.",
+     "answer": false,
+     "correction": "Nadia est malade."
+    },
+    {
+     "statement": "Le président mange le pain du gagnant.",
+     "answer": true
+    },
+    {
+     "statement": "Hugo est content : il fait les baguettes seul.",
+     "answer": false,
+     "correction": "Hugo a peur."
+    }
+   ]
+  },
+  {
+   "id": "t3",
+   "kind": "questions",
+   "stage": "detail",
+   "scene": "s2",
+   "title": "Eight o’clock: a big problem",
+   "instruction": "Answer in French. Start with the words on the line.",
+   "items": [
+    {
+     "question": "Qu’est-ce qu’il y a dans la pâte ?",
+     "starter": "Dans la pâte, il y a …",
+     "answer": "Dans la pâte, il y a de la farine, de l’eau, du sel et de la levure.",
+     "lines": 2
+    },
+    {
+     "question": "Où est le règlement du concours ?",
+     "starter": "Il est …",
+     "answer": "Il est sur le mur.",
+     "lines": 1
+    },
+    {
+     "question": "Hugo prend une règle. Les baguettes font combien de centimètres ?",
+     "starter": "Elles font …",
+     "answer": "Elles font 65 centimètres.",
+     "lines": 1
+    },
+    {
+     "question": "Et les nouvelles baguettes ?",
+     "starter": "Elles font …",
+     "answer": "Elles font 55 centimètres.",
+     "lines": 1
+    }
+   ]
+  },
+  {
+   "id": "t4",
+   "kind": "label",
+   "stage": "picture",
+   "scene": "s2",
+   "title": "Eight o’clock in the bakery",
+   "instruction": "Write the French word for each number, with le or la. The box shows the words without their articles.",
+   "bank": true
+  },
+  {
+   "id": "t5",
+   "kind": "cloze",
+   "stage": "form",
+   "scene": "s2",
+   "grammar": "g1",
+   "hint": "choice",
+   "title": "The morning after the contest",
+   "instruction": "It is the morning after the contest. Circle the right word in each sentence.",
+   "items": [
+    "Dans un croissant, il y a {{du::de la|des}} beurre.",
+    "Dans une brioche, il y a {{des::du|de la}} œufs.",
+    "Dans un pain au chocolat, il y a {{du::de l’|des}} chocolat.",
+    "Le matin, Nadia mange du pain avec {{de la::du|des}} confiture.",
+    "Hugo gagne aussi {{de l’::du|de la}} argent : 4 000 euros !",
+    "Pour les gâteaux, Nadia achète {{de la::du|des}} crème."
+   ]
+  },
+  {
+   "id": "t6",
+   "kind": "classify",
+   "stage": "gist",
+   "scene": [
+    "s1",
+    "s2",
+    "s3"
+   ],
+   "title": "Hugo, Nadia or the jury?",
+   "instruction": "Who does what in the story? Tick one box in each line.",
+   "categories": [
+    "Hugo",
+    "Nadia",
+    "le jury"
+   ],
+   "items": [
+    {
+     "text": "est apprenti",
+     "answer": "Hugo"
+    },
+    {
+     "text": "est malade",
+     "answer": "Nadia"
+    },
+    {
+     "text": "fait la pâte",
+     "answer": "Hugo"
+    },
+    {
+     "text": "prend une règle",
+     "answer": "Hugo"
+    },
+    {
+     "text": "goûte le pain",
+     "answer": "le jury"
+    },
+    {
+     "text": "dit : « Trop longue ! »",
+     "answer": "le jury"
+    },
+    {
+     "text": "téléphone deux fois",
+     "answer": "Nadia"
+    },
+    {
+     "text": "chante le lendemain",
+     "answer": "Hugo"
+    }
+   ]
+  },
+  {
+   "id": "t7",
+   "kind": "table",
+   "stage": "practice",
+   "scene": "s3",
+   "hint": "word_bank",
+   "title": "Noon: Hugo’s entry form",
+   "instruction": "At noon, Hugo fills in the entry form for the contest. Complete it with words from the box. Three words are left over.",
+   "caption": "Grand Prix de la baguette – fiche d’inscription",
+   "rows": [
+    [
+     "Prénom",
+     "Hugo"
+    ],
+    [
+     "Âge",
+     "19 ans"
+    ],
+    [
+     "Métier",
+     "{{apprenti}} boulanger"
+    ],
+    [
+     "Boulangerie",
+     "la boulangerie de Nadia, Paris"
+    ],
+    [
+     "Pain",
+     "une {{baguette}} de tradition"
+    ],
+    [
+     "Ingrédients",
+     "farine, eau, {{sel}}, {{levure}}"
+    ],
+    [
+     "Longueur",
+     "55 {{centimètres}}"
+    ]
+   ],
+   "distractors": [
+    "sucre",
+    "beurre",
+    "grammes"
+   ]
+  },
+  {
+   "id": "t8",
+   "kind": "writing",
+   "stage": "production",
+   "title": "That evening: a message from Léa",
+   "instruction": "Hugo’s sister Léa sends him a message. Write Hugo’s answer in French.",
+   "prompt": "Answer Léa: how was the contest, and what is in Hugo’s baguette?",
+   "input": "Salut Hugo ! Alors, le concours ? Ça va ? Bisous, Léa",
+   "points": [
+    {
+     "point": "Say how the contest went.",
+     "covered_by": "je suis le gagnant du concours"
+    },
+    {
+     "point": "Say what is in your baguette.",
+     "covered_by": "de la farine, de l’eau, du sel et de la levure"
+    },
+    {
+     "point": "Say who eats your bread now, and for how long.",
+     "covered_by": "Pendant un an, le président mange mon pain"
+    }
+   ],
+   "starter": "Salut Léa ! Ça va très bien :",
+   "must_use": [
+    "le concours",
+    "le gagnant",
+    "la farine",
+    "le sel",
+    "la levure"
+   ],
+   "min_words": 25,
+   "max_words": 40,
+   "lines": 5,
+   "model_answer": "Salut Léa ! Ça va très bien : je suis le gagnant du concours ! Dans ma baguette, il y a de la farine, de l’eau, du sel et de la levure. Pendant un an, le président mange mon pain ! Bisous, Hugo"
+  },
+  {
+   "id": "t9",
+   "kind": "questions",
+   "stage": "production",
+   "title": "And you?",
+   "instruction": "Answer in French.",
+   "items": [
+    {
+     "question": "Qu’est-ce que tu manges le matin ?",
+     "starter": "Le matin, je mange …",
+     "lines": 2
+    }
+   ]
+  },
+  {
+   "id": "t10",
+   "kind": "crossword",
+   "stage": "epilogue",
+   "title": "Nadia’s crossword",
+   "instruction": "Write the French words in the grid, without le or la.",
+   "clue_lang": "source",
+   "entries": [
+    {
+     "answer": "baguette",
+     "clue": "a long, thin loaf of French bread"
+    },
+    {
+     "answer": "farine",
+     "clue": "flour"
+    },
+    {
+     "answer": "levure",
+     "clue": "yeast"
+    },
+    {
+     "answer": "sel",
+     "clue": "salt"
+    },
+    {
+     "answer": "four",
+     "clue": "oven"
+    },
+    {
+     "answer": "pâte",
+     "clue": "dough"
+    },
+    {
+     "answer": "règle",
+     "clue": "ruler: Hugo measures with it"
+    },
+    {
+     "answer": "concours",
+     "clue": "contest"
+    },
+    {
+     "answer": "gagnant",
+     "clue": "winner"
+    },
+    {
+     "answer": "pain",
+     "clue": "bread: the jury tastes it"
+    }
+   ]
+  },
+  {
+   "id": "t11",
+   "kind": "media_search",
+   "stage": "epilogue",
+   "title": "Nadia’s tip",
+   "instruction": "Nadia says: “Watch the jury at work!” Find a short French video about the Paris baguette contest. There is deliberately no link: searching in French is part of the task.",
+   "media": "video",
+   "queries": [
+    "Grand Prix de la baguette de tradition française",
+    "concours meilleure baguette de Paris",
+    "baguette de tradition boulangerie"
+   ],
+   "questions": [
+    "Qui gagne le concours ? Note son prénom.",
+    "Note trois mots français de la vidéo."
+   ]
+  }
+ ]
+}
