@@ -283,7 +283,9 @@ STORY_WORDS: dict[str, tuple[int, int]] = {
 }
 assert set(STORY_WORDS) == set(CEFR_LEVELS)
 
-#: Tasks in total, per CEFR level (the recommended set of the brief).
+#: Tasks in total, per CEFR level (the recommended set of the brief), for a
+#: story of the level's DEFAULT_SCENES; :func:`task_range` adjusts it to the
+#: actual scene count.
 TASK_COUNT: dict[str, tuple[int, int]] = {
     "A1": (8, 11),
     "A2": (8, 12),
@@ -293,6 +295,10 @@ TASK_COUNT: dict[str, tuple[int, int]] = {
     "C2": (10, 14),
 }
 assert set(TASK_COUNT) == set(CEFR_LEVELS)
+#: Scenes per story, per CEFR level, when the learner asks for no number
+#: (the brief's default).
+DEFAULT_SCENES: dict[str, int] = {"A1": 3, "A2": 3, "B1": 4, "B2": 4, "C1": 5, "C2": 5}
+assert set(DEFAULT_SCENES) == set(CEFR_LEVELS)
 #: Levels whose long stories need one comprehension task per one or two
 #: scenes only; the other levels have one per scene.
 PAIRED_SCENE_LEVELS = frozenset({"C1", "C2"})
@@ -357,6 +363,28 @@ _FOLD_MARKS = str.maketrans({
     "„": '"', "“": '"', "”": '"', "«": '"', "»": '"', "‹": '"', "›": '"',
     "\u00ad": None,
 })
+
+
+def _comprehension_tasks(level: str, scenes: int) -> int:
+    """The fewest gist/detail tasks the brief asks for: one per scene, or one
+    per two scenes (rounded up) at the :data:`PAIRED_SCENE_LEVELS`."""
+    return -(-scenes // 2) if level in PAIRED_SCENE_LEVELS else scenes
+
+
+def task_range(level: str, scenes: int) -> tuple[int, int]:
+    """The recommended number of tasks of a ``level`` worksheet with
+    ``scenes`` scenes — the range the brief prints and ``task-count`` checks.
+
+    :data:`TASK_COUNT` is for the level's :data:`DEFAULT_SCENES`. Each scene
+    more needs one comprehension task more (C1–C2: one per two scenes), so
+    both ends move up by as many; with fewer scenes the lower end moves down
+    by the tasks they save, and the upper end stays (more tasks per scene
+    are still fine).
+    """
+    low, high = TASK_COUNT[level]
+    extra = (_comprehension_tasks(level, scenes)
+             - _comprehension_tasks(level, DEFAULT_SCENES[level]))
+    return low + extra, high + max(extra, 0)
 
 
 # ---------------------------------------------------------------------------
@@ -2437,9 +2465,11 @@ class _Checker:
                 f"digits or other signs. {fix}")
 
     def check_task_count(self) -> None:
-        """The number of tasks against the level's recommended range."""
+        """The number of tasks against the recommended range for the level and
+        the scene count (:func:`task_range`)."""
         level = self.ws.cefr_level
-        low, high = TASK_COUNT[level]
+        scenes = len(self.ws.story.scenes)
+        low, high = task_range(level, scenes)
         n = len(self.ws.tasks)
         if low <= n <= high:
             return
@@ -2458,7 +2488,7 @@ class _Checker:
         self.warn(
             "task-count", "/tasks",
             f"the worksheet has {n} task{'s' if n != 1 else ''}; {article} {level} worksheet "
-            f"should have {low}–{high}. {fix}",
+            f"with {scenes} scene{'s' if scenes != 1 else ''} should have {low}–{high}. {fix}",
         )
 
     def _check_model_answer(self, task: WritingTask, where: str) -> None:

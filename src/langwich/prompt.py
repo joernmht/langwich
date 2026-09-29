@@ -45,7 +45,13 @@ from langwich.model import (
     parse_json_text,
 )
 from langwich.series import Continuation, continuation, slugify
-from langwich.validate import ENVIRONMENT_CODES, PAIRED_SCENE_LEVELS, SCENES_MAX, SCENES_MIN
+from langwich.validate import (
+    ENVIRONMENT_CODES,
+    PAIRED_SCENE_LEVELS,
+    SCENES_MAX,
+    SCENES_MIN,
+    task_range,
+)
 
 #: Built-in defaults when nothing else gives languages or level.
 DEFAULT_SOURCE_LANG = "en"
@@ -278,11 +284,13 @@ class LevelSpec:
     """How a story and its tasks scale with the CEFR level."""
 
     words: tuple[int, int]          # story words in total (all scenes)
-    scenes: int                     # default number of scenes
+    scenes: int                     # default number of scenes (the validator's DEFAULT_SCENES)
     sentences: str
     structures: str
     dialogue: str
-    tasks: tuple[int, int]          # tasks in total (the validator's TASK_COUNT)
+    #: tasks in total for the default number of scenes (the validator's
+    #: TASK_COUNT); the brief prints validate.task_range for its scene count
+    tasks: tuple[int, int]
     writing: tuple[int, int]        # words for the production writing task
     target_words: tuple[int, int]   # size of vocabulary.target
     plot_facts: tuple[int, int]     # true facts woven into the story itself
@@ -367,14 +375,15 @@ _RECIPE_C1 = """\
 2. gist/detail, one task <<per_scene>>: true_false with "not_given" and "justify",
    gapped_text (another character's account), find_in_text with "explain" (idioms, irony,
    connotation), multiple_choice or questions on inference and the writer's intent.
-3. picture (optional): <<picture_tasks>>
+3. picture: <<picture_tasks>>
 4. form, one per grammar point with "grammar": transform as key word transformation
    ("keyword", "frame", "max_words") or an open cloze ("hint": "none").
 5. practice: proofread ("marked": false).
 6. production: writing from an "input": a summary or a mediation (into S: "output_lang":
    "source"), or a register rewrite (a text message as a formal email); plus one personal
    question.
-7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> podcast about …")."""
+7. epilogue (optional): media_search with "media": "podcast" as homework ("find <<a_T>> <<T>>
+   podcast about …")."""
 
 _RECIPE_C2 = """\
 1. warm_up · match: key words or collocations (left, T) with T definitions (right), plus 1–2
@@ -382,14 +391,15 @@ _RECIPE_C2 = """\
 2. gist/detail, one task <<per_scene>>: true_false with "not_given" and "justify",
    gapped_text (another character's account), find_in_text with "explain" (wordplay, style,
    irony), multiple_choice or questions on the writer's intent and tone.
-3. picture (optional): <<picture_tasks>>
+3. picture: <<picture_tasks>>
 4. form, one per grammar point with "grammar": transform as key word transformation
    ("keyword", "frame", "max_words") or an open cloze ("hint": "none").
 5. practice: proofread ("marked": false).
 6. production: writing from an "input": a genre or voice rewrite (a scene as a news report, or
    in another character's voice), a summary or a mediation (into S: "output_lang": "source");
    plus one personal question.
-7. epilogue (optional): media_search as homework ("find <<a_T>> <<T>> podcast about …")."""
+7. epilogue (optional): media_search with "media": "podcast" as homework ("find <<a_T>> <<T>>
+   podcast about …")."""
 
 #: Kinds that the brief asks for at every level: the warm-up match, the
 #: picture task (label or draw), questions, the writing task, the epilogue.
@@ -489,9 +499,9 @@ KIND_FIELDS: dict[str, str] = {
     "classify": '"categories": [T or S] (2–6, printed in this order), "layout": "grid" | '
                 '"columns"? (grid: tick a column per line; columns: write the words into '
                 'columns), "items": [{"text": T, "answer": category (copied exactly)}]',
-    "find_in_text": '"clue_lang": "target" | "source"?, "explain": true | false?, "items": '
-                    '[{"clue": T or S, "answer": T (exactly as in the scene), "explanation": T '
-                    "or S?}]",
+    "find_in_text": '"clue_lang": "target" | "source"? (default target), "explain": true | '
+                    'false?, "items": [{"clue": T or S, "answer": T (exactly as in the scene), '
+                    '"explanation": T or S?}]',
     "gapped_text": '"text": T with each removed sentence in place as {{sentence}} (3–8), '
                    '"extra": [T] (1–2 sentences that fit no gap)',
     "cloze": '"text": T with gaps OR "items": [T with gaps] (exactly one of the two), '
@@ -499,7 +509,7 @@ KIND_FIELDS: dict[str, str] = {
              '"none", "choice_layout": "inline" | "below"? (choice: {{right::wrong|wrong}}), '
              '"distractors": [T]?',
     "transform": '"max_words": n? (gap length limit), "items": [{"prompt": T, "cue": S or T? '
-                 '(what to change), "answer": T (the new sentence; omit with "frame"), '
+                 '(what to change), "answer": T? (the new sentence; omit with "frame"), '
                  '"keyword": T? (must be used), "frame": T? (the new sentence with one {{gap}})}]',
     "scramble": '"items": [{"chunks": [T] (3–12 tiles in the CORRECT order; langwich shuffles), '
                 '"end": "." | "?" | "!" | "…" | ""?, "alternatives": [[T]]? (other correct '
@@ -513,11 +523,11 @@ KIND_FIELDS: dict[str, str] = {
     "label": '"scene": scene id (required; its picture has labels), "bank": true | false? '
              "(default true: a word box with the terms, printed without their articles)",
     "writing": '"prompt": S, "input": T or S? (text to answer, in a box), "input_lang": '
-               '"target" | "source"?, "output_lang": "target" | "source"?, "register": '
-               '"informal" | "neutral" | "formal"?, "audience": S?, "points": [{"point": S, '
-               '"covered_by": words of model_answer}]? (2–5), "paragraphs": true | false?, '
-               '"starter": T?, "must_use": [T]?, "min_words": n?, "max_words": n?, "lines": '
-               '1–40?, "model_answer": T?',
+               '"target" | "source"?, "output_lang": "target" | "source"? (also of "starter" and '
+               '"model_answer"), "register": "informal" | "neutral" | "formal"?, "audience": S?, '
+               '"points": [{"point": S, "covered_by": words of model_answer}]? (2–5), '
+               '"paragraphs": true | false?, "starter": T or S?, "must_use": [T]?, "min_words": '
+               'n?, "max_words": n?, "lines": 1–40?, "model_answer": T or S?',
     "dialogue": '"lines": [{"speaker": name, "text": T with gaps?, "cue": S?, "answer": T?}] '
                 '(≥ 2; a line without "text" is written by the learner from its "cue"), '
                 '"bank": true | false? (a word box of the gap answers), "distractors": [T]? '
@@ -543,12 +553,12 @@ KIND_RULES: dict[str, str] = {
     "order_events": "4–6 events from different scenes, in the correct order.",
     "questions": 'need the story (why? how?), with a model "answer". At A1–A2 give a "starter" '
                  '(e.g. "Lena is sad because …") and a model answer that begins with it.',
-    "classify": "2–4 categories (names, der/die/das, formal/informal …), 5–10 items that never "
+    "classify": "2–4 categories (names, genders, formal/informal …), 5–10 items that never "
                 'show their category, every category used; "answer" copied exactly.',
     "find_in_text": "the answer is written exactly as in the scene (\"…\" between words that "
-                    "stand apart in one sentence); clues in S at A1–A2, T synonyms or "
-                    'paraphrases from B1, idioms or irony with "explain" and "explanation" at '
-                    "C1–C2.",
+                    'stand apart in one sentence); clues in S ("clue_lang": "source") at A1–A2, '
+                    'T synonyms or paraphrases from B1, idioms or irony with "explain" and '
+                    '"explanation" at C1–C2.',
     "gapped_text": "a new text of 5–12 sentences with 3–6 sentences removed ({{…}} in place) "
                    'plus 1–2 "extra" sentences; each removed sentence fits only its gap (by '
                    "reference words, connectors, time).",
@@ -557,8 +567,10 @@ KIND_RULES: dict[str, str] = {
              'the ::hint — or none. "choice": every gap {{right::wrong1|wrong2}} with 1–3 wrong '
              'options of the same word class that are wrong in this sentence (at the start of a '
              'sentence all capitalised); "choice_layout": "below" from B2.',
-    "transform": 'key word transformation (B2+): "frame" is the second sentence with one {{gap}} '
-                 'of 2–5 words that must include "keyword"; set "max_words".',
+    "transform": 'a "prompt" sentence and a "cue" that says what to change; "answer" is the '
+                 'whole new sentence. Key word transformation (B2+): "frame" is the second '
+                 'sentence with one {{gap}} of 2–5 words that must include "keyword"; set '
+                 '"max_words".',
     "scramble": "3–10 tiles per sentence, one word or a fixed group per tile, in the correct "
                 "order; the first tile in lower case unless it is always capitalised; "
                 'punctuation only in "end"; list every other correct order in "alternatives".',
@@ -566,7 +578,9 @@ KIND_RULES: dict[str, str] = {
                      '"answer".',
     "table": "a form, timetable, price list or verb/word-family table with 3–8 rows and at "
              'most 5 columns; every row as long as "head" (2 cells for a form); {{gaps}} for '
-             "facts from the story or forms; null for the learner's own answer.",
+             "facts from the story or forms; null for the learner's own answer. \"hint\": "
+             "base_form or translation needs {{answer::hint}} in every gap; a verb table whose "
+             '"head" names the verbs uses "hint": "none".',
     "proofread": "a character's draft (message, note, review) of 60–150 words with 4–8 mistakes "
                  "of the kinds practised, each {{correct::wrong}} around only the words that "
                  'change, with one wrong form; "marked": false from B2.',
@@ -580,7 +594,8 @@ KIND_RULES: dict[str, str] = {
     "dialogue": 'the characters in a new situation; gaps in "text", or a line without "text" '
                 'that the learner writes from its S "cue", with a model "answer".',
     "crossword": "6–12 key words (no articles, one word each) that share letters; clues in S "
-                 "(A1–A2) or T definitions/gap sentences (B1), never containing the answer.",
+                 '(A1–A2) or T definitions/gap sentences ("clue_lang": "target", B1), never '
+                 "containing the answer.",
     "media_search": 'homework a character sets in the story: T "queries" and two T "questions".',
     "draw": 'the learner draws a scene from an S "prompt" and writes 4–6 T "labels" into it.',
 }
@@ -683,7 +698,7 @@ _EXAMPLE_SVG = (
 )
 
 #: A short but complete English → German A2 worksheet (2 scenes, 8 tasks: the
-#: fewest an A2 worksheet should have).
+#: A2 set without its optional tasks).
 MINI_EXAMPLE: dict[str, Any] = {
     "schema": "langwich/3",
     "title": "Zu Fuß zur Insel",
@@ -1190,7 +1205,7 @@ def _beat_plan(n: int) -> str:
 def _values(b: _Brief) -> dict[str, object]:
     low, high = b.spec.words
     ps_low, ps_high = b.per_scene
-    t_low, t_high = b.spec.tasks
+    t_low, t_high = task_range(b.level, b.scenes)
     tw_low, tw_high = b.spec.target_words
     w_low, w_high = b.spec.writing
     tgt_base = locale.base_lang(b.tgt)
@@ -1225,7 +1240,10 @@ def _values(b: _Brief) -> dict[str, object]:
         "no_picture": NO_PICTURE_SENTINEL,
         "example_langs": _example_langs(b),
         "ex_tasks": len(MINI_EXAMPLE["tasks"]),
-        "per_scene": "per one or two scenes" if b.level in PAIRED_SCENE_LEVELS else "per scene",
+        # (the compact brief, for small models, keeps to one per scene: its short
+        # scenes each carry enough for a task)
+        "per_scene": ("per one or two scenes"
+                      if b.level in PAIRED_SCENE_LEVELS and not b.opts.compact else "per scene"),
         "keep_simple": " Keep sentences simple." if b.level in _SIMPLE_LEVELS else "",
         "c_questions": ('questions with a "starter" (the first words of the answer)'
                         if b.level in _STARTER_LEVELS else "questions"),
@@ -1235,6 +1253,9 @@ def _values(b: _Brief) -> dict[str, object]:
 #: Stages of the tasks that follow a scene, in the planner's order.
 _SCENE_STAGES = frozenset({"gist", "detail", "picture", "form", "practice"})
 
+#: Levels at which a drawn picture (and so its task) is optional; the compact
+#: brief's fixed task list still asks for one, and an attached picture is used.
+_OPTIONAL_PICTURE_LEVELS = PAIRED_SCENE_LEVELS
 #: Levels at which the compact prompt asks for simple sentences.
 _SIMPLE_LEVELS = frozenset({"A1", "A2", "B1"})
 #: Levels at which the compact prompt asks for questions with a "starter" (it
@@ -1348,12 +1369,13 @@ _LANGUAGES = """\
 
 - **T (<<T>>):** title, scene headings and texts, captions, label terms, facts, vocabulary
   terms, grammar examples, series title and teaser ("next"), and every task item — statements,
-  questions, options, events, gap texts, dialogue lines, model answers, "must_use" words,
-  search queries and questions.
+  questions, options, events, gap texts, dialogue lines, model answers (in S when
+  "output_lang" is "source"), "must_use" words, search queries and questions.
 - **S (<<S>>):** standfirst, logline, setting, roles, topic, scene translations (give every
   scene a faithful one; they are printed with the solutions), vocabulary translations, grammar
-  names and explanations, the recap ("previously"), task titles and instructions, writing and
-  draw prompts, dialogue cues. The picture "prompt" (never printed) is in English.
+  names and explanations, the recap ("previously"), task titles and instructions, writing
+  prompts, points and audience, draw prompts, dialogue cues. The picture "prompt" (never
+  printed) is in English.
 - Task titles (S) belong to the story, like "Thursday: a second chance" — never "Exercise 3".
   Instructions (S) set the scene ("Lena writes to her mum.") and say exactly what to do,
   including how many word-box words are left over.
@@ -1421,8 +1443,7 @@ gapped_text and proofread "text" and transform "frame": {{answer}}, {{answer|alt
 _PICTURE_DRAWN = """\
 ## 8. The picture
 
-One scene — the one with the richest setting, often the last — gets a picture. Choose A if you
-can draw clean line art, otherwise B.
+<<picture_scene>> Choose A if you can draw clean line art, otherwise B.
 
 **A. Line drawing.** "svg": simple black line art, e.g. `<svg xmlns='http://www.w3.org/2000/svg'
 viewBox='0 0 200 120' fill='none' stroke='#000' stroke-width='1.5' stroke-linecap='round'>…
@@ -1715,6 +1736,13 @@ def _level_rows(b: _Brief) -> str:
 def _picture_values(b: _Brief) -> dict[str, object]:
     colour = b.opts.color
     return {
+        "picture_scene": (
+            f'At {b.level} a picture is optional: without one, no "picture" and no picture '
+            "task. With one — on the scene with the richest setting — it comes with its task: "
+            "labels and a label task (A) or a draw task (B)."
+            if b.level in _OPTIONAL_PICTURE_LEVELS else
+            "One scene — the one with the richest setting, often the last — gets a picture."
+        ),
         "image_line": _image_line(b.opts.image),
         "and_topic": " (together with the topic in the brief)" if b.topic else "",
         "svg_colour": "colour only where it helps" if colour else "no colour",
@@ -1750,8 +1778,11 @@ def _picture_tasks(b: _Brief) -> str:
                 "task about the picture (where things are).")
     if b.opts.compact:
         return "a draw task on the scene with the picture."
-    return ("on the scene with the picture: a label task (drawing A) or a draw task (B); "
-            "optionally a questions task about the picture (where things are).")
+    # (C1–C2: a picture is optional, see the picture section)
+    where = ("optional; if a scene has a picture," if b.level in _OPTIONAL_PICTURE_LEVELS
+             else "on the scene with the picture:")
+    return (f"{where} a label task (drawing A) or a draw task (B); optionally a questions task "
+            "about the picture (where things are).")
 
 
 def _series_section(b: _Brief, values: Mapping[str, object]) -> str | None:

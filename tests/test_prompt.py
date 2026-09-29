@@ -6,6 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import get_args
 
 import pytest
 
@@ -240,6 +241,85 @@ def test_terse_reference_is_shorter_but_complete():
     assert len(terse) < len(full)
     for kind in TASK_KINDS:
         assert kind in terse
+
+
+def test_a_field_to_leave_out_is_optional_in_the_terse_reference():
+    """The terse reference drops every "(… omit with …)": the "?" before it
+    must still say that the field may be left out."""
+    for kind, line in KIND_FIELDS.items():
+        for name, value in re.findall(r'"(\w+)": ([^,]*?) \([^()]*\bomit\b', line):
+            assert value.endswith("?"), (kind, name)
+    values = {"S": "English", "T": "German", "src": "en", "tgt": "de", "level": "B1"}
+    terse = field_reference(values, terse=True)
+    assert '"cue": S or T?, "answer": T?, "keyword": T?' in terse  # transform
+
+
+def test_writing_into_s_has_its_starter_and_model_answer_in_s():
+    """A mediation ("output_lang": "source") is written in S, and so are its
+    "starter" and "model_answer" (the renderer and the validator treat them so)."""
+    line = KIND_FIELDS["writing"]
+    assert '"output_lang": "target" | "source"? (also of "starter" and "model_answer")' in line
+    assert '"starter": T or S?' in line and '"model_answer": T or S?' in line
+    c1 = _flat(build_prompt(PromptOptions(level="C1")))
+    assert 'mediation (into S: "output_lang": "source")' in c1
+    assert 'model answers (in S when "output_lang" is "source")' in c1
+    assert "task titles and instructions, writing prompts, points and audience" in c1
+
+
+def test_rules_name_a_clue_language_that_is_not_the_default():
+    """S clues in a find_in_text (default target) and T clues in a crossword
+    (default source) need "clue_lang", or they are typeset as the wrong language."""
+    for kind, model, other_lang in (("find_in_text", FindInTextTask, "S"),
+                                    ("crossword", CrosswordTask, "T")):
+        default = model.model_fields["clue_lang"].default
+        other = {"target": "source", "source": "target"}[default]
+        rule = KIND_RULES[kind]
+        assert f'"clue_lang": "{other}"' in rule, kind
+        assert rule.index(f"{other_lang} ") < rule.index(f'"clue_lang": "{other}"'), kind
+    assert '"clue_lang": "target" | "source"? (default target)' in KIND_FIELDS["find_in_text"]
+
+
+def test_the_table_rule_names_the_hints_that_need_a_hint_in_every_gap():
+    """The table rule says which "hint" values need {{answer::hint}} — the
+    ones the validator reports as missing-gap-hint for a plain gap."""
+    validate = pytest.importorskip("langwich.validate")
+    rule = KIND_RULES["table"]
+    named = re.search(r'"hint": ([\w ]+) needs \{\{answer::hint\}\} in every gap', rule)
+    assert named, rule
+    assert 'a verb table whose "head" names the verbs uses "hint": "none"' in rule
+    data = json.loads(LENA.read_text(encoding="utf-8"))
+    needs_hint = set()
+    for hint in get_args(TableTask.model_fields["hint"].annotation):
+        table = {"id": "tb", "kind": "table", "stage": "practice", "scene": "s1", "hint": hint,
+                 "head": ["", "rösten", "trinken"],
+                 "rows": [["ich", "{{röste}}", "{{trinke}}"], ["du", "{{röstest}}", "{{trinkst}}"],
+                          ["sie", "{{röstet}}", "{{trinkt}}"]]}
+        ws = worksheet_from_dict({**data, "tasks": [*data["tasks"], table]})
+        if any(i.code == "missing-gap-hint" for i in validate.validate(ws).issues):
+            needs_hint.add(hint)
+    assert needs_hint == set(named.group(1).split(" or ")) == {"base_form", "translation"}
+    assert "needs {{answer::hint}} in every gap" in _flat(build_prompt(PromptOptions(level="A2")))
+
+
+def test_the_transform_rule_starts_with_the_plain_transformation():
+    """A2 and B1 ask for a transform with a "cue": its rule describes that form
+    first, then the key word transformation of B2+."""
+    core = kind_rules(["transform"], core=True)
+    assert core == ('transform: a "prompt" sentence and a "cue" that says what to change; '
+                    '"answer" is the whole new sentence.')
+    for level in ("A2", "B1"):
+        brief = _flat(build_prompt(PromptOptions(level=level)))
+        assert core.removeprefix("transform: ").rstrip(".") in brief
+        assert "Key word transformation (B2+)" in brief
+
+
+def test_kind_rules_hold_no_words_of_one_target_language():
+    """The rules are printed for every target language (a classify example
+    once said "der/die/das" in a French brief)."""
+    rules = " ".join(KIND_RULES.values())
+    assert not re.search(r"\b(der|die|das|le|la|el)\b", rules)
+    fr = _flat(build_prompt(PromptOptions(level="A1", target_lang="fr")))
+    assert "classify: 2–4 categories (names, genders, formal/informal …)" in fr
 
 
 # ---------------------------------------------------------------------------
