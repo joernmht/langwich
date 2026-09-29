@@ -478,24 +478,16 @@ def test_a_tall_grid_gets_smaller_cells_on_epaper():
 
 
 def test_german_learners_read_waagerecht_and_senkrecht():
+    """The showcase's crossword (French key words, German clues), with the
+    built-in German title and instruction."""
     data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
-    data["tasks"].append({
-        "id": "t16", "kind": "crossword", "stage": "practice", "scene": "s3",
-        "entries": [
-            {"answer": "marché", "clue": "der Markt"},
-            {"answer": "fromage", "clue": "der Käse"},
-            {"answer": "panier", "clue": "der Korb"},
-            {"answer": "raccourci", "clue": "die Abkürzung"},
-            {"answer": "escalier", "clue": "die Treppe"},
-            {"answer": "chemin", "clue": "der Weg"},
-            {"answer": "addition", "clue": "die Rechnung"},
-        ],
-    })
+    task = next(t for t in data["tasks"] if t["kind"] == "crossword")
+    del task["title"], task["instruction"]
     ws = worksheet_from_dict(data)
     assert not [i for i in validate(ws).issues if i.code in COVERED_CODES]
     section = _section(build_html(ws, RenderOptions(base_dir=SHOWCASE.parent)))
     assert ">Waagerecht</span>" in section and ">Senkrecht</span>" in section
-    assert "Kreuzworträtsel" in section
+    assert ">Kreuzworträtsel</h3>" in section and "Löse das Kreuzworträtsel." in section
     assert '<div class="c src">der Markt</div>' in section
 
 

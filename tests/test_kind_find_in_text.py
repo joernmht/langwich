@@ -159,16 +159,16 @@ def test_the_search_forgives_what_copying_changes(answer):
 
 
 def test_typographic_and_straight_apostrophes_are_the_same():
+    """The showcase's find_in_text task searches scene 1, which writes
+    straight apostrophes ('s'arrête' is one of its answers)."""
     data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
-    data["tasks"].append({
-        "id": "t16", "kind": "find_in_text", "stage": "detail", "scene": "s1",
-        "clue_lang": "source",
-        "items": [{"clue": "heute", "answer": "aujourd’hui"},
-                  {"clue": "bitte", "answer": "s’il vous plaît"}],
-    })
+    task = next(t for t in data["tasks"] if t["kind"] == "find_in_text")
+    assert task["scene"] == "s1" and "s'arrête" in [item["answer"] for item in task["items"]]
+    task["items"] += [{"clue": "heute", "answer": "aujourd’hui"},
+                      {"clue": "bitte", "answer": "s’il vous plaît"}]
     assert not _hits(data)
     data["story"]["scenes"][0]["text"] = data["story"]["scenes"][0]["text"].replace("'", "’")
-    data["tasks"][-1]["items"][0]["answer"] = "aujourd'hui"
+    task["items"][-2]["answer"] = "aujourd'hui"
     assert not _hits(data)
 
 
@@ -336,9 +336,12 @@ def test_target_clues_with_explain(page):
 
 
 def test_own_instruction_and_german_labels():
+    """The showcase with its find_in_text task (scene 1, no explanations)
+    replaced by one on scene 2 that asks for explanations."""
     data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
-    data["tasks"].append({
-        "id": "t16", "kind": "find_in_text", "stage": "detail", "scene": "s2",
+    at = next(i for i, t in enumerate(data["tasks"]) if t["kind"] == "find_in_text")
+    data["tasks"][at] = {
+        "id": data["tasks"][at]["id"], "kind": "find_in_text", "stage": "detail", "scene": "s2",
         "clue_lang": "source", "explain": True,
         "items": [
             {"clue": "eine Abkürzung", "answer": "un raccourci"},
@@ -346,7 +349,7 @@ def test_own_instruction_and_german_labels():
             {"clue": "sie wissen nicht mehr, wo sie sind", "answer": "On est perdus",
              "explanation": "Sie haben sich in den Gängen verlaufen."},
         ],
-    })
+    }
     ws = worksheet_from_dict(data)
     assert not [i for i in validate(ws).issues if i.code in COVERED_CODES]
     options = RenderOptions(base_dir=SHOWCASE.parent)
@@ -355,7 +358,7 @@ def test_own_instruction_and_german_labels():
     assert "Finde das Wort oder die Wendung in der Geschichte und erkläre" in section
     assert section.count('<span class="cue">Bedeutung:</span>') == 3
     assert '<p class="q src">eine Abkürzung</p>' in section
-    data["tasks"][-1]["instruction"] = "Suche die Wörter in Szene 2."
+    data["tasks"][at]["instruction"] = "Suche die Wörter in Szene 2."
     section = _section(build_html(worksheet_from_dict(data), options))
     assert '<p class="ins">Suche die Wörter in Szene 2.</p>' in section
 

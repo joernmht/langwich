@@ -327,6 +327,163 @@
         "term": "s'il vous plaît",
         "translation": "bitte",
         "pos": "phrase"
+      },
+      {
+        "term": "le saint-marcellin",
+        "translation": "ein kleiner Weichkäse aus der Region",
+        "pos": "noun"
+      },
+      {
+        "term": "peser",
+        "translation": "wiegen",
+        "pos": "verb",
+        "forms": "je pèse, j'ai pesé"
+      },
+      {
+        "term": "coûter",
+        "translation": "kosten",
+        "pos": "verb"
+      },
+      {
+        "term": "cher",
+        "translation": "teuer",
+        "pos": "adjective",
+        "forms": "chère"
+      },
+      {
+        "term": "fermé",
+        "translation": "geschlossen",
+        "pos": "adjective"
+      },
+      {
+        "term": "les gens",
+        "translation": "die Leute",
+        "pos": "noun"
+      },
+      {
+        "term": "préférer",
+        "translation": "lieber mögen, vorziehen",
+        "pos": "verb",
+        "forms": "je préfère, j'ai préféré"
+      },
+      {
+        "term": "le sac",
+        "translation": "die Tüte, die Tasche",
+        "pos": "noun",
+        "plural": "les sacs"
+      },
+      {
+        "term": "revenir",
+        "translation": "zurückkommen",
+        "pos": "verb",
+        "forms": "je reviens, nous revenons, je suis revenu(e)"
+      },
+      {
+        "term": "seul",
+        "translation": "allein",
+        "pos": "adjective",
+        "forms": "seule"
+      },
+      {
+        "term": "appeler",
+        "translation": "anrufen",
+        "pos": "verb",
+        "forms": "j'appelle, nous appelons, j'ai appelé"
+      },
+      {
+        "term": "le canut",
+        "translation": "der Seidenweber (in Lyon)",
+        "pos": "noun",
+        "plural": "les canuts"
+      },
+      {
+        "term": "le siècle",
+        "translation": "das Jahrhundert",
+        "pos": "noun"
+      },
+      {
+        "term": "à l'abri de",
+        "translation": "geschützt vor",
+        "pos": "phrase"
+      },
+      {
+        "term": "la pluie",
+        "translation": "der Regen",
+        "pos": "noun"
+      },
+      {
+        "term": "doucement",
+        "translation": "leise",
+        "pos": "adverb"
+      },
+      {
+        "term": "le visiteur",
+        "translation": "der Besucher",
+        "pos": "noun",
+        "plural": "les visiteurs"
+      },
+      {
+        "term": "rire",
+        "translation": "lachen",
+        "pos": "verb",
+        "forms": "il rit, il a ri"
+      },
+      {
+        "term": "plein",
+        "translation": "voll",
+        "pos": "adjective",
+        "forms": "pleine"
+      },
+      {
+        "term": "payer",
+        "translation": "bezahlen",
+        "pos": "verb",
+        "forms": "je paie, j'ai payé"
+      },
+      {
+        "term": "la pomme de terre",
+        "translation": "die Kartoffel",
+        "pos": "noun",
+        "plural": "les pommes de terre"
+      },
+      {
+        "term": "le lait",
+        "translation": "die Milch",
+        "pos": "noun"
+      },
+      {
+        "term": "oublier",
+        "translation": "vergessen",
+        "pos": "verb"
+      },
+      {
+        "term": "la bouteille",
+        "translation": "die Flasche",
+        "pos": "noun",
+        "plural": "les bouteilles"
+      },
+      {
+        "term": "le jus de pomme",
+        "translation": "der Apfelsaft",
+        "pos": "noun"
+      },
+      {
+        "term": "se perdre",
+        "translation": "sich verlaufen",
+        "pos": "verb",
+        "forms": "je me perds, je me suis perdu(e)"
+      },
+      {
+        "term": "retourner",
+        "translation": "zurückgehen, wieder hingehen",
+        "pos": "verb",
+        "forms": "je retourne, je suis retourné(e)"
+      },
+      {
+        "term": "gentil",
+        "translation": "nett",
+        "pos": "adjective",
+        "forms": "gentille"
       }
     ]
   },
@@ -562,21 +719,24 @@
       "stage": "detail",
       "scene": "s3",
       "title": "Im Bouchon",
-      "instruction": "Antworte auf Französisch, in ganzen Sätzen.",
+      "instruction": "Antworte auf Französisch. Beginne mit den Wörtern auf der Linie.",
       "items": [
         {
           "question": "Qu'est-ce qu'un bouchon ?",
-          "answer": "C'est un petit restaurant lyonnais.",
+          "starter": "Un bouchon, c'est …",
+          "answer": "Un bouchon, c'est un petit restaurant lyonnais.",
           "lines": 1
         },
         {
           "question": "Qu'est-ce que Mila commande ?",
-          "answer": "Elle commande une salade lyonnaise.",
+          "starter": "Mila commande …",
+          "answer": "Mila commande une salade lyonnaise.",
           "lines": 1
         },
         {
           "question": "Qui choisit le chemin la prochaine fois ?",
-          "answer": "Mila choisit le chemin.",
+          "starter": "La prochaine fois, c'est …",
+          "answer": "La prochaine fois, c'est Mila qui choisit le chemin.",
           "lines": 1
         }
       ]
@@ -680,8 +840,25 @@
       "kind": "writing",
       "stage": "production",
       "title": "Eine Postkarte an Oma",
-      "instruction": "Mila schreibt ihrer Oma in Graz eine Postkarte – auf Französisch, denn die Oma lernt auch.",
-      "prompt": "Was hat Mila auf dem Markt gekauft? Wo haben sich die beiden verlaufen? Wie war das Essen?",
+      "instruction": "Milas Oma in Graz lernt auch Französisch und hat Mila eine Nachricht geschrieben. Antworte als Mila mit einer Postkarte – auf Französisch.",
+      "prompt": "Beantworte alle Fragen von Oma und erzähle von deinem Samstag in Lyon.",
+      "input": "Ma chère Mila,\nComment vas-tu ? Qu'est-ce que tu as fait samedi ? Ton colocataire est gentil ? Et tu as déjà mangé dans un restaurant lyonnais ?\nBisous, Mamie",
+      "register": "informal",
+      "audience": "Milas Oma in Graz",
+      "points": [
+        {
+          "point": "was du am Samstag gemacht hast",
+          "covered_by": "samedi, je suis allée au marché de la Croix-Rousse avec Karim"
+        },
+        {
+          "point": "wie Karim ist",
+          "covered_by": "Karim est gentil, mais il ne connaît pas le chemin"
+        },
+        {
+          "point": "wo ihr gegessen habt und wie es war",
+          "covered_by": "Le soir, nous avons mangé dans un bouchon. C'était délicieux"
+        }
+      ],
       "starter": "Chère Mamie, samedi, je suis allée …",
       "must_use": [
         "le marché",
@@ -691,7 +868,7 @@
       ],
       "min_words": 40,
       "max_words": 60,
-      "model_answer": "Chère Mamie, samedi, je suis allée au marché de la Croix-Rousse avec Karim. J'ai acheté des tomates et du fromage. Après, Karim a pris un raccourci et nous nous sommes perdus dans une traboule ! Une vieille dame nous a montré le chemin. Le soir, nous avons mangé dans un bouchon. C'était délicieux ! Bisous, Mila"
+      "model_answer": "Chère Mamie, samedi, je suis allée au marché de la Croix-Rousse avec Karim. J'ai acheté du fromage. Karim est gentil, mais il ne connaît pas le chemin : nous nous sommes perdus dans une traboule ! Le soir, nous avons mangé dans un bouchon. C'était délicieux ! Bisous, Mila"
     },
     {
       "id": "t14",
@@ -721,6 +898,364 @@
         "la traboule",
         "le bouchon",
         "la rue"
+      ]
+    },
+    {
+      "id": "t16",
+      "kind": "find_in_text",
+      "stage": "detail",
+      "scene": "s1",
+      "title": "Wie sagt man das auf dem Markt?",
+      "instruction": "Finde die Wörter in Szene 1 und schreibe sie ab.",
+      "clue_lang": "source",
+      "items": [
+        {
+          "clue": "seit einem Monat",
+          "answer": "depuis un mois"
+        },
+        {
+          "clue": "es ist viel los",
+          "answer": "Il y a beaucoup de monde"
+        },
+        {
+          "clue": "es riecht gut nach warmem Brot",
+          "answer": "ça sent bon le pain chaud"
+        },
+        {
+          "clue": "sie bleibt stehen",
+          "answer": "s'arrête"
+        },
+        {
+          "clue": "Sonst noch etwas?",
+          "answer": "Et avec ça"
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "kind": "transform",
+      "stage": "form",
+      "scene": "s1",
+      "title": "Madame Roux erzählt",
+      "instruction": "Madame Roux erzählt von ihrem Stand. Ergänze den zweiten Satz so, dass er dasselbe bedeutet wie der erste. Verwende das Wort in Großbuchstaben.",
+      "max_words": 3,
+      "items": [
+        {
+          "prompt": "Au marché, il y a beaucoup de monde.",
+          "keyword": "gens",
+          "frame": "Au marché, il y a {{beaucoup de gens}}."
+        },
+        {
+          "prompt": "Le marché est ouvert tous les matins, sauf le lundi.",
+          "keyword": "fermé",
+          "frame": "Le lundi, le marché {{est fermé}}."
+        },
+        {
+          "prompt": "Les tomates coûtent deux euros cinquante, les fraises quatre euros.",
+          "keyword": "moins",
+          "frame": "Les tomates sont {{moins chères que}} les fraises."
+        },
+        {
+          "prompt": "Mila préfère le saint-marcellin aux autres fromages.",
+          "keyword": "plus",
+          "frame": "Mila aime le saint-marcellin {{plus que}} les autres fromages."
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "kind": "scramble",
+      "stage": "practice",
+      "scene": "s1",
+      "title": "Nächsten Samstag am Stand",
+      "instruction": "Eine Woche später kauft Mila wieder bei Madame Roux ein. Bringe die Wörter in die richtige Reihenfolge und schreibe den Satz.",
+      "items": [
+        {
+          "chunks": [
+            "je",
+            "voudrais",
+            "un kilo",
+            "de",
+            "fraises"
+          ],
+          "cue": "Ich hätte gern ein Kilo Erdbeeren."
+        },
+        {
+          "chunks": [
+            "combien",
+            "coûte",
+            "le saint-marcellin"
+          ],
+          "end": "?",
+          "alternatives": [
+            [
+              "le saint-marcellin",
+              "coûte",
+              "combien"
+            ]
+          ],
+          "cue": "Wie viel kostet der Saint-Marcellin?"
+        },
+        {
+          "chunks": [
+            "Madame Roux",
+            "met",
+            "les fraises",
+            "dans",
+            "un sac"
+          ]
+        },
+        {
+          "chunks": [
+            "Mila",
+            "ne",
+            "prend",
+            "pas",
+            "de",
+            "tomates"
+          ],
+          "cue": "Mila nimmt keine Tomaten."
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s2",
+      "hint": "choice",
+      "choice_layout": "below",
+      "title": "Sonntag: Mila findet den Weg",
+      "instruction": "Am Sonntag geht Mila allein in die Traboule. Kreuze unter dem Text für jede Lücke die richtige Form an.",
+      "text": "Dimanche matin, Mila revient seule à la Croix-Rousse. Elle {{veut::veux|voulons}} trouver le raccourci de Karim. Elle ouvre la vieille porte et elle {{monte::montes|montent}} l'escalier. Cette fois, elle {{connaît::connais|connaissent}} le chemin ! Dans la rue, elle appelle Karim : « Tu {{viens::vient|venez}} au café ? »"
+    },
+    {
+      "id": "t20",
+      "kind": "gapped_text",
+      "stage": "practice",
+      "scene": "s2",
+      "title": "Ein Flyer über die Traboules",
+      "instruction": "Mila liest im Fremdenverkehrsamt einen Flyer. Welcher Satz passt in welche Lücke? Schreibe den Buchstaben. Ein Satz bleibt übrig.",
+      "text": "À Lyon, il y a des centaines de traboules. {{Ce sont des passages qui vont d'une rue à une autre, à travers les maisons.}} On en trouve surtout dans le Vieux Lyon et à la Croix-Rousse. {{Au XIXe siècle, beaucoup de canuts habitaient à la Croix-Rousse.}} Ils portaient la soie par les traboules, à l'abri de la pluie. Aujourd'hui, des familles habitent dans ces maisons. {{Alors, dans une traboule, on parle doucement !}} Beaucoup de traboules sont fermées. {{Mais certaines sont ouvertes aux visiteurs pendant la journée.}}",
+      "extra": [
+        "La Fête des Lumières a lieu en décembre."
+      ]
+    },
+    {
+      "id": "t21",
+      "kind": "classify",
+      "stage": "detail",
+      "scene": [
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "title": "Wer macht was am Samstag?",
+      "instruction": "Wer macht das in der Geschichte? Kreuze in jeder Zeile an.",
+      "categories": [
+        "Mila",
+        "Karim",
+        "Madame Roux"
+      ],
+      "items": [
+        {
+          "text": "pèse les tomates",
+          "answer": "Madame Roux"
+        },
+        {
+          "text": "achète un morceau de fromage",
+          "answer": "Mila"
+        },
+        {
+          "text": "connaît un raccourci",
+          "answer": "Karim"
+        },
+        {
+          "text": "ouvre une vieille porte",
+          "answer": "Karim"
+        },
+        {
+          "text": "rit dans la traboule",
+          "answer": "Mila"
+        },
+        {
+          "text": "a un stand au marché",
+          "answer": "Madame Roux"
+        },
+        {
+          "text": "prend des quenelles",
+          "answer": "Karim"
+        },
+        {
+          "text": "demande l'addition",
+          "answer": "Mila"
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "kind": "true_false",
+      "stage": "detail",
+      "scene": "s3",
+      "title": "Ein Abend im Bouchon",
+      "instruction": "Kreuze an: richtig, falsch oder steht nicht im Text? Verbessere die falschen Sätze und schreibe die Wörter aus Szene 3 ab, die deine Antwort zeigen.",
+      "not_given": true,
+      "justify": true,
+      "items": [
+        {
+          "statement": "Les nappes du bouchon ont deux couleurs.",
+          "answer": true,
+          "quote": "Les nappes sont rouges et blanches"
+        },
+        {
+          "statement": "Le serveur parle lentement.",
+          "answer": false,
+          "correction": "Le serveur parle très vite.",
+          "quote": "le serveur parle très vite"
+        },
+        {
+          "statement": "Karim mange une salade lyonnaise.",
+          "answer": false,
+          "correction": "Karim prend des quenelles.",
+          "quote": "Karim prend des quenelles"
+        },
+        {
+          "statement": "Ce soir, le bouchon est plein.",
+          "answer": "not_given"
+        },
+        {
+          "statement": "Karim paie l'addition.",
+          "answer": "not_given"
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s3",
+      "grammar": "g2",
+      "hint": "choice",
+      "title": "Karim kocht am Sonntag",
+      "instruction": "Karim kocht für Freunde und kauft ein. Kreise die richtige Form ein.",
+      "items": [
+        "Karim achète un kilo {{de::des|du}} pommes de terre.",
+        "Il prend aussi un litre {{de::des|le}} lait.",
+        "Pour le dessert, il veut beaucoup {{de::les|du}} fraises.",
+        "Et il n'oublie pas une bouteille {{de::du|des}} jus de pomme !"
+      ]
+    },
+    {
+      "id": "t24",
+      "kind": "table",
+      "stage": "practice",
+      "scene": [
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "title": "Milas Samstag im Kalender",
+      "instruction": "Mila schreibt ihren Samstag in ihren Kalender. Ergänze die Tabelle mit Wörtern aus dem Kasten; zwei Wörter bleiben übrig. In die letzte Zeile schreibst du deinen eigenen Samstag.",
+      "caption": "Mon samedi à Lyon",
+      "head": [
+        "Quand ?",
+        "Où ?",
+        "Quoi ?"
+      ],
+      "hint": "word_bank",
+      "rows": [
+        [
+          "le matin",
+          "au {{marché}}",
+          "acheter des {{tomates}} et du fromage"
+        ],
+        [
+          "après le marché",
+          "dans une {{traboule}}",
+          "se perdre avec Karim"
+        ],
+        [
+          "le soir",
+          "dans un {{bouchon}}",
+          "manger une {{salade}} lyonnaise"
+        ],
+        [
+          "moi, samedi",
+          null,
+          null
+        ]
+      ],
+      "distractors": [
+        "fraises",
+        "escalier"
+      ]
+    },
+    {
+      "id": "t25",
+      "kind": "proofread",
+      "stage": "practice",
+      "scene": "s3",
+      "title": "Milas Blog – noch mit Fehlern",
+      "instruction": "Mila schreibt für den Blog ihres Sprachkurses. Karim hat die Fehler unterstrichen. Schreibe die richtige Form.",
+      "marked": true,
+      "text": "Samedi, je {{suis::ai}} allée au marché de la Croix-Rousse. J'ai acheté un kilo {{de::des}} tomates chez Madame Roux. Après, Karim et moi, nous {{sommes::avons}} entrés dans une traboule. Une vieille dame nous a montré {{le::la}} chemin. Le soir, nous avons {{mangé::mangés}} dans un bouchon. Je vais bientôt y retourner !"
+    },
+    {
+      "id": "t26",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Und du?",
+      "instruction": "Antworte auf Französisch. Beginne mit den Wörtern auf der Linie.",
+      "question_lang": "source",
+      "items": [
+        {
+          "question": "Gehst du gern auf den Markt? Was kaufst du dort?",
+          "starter": "Au marché, j'achète …",
+          "lines": 2
+        },
+        {
+          "question": "Was bestellst du gern im Restaurant?",
+          "starter": "Au restaurant, je commande …",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "kind": "crossword",
+      "stage": "epilogue",
+      "title": "Milas Wörter im Rätsel",
+      "instruction": "Schreibe die französischen Wörter ohne Artikel in das Rätsel.",
+      "clue_lang": "source",
+      "entries": [
+        {
+          "answer": "marché",
+          "clue": "der Markt"
+        },
+        {
+          "answer": "fromage",
+          "clue": "der Käse"
+        },
+        {
+          "answer": "panier",
+          "clue": "der Korb"
+        },
+        {
+          "answer": "raccourci",
+          "clue": "die Abkürzung"
+        },
+        {
+          "answer": "escalier",
+          "clue": "die Treppe"
+        },
+        {
+          "answer": "chemin",
+          "clue": "der Weg"
+        },
+        {
+          "answer": "addition",
+          "clue": "die Rechnung"
+        }
       ]
     }
   ]

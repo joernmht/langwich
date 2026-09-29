@@ -427,18 +427,12 @@ def test_text_is_escaped():
 
 
 def test_german_learners_sort_a_french_story():
+    """The showcase's classify task (who does what in a French story), with
+    the built-in German title and instructions."""
     data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
-    data["tasks"].append({
-        "id": "t16", "kind": "classify", "stage": "detail", "scene": ["s1", "s2", "s3"],
-        "categories": ["Mila", "Karim", "Madame Roux"],
-        "items": [
-            {"text": "« Un kilo de tomates, s'il vous plaît. »", "answer": "Mila"},
-            {"text": "« Deux euros cinquante. Et avec ça ? »", "answer": "Madame Roux"},
-            {"text": "« Je connais un raccourci ! »", "answer": "Karim"},
-            {"text": "« On est perdus. »", "answer": "Mila"},
-            {"text": "« Alors, cette journée ? »", "answer": "Karim"},
-        ],
-    })
+    task = next(t for t in data["tasks"] if t["kind"] == "classify")
+    assert task["categories"] == ["Mila", "Karim", "Madame Roux"]
+    del task["title"], task["instruction"]
     ws = worksheet_from_dict(data)
     assert not [i for i in validate(ws).issues if i.code in COVERED_CODES]
     options = RenderOptions(base_dir=SHOWCASE.parent)
@@ -446,7 +440,7 @@ def test_german_learners_sort_a_french_story():
     assert ">Sortiere</h3>" in section
     assert "Kreuze für jede Zeile die richtige Spalte an." in section
     assert '<th class="cat tl" lang="fr">Madame Roux</th>' in section
-    data["tasks"][-1].update(layout="columns", categories=["Mila", "Karim", "Madame Roux"])
+    task["layout"] = "columns"
     section = _section(build_html(worksheet_from_dict(data), options))
     assert "Schreibe jedes Wort aus dem Kasten in die richtige Spalte." in section
     assert '<span class="cap">Wortkasten</span>' in section

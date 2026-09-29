@@ -16,10 +16,11 @@ import pytest
 
 from langwich.answers import answer_key
 from langwich.images import prepare_picture
-from langwich.model import MatchTask, Picture, load_worksheet, worksheet_from_dict
+from langwich.model import TASK_KINDS, MatchTask, Picture, load_worksheet, worksheet_from_dict
 from langwich.plan import plan, strip_article
 from langwich.plan import tested_terms as collect_tested_terms
 from langwich.render import RenderOptions, build_html, render_worksheet
+from langwich.validate import validate
 
 ROOT = Path(__file__).resolve().parent.parent
 LENA = ROOT / "examples" / "lena_01_en_de.json"
@@ -436,15 +437,62 @@ def test_sidebars_without_room_move_into_a_band_below_the_scene():
 # ---------------------------------------------------------------------------
 
 
+def test_the_showcase_warns_only_where_it_means_to():
+    """The showcase is checked like any worksheet and departs from the brief
+    only where the tests need it to: the picture of scene 2 has labels but
+    no drawing, so its label task t6 is printed as 'draw and label' (see
+    test_label_task_without_a_visual_becomes_draw_and_label), and it holds a
+    task of every kind — far more tasks than an A2 sheet should have."""
+    report = validate(load_worksheet(SHOWCASE), SHOWCASE.parent)
+    assert sorted((i.code, i.where) for i in report.issues) == [
+        ("label-draws-instead", "/tasks/5"), ("task-count", "/tasks"),
+    ]
+
+
 def test_every_kind_is_rendered():
+    """Every task kind, and the optional fields of the kinds, each with its
+    own markup."""
     ws = load_worksheet(SHOWCASE)
     html = build_html(ws, RenderOptions(base_dir=SHOWCASE.parent))
-    kinds = {t.kind for t in ws.tasks}
-    assert len(kinds) == 13
-    for kind in kinds:
-        assert f"k-{kind}" in html
+    assert {t.kind for t in ws.tasks} == set(TASK_KINDS)
+    for kind in TASK_KINDS:
+        assert f"k-{kind}" in html, kind
+
+    def section(task_id: str) -> str:
+        return _task_section(html, _number(ws, task_id))
+
     assert 'class="dlg"' in html and 'class="search"' in html and 'class="wbi"' in html
-    assert html.count('class="blank"') == 4 + 4 + 4  # passage, first-letter items, dialogue
+    assert 'class="cls grid"' in section("t21")  # classify: a tick box per row and column
+    assert section("t16").count('<p class="q src"') == 5  # find_in_text: German clues
+    assert section("t18").count('class="tile"') == 5 + 3 + 5 + 6  # scramble: word tiles
+    assert 'class="gts"' in section("t20")  # gapped_text: the lettered sentences
+    table = section("t24")
+    assert 'class="gtab tl"' in table and table.count('class="open"') == 2  # open cells
+    assert 'class="draft tl"' in section("t25")  # proofread: the draft in a box
+    assert 'class="cwg"' in section("t27")  # crossword: the grid
+    # the kinds' optional fields
+    tf = section("t22")  # not_given: a third box; justify: a line for the words
+    assert 'class="tf3 just"' in tf and tf.count('class="wl evd"') == 5
+    writing = section("t13")  # a message to answer, its points, who it is for
+    for marker in ('class="box input tl"', 'class="points"', 'class="wmeta"', 'class="reg"'):
+        assert marker in writing, marker
+    assert section("t23").count('class="choice"') == 4  # cloze choice, options inline
+    assert section("t19").count('class="chr"') == 4  # cloze choice, options below
+    transform = section("t17")  # key words and a word limit
+    assert transform.count('class="kw"') == 4 and 'class="len"' in transform
+    assert section("t9").count('class="starter tl"') == 3  # starters on the answer lines
+    assert section("t26").count('<p class="q src"') == 2  # question_lang: source
+    # a blank for every gap the learner writes in; inline choices print their
+    # options instead, the proofread draft its mistakes
+    blanks = {pt.task.id: _task_section(html, pt.number).count('class="blank"')
+              for pt in plan(ws).tasks}
+    assert {task_id: n for task_id, n in blanks.items() if n} == {
+        "t4": 4, "t8": 4, "t10": 4,  # word-bank passage, first-letter items, dialogue
+        "t17": 4,  # the frames of the key word transformations
+        "t19": 4,  # the numbered choice gaps above their options
+        "t20": 4,  # gapped text: a box for the letter of each removed sentence
+        "t24": 5,  # the table's gaps (its open cells get writing lines)
+    }
 
 
 def test_user_text_is_escaped():
@@ -560,8 +608,35 @@ def test_answer_keys_follow_the_shuffles():
         "L'addition, s'il vous plaît !",
     ]
     assert answer_key(by_id["t12"], ws)[0] == "le tire-bouchon"
-    for open_task in ("t13", "t14", "t15"):
+    for open_task in ("t13", "t14", "t15", "t26"):
         assert answer_key(by_id[open_task], ws) == []
+
+    classify = by_id["t21"]
+    assert classify.row_order is not None
+    assert answer_key(classify, ws) == [classify.task.items[i].answer for i in classify.row_order]
+    gapped = by_id["t20"]
+    removed = re.findall(r"\{\{(.+?)\}\}", gapped.task.text)
+    assert gapped.slot_options is not None
+    assert [gapped.slot_options["ABCDE".index(k)] for k in answer_key(gapped, ws)] == removed
+    choice = by_id["t19"]
+    assert choice.gap_options is not None
+    for options, entry, answer in zip(choice.gap_options, answer_key(choice, ws),
+                                      ["veut", "monte", "connaît", "viens"], strict=True):
+        letter, _, text = entry.partition(f"{NBSP}–⁠{NBSP}")
+        assert text == answer and options["abc".index(letter)] == answer
+    assert answer_key(by_id["t18"], ws)[1] == (
+        f"Combien coûte le saint-marcellin{NBSP}? / Le saint-marcellin coûte combien{NBSP}?"
+    )
+    assert answer_key(by_id["t22"], ws) == [
+        "richtig – «Les nappes sont rouges et blanches»",
+        "falsch – Le serveur parle très vite. «le serveur parle très vite»",
+        "falsch – Karim prend des quenelles. «Karim prend des quenelles»",
+        "steht nicht im Text", "steht nicht im Text",
+    ]
+    assert answer_key(by_id["t25"], ws) == [
+        f"{wrong}{NBSP}→ {right}" for wrong, right in
+        [("ai", "suis"), ("des", "de"), ("avons", "sommes"), ("la", "le"), ("mangés", "mangé")]
+    ]
 
 
 def test_letters_never_run_out():
@@ -1148,15 +1223,34 @@ def test_a_page_that_starts_inside_a_task_names_it(rendered, path, page):
                     last_task = int(digits)
 
 
+def _crossword_cell_number(page, span) -> bool:
+    """A clue number in the top left corner of a crossword cell: digits just
+    right of and below the top of a vertical cell border (the grid's borders
+    are drawn as lines one cell long)."""
+    if not span["text"].strip().isdigit():
+        return False
+    x0, y0 = span["bbox"][0], span["bbox"][1]
+    return any(
+        d["rect"].width < 0.1 * MM and 5 * MM < d["rect"].height < 10 * MM
+        and 0 <= x0 - d["rect"].x0 < 1.5 * MM and 0 <= y0 - d["rect"].y0 < 1.5 * MM
+        for d in page.get_drawings()
+    )
+
+
 @pytest.mark.parametrize("path", EXAMPLES, ids=[p.stem.split("_")[0] for p in EXAMPLES])
 def test_epaper_text_is_large_and_dark_enough(rendered, path):
-    """E-paper: nothing below 8.5 pt, no text lighter than #444 (white on black is fine)."""
+    """E-paper: nothing below 8.5 pt, no text lighter than #444 (white on black is fine).
+    One exception: the clue numbers in the corners of crossword cells are
+    7 pt (the e-paper CSS sets 'table.cwg .cn'), so that they leave the
+    7 mm cell to the letter the learner writes in it."""
     _, _, doc = rendered(path, "epaper")
     for number, p in enumerate(doc, 1):
         for block in p.get_text("dict")["blocks"]:
             for line in block.get("lines", []):
                 for span in line["spans"]:
                     if not span["text"].strip():
+                        continue
+                    if 6.9 <= span["size"] < 8.4 and _crossword_cell_number(p, span):
                         continue
                     assert span["size"] >= 8.4, (number, span["text"], span["size"])
                     color = span["color"]
