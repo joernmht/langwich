@@ -15,7 +15,7 @@ from fontTools.ttLib import TTFont
 
 from langwich import crossword
 from langwich.answers import answer_key
-from langwich.crossword import MAX_SIDE, Layout, enclosed, layout, letters, printed
+from langwich.crossword import MAX_SIDE, Layout, black_cells, enclosed, layout, letters, printed
 from langwich.model import ContractError, CrosswordTask, parse_worksheet, worksheet_from_dict
 from langwich.plan import plan
 from langwich.render import RenderOptions, build_html, render_worksheet
@@ -332,11 +332,31 @@ def test_empty_and_single_answers():
 
 def test_letters_print_in_capitals_one_per_cell():
     assert printed("Straße") == "STRAßE"  # ß has no one-letter capital
+    assert printed("Straße", "de") == "STRAßE"
     assert letters("Café") == ["C", "a", "f", "é"]  # a combining accent stays on its letter
     grid = layout(["Straße", "Soße", "Salz", "Suppe"])
     _check_grid(["Straße", "Soße", "Salz", "Suppe"], grid)
     assert "ß" in grid.cells.values()
     assert all(v == v.upper() or v == "ß" for v in grid.cells.values())
+
+
+@pytest.mark.parametrize(("word", "lang", "capitals"), [
+    # Turkish and Azeri: the dotted i has a dotted capital, the dotless ı an I
+    ("şehir", "tr", "ŞEHİR"),
+    ("istasyon", "tr", "İSTASYON"),
+    ("ılık", "tr", "ILIK"),
+    ("bilet", "az", "BİLET"),
+    ("İstanbul".lower(), "tr", "İSTANBUL"),
+    ("şehir", "de", "ŞEHIR"),
+    # Greek capitals drop the accent (tonos), not the diaeresis
+    ("καφές", "el", "ΚΑΦΕΣ"),
+    ("ΐ", "el", "Ϊ"),
+    ("ταΐζω", "el-GR", "ΤΑΪΖΩ"),
+    ("café", "el", "CAFE"),  # (a Greek sheet's capitals)
+    ("café", "fr", "CAFÉ"),
+])
+def test_capitals_follow_the_language(word: str, lang: str, capitals: str):
+    assert printed(word, lang) == capitals
 
 
 def test_is_word():
@@ -352,6 +372,34 @@ def test_enclosed_cells_are_the_ones_letters_cut_off():
     assert enclosed(grid) == {(1, 1)}
     notch = {cell: "A" for cell in ring if cell != (0, 1)}
     assert enclosed(Layout(rows=3, cols=3, placed=(), unplaced=(), cells=notch)) == set()
+
+
+def _frame(rows: int, cols: int, holes: set[tuple[int, int]]) -> Layout:
+    cells = {(r, c): "A" for r in range(rows) for c in range(cols) if (r, c) not in holes}
+    return Layout(rows=rows, cols=cols, placed=(), unplaced=(), cells=cells)
+
+
+def test_only_holes_one_cell_wide_are_black():
+    # a hole one cell wide looks like letter boxes: black; a wider one is
+    # open space, white like the cells outside the words
+    assert black_cells(_frame(3, 3, {(1, 1)})) == {(1, 1)}
+    slot = {(1, 1), (1, 2), (1, 3), (2, 3)}
+    assert black_cells(_frame(4, 5, slot)) == slot
+    square = {(1, 1), (1, 2), (2, 1), (2, 2)}
+    grid = _frame(4, 4, square)
+    assert enclosed(grid) == square and black_cells(grid) == set()
+    both = _frame(4, 7, square | {(1, 5)})
+    assert black_cells(both) == {(1, 5)}
+
+
+def test_a_large_enclosed_area_is_not_a_black_block():
+    words = ["Kaffeebohnenröster", "Kaffeehausbesitzer", "Milchschaum", "Geduld", "Schicht",
+             "Freitag", "Mittwoch", "Hitze", "Geschmack", "Röstung", "Melange", "Sahne",
+             "Novak", "wachsen", "Zucker", "Bohne"]
+    grid = layout(words)
+    black = black_cells(grid)
+    assert len(enclosed(grid)) > 100 and black <= enclosed(grid)
+    assert not any({(r + 1, c), (r, c + 1), (r + 1, c + 1)} <= black for r, c in black)
 
 
 # ---------------------------------------------------------------------------
@@ -450,6 +498,13 @@ def test_answer_key_lists_the_words_in_clue_order_in_capitals():
     assert [p.number for p in grid.placed] == sorted(across) + sorted(down)
 
 
+def test_answer_key_capitals_follow_the_target_language():
+    ws = _ws()
+    ws.target_lang = "tr"  # (the words stay German: only the capitals change)
+    key = answer_key(_planned(ws), ws)
+    assert "BİTTER" in key and "MİLCHSCHAUM" in key and "BITTER" not in key
+
+
 def test_answer_key_numbers_say_across_or_down():
     ws = _ws()
     html = build_html(ws)
@@ -459,17 +514,32 @@ def test_answer_key_numbers_say_across_or_down():
     for p in grid.placed:
         arrow = "→" if p.across else "↓"
         word = printed(ENTRIES[p.index]["answer"])
-        assert f'<span class="kn">{p.number} {arrow}</span>' in solutions
+        assert f'<span class="kn">{p.number}\u00a0{arrow}</span>' in solutions
         assert word in solutions
 
 
+def test_a_right_to_left_grid_runs_its_across_words_leftwards():
+    data = _data()
+    data["target_lang"] = "he"  # (the words stay German: only the direction changes)
+    ws = worksheet_from_dict(data)
+    html = build_html(ws)
+    grid = _planned(ws).crossword
+    assert grid is not None
+    assert 'class="cwg" lang="he" dir="rtl"' in _section(html)
+    solutions = html.split('class="solutions', 1)[1]
+    for p in grid.placed:
+        arrow = "←" if p.across else "↓"
+        assert f'<span class="kn">{p.number}\u00a0{arrow}</span>' in solutions
+    assert "→" not in solutions
+
+
 def test_the_arrows_of_the_key_are_in_the_bundled_fonts():
-    # Atkinson (sans) has no arrows; Literata, second in the sans stack, has both
+    # Atkinson (sans) has no arrows; Literata, second in the sans stack, has them
     assert '--sans: "Atkinson Hyperlegible Next", "Literata"' in BASE_CSS
     for family, _, _, name in FONT_FILES:
         if family == "Literata":
             cmap = TTFont(FONTS_DIR / name).getBestCmap()
-            assert 0x2192 in cmap and 0x2193 in cmap, name
+            assert {0x2190, 0x2192, 0x2193} <= set(cmap), name
 
 
 # ---------------------------------------------------------------------------
@@ -487,7 +557,7 @@ def test_grid_and_clues_are_rendered(page):
     assert f'lang="de" style="--cell:7.0mm;width:{7.0 * grid.cols:.1f}mm"' in section
     assert section.count("<tr>") == grid.rows
     assert section.count('<td class="x">') == len(grid.cells)
-    assert section.count('class="bk"') == len(enclosed(grid))
+    assert section.count('class="bk"') == len(black_cells(grid))
     starts = {(p.row, p.col) for p in grid.placed}
     assert len(re.findall(r'<span class="cn">\d+</span>', section)) == len(starts)
     assert ">Across</span>" in section and ">Down</span>" in section
@@ -592,6 +662,40 @@ def test_crossword_pdf_draws_the_grid_at_its_cell_size(tmp_path):
     assert box.height / MM == pytest.approx(7.0 * grid.rows + border, abs=.3)
     black = [d["rect"] for d in drawings if d["type"] == "f" and d["fill"] == (0.0, 0.0, 0.0)
              and d["rect"].width / MM == pytest.approx(7.0, abs=.2)]
-    assert len(black) == len(enclosed(grid)) and all(box.contains(r) for r in black)
+    assert len(black) == len(black_cells(grid)) and all(box.contains(r) for r in black)
     key = "".join(p.get_text() for p in doc).split("Solutions", 1)[1]
     assert "↓" in key and "MILCHSCHAUM" in key
+
+
+def test_the_clue_captions_stay_with_their_clues(tmp_path):
+    """E-paper: a tall grid under a grammar box ends a page; 'Across' and
+    'Down' go to the next page with their clues, not alone below the grid."""
+    pymupdf = need_pdf(pymupdf=True)
+    entries = [
+        {"answer": "Kaffeebohnenröster", "clue": "a person or machine that roasts coffee beans"},
+        {"answer": "Kaffeehausbesitzer", "clue": "the person who owns a coffee house"},
+        {"answer": "Zucker", "clue": "Herr Novak takes three spoons of it"},
+        {"answer": "Wien", "clue": "the city where the Café Lindner is"},
+        {"answer": "Tasse", "clue": "you drink a Melange from it"},
+        {"answer": "Röstung", "clue": "what Lena burns on Wednesday"},
+    ]
+    data = json.loads(LENA.read_text(encoding="utf-8"))
+    data["tasks"].append({"id": "cw", "kind": "crossword", "stage": "practice", "scene": "s3",
+                          "grammar": "g3", "clue_lang": "source", "entries": entries})
+    data["grammar"].append({
+        "id": "g3", "name": "Compound nouns with Kaffee", "scene": "s3",
+        "explanation": "German builds long nouns from shorter ones. The last noun decides the "
+                       "article and the meaning; the first ones describe it. Long compounds "
+                       "are common in cafés and kitchens.",
+        "rule": "der Kaffee + das Haus + der Besitzer = der Kaffeehausbesitzer",
+        "examples": ["der Kaffee + die Bohne = die Kaffeebohne",
+                     "die Milch + der Schaum = der Milchschaum",
+                     "der Kaffee + das Haus = das Kaffeehaus"]})
+    out = tmp_path / "captions.pdf"
+    render_worksheet(worksheet_from_dict(data), out, RenderOptions(page="epaper", solutions="none"))
+    doc = pymupdf.open(out)
+    pages = [p for p in doc if "ACROSS" in p.get_text()]  # (the captions are in capitals)
+    assert len(pages) == 1
+    text = " ".join(pages[0].get_text().split())
+    assert "DOWN" in text and entries[4]["clue"] in text and entries[0]["clue"] in text
+

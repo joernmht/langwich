@@ -17,7 +17,7 @@ from langwich.model import ContractError, TableTask, Worksheet, worksheet_from_d
 from langwich.plan import plan
 from langwich.plan import tested_terms as collect_tested_terms
 from langwich.render import RenderOptions, build_html, render_worksheet
-from langwich.render.css import A4_CONTENT_W, EPAPER_CONTENT_W, GUTTER_W, MAIN_W
+from langwich.render.css import A4_CONTENT_W, BASE_CSS, EPAPER_CONTENT_W, GUTTER_W, MAIN_W
 from langwich.validate import CHECKS, Issue, validate
 
 #: The validator codes this file exercises (see tests/test_validate.py).
@@ -64,6 +64,31 @@ VERBS: dict[str, Any] = {
         ["ernten", "{{erntet}}", "erntete", "hat {{geerntet}}", "die {{Ernte}}"],
         ["trocknen", "trocknet", "{{trocknete}}", "hat {{getrocknet}}", "die {{Trocknung}}"],
         ["wachsen", "{{wächst}}", "{{wuchs}}", "ist {{gewachsen}}", "das {{Wachstum}}"],
+    ],
+}
+
+
+#: Five columns with a translation in every gap: long hints in narrow columns.
+TRANSLATED: dict[str, Any] = {
+    "id": "tab4", "kind": "table", "stage": "form", "scene": "s3", "hint": "translation",
+    "head": ["Infinitiv", "Präsens", "Präteritum", "Perfekt", "Nomen"],
+    "rows": [
+        ["rösten", "{{röstet::roasts (he/she/it)}}", "{{röstete::roasted (he/she/it)}}",
+         "{{hat geröstet::has roasted (he/she/it)}}", "{{die Röstung::the roasting}}"],
+        ["trocknen", "{{trocknet::dries (he/she/it)}}", "{{trocknete::dried (he/she/it)}}",
+         "{{hat getrocknet::has dried (he/she/it)}}", "{{die Trocknung::the drying}}"],
+    ],
+}
+
+#: Five columns with the base form in every gap.
+BASE_FORMS: dict[str, Any] = {
+    "id": "tab5", "kind": "table", "stage": "form", "scene": "s3", "hint": "base_form",
+    "head": ["Person", "Präsens", "Präteritum", "Perfekt", "Futur"],
+    "rows": [
+        ["er", "{{trocknet::trocknen}}", "{{trocknete::trocknen}}", "{{hat getrocknet::trocknen}}",
+         "{{wird trocknen::trocknen}}"],
+        ["wir", "{{rösten::rösten}}", "{{rösteten::rösten}}", "{{haben geröstet::rösten}}",
+         "{{werden rösten::rösten}}"],
     ],
 }
 
@@ -359,7 +384,8 @@ def test_a_crowded_table_puts_its_word_box_above() -> None:
 
 
 @pytest.mark.parametrize("page", ["a4", "epaper"])
-@pytest.mark.parametrize("task", [FORM, CHART, VERBS], ids=["form", "chart", "verbs"])
+@pytest.mark.parametrize("task", [FORM, CHART, VERBS, TRANSLATED, BASE_FORMS],
+                         ids=["form", "chart", "verbs", "translated", "base-forms"])
 def test_columns_and_blanks_fit_the_page(page: str, task: dict[str, Any]) -> None:
     ws = _ws(task)
     section = _section(build_html(ws, RenderOptions(page=page)), ws, task["id"])
@@ -385,6 +411,29 @@ def test_hints_and_first_letters_are_printed_in_the_cells() -> None:
     ws = _ws(table)
     section = _section(build_html(ws), ws, "tab1")
     assert '<span class="fl">Ä</span>' in section and '<span class="fl">S</span>' in section
+
+
+def test_a_hint_may_go_below_its_blank() -> None:
+    # (in a narrow column the hint wraps below the blank instead of pushing
+    # the blank out of its cell)
+    ws = _ws(TRANSLATED)
+    section = _section(build_html(ws, RenderOptions(page="epaper")), ws, "tab4")
+    assert ('style="width:{}"></span></span> <span class="hint">(roasts (he/she/it))</span>'
+            .format("") not in section)
+    assert re.search(r'<span class="gap"><span class="gn">1</span><span class="blank" '
+                     r'style="width:[\d.]+mm">&nbsp;</span></span> '
+                     r'<span class="hint">\(roasts \(he/she/it\)\)</span>', section)
+    assert ".gtab .hint { display: inline-block; white-space: normal;" in BASE_CSS
+
+
+def test_a_right_to_left_table_has_no_padding_on_its_outer_sides() -> None:
+    data = _data(VERBS)
+    data["target_lang"] = "he"  # (the words stay German: only the direction changes)
+    ws = worksheet_from_dict(data)
+    section = _section(build_html(ws), ws, "tab3")
+    assert '<table class="gtab tl rtl" lang="he" dir="rtl"' in section
+    assert '<table class="gtab tl" lang="de"' in _section(build_html(_ws(VERBS)), _ws(VERBS),
+                                                           "tab3")
 
 
 def test_table_text_is_escaped() -> None:
@@ -450,3 +499,39 @@ def test_the_widest_table_fits_an_epaper_page(tmp_path: Path) -> None:
         words += [w[4] for w in page.get_text("words")]
     for word in ("trocknen", "Präteritum", "Infinitiv", "Röstprotokoll", "süßlich"):
         assert word in words, f"{word!r} was broken or lost"
+
+
+def test_tables_with_hints_keep_their_headings_whole(tmp_path: Path) -> None:
+    pymupdf = _pymupdf()
+    data = _data(TRANSLATED, BASE_FORMS)
+    data["tasks"] = [t for t in data["tasks"] if t["id"] in ("tab4", "tab5")]
+    result = render_worksheet(worksheet_from_dict(data), tmp_path / "hints.pdf",
+                              RenderOptions(page="epaper", solutions="none"))
+    assert result.pdf is not None and result.warnings == []
+    doc = pymupdf.open(result.pdf)
+    words = [w[4] for page in doc for w in page.get_text("words")]
+    for word in ("Infinitiv", "Person", "Präteritum", "Perfekt", "trocknen", "(roasts"):
+        assert word in words, f"{word!r} was broken or lost"
+    for page in doc:  # (the hints too stay inside the page)
+        assert all(w[0] >= 8 * MM - 2 and w[2] <= page.rect.width - 8 * MM + 2
+                   for w in page.get_text("words")), page.number
+
+
+def test_a_right_to_left_table_starts_at_the_right(tmp_path: Path) -> None:
+    pymupdf = _pymupdf()
+    data = _data(VERBS)
+    data["tasks"] = [t for t in data["tasks"] if t["id"] == "tab3"]
+    data["target_lang"] = "he"
+    result = render_worksheet(worksheet_from_dict(data), tmp_path / "rtl.pdf",
+                              RenderOptions(page="epaper", solutions="none"))
+    assert result.pdf is not None
+    ws = worksheet_from_dict(data)
+    widths = _column_widths(_section(build_html(ws, RenderOptions(page="epaper")), ws, "tab3"))
+    page = next(p for p in pymupdf.open(result.pdf) if "Infinitiv" in p.get_text())
+    words = {w[4]: w for w in page.get_text("words")}
+    # (the table starts after the page margin and the gutter, 8 + 9 mm; the
+    # heads stand at the right of their cells, 2 mm from the next column)
+    left = 8.0 + GUTTER_W
+    assert words["Infinitiv"][2] / MM == pytest.approx(left + sum(widths), abs=0.5)
+    assert words["Präteritum"][2] / MM == pytest.approx(left + sum(widths[2:]) - 2.0, abs=0.5)
+    assert words["Nomen"][2] / MM == pytest.approx(left + widths[-1] - 2.0, abs=0.5)

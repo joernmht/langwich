@@ -6,7 +6,8 @@ shuffles, not content. The layout depends on the answers alone (no render
 seed), so the validator sees the same grid as every render of the worksheet.
 
 Letters are compared by ``.lower()`` and printed in upper case, one per
-cell (a letter whose upper case is longer, such as ß, stays as it is).
+cell (a letter whose upper case is longer, such as ß, stays as it is; see
+:func:`printed` for the capitals of Turkish, Azeri and Greek).
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ import random
 import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
+
+from langwich.locale import base_lang
 
 
 @dataclass(frozen=True)
@@ -38,7 +41,7 @@ class Layout:
     cols: int
     placed: tuple[Placed, ...]
     unplaced: tuple[int, ...]          # indices that could not be joined to the grid
-    cells: Mapping[tuple[int, int], str]  # (row, col) -> letter as printed in the key (upper case)
+    cells: Mapping[tuple[int, int], str]  # (row, col) -> letter in upper case (see printed)
 
 
 #: Longest side of the grid in cells; fits e-paper (141.8 mm) at 7 mm per cell.
@@ -70,13 +73,26 @@ def is_word(answer: str) -> bool:
     )
 
 
-def printed(word: str) -> str:
-    """``word`` in upper case as the grid and the answer key print it,
-    character by character: a character whose upper case is longer (ß → SS)
-    stays as it is, since each letter fills one cell."""
-    return "".join(
-        ch.upper() if len(ch.upper()) == 1 else ch for ch in unicodedata.normalize("NFC", word)
-    )
+#: Languages whose i has a dotted capital, İ (and whose dotless ı has I):
+#: the tailored case mappings of Unicode's SpecialCasing.
+DOTTED_I_LANGS = frozenset({"tr", "az"})
+
+
+def printed(word: str, lang: str = "") -> str:
+    """``word`` in upper case as the answer key prints it, in the capitals
+    of ``lang`` (the target language), character by character: a character
+    whose upper case is longer (ß → SS) stays as it is, since each letter
+    fills one cell. Turkish and Azeri write i as İ; Greek drops the accent
+    (tonos) in capitals, but keeps the diaeresis (καφές → ΚΑΦΕΣ, ΐ → Ϊ)."""
+    text = unicodedata.normalize("NFC", word)
+    base = base_lang(lang)
+    if base == "el":
+        # (U+0301 is the tonos once decomposed; ΐ is ι, U+0308, U+0301)
+        text = unicodedata.normalize(
+            "NFC", unicodedata.normalize("NFD", text).replace("\u0301", ""))
+    elif base in DOTTED_I_LANGS:  # (i with a combining dot, as 'İ'.lower() gives it, too)
+        text = text.replace("i\u0307", "i").replace("i", "İ")
+    return "".join(ch.upper() if len(ch.upper()) == 1 else ch for ch in text)
 
 
 def layout(answers: list[str]) -> Layout:
@@ -101,9 +117,7 @@ def layout(answers: list[str]) -> Layout:
 
 
 def enclosed(grid: Layout) -> frozenset[tuple[int, int]]:
-    """Blank cells that letter cells cut off from the edge of the grid. Their
-    neighbours' borders frame them like letter boxes, so the renderer fills
-    them in (the black squares of a printed crossword)."""
+    """Blank cells that letter cells cut off from the edge of the grid."""
     rows, cols = grid.rows, grid.cols
     outside = {(r, c) for r in range(-1, rows + 1) for c in (-1, cols)}
     outside |= {(r, c) for r in (-1, rows) for c in range(cols)}
@@ -119,6 +133,29 @@ def enclosed(grid: Layout) -> frozenset[tuple[int, int]]:
         (r, c) for r in range(rows) for c in range(cols)
         if (r, c) not in grid.cells and (r, c) not in outside
     )
+
+
+def black_cells(grid: Layout) -> frozenset[tuple[int, int]]:
+    """The blank cells the renderer fills in (the black squares of a printed
+    crossword): the :func:`enclosed` holes only one cell wide (no 2 × 2
+    block), which their neighbours' borders frame like letter boxes. A wider
+    hole is open space and stays white, like the blank cells outside the
+    words, instead of printing as a large black block."""
+    holes = set(enclosed(grid))
+    black: set[tuple[int, int]] = set()
+    while holes:
+        todo = [holes.pop()]
+        hole = set(todo)
+        while todo:
+            r, c = todo.pop()
+            for cell in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):
+                if cell in holes:
+                    holes.remove(cell)
+                    hole.add(cell)
+                    todo.append(cell)
+        if not any({(r + 1, c), (r, c + 1), (r + 1, c + 1)} <= hole for r, c in hole):
+            black |= hole
+    return frozenset(black)
 
 
 _Cell = tuple[int, int]

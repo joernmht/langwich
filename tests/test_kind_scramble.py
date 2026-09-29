@@ -15,8 +15,9 @@ import pytest
 from langwich.answers import answer_key, scramble_sentence
 from langwich.model import ContractError, canonical_kind, worksheet_from_dict
 from langwich.plan import PlannedTask, plan
-from langwich.render import RenderOptions, build_html
+from langwich.render import RenderOptions, build_html, render_worksheet
 from langwich.validate import Issue, validate
+from tests.test_render import need_pdf
 
 #: The validator codes these tests trigger (see tests/test_validate.py).
 COVERED_CODES = {"scramble-alternative", "scramble-punctuation", "scramble-capital"}
@@ -124,6 +125,12 @@ def test_items_nested_under_the_kind_are_located_in_the_task() -> None:
     assert sorted(loc for loc, _ in err.value.problems) == [
         f"/tasks/{INDEX}/items", f"/tasks/{INDEX}/scramble",
     ]
+
+
+@pytest.mark.parametrize("end", ["。", "？", "！"])
+def test_the_full_width_end_marks_are_allowed(end: str) -> None:
+    item = worksheet_from_dict(_lena({"chunks": ["heute", "regnet", "es"], "end": end}))
+    assert item.tasks[INDEX].items[0].end == end
 
 
 def test_no_items_is_a_contract_error() -> None:
@@ -401,8 +408,31 @@ def test_an_alternative_that_repeats_the_sentence_is_printed_once() -> None:
     (["heute", "regnet", "es"], "", "de", "Heute regnet es"),
     # no space after an elision; the letter after it is the first one
     (["l'", "homme", "arrive"], ".", "fr", "L'homme arrive."),
+    (["je", "l'", "aime"], ".", "fr", "Je l'aime."),
+    (["va-t’", "en", "vite"], ".", "fr", "Va-t’en vite."),
+    (["jusqu'", "à", "demain"], ".", "fr", "Jusqu'à demain."),
     (["dall’", "Italia", "arriva", "il caffè"], ".", "it", "Dall’Italia arriva il caffè."),
+    (["c'", "è", "un'", "amica"], ".", "it", "C'è un'amica."),
+    (["l'", "àvia", "arriba"], ".", "ca", "L'àvia arriba."),
+    (["um", "copo", "d'", "água"], ".", "pt", "Um copo d'água."),
     (["it's", "late"], ".", "en", "It's late."),
+    # a possessive or a shortened word is followed by a space
+    (["das ist", "Jonas'", "Schürze"], ".", "de", "Das ist Jonas' Schürze."),
+    (["my", "parents'", "house", "is", "big"], ".", "en", "My parents' house is big."),
+    (["vorrei", "un po'", "di", "zucchero"], ".", "it", "Vorrei un po' di zucchero."),
+    (["Lorenzo", "de'", "Medici", "arriva"], ".", "it", "Lorenzo de' Medici arriva."),
+    (["rock", "'n'", "roll", "forever"], "!", "en", "Rock 'n' roll forever!"),
+    # no spaces in Chinese and Japanese (or Thai), whose marks are full width
+    (["我", "喜欢", "喝", "咖啡"], ".", "zh", "我喜欢喝咖啡。"),
+    (["你", "喝", "咖啡", "吗"], "?", "zh-TW", "你喝咖啡吗？"),
+    (["私は", "コーヒーを", "飲みます"], "。", "ja", "私はコーヒーを飲みます。"),
+    (["すごい", "です", "ね"], "！", "ja", "すごいですね！"),
+    (["ฉัน", "ชอบ", "กาแฟ"], "", "th", "ฉันชอบกาแฟ"),
+    # the capitals of the language: Turkish İ, Dutch IJ
+    (["iyi", "günler", "dilerim"], "!", "tr", "İyi günler dilerim!"),
+    (["ırmak", "çok", "derin"], ".", "tr", "Irmak çok derin."),
+    (["ijs", "is", "koud"], ".", "nl", "IJs is koud."),
+    (["iyi", "günler"], ".", "de", "Iyi günler."),
     # French spaces before ? and !
     (["tu", "viens", "demain"], "?", "fr", "Tu viens demain ?"),
     (["quelle", "surprise"], "!", "fr-CA", "Quelle surprise !"),
@@ -452,6 +482,44 @@ def test_the_sentences_themselves_are_not_on_the_page() -> None:
     section = _section(build_html(ws), pt)
     assert "am Freitag darf" not in section and "Am Freitag darf" not in section
     assert "Warum nimmt" not in section
+
+
+@pytest.mark.parametrize("page", ["a4", "epaper"])
+def test_chinese_and_japanese_end_marks_are_full_width(page: str) -> None:
+    data = _lena({"chunks": ["私は", "コーヒーを", "飲みます"]},
+                 {"chunks": ["コーヒーを", "飲みます", "か"], "end": "?"})
+    data["target_lang"] = "ja"
+    ws, pt = _planned(data)
+    section = _section(build_html(ws, RenderOptions(page=page)), pt)
+    assert re.findall(r'<span class="end">(.*?)</span>', section) == ["。", "？"]
+    assert answer_key(pt, ws) == ["私はコーヒーを飲みます。", "コーヒーを飲みますか？"]
+
+
+def test_a_right_to_left_line_has_its_end_mark_at_the_left() -> None:
+    data = _lena()
+    data["target_lang"] = "he"  # (the tiles stay German: only the direction changes)
+    ws, pt = _planned(data)
+    section = _section(build_html(ws), pt)
+    assert section.count('<div class="sls tl rtl" lang="he" dir="rtl">') == 3
+    ws, pt = _planned(_lena())
+    assert " rtl" not in _section(build_html(ws), pt)
+
+
+@pytest.mark.parametrize(("target", "at_left"), [("de", False), ("he", True)])
+def test_the_end_mark_stands_where_the_sentence_ends(target: str, at_left: bool,
+                                                    tmp_path: Path) -> None:
+    pymupdf = need_pdf(pymupdf=True)
+    data = _lena()
+    data["tasks"] = [data["tasks"][INDEX]]
+    data["target_lang"] = target  # (the tiles stay German: only the direction changes)
+    out = tmp_path / "scramble.pdf"
+    render_worksheet(worksheet_from_dict(data), out, RenderOptions(page="epaper",
+                                                                    solutions="none"))
+    doc = pymupdf.open(out)
+    ends = [w for page in doc for w in page.get_text("words") if w[4] in ("?", "!")]
+    assert len(ends) == 2
+    middle = doc[0].rect.width / 2
+    assert all((w[2] < middle) == at_left for w in ends)
 
 
 def test_no_end_mark_without_end() -> None:

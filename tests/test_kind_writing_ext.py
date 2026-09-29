@@ -347,6 +347,22 @@ def test_the_key_lists_the_points_after_the_model_answer(page: str) -> None:
             "„Am schwierigsten war das Rösten“</span></li>") in points
 
 
+@pytest.mark.parametrize("covered_by", [
+    "„Am schwierigsten war das Rösten“", "»Am schwierigsten war das Rösten«",
+    "\"Am schwierigsten war das Rösten\"",
+])
+def test_words_quoted_already_are_not_quoted_twice(covered_by: str) -> None:
+    block = _solution(build_html(worksheet_from_dict(_covered(covered_by))),
+                      "Friday night: an answer to Trieste")
+    assert ('— <span class="tl" lang="de">„Am schwierigsten war das Rösten“</span></li>'
+            in block)
+    # (the estimate too: as tall as for the words without their marks)
+    quoted, plain = (Builder(worksheet_from_dict(data)) for data in (_covered(covered_by), _lena()))
+    heights = {b.solution_h(next(pt for pt in b.plan.tasks if pt.task.id == "t12"), 55.0)
+               for b in (quoted, plain)}
+    assert len(heights) == 1
+
+
 def test_the_key_of_a_mediation_is_in_the_source_language() -> None:
     points = copy.deepcopy(NOTE["points"])
     del points[1]["covered_by"]

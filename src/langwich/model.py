@@ -68,7 +68,8 @@ POS_VALUES: tuple[str, ...] = (
 
 ClozeHint = Literal["word_bank", "first_letter", "base_form", "translation", "choice", "none"]
 TableHint = Literal["word_bank", "first_letter", "base_form", "translation", "none"]
-ScrambleEnd = Literal[".", "?", "!", "…", ""]
+#: (。？！: the full-width marks of Chinese and Japanese, which also print . ? ! so)
+ScrambleEnd = Literal[".", "?", "!", "…", "", "。", "？", "！"]
 Register = Literal["informal", "neutral", "formal"]
 #: The language a field is written in: the target or the source language.
 TextLang = Literal["target", "source"]
