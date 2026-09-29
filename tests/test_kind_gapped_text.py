@@ -313,7 +313,7 @@ def test_removed_sentences_are_not_tested_words() -> None:
 def test_a_box_for_a_letter_in_every_gap(page: str) -> None:
     ws = _ws(DIARY)
     section = _section(build_html(ws, RenderOptions(page=page)), ws, "gt1")
-    assert 'class="task unit k-gapped_text keep"' in section and "data-soft" in section
+    assert 'class="task unit k-gapped_text keep"' in section and "data-soft" not in section
     assert "<h3>Lena&#x27;s diary: Wednesday night</h3>" in section
     assert "Write the letter of the missing sentence in each gap." in section
     passage = re.search(r'<div class="passage tl" lang="de">(.*?)</div>', section, flags=re.S)
@@ -400,11 +400,11 @@ def _pymupdf():
 
 
 @pytest.mark.parametrize("page", ["a4", "epaper"])
-def test_the_sentences_are_never_split_across_pages(page: str, tmp_path: Path) -> None:
+def test_the_passage_and_its_sentences_share_a_page(page: str, tmp_path: Path) -> None:
     pymupdf = _pymupdf()
     data = _data(DIARY)
-    # (on e-paper the scene's picture leaves room for the passage only, so
-    # the task breaks: the sentences then move to the next page together)
+    # (on e-paper the scene's picture leaves room for the passage only: the
+    # whole task moves to the next page rather than part the two)
     data["tasks"] = [t for t in data["tasks"] if t["id"] in ("t3", "t4", "gt1")]
     ws = worksheet_from_dict(data)
     result = render_worksheet(ws, tmp_path / "gapped.pdf",
@@ -415,7 +415,7 @@ def test_the_sentences_are_never_split_across_pages(page: str, tmp_path: Path) -
     passage = [n for n, text in enumerate(texts) if "Mittwoch, 22 Uhr." in text]
     listed = [n for n, text in enumerate(texts) if DIARY["extra"][0] in text]
     assert len(passage) == 1 and len(listed) == 1
-    assert listed[0] in (passage[0], passage[0] + 1)
+    assert listed[0] == passage[0]
     for sentence in _sentences(DIARY) + DIARY["extra"]:
         assert sentence in texts[listed[0]], sentence
     margin = 8 * MM if page == "epaper" else 12 * MM

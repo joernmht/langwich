@@ -740,7 +740,8 @@ def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
                    for k, s in enumerate(shown))
     main = (f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
             f'<div class="gts">{rows}</div>')
-    return Parts(main, keep=True)
+    # the passage and its sentences must be seen together, like a match
+    return Parts(main, keep_hard=True)
 
 
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
