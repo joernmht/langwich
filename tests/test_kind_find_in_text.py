@@ -296,6 +296,22 @@ def test_answer_key_adds_the_explanations():
         f"Das dauert ja ewig – {EXPLAINED[1]['explanation']}", "säuerlich"]
 
 
+def test_the_key_tags_each_part_with_its_language():
+    data = _data(EXPLAINED, scene="s3", clue_lang="target", explain=True)
+    solutions = build_html(worksheet_from_dict(data)).split('class="solutions', 1)[1]
+    assert (f'<span class="k" lang="de">enttäuscht – {EXPLAINED[0]["explanation"]}</span>'
+            in solutions)
+    # 'answers will vary' is in the learner's language, as are the
+    # explanations of source-language clues
+    assert ('<span class="k"><span lang="de">säuerlich</span><span lang="en"> – Answers will '
+            "vary.</span></span>") in solutions
+    source = _data([{"clue": "stirs", "answer": "rührt", "explanation": "stirs the coffee"}],
+                   explain=True)
+    solutions = build_html(worksheet_from_dict(source)).split('class="solutions', 1)[1]
+    assert ('<span class="k"><span lang="de">rührt</span><span lang="en"> – stirs the '
+            "coffee</span></span>") in solutions
+
+
 def test_the_key_is_numbered_like_the_items():
     solutions = build_html(_ws()).split('class="solutions', 1)[1]
     block = solutions.split("Find it in the story", 1)[1].split('<div class="sb">', 1)[0]

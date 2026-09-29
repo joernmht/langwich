@@ -323,6 +323,21 @@ def test_the_key_without_quotes_is_unchanged() -> None:
         "false – „Lena steht zum ersten Mal hinter der Theke“")
 
 
+@pytest.mark.parametrize(("target", "tgt", "src"), [
+    ("de", ' lang="de"', ' lang="en"'),
+    ("he", ' lang="he" dir="rtl"', ' lang="en" dir="ltr"'),
+])
+def test_the_key_tags_the_verdicts_with_the_learners_language(target: str, tgt: str,
+                                                              src: str) -> None:
+    data = _lena()
+    data["target_lang"] = target  # (a right-to-left target: the words stay German)
+    solutions = build_html(worksheet_from_dict(data)).split('class="solutions', 1)[1]
+    block = solutions.split("Lena&#x27;s first morning", 1)[1].split('<div class="sb">', 1)[0]
+    assert (f'<span class="k"><span{src}>false – </span><span{tgt}>Es ist ihr erster Tag im '
+            "Café. ") in block
+    assert block.count(f'<span class="k"{src}>not in the text</span>') == 2
+
+
 def test_the_key_speaks_the_learners_language() -> None:
     data = _lena()
     data["source_lang"] = "de"
@@ -439,6 +454,18 @@ def test_every_head_fits_its_column(lang: str, page: str) -> None:
         assert all(metrics.width_mm(w, "sans-bold", size) <= width - 2.0 for w in head.split())
         assert metrics.line_count(head, width - 2.0, "sans-bold", size) <= 2
     assert 12.0 <= width <= 18.0
+
+
+@pytest.mark.parametrize("blank", ["", "  "])
+@pytest.mark.parametrize("page", ["a4", "epaper"])
+def test_blank_ui_labels_do_not_break_the_heads(blank: str, page: str) -> None:
+    data = _lena()
+    data["ui"] = {"true": blank, "false": blank, "not_given": blank}
+    ws = worksheet_from_dict(data)
+    b = Builder(ws, RenderOptions(page=page))
+    assert tf_column_width(b) == 12.0
+    section = _section(build_html(ws, RenderOptions(page=page)))
+    assert section.count('<th class="h" style="width:12.0mm">') == 3
 
 
 def test_the_height_estimate_makes_room_for_heads_and_quote_lines() -> None:

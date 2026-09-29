@@ -29,7 +29,7 @@ import unicodedata
 from typing import Literal
 
 from langwich import locale
-from langwich.answers import answer_key
+from langwich.answers import KeyRun, answer_key_runs, key_text, quoted_passage
 from langwich.images import PreparedPicture, prepare_picture
 from langwich.model import (
     POS_VALUES,
@@ -162,6 +162,12 @@ def trailing_punctuation(text: str) -> str:
 def comment_safe(text: str) -> str:
     """Text that can sit inside an HTML comment."""
     return text.replace("--", "–").replace("<", "‹").replace(">", "›")
+
+
+def paragraphs(text: str) -> list[str]:
+    """The paragraphs of ``text`` (split at blank lines), stripped, without
+    empty ones."""
+    return [p.strip() for p in text.split("\n\n") if p.strip()]
 
 
 def paragraph_spans(text: str) -> list[tuple[int, int]]:
@@ -610,15 +616,13 @@ class Builder:
                            + 1.4 + len(it.options) * 6.6 + 2.6 for it in task.items)
         if isinstance(task, TransformTask):
             # the prompt (narrower beside a key word), then the → line, or the
-            # frame on 7.6 mm lines with the task's blank (as wide as its longest
-            # answer and a fifth more, see tasks.frame_blank_width) for its gap
-            from langwich import markup
-            from langwich.answers import safe_gaps
+            # frame on 7.6 mm lines beside its cue, with the task's blank (see
+            # tasks.frame_blank_width) for its gap
+            from langwich.render import tasks  # local import: tasks imports this module's helpers
 
-            avail = self.main_width(self.has_aside(pt, False)) - GUTTER_W
-            longest = max((g.answer for it in task.items if it.frame for g in safe_gaps(it.frame)),
-                          key=len, default="")
-            blank = longest + "n" * (len(longest) // 5 + 4)
+            aside = self.has_aside(pt, False)
+            avail = self.main_width(aside) - GUTTER_W
+            blank_w = tasks.frame_blank_width(self, task, aside)
             for it in task.items:
                 kw_w = (metrics.width_mm(it.keyword.upper(), "sans-bold", 10.0) + 4.0
                         if it.keyword else 0.0)
@@ -626,8 +630,8 @@ class Builder:
                 if it.frame is None:
                     h += 11.6
                     continue
-                frame = f"→ {it.cue or ''} " + markup.GAP_RE.sub(lambda _: blank, it.frame)
-                h += metrics.line_count(frame, avail, "serif", 11.0) * 7.6 + 3.4
+                width = avail - tasks.frame_cue_width(it.cue)
+                h += tasks.frame_lines(it.frame, blank_w, width) * 7.6 + 3.4
             return h
         return h + 80.0
 
@@ -1293,10 +1297,28 @@ class Builder:
 
     # -- answers ---------------------------------------------------------------
 
-    def key_for(self, pt: PlannedTask) -> list[str]:
+    def key_for(self, pt: PlannedTask) -> list[list[KeyRun]]:
+        """The answer key of a task, each entry as its runs by language."""
         if self.is_label_draw(pt):
             return []
-        return answer_key(pt, self.ws)
+        return answer_key_runs(pt, self.ws)
+
+    def key_html(self, runs: list[KeyRun]) -> str:
+        """One answer-key entry, each run with its language's ``lang`` (and
+        ``dir``): the answers the target's, a verdict or 'not in the text'
+        the learner's. A short answer keeps its article on its line."""
+        short = len(key_text(runs).split()) <= 3
+
+        def shown(run: str, source: bool) -> str:
+            return esc(with_article_nbsp(run, self.tgt) if short and not source else run)
+
+        if len(runs) == 1:
+            run, source = runs[0]
+            attr = self.src_attr() if source else self.lang_attr()
+            return f'<span class="k"{attr}>{shown(run, source)}</span>'
+        inner = "".join(f"<span{self.src_attr() if source else self.lang_attr()}>"
+                        f"{shown(run, source)}</span>" for run, source in runs)
+        return f'<span class="k">{inner}</span>'
 
     def key_numbers(self, pt: PlannedTask, count: int) -> list[str] | None:
         from langwich.render import tasks  # local import: tasks imports this module's helpers
@@ -1317,15 +1339,15 @@ class Builder:
 
     def solution_block(self, pt: PlannedTask) -> str:
         task = pt.task
-        key = self.key_for(pt)
+        runs = self.key_for(pt)
+        key = [key_text(entry) for entry in runs]
         if key:
             numbers = self.key_numbers(pt, len(key))
             entries = []
             for i, k in enumerate(key):
                 # a non-breaking space: "8 J" never splits into "8" / "J"
                 num = f'<span class="kn">{numbers[i]}</span>\u00a0' if numbers else ""
-                shown = with_article_nbsp(k, self.tgt) if len(k.split()) <= 3 else k
-                entry = f'{num}<span class="k"{self.lang_attr()}>{esc(shown)}</span>'
+                entry = num + self.key_html(runs[i])
                 if len(k) <= 12:
                     entry = f'<span class="ke">{entry}</span>'
                 entries.append(entry)
@@ -1338,18 +1360,16 @@ class Builder:
             # each point with the words of the model answer that cover it
             source = task.output_lang == "source"
             attr = self.src_attr() if source else self.lang_attr()
-            model = "<br>".join(esc_br(p.strip()) for p in task.model_answer.split("\n\n")
-                                if p.strip())
+            model = "<br>".join(esc_br(p) for p in paragraphs(task.model_answer))
             content = (f'<i>{esc(self.t("model_answer"))}:</i> '
                        f'<span class="model{" src" if source else ""}"{attr}>{model}</span>')
-            points = "".join(
-                f"<li>{esc(p.point)}"
-                + (" — " + (esc(locale.quoted(p.covered_by, self.src)) if source
-                            else self.tl(locale.quoted(p.covered_by, self.tgt)))
-                   if p.covered_by else "")
-                + "</li>"
-                for p in task.points
-            )
+            points = ""
+            for p in task.points:
+                # (the words in the quote marks of their language, never twice)
+                words = quoted_passage(p.covered_by or "", self.src if source else self.tgt)
+                if words:
+                    words = " — " + (esc(words) if source else self.tl(words))
+                points += f"<li>{esc(p.point)}{words}</li>"
             if points:
                 content += f'<ul class="pts">{points}</ul>'
         else:
@@ -1363,8 +1383,7 @@ class Builder:
             scene = block.scene
             if not scene.translation:
                 continue
-            paras = "".join(f"<p>{esc_br(p.strip())}</p>"
-                            for p in scene.translation.split("\n\n") if p.strip())
+            paras = "".join(f"<p>{esc_br(p)}</p>" for p in paragraphs(scene.translation))
             blocks.append(f'<div class="tr"><h4><span class="num">{block.number}</span>'
                           f'{self.tl(scene.heading)}</h4><div lang="{esc(self.src)}">{paras}</div></div>')
         return "".join(blocks)
@@ -1373,7 +1392,7 @@ class Builder:
         """Estimated height (mm) of a task's block in the answer key."""
         task = pt.task
         h = metrics.line_count(self.task_title(pt), col_w - 5.8, "sans-bold", 8.5) * 4.05 + 0.6
-        key = self.key_for(pt)
+        key = [key_text(entry) for entry in self.key_for(pt)]
         if key:
             numbers = self.key_numbers(pt, len(key)) or [""] * len(key)
             entries = [f"{n} {k}".strip() for n, k in zip(numbers, key)]
@@ -1383,11 +1402,12 @@ class Builder:
             else:
                 h += metrics.line_count(" · ".join(entries), col_w, "serif", 9.0) * 4.76
         elif isinstance(task, WritingTask) and task.model_answer:
-            model = "\n".join(p.strip() for p in task.model_answer.split("\n\n") if p.strip())
+            model = "\n".join(paragraphs(task.model_answer))
             face = "sans" if task.output_lang == "source" else "serif-italic"
             h += metrics.line_count(f"{self.t('model_answer')}: {model}", col_w, face, 9.0) * 4.6
-            h += sum(metrics.line_count(f"– {p.point} — «{p.covered_by or ''}»", col_w - 3.6,
-                                        "sans", 9.0) * 4.76 + 0.5 for p in task.points)
+            lang = self.src if task.output_lang == "source" else self.tgt
+            h += sum(metrics.line_count(f"– {p.point} — {quoted_passage(p.covered_by or '', lang)}",
+                                        col_w - 3.6, "sans", 9.0) * 4.76 + 0.5 for p in task.points)
         else:
             h += 4.76
         return h + 3.4

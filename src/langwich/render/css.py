@@ -374,10 +374,12 @@ table.match td.opt.tl { font-family: var(--serif); }
 .scr .tile { display: inline-block; border: .6pt solid #000; padding: .4mm 1.8mm .6mm;
   margin: 0 1.2mm 1.6mm 0; }
 .scr .cue { font: italic 400 9.5pt/1.4 var(--sans); color: var(--ink-2); margin-top: -.4mm; }
-.scr .sl { display: grid; grid-template-columns: 1fr auto; align-items: end;
-  height: var(--pitch); break-inside: avoid; }
-.scr .sl .line { border-bottom: .6pt solid var(--ink-3); height: 6mm; }
+/* (a flex row, not a grid: WeasyPrint lays out grid tracks left to right
+   even in a right-to-left target (.rtl), whose end mark belongs at the left) */
+.scr .sl { display: flex; align-items: flex-end; height: var(--pitch); break-inside: avoid; }
+.scr .sl .line { flex: 1; border-bottom: .6pt solid var(--ink-3); height: 6mm; }
 .scr .sl .end { font: 400 13pt/1 var(--serif); padding: 0 0 .3mm 1.2mm; }
+.scr .sls.rtl .sl .end { padding: 0 1.2mm .3mm 0; }
 
 /* ---- kind: classify ---- */
 /* grid: number | item | a tick box under each category (the column widths
@@ -494,13 +496,19 @@ table.tf3.just tbody + tbody > tr:first-child > td { padding-top: 4.2mm; }
 table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--gut);
   border-top: .75pt solid #000; }
 .gtab th, .gtab td { padding: 0 2mm; text-align: start; }
-.gtab th:first-child, .gtab td:first-child { padding-left: 0; }
-.gtab th:last-child, .gtab td:last-child { padding-right: 0; }
+/* no padding on the outer sides: left and right swap in a right-to-left
+   target (.rtl), whose first column is at the right (WeasyPrint has no padding-inline) */
+.gtab:not(.rtl) th:first-child, .gtab:not(.rtl) td:first-child { padding-left: 0; }
+.gtab:not(.rtl) th:last-child, .gtab:not(.rtl) td:last-child { padding-right: 0; }
+.gtab.rtl th:first-child, .gtab.rtl td:first-child { padding-right: 0; }
+.gtab.rtl th:last-child, .gtab.rtl td:last-child { padding-left: 0; }
 .gtab th { font: 600 10pt/1.3 var(--serif); vertical-align: bottom; padding-top: 1.4mm;
   padding-bottom: 1.2mm; border-bottom: .5pt solid #000; }
 .gtab td { height: var(--pitch); vertical-align: baseline; padding-top: 2mm;
   padding-bottom: 1.2mm; font: 400 11pt/1.4 var(--serif); border-bottom: .5pt solid var(--hair); }
 .gtab td.lab { font-weight: 600; }
+/* a hint too long for the room beside its blank goes below it, and wraps */
+.gtab .hint { display: inline-block; white-space: normal; line-height: 1.3; }
 .gtab td.gp, .gtab td.open { line-height: 7.6mm; padding-top: 0; padding-bottom: .4mm; }
 .gtab td.open .wr { display: inline-block; width: 100%; line-height: 1.12;
   border-bottom: .8pt solid #000; }
@@ -579,16 +587,17 @@ table.gtab { border-collapse: collapse; table-layout: fixed; margin-left: var(--
 
 /* ---- kind: crossword ---- */
 /* the grid: bordered letter cells (their size is --cell, set per task), the
-   clue number top left; cells outside the words stay blank, those framed by
-   letter cells are black. Clues below it: across and down side by side. */
+   clue number top left; cells outside the words stay blank, and so does a
+   wide hole in the grid, but a hole one cell wide, framed by letter cells, is
+   black. Clues below it: across and down side by side. */
 .k-crossword .main { padding-left: var(--gut); }
 table.cwg { border-collapse: collapse; table-layout: fixed; break-inside: avoid; }
 table.cwg td { width: var(--cell); height: var(--cell); padding: 0; vertical-align: top; }
 table.cwg td.x { border: .75pt solid #000; }
-table.cwg td.bk { background: #000; }  /* a blank cell framed by letter cells */
+table.cwg td.bk { background: #000; }  /* a hole framed by letter cells */
 table.cwg .cn { display: block; font: 600 6.5pt/1 var(--sans); padding: .3mm .4mm 0; }
 .cwc { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7mm; margin-top: 5mm; }
-.cwl .cap { margin-bottom: 1.6mm; }
+.cwl .cap { margin-bottom: 1.6mm; break-after: avoid; }  /* never alone below the grid */
 .cwl .items > .it { grid-template-columns: 7mm 1fr; }
 .cwl .items > .it + .it { margin-top: 1.2mm; }
 .cwl .it > .n, .cwl .it > .c { font-size: 10.5pt; line-height: 1.4; }

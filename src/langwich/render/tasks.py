@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from langwich import crossword, markup
-from langwich.answers import cloze_texts, letter, safe_gaps
+from langwich.answers import cloze_texts, letter, safe_gaps, scramble_end
 from langwich.model import (
     ClassifyTask,
     ClozeTask,
@@ -44,7 +44,7 @@ from langwich.model import (
 from langwich.plan import PlannedTask
 from langwich.render import metrics
 from langwich.render.css import GUTTER_W
-from langwich.render.html import esc, esc_nw, trailing_punctuation
+from langwich.render.html import esc, esc_nw, paragraphs, trailing_punctuation
 
 if TYPE_CHECKING:
     from langwich.render.html import Builder
@@ -76,6 +76,7 @@ def gapped_html(
     hint: str = "none",
     numbers: Iterator[int] | None = None,
     choices: Iterator[list[str]] | None = None,
+    loose_hints: bool = False,
 ) -> str:
     """Text with ``{{gaps}}`` turned into blanks of ``width`` mm — or, with
     ``choices`` (the options of each gap in turn), into the options in
@@ -83,7 +84,9 @@ def gapped_html(
 
     A blank sits flush after an elision (l', d', qu'), and closing
     punctuation right after it moves into the unbreakable gap, so neither
-    'l' e____' nor a full stop alone at the start of a line can happen.
+    'l' e____' nor a full stop alone at the start of a line can happen. A
+    hint stays beside its blank — with ``loose_hints`` (a narrow table
+    cell) only where there is room, else it goes below it.
     """
     try:
         parts = markup.split(text)
@@ -104,9 +107,9 @@ def gapped_html(
         num = f'<span class="gn">{next(numbers)}</span>' if numbers is not None else ""
         inner = (f'<span class="fl">{esc(part.answer[:1])}</span>' if hint == "first_letter"
                  else "&nbsp;")
-        after = ""
+        hint_html = ""
         if part.hint and hint in ("base_form", "translation", "dialogue"):
-            after = f'\u00a0<span class="hint">({esc(part.hint)})</span>'
+            hint_html = f'<span class="hint">({esc(part.hint)})</span>'
         punct = trailing_punctuation(nxt)
         skip = len(punct)
         if choices is not None:
@@ -115,12 +118,22 @@ def gapped_html(
         classes = ["gap"]
         if prev[-1:] in ("'", "’"):
             classes.append("el")
-        if punct and not after:
+        if punct and not hint_html:
             classes.append("pu")
-        tail = esc(punct.replace(" ", "\u00a0"))
-        out.append(f'<span class="{" ".join(classes)}">{num}<span class="blank" '
-                   f'style="width:{width:.1f}mm">{inner}</span>{after}{tail}</span>')
+        tail = _punct_tail(punct)
+        blank = f'{num}<span class="blank" style="width:{width:.1f}mm">{inner}</span>'
+        if hint_html and loose_hints:
+            out.append(f'<span class="{" ".join(classes)}">{blank}</span> {hint_html}{tail}')
+        else:
+            after = f"\u00a0{hint_html}" if hint_html else ""
+            out.append(f'<span class="{" ".join(classes)}">{blank}{after}{tail}</span>')
     return "".join(out)
+
+
+def _punct_tail(punct: str) -> str:
+    """Closing punctuation kept with the gap or word before it: ' ?' with a
+    no-break space (French)."""
+    return esc(punct.replace(" ", "\u00a0"))
 
 
 def _choice_gap(options: list[str], num: str, punct: str) -> str:
@@ -132,7 +145,7 @@ def _choice_gap(options: list[str], num: str, punct: str) -> str:
     pieces = []
     for j, option in enumerate(options):
         before = f'{num}<span class="bo">(</span>' if j == 0 else ""
-        after = ('<span class="bc">)</span>' + esc(punct.replace(" ", "\u00a0")) if j == last
+        after = ('<span class="bc">)</span>' + _punct_tail(punct) if j == last
                  else '<span class="sl">\u00a0/</span>')
         pieces.append(f'<span class="co">{before}<span class="o">{esc(option)}</span>{after}</span>')
     return f'<span class="choice">{" ".join(pieces)}</span>'
@@ -233,7 +246,8 @@ def tf_column_width(b: Builder) -> float:
     no word broken, at least 1 mm clear on either side."""
     size = TF_HEAD_PT["epaper" if b.epaper else "a4"]
     heads = [b.t(key) for key in ("true", "false", "not_given")]
-    longest = max(metrics.width_mm(w, "sans-bold", size) for h in heads for w in h.split())
+    longest = max((metrics.width_mm(w, "sans-bold", size) for h in heads for w in h.split()),
+                  default=0.0)  # (blank ui labels: no words)
     width = max(12.0, math.ceil((longest + 2.0) * 2) / 2)
     while width < 30.0 and any(metrics.line_count(h, width - 2.0, "sans-bold", size) > 2
                                for h in heads):
@@ -288,8 +302,8 @@ def _cloze(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
     width = b.blank_width(answers, b.has_aside(pt, bool(bank)))
     if task.text is not None:
         counter = itertools.count(1)
-        paras = [p for p in task.text.split("\n\n") if p.strip()]
-        body = "".join(f"<p>{gapped_html(b, p.strip(), width, task.hint, counter)}</p>" for p in paras)
+        body = "".join(f"<p>{gapped_html(b, p, width, task.hint, counter)}</p>"
+                       for p in paragraphs(task.text))
         main = f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
     else:
         items = "".join(
@@ -376,10 +390,9 @@ def _cloze_choice(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
     width = min(b.blank_width([o for opts in options for o in opts], aside), _CHOICE_BLANK)
     if task.text is not None:
         counter = itertools.count(1)
-        paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
         body = "".join(
             f"<p>{gapped_html(b, p, width, task.hint, counter, None if below else shown)}</p>"
-            for p in paras
+            for p in paragraphs(task.text)
         )
         main = f'<div class="passage tl"{b.lang_attr()}>{body}</div>'
         if below and options:
@@ -410,8 +423,7 @@ def _cloze_choice(b: Builder, pt: PlannedTask, task: ClozeTask) -> Parts:
 def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
     # the blanks of the frames share one width: the longest answer as
     # handwriting (wider than print), so no blank gives its answer's length away
-    answers = [g.answer for item in task.items if item.frame for g in safe_gaps(item.frame)]
-    width = frame_blank_width(b, answers, b.has_aside(pt, False)) if answers else 0.0
+    width = frame_blank_width(b, task, b.has_aside(pt, False))
     items = []
     for i, item in enumerate(task.items, 1):
         prompt = b.tl(item.prompt, "p", "q")
@@ -420,7 +432,7 @@ def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
             # the key word at the right end of the prompt's row, in capitals
             prompt = (f'<div class="kwr">{prompt}<span class="kw"{b.lang_attr()}>'
                       f"{esc(keyword)}</span></div>")
-        cue = f"→ {esc(item.cue)}" if item.cue else "→"
+        cue = esc(transform_cue(item.cue))
         if item.frame is not None:
             # the new sentence with its gap as a blank, instead of a line
             second = (f'<div class="frm"><span class="cue">{cue}</span><span class="tl"'
@@ -431,13 +443,44 @@ def _transform(b: Builder, pt: PlannedTask, task: TransformTask) -> Parts:
     return Parts(f'<div class="items tr">{"".join(items)}</div>')
 
 
-def frame_blank_width(b: Builder, answers: list[str], with_aside: bool) -> float:
-    """Width (mm) of the blank in a transform frame: the longest answer a
-    fifth wider than print (it is handwritten, often several words), at least
-    30 mm, at most a whole line (a clause to write may need one)."""
+def transform_cue(cue: str | None) -> str:
+    """The arrow before the new sentence, with what to change: '→ Passiv'."""
+    return f"→ {cue}" if cue else "→"
+
+
+def frame_cue_width(cue: str | None) -> float:
+    """Width (mm) of the cue column of a frame: its text, never broken (sans
+    9.5 pt; its italic is about as wide), and 2.4 mm to the frame (see the
+    CSS for "transform")."""
+    return metrics.width_mm(transform_cue(cue), "sans", 9.5) + 2.4
+
+
+#: Room (mm) beside a frame's blank: its margins and a full stop after it.
+_FRAME_BLANK_SIDE = 4.0
+
+
+def frame_blank_width(b: Builder, task: TransformTask, with_aside: bool) -> float:
+    """Width (mm) of the blank in the task's frames (0 without frames): the
+    longest answer a fifth wider than print (it is handwritten, often
+    several words), at least 30 mm, at most a whole line of the frames
+    beside the widest cue (a clause to write may need one)."""
+    frames = [item for item in task.items if item.frame is not None]
+    answers = [g.answer for item in frames for g in safe_gaps(item.frame or "")]
+    if not answers:
+        return 0.0
     widest = max(metrics.width_mm(a, "serif", 11.0) for a in answers)
-    avail = b.main_width(with_aside) - GUTTER_W - 8.0  # (the arrow, the full stop)
+    cue_w = max(frame_cue_width(item.cue) for item in frames)
+    avail = b.main_width(with_aside) - GUTTER_W - cue_w - _FRAME_BLANK_SIDE
     return round(min(max(widest * 1.2 + 6.0, 30.0), avail), 1)
+
+
+def frame_lines(frame: str, blank_w: float, width: float) -> int:
+    """Lines (estimated) of a frame with blanks ``blank_w`` mm wide in a
+    column ``width`` mm wide: each blank is one unbreakable word, with the
+    punctuation after it."""
+    n_w = metrics.width_mm("n", "serif", 11.0)
+    blank = "n" * math.ceil((blank_w + 1.6) / n_w)  # (its margins)
+    return metrics.line_count(markup.GAP_RE.sub(blank, frame), width, "serif", 11.0)
 
 
 def _word_building(b: Builder, pt: PlannedTask, task: WordBuildingTask) -> Parts:
@@ -527,8 +570,8 @@ def _writing(b: Builder, pt: PlannedTask, task: WritingTask) -> Parts:
         parts.append(f'<p class="wmeta">{meta}</p>')
     if task.input:
         # the text to answer or work from, as it would look: paragraphs and line breaks kept
-        paras = "".join("<p>" + esc(p.strip()).replace("\n", "<br>") + "</p>"
-                        for p in task.input.split("\n\n") if p.strip())
+        paras = "".join("<p>" + esc(p).replace("\n", "<br>") + "</p>"
+                        for p in paragraphs(task.input))
         source = task.input_lang == "source"
         attr = b.src_attr() if source else b.lang_attr()
         parts.append(f'<div class="box input {"src" if source else "tl"}"{attr}>{paras}</div>')
@@ -731,8 +774,8 @@ def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
     sentence, then the removed and the extra sentences, lettered A, B, C …
     in the planner's order (``pt.slot_options``)."""
     counter = itertools.count(1)
-    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
-    body = "".join(f"<p>{gapped_html(b, p, _SLOT_W, numbers=counter)}</p>" for p in paras)
+    body = "".join(f"<p>{gapped_html(b, p, _SLOT_W, numbers=counter)}</p>"
+                   for p in paragraphs(task.text))
     shown = pt.slot_options
     if shown is None:
         shown = [g.answer for g in safe_gaps(task.text)] + list(task.extra)
@@ -747,6 +790,7 @@ def _gapped_text(b: Builder, pt: PlannedTask, task: GappedTextTask) -> Parts:
 def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
     tiles = pt.tiles if pt.tiles is not None else [list(item.chunks) for item in task.items]
     line_w = b.main_width(b.has_aside(pt, False)) - GUTTER_W - 4.0  # the end mark
+    rtl = " rtl" if b.tgt_dir == "rtl" else ""  # (the end mark at the left)
     items = []
     for i, (item, shown) in enumerate(zip(task.items, tiles), 1):
         row = " ".join(f'<span class="tile">{esc(c.strip())}</span>' for c in shown)
@@ -755,19 +799,21 @@ def _scramble(b: Builder, pt: PlannedTask, task: ScrambleTask) -> Parts:
         # a long sentence gets more than one line; the last one ends in 'end'
         printed = metrics.width_mm(" ".join(item.chunks) + item.end, "serif", 11.0)
         count = min(max(1, math.ceil(printed * 1.5 / line_w)), 4)
-        end = f'<span class="end">{esc(item.end)}</span>' if item.end else ""
+        mark = scramble_end(item.end, b.tgt)
+        end = f'<span class="end">{esc(mark)}</span>' if mark else ""
         lines = '<div class="sl"><span class="line"></span></div>' * (count - 1)
         lines += f'<div class="sl"><span class="line"></span>{end}</div>'
         items.append(_item(
             i, f'<div class="tiles tl"{b.lang_attr()}>{row}</div>{cue}'
-               f'<div class="sls tl"{b.lang_attr()}>{lines}</div>'))
+               f'<div class="sls tl{rtl}"{b.lang_attr()}>{lines}</div>'))
     return Parts(f'<div class="items scr">{"".join(items)}</div>')
 
 
 #: Table cells (see the "table" rules in css.py), in mm: the padding
 #: between two columns, the margins around a blank and some slack for the
-#: measurements; a blank is at least _SHORT_BLANK long (only _MIN_BLANK in a
-#: table too crowded for that), an open (null) cell's writing line _OPEN_W.
+#: measurements; a blank is at least _SHORT_BLANK long (only _MIN_BLANK, and
+#: never less, in a table too crowded for that), an open (null) cell's
+#: writing line _OPEN_W.
 _COLUMN_GAP = 4.0
 _BLANK_MARGINS = 1.6
 _SLACK = 1.0
@@ -783,7 +829,7 @@ class _TableLine:
     cell: int  # the cell's index in reading order
     fixed: float = 0.0  # text, gap numbers, hints and punctuation (mm)
     gaps: int = 0
-    side: float = 0.0  # the most beside one blank: its number, hint, punctuation
+    side: float = 0.0  # the most that never parts from a blank: its number, punctuation
 
 
 def _table_columns(
@@ -802,7 +848,8 @@ def _table_columns(
     are long. The blanks of a task share one width (from its longest answer),
     cut down so that the lines of their column stay whole — those that can
     with a blank of at least _SHORT_BLANK; the others wrap, and their blanks
-    get the width of the column.
+    get the width of the column. A hint (base_form, translation) goes below
+    its blank where there is no room beside it, and wraps.
     """
     form = not task.head
     cells = [(c, cell) for row in task.rows for c, cell in enumerate(row[:ncols])]
@@ -855,14 +902,22 @@ def _table_columns(
                 continue
             writes[c] = True
             nxt = parts[idx + 1] if idx + 1 < len(parts) else ""
-            side = number_w + 0.6 + _BLANK_MARGINS + metrics.width_mm(
+            punct = metrics.width_mm(
                 trailing_punctuation(nxt) if isinstance(nxt, str) else "", "serif", 11.0)
+            side = number_w + 0.6 + _BLANK_MARGINS
+            hint_w = 0.0
             if part.hint and task.hint in ("base_form", "translation"):
-                side += metrics.width_mm(f"\u00a0({part.hint})", "sans", 9.5)
-            line.fixed += side
+                # beside the blank where there is room, else below it (and
+                # wrapped): the punctuation follows the hint (see gapped_html)
+                hint = f"({part.hint})"
+                hint_w = metrics.width_mm("\u00a0" + hint, "sans", 9.5) + punct
+                firm[c] = max(firm[c], words(hint, "sans", 9.5) + punct)
+            else:
+                side += punct
+            line.fixed += side + hint_w
             line.gaps += 1
             line.side = max(line.side, side)
-            least[c] = max(least[c], tight[c] + side)
+            least[c] = max(least[c], tight[c] + side + hint_w)
             firm[c] = max(firm[c], _MIN_BLANK + side)
     for line in lines:
         need[line.column] = max(need[line.column], line.fixed + line.gaps * own[line.column])
@@ -897,7 +952,7 @@ def _table_columns(
         side = max(line.side for line in with_gaps)
         whole = [(inner[c] - line.fixed) / line.gaps for line in with_gaps]
         cap = min((w for w in whole if w >= _SHORT_BLANK), default=inner[c] - side)
-        blanks[c] = max(min(blanks[c], cap), min(_MIN_BLANK, inner[c] - side))
+        blanks[c] = max(min(blanks[c], cap), _MIN_BLANK)
     tallest: dict[int, int] = {}
     for line in lines:
         width = line.fixed + line.gaps * blanks[line.column]
@@ -941,13 +996,15 @@ def _table(b: Builder, pt: PlannedTask, task: TableTask) -> Parts:
             klass = [k for k, on in (("lab", not task.head and c == 0),
                                      ("gp", bool(safe_gaps(cell)))) if on]
             attr = f' class="{" ".join(klass)}"' if klass else ""
-            cells.append(f"<td{attr}>{gapped_html(b, cell, blanks[c], task.hint, counter)}</td>")
+            gapped = gapped_html(b, cell, blanks[c], task.hint, counter, loose_hints=True)
+            cells.append(f"<td{attr}>{gapped}</td>")
         rows.append(f"<tr>{''.join(cells)}</tr>")
     box = b.word_box(unique_words(bank), counts=bank_counts(answers)) if bank else ""
     main = f'<div class="gtab-bank" style="width:{table_w:.1f}mm">{box}</div>' if above else ""
     if task.caption:
         main += b.tl(task.caption, "div", "gcap")
-    main += (f'<table class="gtab tl"{b.lang_attr()} style="width:{table_w:.1f}mm">'
+    rtl = " rtl" if b.tgt_dir == "rtl" else ""  # (the first column at the right)
+    main += (f'<table class="gtab tl{rtl}"{b.lang_attr()} style="width:{table_w:.1f}mm">'
              f'<colgroup>{cols}</colgroup>{head}<tbody>{"".join(rows)}</tbody></table>')
     return Parts(main, [box] if box and not above else [], keep=True)
 
@@ -977,7 +1034,7 @@ def _draft_html(b: Builder, text: str, marked: bool, numbers: Iterator[int]) -> 
         after = parts[idx + 1] if idx + 1 < len(parts) else ""
         punct = trailing_punctuation(after) if isinstance(after, str) else ""
         skip = len(punct)
-        tail = esc(punct.replace(" ", "\u00a0"))
+        tail = _punct_tail(punct)
         head, space, last = wrong.rpartition(" ")
         lead = f"<u>{esc(head)} </u>" if space else ""
         out.append(f'{lead}<span class="nw"><u>{esc(last)}</u>'
@@ -988,8 +1045,8 @@ def _draft_html(b: Builder, text: str, marked: bool, numbers: Iterator[int]) -> 
 def _proofread(b: Builder, pt: PlannedTask, task: ProofreadTask) -> Parts:
     gaps = safe_gaps(task.text)
     counter = itertools.count(1)
-    paras = [p.strip() for p in task.text.split("\n\n") if p.strip()]
-    body = "".join(f"<p>{_draft_html(b, p, task.marked, counter)}</p>" for p in paras)
+    body = "".join(f"<p>{_draft_html(b, p, task.marked, counter)}</p>"
+                   for p in paragraphs(task.text))
     draft = f'<div class="draft tl"{b.lang_attr()}>{body}</div>'
     # Below the draft, one numbered field per mistake: marked, for the
     # correction; unmarked, a row 'wrong → correct' for each one the learner
@@ -1043,12 +1100,12 @@ def _crossword(b: Builder, pt: PlannedTask, task: CrosswordTask) -> Parts:
         cell = CROSSWORD_CELL_SMALL
     cell = min(cell, math.floor(avail / grid.cols * 10) / 10)
     numbers = {(p.row, p.col): p.number for p in grid.placed}
-    holes = crossword.enclosed(grid)
+    black = crossword.black_cells(grid)
     rows = []
     for r in range(grid.rows):
         cells = []
         for c in range(grid.cols):
-            if (r, c) in holes:
+            if (r, c) in black:
                 cells.append('<td class="bk"></td>')
             elif (r, c) not in grid.cells:
                 cells.append("<td></td>")
@@ -1191,12 +1248,14 @@ def _key_labels_classify(b: Builder, pt: PlannedTask, count: int) -> tuple[bool,
 
 
 def _key_labels_crossword(b: Builder, pt: PlannedTask, count: int) -> tuple[bool, list[str] | None]:
-    """'1 →' / '2 ↓': the clue number and direction of each answer (Literata,
-    second in the sans stack, has both arrows)."""
+    """'1 →' / '2 ↓': the clue number and direction of each answer — '1 ←'
+    when the target is written right to left, as its grid then runs its
+    across words leftwards (Literata, second in the sans stack, has the arrows)."""
     grid = pt.crossword
     if grid is None or len(grid.placed) != count:
         return False, None
-    return True, [f"{p.number}\u00a0{'→' if p.across else '↓'}" for p in grid.placed]
+    across = "←" if b.tgt_dir == "rtl" else "→"
+    return True, [f"{p.number}\u00a0{across if p.across else '↓'}" for p in grid.placed]
 
 
 _KEY_LABELS: dict[str, Callable[[Builder, PlannedTask, int], tuple[bool, list[str] | None]]] = {

@@ -5,13 +5,17 @@ of a gap passage) in the order the learner sees them — using the planner's
 shuffles, so letters and numbers match the task page. An empty list means
 the task has open answers (writing, drawing, searching, questions without
 model answers); the renderer then prints the model answer or a
-"answers will vary" note.
+"answers will vary" note. :func:`answer_key_runs` gives the same entries
+split into runs by language, so that a renderer can tag the words in the
+learner's language (a verdict, "not in the text") apart from the answers.
 """
 
 from __future__ import annotations
 
+import re
+
 from langwich import crossword, markup
-from langwich.locale import quoted, t
+from langwich.locale import base_lang, quoted, t
 from langwich.model import (
     ClassifyTask,
     ClozeTask,
@@ -36,7 +40,7 @@ from langwich.model import (
     Worksheet,
     WritingTask,
 )
-from langwich.plan import LETTERS, PlannedTask
+from langwich.plan import LETTERS, NO_SPACE_LANGS, PlannedTask
 
 
 def letter(index: int, upper: bool = True) -> str:
@@ -88,18 +92,52 @@ def transform_sentence(item: TransformItem) -> str:
 #: The mark that opens a Spanish question or exclamation (¿Dónde …? ¡Qué …!).
 _ES_OPENING = {"?": "¿", "!": "¡"}
 
+#: Chinese and Japanese end a sentence with full-width marks.
+_FULL_WIDTH_ENDS = {".": "。", "?": "？", "!": "！"}
+_FULL_WIDTH_LANGS = frozenset({"zh", "ja"})
+
+#: The elided words that the next word follows without a space (l'homme,
+#: dell'acqua), by language. An apostrophe at the end of any other word is
+#: followed by a space: Jonas' Schürze, my parents' house, un po' di.
+_ELISION = {
+    "fr": re.compile(r"(?<!\w)(?:[cçdjlmnst]|qu|jusqu|lorsqu|puisqu|quoiqu|presqu|quelqu)['’]$",
+                     re.IGNORECASE),
+    "ca": re.compile(r"(?<!\w)[dlmnst]['’]$", re.IGNORECASE),
+    "pt": re.compile(r"(?<!\w)d['’]$", re.IGNORECASE),  # (copo d'água)
+    "it": re.compile(
+        r"(?<!\w)(?:[cdlmnstv]|gl|un|dell|dall|nell|sull|all|coll|dagl|degl|negl|sugl|quest"
+        r"|quell|bell|sant|tutt|anch|dov|com|cos|quand|mezz|senz|nient|nessun|alcun|ciascun"
+        r"|qualcun)['’]$",
+        re.IGNORECASE,
+    ),
+}
+
+
+def scramble_end(end: str, lang: str = "") -> str:
+    """The end mark of a scramble item as printed: full width (。？！) in
+    Chinese and Japanese."""
+    if base_lang(lang) in _FULL_WIDTH_LANGS:
+        return _FULL_WIDTH_ENDS.get(end, end)
+    return end
+
 
 def scramble_sentence(chunks: list[str], end: str = "", lang: str = "") -> str:
     """The sentence that scramble tiles make in this order: joined by spaces
-    (none after an elision such as l' or d'), the first letter upper-cased,
-    ``end`` at the end — a Spanish question or exclamation opens with ¿ or ¡,
-    and French puts a non-breaking space before ? and !."""
+    (none after an elision such as l', d' or dell', none at all in a
+    language written without spaces), the first letter upper-cased, ``end``
+    at the end — a Spanish question or exclamation opens with ¿ or ¡,
+    French puts a non-breaking space before ? and !, Chinese and Japanese
+    end with 。？！."""
+    base = base_lang(lang)  # es-MX → es
+    elision = _ELISION.get(base)
+    space = "" if base in NO_SPACE_LANGS else " "
     text = ""
     for chunk in (c.strip() for c in chunks):
         if chunk:
-            text += (" " if text and not text.endswith(("'", "’")) else "") + chunk
-    text = _upper_first(text)
-    base = lang.split("-", 1)[0].lower()  # es-MX → es
+            glued = not text or (elision is not None and elision.search(text))
+            text += ("" if glued else space) + chunk
+    text = _upper_first(text, base)
+    end = scramble_end(end, base)
     if base == "es" and end in _ES_OPENING and not text.startswith(_ES_OPENING[end]):
         text = _ES_OPENING[end] + text
     if base == "fr" and end in ("?", "!"):
@@ -107,28 +145,99 @@ def scramble_sentence(chunks: list[str], end: str = "", lang: str = "") -> str:
     return text + end
 
 
-def _upper_first(text: str) -> str:
+def _upper_first(text: str, lang: str = "") -> str:
     """``text`` with its first letter upper-cased, after any opening marks
-    (a sentence that starts with a number stays as it is)."""
+    (a sentence that starts with a number stays as it is): Turkish and Azeri
+    i → İ, Dutch ij → IJ."""
+    base = base_lang(lang)
     for k, ch in enumerate(text):
         if ch.isalpha():
+            if base in crossword.DOTTED_I_LANGS and ch == "i":
+                return text[:k] + "İ" + text[k + 1:]
+            if base == "nl" and text[k:k + 2] == "ij":
+                return text[:k] + "IJ" + text[k + 2:]
             return text[:k] + ch.upper() + text[k + 1:]
         if ch.isalnum():
             break
     return text
 
 
+#: One run of an answer-key entry: its text, and whether it is in the
+#: learner's (source) language rather than the target language.
+KeyRun = tuple[str, bool]
+
+
 def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """One display string per entry (see the module docstring)."""
+    return [key_text(runs) for runs in answer_key_runs(pt, ws)]
+
+
+def key_text(runs: list[KeyRun]) -> str:
+    """An answer-key entry as one string."""
+    return "".join(text for text, _ in runs)
+
+
+def answer_key_runs(pt: PlannedTask, ws: Worksheet) -> list[list[KeyRun]]:
+    """The entries of :func:`answer_key`, each as its runs by language: a
+    verdict ('false – '), 'not in the text' and 'answers will vary' are in
+    the learner's language, the rest in the target language (an
+    explanation in the language of its clues)."""
     task = pt.task
-    lang, ui = ws.source_lang, ws.ui
+    if isinstance(task, TrueFalseTask):
+        return _key_true_false(pt, ws)
+    if isinstance(task, FindInTextTask):
+        return _key_find_in_text(pt, ws)
+    if isinstance(task, QuestionsTask):
+        return _key_open(ws, [item.answer for item in task.items])
+    if isinstance(task, DialogueTask):
+        return _key_dialogue(pt, ws)
+    return [[(entry, False)] for entry in _target_key(pt, ws)]
+
+
+def _runs(*parts: KeyRun) -> list[KeyRun]:
+    """``parts`` without the empty ones, neighbours in one language merged."""
+    out: list[KeyRun] = []
+    for text, source in parts:
+        if not text:
+            continue
+        if out and out[-1][1] == source:
+            out[-1] = (out[-1][0] + text, source)
+        else:
+            out.append((text, source))
+    return out
+
+
+def _key_open(ws: Worksheet, answers: list[str | None]) -> list[list[KeyRun]]:
+    """Model answers, 'answers will vary' where there is none; no key at
+    all without any model answer."""
+    if not any(answers):
+        return []
+    open_answer = t("open_answer", ws.source_lang, ws.ui)
+    return [_runs((a, False)) if a else _runs((open_answer, True)) for a in answers]
+
+
+def _key_dialogue(pt: PlannedTask, ws: Worksheet) -> list[list[KeyRun]]:
+    """The gaps of each line with gaps, the model answer of each line the
+    learner writes; no key when nothing has an answer."""
+    task = pt.task
+    assert isinstance(task, DialogueTask)
+    answers: list[str | None] = []
+    for line in task.lines:
+        if line.text is None:
+            answers.append(line.answer)
+        elif gaps := safe_gaps(line.text):  # (a line without gaps has no number)
+            answers.append(" … ".join(gap_answer(g) for g in gaps))
+    return _key_open(ws, answers)
+
+
+def _target_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
+    """The key of a kind whose entries are all in the target language."""
+    task = pt.task
 
     if isinstance(task, MatchTask):
         n = len(task.pairs) + len(task.extra)
         order = pt.right_order if pt.right_order is not None else list(range(n))
         return [letter(order.index(i)) for i in range(len(task.pairs))]
-
-    if isinstance(task, TrueFalseTask):
-        return _key_true_false(pt, ws)
 
     if isinstance(task, MultipleChoiceTask):
         choices: list[str] = []
@@ -141,17 +250,8 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
         shown = pt.events if pt.events is not None else list(task.events)
         return [str(task.events.index(e) + 1) for e in shown]
 
-    if isinstance(task, QuestionsTask):
-        answers = [item.answer for item in task.items]
-        if not any(answers):
-            return []
-        return [a or t("open_answer", lang, ui) for a in answers]
-
     if isinstance(task, ClassifyTask):
         return _key_classify(pt, ws)
-
-    if isinstance(task, FindInTextTask):
-        return _key_find_in_text(pt, ws)
 
     if isinstance(task, GappedTextTask):
         return _key_gapped_text(pt, ws)
@@ -185,20 +285,6 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
             return []  # "draw and label": the learner's own drawing
         return [lb.term for lb in sorted(picture.labels, key=lambda lb: lb.n)]
 
-    if isinstance(task, DialogueTask):
-        lines: list[str] = []
-        has_model = False
-        for line in task.lines:
-            if line.text is not None:
-                gaps = safe_gaps(line.text)
-                if gaps:
-                    lines.append(" … ".join(gap_answer(g) for g in gaps))
-                    has_model = True
-            else:
-                lines.append(line.answer or t("open_answer", lang, ui))
-                has_model = has_model or bool(line.answer)
-        return lines if has_model else []
-
     if isinstance(task, CrosswordTask):
         return _key_crossword(pt, ws)
 
@@ -208,23 +294,26 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
     return []  # pragma: no cover - every kind is handled above
 
 
-def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
+def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[list[KeyRun]]:
     """true / false (with the correction) / not in the text, per statement, and
     the words of the story that prove it: ``false – Sie soll … „Am Freitag …“``."""
     task = pt.task
     assert isinstance(task, TrueFalseTask)
     lang, ui = ws.source_lang, ws.ui
-    verdicts: list[str] = []
+    verdicts: list[list[KeyRun]] = []
     for item in task.items:
         if item.answer == "not_given":
-            verdicts.append(t("not_given", lang, ui))
+            verdicts.append(_runs((t("not_given", lang, ui), True)))
             continue
         word = t("true" if item.answer is True else "false", lang, ui)
         shown = [item.correction] if item.answer is False and item.correction else []
-        quote = _quoted(item.quote or "", ws.target_lang)
+        quote = quoted_passage(item.quote or "", ws.target_lang)
         if quote:
             shown.append(quote)
-        verdicts.append(f"{word} – {' '.join(shown)}" if shown else word)
+        if shown:
+            verdicts.append(_runs((f"{word} – ", True), (" ".join(shown), False)))
+        else:
+            verdicts.append(_runs((word, True)))
     return verdicts
 
 
@@ -235,7 +324,7 @@ _CLOSING_QUOTES = "“”«»‘’‹›\"'"
 _DOUBLE_QUOTES = "„“”«»\""
 
 
-def _quoted(text: str, lang: str) -> str:
+def quoted_passage(text: str, lang: str) -> str:
     """Words of the story in the quote marks of ``lang`` (``„…“`` in German),
     without the marks of a passage that is one quotation already
     (``„Um sieben.“``, but not ``„Morgen“, sagt er. „Um sieben.“``); ``""``
@@ -273,7 +362,7 @@ def _key_classify(pt: PlannedTask, ws: Worksheet) -> list[str]:
         key = []
         for category in task.categories:
             words = [i.text for i in task.items if i.answer == category]
-            key.append(f"{category}: {', '.join(words) or '–'}")
+            key.append(f"{category}:\u00a0{', '.join(words) or '–'}")
         return key
     order = pt.row_order if pt.row_order is not None else list(range(len(task.items)))
     return [task.items[k].answer for k in order]
@@ -321,15 +410,21 @@ def _key_gapped_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
     return [letter(shown.index(g.answer)) for g in gaps]
 
 
-def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """Each word or phrase to find (with its explanation)."""
+def _key_find_in_text(pt: PlannedTask, ws: Worksheet) -> list[list[KeyRun]]:
+    """Each word or phrase to find (with its explanation, in the language of
+    the clues)."""
     task = pt.task
     assert isinstance(task, FindInTextTask)
     open_answer = t("open_answer", ws.source_lang, ws.ui)
-    key: list[str] = []
+    key: list[list[KeyRun]] = []
     for item in task.items:
-        explanation = item.explanation or (open_answer if task.explain else None)
-        key.append(f"{item.answer} – {explanation}" if explanation else item.answer)
+        if item.explanation:
+            key.append(_runs((item.answer, False),
+                             (f" – {item.explanation}", task.clue_lang == "source")))
+        elif task.explain:
+            key.append(_runs((item.answer, False), (f" – {open_answer}", True)))
+        else:
+            key.append(_runs((item.answer, False)))
     return key
 
 
@@ -342,9 +437,9 @@ def _key_proofread(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 
 def _key_crossword(pt: PlannedTask, ws: Worksheet) -> list[str]:
-    """The answers in clue order (across, then down), in capitals as the
-    grid holds them; words the grid could not take have no clue."""
+    """The answers in clue order (across, then down), in the target
+    language's capitals; words the grid could not take have no clue."""
     task = pt.task
     assert isinstance(task, CrosswordTask)
     grid = pt.crossword or crossword.layout([e.answer for e in task.entries])
-    return [crossword.printed(task.entries[p.index].answer) for p in grid.placed]
+    return [crossword.printed(task.entries[p.index].answer, ws.target_lang) for p in grid.placed]

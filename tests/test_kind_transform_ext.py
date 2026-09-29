@@ -19,7 +19,7 @@ from langwich.plan import plan
 from langwich.render import RenderOptions, build_html, render_worksheet
 from langwich.render.css import GUTTER_W
 from langwich.render.html import Builder, esc
-from langwich.render.tasks import frame_blank_width
+from langwich.render.tasks import frame_blank_width, frame_cue_width
 from langwich.validate import Issue, validate
 from tests.test_render import need_pdf
 
@@ -366,9 +366,37 @@ def test_the_blanks_share_one_width_that_fits_the_line(page: str) -> None:
     # wider than print: the longest answer, 'auf die Bohnen aufpassen soll'
     assert 60.0 < width <= main - GUTTER_W - 8.0
     b = Builder(worksheet_from_dict(data), RenderOptions(page=page))
-    assert frame_blank_width(b, ["ohne"], False) == 30.0
-    line = b.main_width(False) - GUTTER_W - 8.0
-    assert frame_blank_width(b, ["sehr " * 40], False) == pytest.approx(line)
+
+    def blank(answer: str) -> float:
+        data = _items({0: {"frame": f"Herr Novak hat gesagt, dass er {{{{{answer}}}}}."}}, TOLD)
+        return frame_blank_width(b, _task(Builder(worksheet_from_dict(data)), "t16"), False)
+
+    assert blank("ohne") == 30.0
+    # at most the line beside the cue ('→ dass'), with room for the full stop
+    line = b.main_width(False) - GUTTER_W - frame_cue_width("dass") - 4.0
+    assert blank("sehr " * 40) == pytest.approx(line, abs=0.05)
+
+
+def _task(b: Builder, task_id: str) -> TransformTask:
+    task = next(pt.task for pt in b.plan.tasks if pt.task.id == task_id)
+    assert isinstance(task, TransformTask)
+    return task
+
+
+@pytest.mark.parametrize("page", ["a4", "epaper"])
+def test_a_long_cue_leaves_the_blank_less_room(page: str) -> None:
+    # the widest cue of the task narrows every frame's column, so the shared
+    # blank never runs past the line (or the page)
+    long_answer = "war ihr schon von ihrer neuen Chefin gesagt worden"
+    data = _items({0: {"cue": "indirekte Rede im Plusquamperfekt",
+                       "frame": f"Die Änderung {{{{{long_answer}}}}}."}}, TOLD)
+    b = Builder(worksheet_from_dict(data), RenderOptions(page=page))
+    width = frame_blank_width(b, _task(b, "t16"), False)
+    column = b.main_width(False) - GUTTER_W - frame_cue_width("indirekte Rede im Plusquamperfekt")
+    assert 30.0 <= width <= column - 3.0
+    section = _section(build_html(worksheet_from_dict(data), RenderOptions(page=page)),
+                       TOLD["title"])
+    assert f'class="blank" style="width:{width:.1f}mm"' in section
 
 
 def test_the_default_instruction_asks_for_the_key_word() -> None:
@@ -436,6 +464,23 @@ def test_the_height_estimate_makes_room_for_frames_and_key_words() -> None:
     wide = _items({3: {"prompt": prompt}})
     narrow = _items({3: {"prompt": prompt, "keyword": "nichtsdestotrotz"}})
     assert height(narrow) > height(wide)
+
+
+def test_the_height_estimate_counts_the_blank_as_it_is_printed() -> None:
+    # (e-paper) the frame and the task's 30 mm blank need two lines beside the
+    # arrow: 'Le marché … jours' alone is 99 mm of the 129 mm line
+    frame = "Le marché de la Croix-Rousse est ouvert tous les jours {{war}}."
+    b = Builder(worksheet_from_dict(_items({0: {"frame": frame}, 1: {"prompt": "x"}}, TOLD)),
+                RenderOptions(page="epaper"))
+    task = _task(b, "t16")
+    assert frame_blank_width(b, task, False) == 30.0
+    one = Builder(worksheet_from_dict(_items({0: {"frame": "Le marché {{war}}."},
+                                              1: {"prompt": "x"}}, TOLD)),
+                  RenderOptions(page="epaper"))
+    def height(builder: Builder) -> float:
+        return builder.estimate_task_h(next(pt for pt in builder.plan.tasks
+                                            if pt.task.id == "t16"))
+    assert height(b) == pytest.approx(height(one) + 7.6)
 
 
 # ---------------------------------------------------------------------------
