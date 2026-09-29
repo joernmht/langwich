@@ -312,8 +312,8 @@
   .lesson-note { margin-top: 12px; max-width: 60em; font-size: 15.5px; color: var(--muted); }
   .lesson-note strong { color: var(--ink); }
 
-  /* examples: a series card and a wide card span both columns */
-  .ex-card.series, .ex-card.wide { grid-column: 1 / -1; }
+  /* examples: a series card, a pair of levels and a wide card span both columns */
+  .ex-card.series, .ex-card.pair, .ex-card.wide { grid-column: 1 / -1; }
   .series-head { max-width: 46em; margin-bottom: 4px; }
   .series-head h3 { margin-top: 0; }
   .series-head p { font-size: 15px; color: var(--muted); }
@@ -482,8 +482,8 @@
         <div class="step">
           <h3>Ask for a prompt</h3>
           <p><code>langwich prompt --topic bread</code> prints a complete brief for the AI:
-          your languages and level, how to tell a story that carries true facts, the task
-          kinds and the JSON format. Have a photo? <code>--image photo.jpg</code> copies it to
+          your languages and level, how to tell a story that carries true facts, the tasks
+          that suit your level and the JSON format. Have a photo? <code>--image photo.jpg</code> copies it to
           <code>data/pictures/</code> and makes it the starting point of the story.</p>
         </div>
         <div class="step">
@@ -514,10 +514,12 @@
         <p>Every worksheet follows the same arc through <span data-count="stages">8</span>
         stages: warm up before you read, then scene by scene — read a little, check what
         happened, look at the picture, work with the language, read on — then write something
-        of your own and take it further. The AI picks from
-        <span data-count="task-kinds">20</span> kinds of task; langwich puts each one right after
-        the scene it belongs to. (These numbers aren’t hand-written, by the way — they’re read
-        from the code on every deploy.)</p>
+        of your own and take it further. There are
+        <span data-count="task-kinds">20</span> kinds of task; the brief suggests the ones that
+        suit your level (a crossword and a form to fill in at A1, a gapped text and a draft to
+        proofread at C1), and langwich puts each one right after the scene it belongs to. (These
+        numbers aren’t hand-written, by the way — they’re read from the code on every
+        deploy.)</p>
       </div>
       <div class="ex-grid">
         <div>
@@ -575,7 +577,6 @@
               <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
               <dt><code>table</code></dt><dd>Fill in a form, a timetable or a table of word forms.</dd>
               <dt><code>proofread</code></dt><dd>Correct the mistakes in a character’s message.</dd>
-              <dt><code>crossword</code></dt><dd>Solve a crossword of the key words; langwich builds the grid.</dd>
               <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation — with a few wrong words in the box.</dd>
             </dl>
           </div>
@@ -584,11 +585,12 @@
               <h3>Your turn — and take it further</h3>
               <span class="stages sans"><span class="stage">production</span><span class="stage">epilogue</span></span>
             </div>
-            <p>Write about the story or about yourself, then go looking for more in the
-            language you are learning.</p>
+            <p>Write about the story or about yourself, then go over the key words once more
+            or go looking for more in the language you are learning.</p>
             <dl class="kinds sans">
               <dt><code>writing</code></dt><dd>Write a text — a reply to a message, a summary, an essay: a prompt, a first line, points to cover, words to use, a word count — and a model answer at the back.</dd>
-              <dt><code>media_search</code></dt><dd>Search online in the target language: search terms instead of links, and what to find out.</dd>
+              <dt><code>crossword</code></dt><dd>Solve a crossword of the key words; langwich builds the grid.</dd>
+              <dt><code>media_search</code></dt><dd>Search online in the target language for a video, an article, a podcast or pictures: search terms instead of links, and what to find out.</dd>
             </dl>
           </div>
           <p class="lesson-note sans">These are the usual places — any kind of task can sit at
@@ -658,6 +660,52 @@
                 <div class="cta-row sans">
                   <a class="btn primary" href="examples/lena_02_en_de.pdf">Worksheet (PDF)</a>
                   <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/lena_02_en_de.json">Source JSON ↗</a>
+                </div>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="ex-card pair">
+          <div class="series-head">
+            <p class="kicker sans">Two levels</p>
+            <h3>From A1 to C1 · EN → FR</h3>
+            <p>The brief chooses the tasks for the level. At A1: a “who does what?” grid, a form
+            to fill in, words to circle and a crossword. At C1: “true, false or not in the
+            text?” with the words that prove it, a gapped text, phrases to find and explain, a
+            draft to proofread and a formal letter written from notes.</p>
+          </div>
+          <div class="episodes">
+            <figure class="episode">
+              <a href="examples/baguette_paris_en_fr.pdf">
+                <img src="assets/baguette-paris-page1.png" loading="lazy"
+                     alt="First page of “La baguette du président”: characters, the route through the lesson and a matching task with French bakery words and their English meanings.">
+              </a>
+              <figcaption>
+                <p class="kicker sans">A1</p>
+                <h4>La baguette du président</h4>
+                <p>Five o’clock on the morning of the Paris baguette contest, and Hugo, a
+                19-year-old apprentice, has to bake on his own. The winner bakes for the
+                President.</p>
+                <div class="cta-row sans">
+                  <a class="btn primary" href="examples/baguette_paris_en_fr.pdf">Worksheet (PDF)</a>
+                  <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/baguette_paris_en_fr.json">Source JSON ↗</a>
+                </div>
+              </figcaption>
+            </figure>
+            <figure class="episode">
+              <a href="examples/joconde_1911_en_fr.pdf">
+                <img src="assets/joconde-1911-page1.png" loading="lazy"
+                     alt="First page of “Quatre crochets de fer”: characters, the route through the lesson and a matching task with French words and French definitions.">
+              </a>
+              <figcaption>
+                <p class="kicker sans">C1</p>
+                <h4>Quatre crochets de fer</h4>
+                <p>Paris, August 1911: the Mona Lisa has vanished from the Louvre. While the
+                police and the press chase a poet and a painter, a young copyist follows a
+                humbler clue.</p>
+                <div class="cta-row sans">
+                  <a class="btn primary" href="examples/joconde_1911_en_fr.pdf">Worksheet (PDF)</a>
+                  <a class="btn ghost" href="https://github.com/joernmht/langwich/blob/main/examples/joconde_1911_en_fr.json">Source JSON ↗</a>
                 </div>
               </figcaption>
             </figure>
@@ -827,7 +875,7 @@ langwich validate data/night_market_en_es.json --prompt
 langwich render data/night_market_en_es.json</pre>
         </div>
         <ul class="plain">
-          <li><strong>Context:</strong> the compact brief is about 3,500 tokens and a finished
+          <li><strong>Context:</strong> the compact brief is about 4,000 tokens and a finished
           worksheet another 6,000–12,000, so give the model at least 16k tokens of context — 32k
           for the repair loop, which sends the whole JSON back. A cut-off answer is not valid
           JSON. In Ollama, use the 32k copy made above (or start the server with

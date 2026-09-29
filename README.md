@@ -60,9 +60,14 @@ Worksheets that come with the repository include:
 | [`examples/festival_lyon_de_fr.json`](examples/festival_lyon_de_fr.json) | *La bobine disparue* — a mystery at the Festival Lumière in Lyon: a film reel vanishes two hours before a sold-out screening. Episode 1 of the series *Paula à Lyon*. | German → French | B1 |
 | [`examples/mercado_valencia_en_es.json`](examples/mercado_valencia_en_es.json) | *La lista de la abuela Pepa* — Emily shops for her host grandmother's Sunday paella at Valencia's Mercado Central. A one-off story. | English → Spanish | A2 |
 | [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) | *A mesma rua* — Hannah has one afternoon in Évora to find the street in her grandmother's fifty-year-old photo. Built from a real open-licence photo with `langwich prompt --image` (photo: Ken & Nyetta, CC BY 2.0). | English → Portuguese | A2 |
+| [`examples/baguette_paris_en_fr.json`](examples/baguette_paris_en_fr.json) | *La baguette du président* — Hugo, a 19-year-old apprentice, has to bake alone on the morning of the Paris baguette contest, whose winner bakes for the President. A one-off story. | English → French | A1 |
+| [`examples/joconde_1911_en_fr.json`](examples/joconde_1911_en_fr.json) | *Quatre crochets de fer* — Paris, August 1911: the Mona Lisa has vanished from the Louvre, and a young copyist works out how the thief did it while everyone else chases a famous suspect. A one-off mystery. | English → French | C1 |
 
 Every file in [`examples/`](examples/) validates without a single warning; the PDFs are in
-[`docs/examples/`](docs/examples/).
+[`docs/examples/`](docs/examples/). The two French worksheets show how the level changes the
+tasks: at A1 a "who does what?" grid, a form to fill in, words to circle and a crossword; at C1
+"true, false or not in the text?" with a quote as proof, a gapped text, phrases to find and
+explain, a draft to proofread and a formal letter written from notes.
 
 ### PDFs need Pango
 
@@ -102,19 +107,22 @@ langwich validate data/sourdough_bread_en_de.json
 langwich render data/sourdough_bread_en_de.json
 ```
 
-**The brief** is a self-contained Markdown prompt of about 350 lines: story craft, a level table,
-which language goes where, the lesson arc, rules for good task items, a field reference, a short
-example that validates, and a checklist. The AI needs nothing else — no access to this repository,
-no plug-in. Without `-o` the brief goes to standard output. At the end, `langwich prompt` suggests
-where to save the answer, following the naming convention: `data/<topic>_<source>_<target>.json`,
-episodes of a series `data/<series>_<nn>_<source>_<target>.json`.
+**The brief** is a self-contained Markdown prompt of about 390 lines (some 33,000 characters):
+story craft, a level table, which language goes where, the lesson arc with the task set
+recommended for your level, the rules for good items of the kinds in that set, a field reference
+for all 20 kinds, a short example that validates, and a checklist. The AI needs nothing else — no
+access to this repository, no plug-in. Without `-o` the brief goes to standard output. At the
+end, `langwich prompt` suggests where to save the answer, following the naming convention:
+`data/<topic>_<source>_<target>.json`, episodes of a series
+`data/<series>_<nn>_<source>_<target>.json`.
 
 **The topic is yours.** `--topic` can be anything: "tides", "the Vienna Philharmonic", "how a
 bicycle gear works". Leave it out and the AI chooses. `--frame` picks the kind of story
 (`episode`, `reportage`, `case_study`, `diary`, `letters`, `mystery`, `dialogue`, `other`),
-`--scenes N` its length (2–7 scenes; the level sets a default), and `--notes "…"` passes on
-anything else ("make it funny", "use the subjunctive", "set it in Graz"). `--device epaper`,
-`print` or `color` says where the sheet will be used (`color` also allows colour in pictures).
+`--scenes N` its length (2–7 scenes; the level sets a default, and the number of tasks follows
+it), and `--notes "…"` passes on anything else ("make it funny", "use the subjunctive", "set it
+in Graz"). `--device epaper`, `print` or `color` says where the sheet will be used (`color` also
+allows colour in pictures).
 
 **Checking.** `langwich validate` reports errors (they block rendering) and warnings (worth
 fixing), each with a location in the file and a sentence on how to fix it:
@@ -169,9 +177,11 @@ objects. Files are named `data/<slug>_<source>_<target>.json`, episodes of a ser
    reply is fine too: if the object sits in a Markdown code fence or between lines of prose,
    langwich reads just the object and warns (`wrapped-json`). Known slips are read leniently and
    warned about as well (`normalized`): a kind written `multiple-choice`, `mcq`,
-   `fill_in_the_blanks`, `true_or_false`, `matching`, `ordering`, `short_answer`, `essay` or
-   `drawing`, facts written as plain strings, a lower-case level such as `b1`. Nothing else is
-   guessed — a missing comma, for instance, is an error that says where to look.
+   `fill_in_the_blanks`, `true_or_false`, `matching`, `ordering`, `short_answer`, `essay`,
+   `drawing`, `word_order` or `error_correction`, a true/false answer `Not Given`, facts written
+   as plain strings, a lower-case level such as `b1`. Nothing else is guessed — a kind such as
+   `sort`, which could mean `classify` or `order_events`, is an error that names both, and a
+   missing comma is an error that says where to look.
 4. `langwich validate data/tides_en_de.json`. If there are problems, paste the output of
    `langwich validate data/tides_en_de.json --prompt` into the same chat and save the new reply
    over the file.
@@ -189,9 +199,10 @@ computer.
 langwich prompt --target es --level A2 --topic "a night market" --compact -o prompt.txt
 ```
 
-- **`--compact`** prints a brief half as long, with 3 scenes and the same contract — made for
-  small models (7–14B parameters). Larger local models can take the full brief.
-- **Context window:** the compact brief is about 3,500 tokens and a finished worksheet another
+- **`--compact`** prints a brief half as long (about 200 lines), with 3 scenes, a fixed task
+  list and the same contract — made for small models (7–14B parameters). Larger local models can
+  take the full brief.
+- **Context window:** the compact brief is about 4,000 tokens and a finished worksheet another
   6,000–12,000, so give the model at least 16k tokens of context — 32k for the repair loop, which
   sends the whole JSON back. Ollama's default is far smaller, and a worksheet cut off in the
   middle is not valid JSON. Make a copy of the model with a 32k context once, and use that:
@@ -344,11 +355,21 @@ Every task also has `id`, `kind`, `stage` and optionally `scene` (one id or a li
 the eight stages in lesson order: `warm_up`, `gist`, `detail`, `picture`, `form`, `practice`,
 `production`, `epilogue`.
 
-**Word boxes.** A cloze with `"hint": "word_bank"` and a dialogue with `"bank": true` print a box
-with the gap answers plus the `distractors` — wrong but plausible words, so the last gap is not
-solved by elimination. A label task's box (`"bank": true`) shows the terms *without* their
-articles (`Tasse`, not `die Tasse`); the answer key keeps the full term. So an instruction such as
-"Name the objects — with der, die or das" asks for something the box does not give away.
+**Tasks by level.** The brief recommends a set of tasks for the learner's level and prints the
+rules of those kinds only: at A1–A2, say, sentences to put in order (`scramble`), words to circle
+(a `cloze` with `"hint": "choice"`), a form to fill in (`table`) and a `crossword`; from B1, a
+character's draft to `proofread`; from B2, a `gapped_text` and key word transformations; at
+C1–C2, phrases to find and explain (`find_in_text`) and a summary or mediation (`writing` from an
+`input`). The number of tasks depends on the level and grows with the scenes: 8–11 at A1 with 3
+scenes, 10–14 at B1 with 4. `langwich validate` warns when a worksheet has fewer or more
+(`task-count`); it accepts every kind at every level.
+
+**Word boxes.** A cloze or table with `"hint": "word_bank"` and a dialogue with `"bank": true`
+print a box with the gap answers plus the `distractors` — wrong but plausible words, so the last
+gap is not solved by elimination. A classify task with `"layout": "columns"` prints its words in a
+box, to be written into the columns. A label task's box (`"bank": true`) shows the terms *without*
+their articles (`Tasse`, not `die Tasse`); the answer key keeps the full term. So an instruction
+such as "Name the objects — with der, die or das" asks for something the box does not give away.
 
 ---
 
@@ -436,18 +457,24 @@ limits, run `langwich schema`.
 
 ### Gap markup
 
-Gaps in `cloze` texts and `dialogue` lines are written in double braces:
+Gaps in `cloze` texts, `dialogue` lines and `table` cells are written in double braces, and so
+are the removed sentences of a `gapped_text`, the mistakes of a `proofread` draft and the one gap
+of a `transform` frame:
 
 | Markup | Meaning |
 |---|---|
 | `{{geröstet}}` | the answer |
 | `{{schwarz\|ohne Milch}}` | an answer and an accepted alternative |
 | `{{geröstet::rösten}}` | an answer and a hint printed in brackets (a base form or a translation) |
+| `{{ist::sind\|bist}}` | in a cloze with `"hint": "choice"`: the answer and the wrong options, shuffled for the learner to circle |
+| `{{ist::sind}}` | in a proofread text: the correct form and the mistake the character wrote |
 
-The first answer goes into the answer key and the word box. `hint` sets what the learner gets:
-`word_bank` (the default; add wrong words in `distractors`), `first_letter`, `base_form`,
-`translation` or `none`. With `base_form` and `translation`, every gap needs a `::hint`. Gap
-markup belongs in tasks only, never in the story.
+The first answer goes into the answer key and the word box. A cloze's `hint` sets what the learner
+gets: `word_bank` (the default; add wrong words in `distractors`), `first_letter`, `base_form`,
+`translation`, `choice` (the options in brackets in the text, or with `"choice_layout": "below"`
+under numbered gaps) or `none`. With `base_form` and `translation`, every gap needs a `::hint`. A
+table takes the same hints except `choice` (its default is `none`). Gap markup belongs in tasks
+only, never in the story.
 
 ```jsonc
 {
@@ -504,6 +531,10 @@ renderer: the picture is left out with a warning (and `langwich validate` report
   <img src="docs/assets/festival-lyon-picture.png" alt="A worksheet page from La bobine disparue: a line drawing of the view from a cinema projection booth — projector, screen, seats — with numbered markers, answer lines and a word box with the French words" width="48%">
   <img src="docs/assets/lena-02-picture.png" alt="A worksheet page from episode 2 of Lena in Wien: a line drawing of an espresso bar counter with numbered markers to name in German" width="48%">
 </p>
+<p align="center">
+  <img src="docs/assets/baguette-paris-picture.png" alt="A worksheet page from La baguette du président (A1): questions with the first words of each answer on the line, then a line drawing of a bakery — oven, contest rules, baguette, ruler, bowl, flour sack — with numbered markers and a word box of French words without articles" width="48%">
+  <img src="docs/assets/joconde-1911-picture.png" alt="A worksheet page from Quatre crochets de fer (C1): a line drawing of the Salon Carré with an empty space and four iron hooks where the Mona Lisa hung, an easel and a smock, numbered markers, a word box, and the next scene with glosses in the margin" width="48%">
+</p>
 
 ---
 
@@ -521,7 +552,9 @@ langwich render examples/mercado_valencia_en_es.json -o market.html
   `--one-task-per-page` starts each task on a fresh page, with room for notes.
 - **Solutions:** at the end (`--solutions append`, the default), as a separate
   `<name>-solutions.pdf` (`--solutions separate`), or not at all (`--solutions none`). The scene
-  translations are printed with the solutions unless you pass `--no-translations`.
+  translations are printed with the solutions unless you pass `--no-translations`. Words the key
+  quotes — the proof of a true/false statement, the part of a model answer that covers a writing
+  point — stand in the quotation marks of their language: „…“ for German, « … » for French.
 - **Output:** `data/<json name>.pdf` plus the `.html` beside it. `-o` takes a file name, a folder
   (ending in `/`), or a `.html` name, which writes the HTML only (as does `--html-only`).
 - **Deterministic:** the same JSON always gives the same sheet, and the task page and the answer

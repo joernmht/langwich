@@ -36,10 +36,18 @@ validate and repair → render → check the picture page.
 There is no content generator in Python and there must never be one: no text slicing, no
 fallback items. If a task needs an item, the JSON contains it, with its answer. The planner only
 arranges (before you read → scene by scene: gist, detail, picture, form, practice → your turn →
-take it further) and makes seeded shuffles, so the same JSON and seed give the same PDF. Picture
-tasks follow comprehension because they are about the scene just read; form and practice items
-move the story on. Word boxes: cloze and dialogue boxes hold the gap answers plus `distractors`;
-a label box shows the terms without articles (the answer key keeps them).
+take it further) and makes seeded shuffles, so the same JSON and seed give the same PDF;
+`crossword.py` lays out a crossword's grid from the words the JSON gives (arrangement, not
+content, and seed-free). Picture tasks follow comprehension because they are about the scene just
+read; form and practice items move the story on. Word boxes: a `word_bank` cloze or table and a
+dialogue with `bank` hold the gap answers plus `distractors`; a classify task with
+`"layout": "columns"` boxes its item texts; a label box shows the terms without articles (the
+answer key keeps them).
+
+The brief is level-aware (`prompt.LEVELS`, one `LevelSpec` per CEFR level): it prints the
+recommended task set of the learner's level only, the item rules of that level's kinds, and a
+task budget that follows the scene count (`validate.task_range`, the `task-count` warning). The
+field reference still lists all 20 kinds, and the validator accepts any kind at any level.
 
 ## Golden rules
 
@@ -58,16 +66,18 @@ a label box shows the terms without articles (the answer key keeps them).
    heuristic generator and the ReportLab engine were removed. Old docs mentioning them are wrong.
    v2 JSON files are upgraded with `langwich prompt --from-json OLD.json`.
 5. **Changing the contract** (`src/langwich/model.py`): update `validate.py`, `prompt.py` and
-   `render/` to match, run `python scripts/export_schema.py`, and keep every example free of
-   errors and warnings.
+   `render/` to match (a new kind also needs `answers.py`, `cli.KIND_INFO`, its locale strings
+   and a place in the `LEVELS` that should recommend it), run `python scripts/export_schema.py`,
+   and keep every example free of errors and warnings.
 6. **Docs must match the code.** `tests/test_docs.py` parses every `langwich …` command and flag
    in README.md, CLAUDE.md, the slash command, docs/index.html and docs/architecture.md, checks
-   that README.md lists every CLI option, that stage sequences follow the lesson order, and every
-   complete JSON worksheet in them. Fence partial JSON excerpts as `jsonc`.
+   that README.md lists every CLI option and every task kind, that stage sequences follow the
+   lesson order, and every complete JSON worksheet in them. Fence partial JSON excerpts as
+   `jsonc`.
 7. **Rebuild the showcase after changing the renderer, the planner or an example.** Run
    `python3 scripts/build_showcase.py` and commit `docs/examples/` and `docs/assets/`;
    `python3 scripts/build_showcase.py --check` (CI) fails when the committed PDFs no longer match
-   a fresh render.
+   a fresh render, and notes preview images that neither README.md nor docs/index.html shows.
 8. **The renderer stays offline.** WeasyPrint may fetch only `data:` URIs and the bundled fonts
    (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
    outside resource is a `picture.image` the JSON names, loaded by `images.py`.
@@ -76,14 +86,15 @@ a label box shows the terms without articles (the answer key keeps them).
 
 | Module | Responsibility |
 |---|---|
-| `model.py` | the contract (pydantic), lenient loading (`load_worksheet`, `parse_worksheet`), `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
-| `validate.py` | semantic checks; `check_file(path) -> Report` with JSON-pointer issues and fix hints; `ENVIRONMENT_CODES` |
+| `model.py` | the contract (pydantic), lenient loading (`load_worksheet`, `parse_worksheet`; `KIND_ALIASES`), `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
+| `validate.py` | semantic checks (`CHECKS`); `check_file(path) -> Report` with JSON-pointer issues and fix hints; `ENVIRONMENT_CODES`; `task_range(level, scenes)` |
 | `plan.py` | lesson arc, glosses, grammar and fact sidebars, word boxes, seeded shuffles |
-| `markup.py` | `{{answer\|alternative::hint}}` gap markup |
-| `answers.py` | renderer-neutral answer key |
+| `crossword.py` | the grid of a crossword task (`layout(answers)`): deterministic, no seed |
+| `markup.py` | `{{answer\|alternative::hint}}` gap markup; `{{right::wrong1\|wrong2}}` choice gaps, `{{correct::wrong}}` proofread mistakes |
+| `answers.py` | renderer-neutral answer key (`answer_key`, `answer_key_runs`); quoted words in the marks of their language (`quoted_passage`) |
 | `images.py` | load, convert (greyscale), sanitise and embed pictures; never crash |
-| `locale.py` | page labels in en, de, fr, es, it, pt; others via the worksheet's `ui` |
-| `prompt.py` | authoring brief (`build_prompt`) and repair prompt (`repair_prompt`) for any LLM |
+| `locale.py` | page labels in en, de, fr, es, it, pt; others via the worksheet's `ui`; quotation marks (`quoted`, `QUOTE_MARKS`) |
+| `prompt.py` | authoring brief (`build_prompt`; per-level `LEVELS`, `KIND_FIELDS`, `KIND_RULES`) and repair prompt (`repair_prompt`) for any LLM |
 | `series.py` | context for the next episode (`continuation`), file names |
 | `profile.py` | `.langwich/profile.json` (source_lang, target_lang, level, color, device; `frame` only by hand) |
 | `render/` | HTML + print CSS → PDF via WeasyPrint (offline URL fetcher); bundled fonts in `fonts/` |

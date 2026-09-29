@@ -21,10 +21,10 @@ Use it: a topic, a level, a photo path or "next episode" there answers the match
 
 | Command | What it is for |
 |---|---|
-| `langwich prompt … -o .langwich/prompt.md` | the authoring brief: field reference, level table, story craft, task rules, checklist. **The single source of truth — follow it, not your memory.** |
+| `langwich prompt … -o .langwich/prompt.md` | the authoring brief: story craft, level table, the task set for the learner's level and the rules of its kinds, field reference, checklist. **The single source of truth — follow it, not your memory.** |
 | `langwich validate FILE` | errors (they block rendering) and warnings, each saying where and how to fix it |
 | `langwich render FILE` | validates, then writes `data/<name>.pdf` (and `.html`) |
-| `langwich kinds` · `langwich schema` | the 13 task kinds and 8 stages · the full JSON Schema, to look things up |
+| `langwich kinds` · `langwich schema` | the 20 task kinds and 8 stages · the full JSON Schema, to look things up |
 
 **Which `langwich`.** Every Bash call starts a fresh shell, so an activated virtual environment
 does not carry over. In the langwich repository, if `.venv/bin/langwich` exists, run every command
@@ -149,7 +149,7 @@ suggesting a free name that follows this convention):
   takes the next number (`lena_02_en_de.json` → `lena_03_en_de.json`)
 
 **The brief.** Run `langwich prompt` with what you know, writing to a file (the brief runs to about
-350 lines, too long for terminal output):
+390 lines, too long for terminal output):
 
 ```bash
 langwich prompt --source en --target de --level B1 --topic "sourdough and a night bakery" -o .langwich/prompt.md
@@ -167,7 +167,7 @@ Add what applies:
   from that file; pass `--level` only to change it.
 - `--image <photo>` or `--from-text .langwich/source.txt` — see step 3.
 - `--scenes N` (2–7) — only when the user wants a shorter or longer story (the level sets a
-  default).
+  default, and the number of tasks follows it).
 - `--device epaper` or `--device print` — where the sheet will be used, as in the profile;
   `--device color` or `--color` only when the user chose colour.
 - `--notes "…"` — everything else they told you: interests, names, places, a grammar point they
@@ -177,9 +177,11 @@ Leave out `--compact` (it is a shorter brief for small local models).
 
 **Then write.** Read `.langwich/prompt.md` completely with the Read tool and follow it to the
 letter. Plan first as it says (logline, the true facts the plot turns on, the beats, the key
-words), then write the whole JSON to the file with the Write tool. The brief's output rule applies
-to the file: exactly one JSON object, no code fence, no comments. Do not paste the JSON or the
-brief into the chat; a short "Writing the story now…" is enough.
+words), then write the whole JSON to the file with the Write tool. The tasks follow the brief's
+recommended set for the level — at A1 a form to fill in, words to circle and a crossword, say; at
+C1 a gapped text, a draft to proofread and a summary — and its number of tasks. The brief's
+output rule applies to the file: exactly one JSON object, no code fence, no comments. Do not
+paste the JSON or the brief into the chat; a short "Writing the story now…" is enough.
 
 ## 5. Check it — machine first, then you
 
@@ -199,8 +201,9 @@ brief into the chat; a short "Writing the story now…" is enough.
    - **Facts:** every one true and checkable in a standard reference; no invented numbers, dates,
      records, quotes or sources. When in doubt, check it (search, if you can) or cut it.
    - **Items:** exactly one defensible answer per gap (list genuine alternatives); each word-box
-     word fits exactly one gap; distractors plausible but wrong; no answer given away elsewhere in
-     the task; corrections and model answers right.
+     word fits exactly one gap; distractors, the wrong options of a choice gap and the mistakes
+     in a proofread draft really wrong, and each extra sentence of a gapped text fitting no gap;
+     no answer given away elsewhere in the task; corrections and model answers right.
    - **Story:** it meets the quality bar below — would the user want to know how it ends?
 
    Fix what you find, and validate again.
@@ -267,7 +270,8 @@ One short line, for example:
 
 - **Next episode:** `--continue <this file>`, the next file number.
 - **Easier or harder:** `--level B2 --notes "Same plot and characters as data/<file>.json, rewritten for B2."`,
-  saved as e.g. `data/<slug>-b2_<src>_<tgt>.json`.
+  saved as e.g. `data/<slug>-b2_<src>_<tgt>.json`. The brief then brings the tasks of the new
+  level.
 - **Another language pair:** new `--source`/`--target`, the same kind of note, a new file name.
 - **A different frame:** `--frame diary`, `letters`, `mystery` …
 
@@ -295,8 +299,10 @@ One short line, for example:
   that the story carries and the tasks practise.
 - **Tasks that continue the story.** New sentences and new moments (the next morning, a message,
   a scene the story skipped), not copied story sentences; clear, checkable answers.
-- **Production at the end.** A writing task that closes or continues the story, with a starter,
-  the key words to use and a model answer, plus a short personal question.
+- **Production at the end.** A writing task that closes or continues the story, as the level's
+  set asks — a short message with a starter at A1, an opinion essay at B2, a summary or
+  mediation at C1 — with a model answer (and the key words to use, when it is written in the
+  language they learn), plus a short personal question.
 - **Made for monochrome.** No task depends on seeing a colour; line art stays clean and simple.
 - **Series episodes** pick up the teaser, keep the characters true to themselves, recycle the
   review words and end on a hook.
