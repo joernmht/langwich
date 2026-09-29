@@ -628,9 +628,9 @@ def test_answer_keys_follow_the_shuffles():
         f"Combien coûte le saint-marcellin{NBSP}? / Le saint-marcellin coûte combien{NBSP}?"
     )
     assert answer_key(by_id["t22"], ws) == [
-        "richtig – «Les nappes sont rouges et blanches»",
-        "falsch – Le serveur parle très vite. «le serveur parle très vite»",
-        "falsch – Karim prend des quenelles. «Karim prend des quenelles»",
+        "richtig – «\u00a0Les nappes sont rouges et blanches\u00a0»",
+        "falsch – Le serveur parle très vite. «\u00a0le serveur parle très vite\u00a0»",
+        "falsch – Karim prend des quenelles. «\u00a0Karim prend des quenelles\u00a0»",
         "steht nicht im Text", "steht nicht im Text",
     ]
     assert answer_key(by_id["t25"], ws) == [

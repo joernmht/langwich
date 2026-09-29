@@ -343,8 +343,8 @@ def test_the_key_lists_the_points_after_the_model_answer(page: str) -> None:
     assert "aber sehr schön.<br>Am schwierigsten" in block and "Liebe Grüße<br>Lena" in block
     points = block.split('<ul class="pts">', 1)[1]
     assert points.count("<li>") == 3
-    assert ('<li>Say what was hardest this week and why. — «<span class="tl" lang="de">'
-            "Am schwierigsten war das Rösten</span>»</li>") in points
+    assert ('<li>Say what was hardest this week and why. — <span class="tl" lang="de">'
+            "„Am schwierigsten war das Rösten“</span></li>") in points
 
 
 def test_the_key_of_a_mediation_is_in_the_source_language() -> None:
@@ -353,8 +353,8 @@ def test_the_key_of_a_mediation_is_in_the_source_language() -> None:
     html = build_html(worksheet_from_dict(_lena(NOTE, points=points)))
     block = _solution(html, "For Tom: the coffee course")
     assert '<span class="model src" lang="en">Hi Tom,' in block
-    assert ("<li>What do you learn in the course? — «you learn where the coffee comes from "
-            "and how it is roasted»</li>") in block
+    assert ("<li>What do you learn in the course? — “you learn where the coffee comes from "
+            "and how it is roasted”</li>") in block
     assert "<li>When is it, and what does it cost?</li>" in block
 
 

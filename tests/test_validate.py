@@ -857,6 +857,20 @@ def test_short_function_words_alone_are_not_a_leak() -> None:
     assert "grammar-gives-away" not in {i.code for i in _issues(data)}
 
 
+def test_an_open_gap_that_the_grammar_point_names_is_its_topic() -> None:
+    """An open cloze on relative pronouns beside a box about them (the C1 brief
+    asks for exactly this): the box names 'dont' because it teaches it; only an
+    example that copies the item gives the answer away."""
+    data = json.loads((REPO_ROOT / "examples" / "joconde_1911_en_fr.json").read_text("utf-8"))
+    cloze = next(t for t in data["tasks"] if t["id"] == "t9")
+    cloze["text"] = cloze["text"].replace("aux ouvriers {{qui}} l'avaient posée.",
+                                          "aux ouvriers {{dont}} personne ne parle.")
+    assert "grammar-gives-away" not in {i.code for i in _issues(data)}
+    box = next(g for g in data["grammar"] if g["id"] == "g2")
+    box["examples"].append("Je songe aux ouvriers dont personne ne parle.")
+    assert "grammar-gives-away" in {i.code for i in _issues(data)}
+
+
 def test_messages_use_the_worksheets_own_words() -> None:
     data = _mutated(_set("tasks/2/items/1", "Die Tasse steht auf dem Tisch."))
     message = next(i.message for i in _issues(data) if i.code == "cloze-without-gaps")

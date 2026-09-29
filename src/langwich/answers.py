@@ -11,7 +11,7 @@ model answers); the renderer then prints the model answer or a
 from __future__ import annotations
 
 from langwich import crossword, markup
-from langwich.locale import t
+from langwich.locale import quoted, t
 from langwich.model import (
     ClassifyTask,
     ClozeTask,
@@ -210,7 +210,7 @@ def answer_key(pt: PlannedTask, ws: Worksheet) -> list[str]:
 
 def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
     """true / false (with the correction) / not in the text, per statement, and
-    the words of the story that prove it: ``false – Sie soll … «Am Freitag …»``."""
+    the words of the story that prove it: ``false – Sie soll … „Am Freitag …“``."""
     task = pt.task
     assert isinstance(task, TrueFalseTask)
     lang, ui = ws.source_lang, ws.ui
@@ -221,7 +221,7 @@ def _key_true_false(pt: PlannedTask, ws: Worksheet) -> list[str]:
             continue
         word = t("true" if item.answer is True else "false", lang, ui)
         shown = [item.correction] if item.answer is False and item.correction else []
-        quote = _quoted(item.quote or "")
+        quote = _quoted(item.quote or "", ws.target_lang)
         if quote:
             shown.append(quote)
         verdicts.append(f"{word} – {' '.join(shown)}" if shown else word)
@@ -235,16 +235,17 @@ _CLOSING_QUOTES = "“”«»‘’‹›\"'"
 _DOUBLE_QUOTES = "„“”«»\""
 
 
-def _quoted(text: str) -> str:
-    """Words of the story in the key's quote marks, «…», without the marks
-    of a passage that is one quotation already (``„Um sieben.“``, but not
-    ``„Morgen“, sagt er. „Um sieben.“``); ``""`` for no words."""
+def _quoted(text: str, lang: str) -> str:
+    """Words of the story in the quote marks of ``lang`` (``„…“`` in German),
+    without the marks of a passage that is one quotation already
+    (``„Um sieben.“``, but not ``„Morgen“, sagt er. „Um sieben.“``); ``""``
+    for no words."""
     text = text.strip()
     inner = text[1:-1]
     if (len(text) > 1 and text[0] in _OPENING_QUOTES and text[-1] in _CLOSING_QUOTES
             and not any(mark in inner for mark in _DOUBLE_QUOTES)):
         text = inner.strip()
-    return f"«{text}»" if text else ""
+    return quoted(text, lang) if text else ""
 
 
 def _key_scramble(pt: PlannedTask, ws: Worksheet) -> list[str]:

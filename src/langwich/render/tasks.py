@@ -1162,15 +1162,14 @@ def default_instruction(b: Builder, pt: PlannedTask) -> str | None:
 
 
 def _suffix_transform(b: Builder, task: TransformTask) -> str:
-    """The word limit of the answers ('max_words') after the instruction's
-    last sentence, capitalised, unless the task's own instruction states the
-    number already."""
+    """The word limit of the answers ('max_words') as a sentence after the
+    instruction, unless the task's own instruction states the number already."""
     if task.max_words is None:
         return ""
     if task.instruction and re.search(rf"(?<!\d){task.max_words}(?!\d)", task.instruction):
         return ""
     limit = b.t("kind.transform.max", max=task.max_words)
-    return f' <span class="len">{esc(limit[:1].upper() + limit[1:])}</span>'
+    return f' <span class="len">{esc(limit)}</span>'
 
 
 _SUFFIXES: dict[str, Callable[[Builder, Any], str]] = {

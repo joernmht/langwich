@@ -287,23 +287,23 @@ def test_only_false_statements_need_a_correction() -> None:
 
 def test_the_key_shows_corrections_and_quotes() -> None:
     assert _key(_lena()) == [
-        "false – Es ist ihr erster Tag im Café. «Lena steht zum ersten Mal hinter der Theke»",
-        "true – «Seit vierzig Jahren trinkt er hier jeden Morgen eine Melange»",
+        "false – Es ist ihr erster Tag im Café. „Lena steht zum ersten Mal hinter der Theke“",
+        "true – „Seit vierzig Jahren trinkt er hier jeden Morgen eine Melange“",
         "not in the text",
-        "false – Er nimmt immer drei Löffel Zucker. «immer mit drei Löffeln Zucker»",
+        "false – Er nimmt immer drei Löffel Zucker. „immer mit drei Löffeln Zucker“",
         "not in the text",
-        # the story's own „…“ around a whole quotation give way to «…»
-        "false – Sie soll sie erst am Freitag machen. «Am Freitag machst du Herrn Novaks "
-        "Melange»",
+        # the story's own „…“ around a whole quotation are not doubled
+        "false – Sie soll sie erst am Freitag machen. „Am Freitag machst du Herrn Novaks "
+        "Melange“",
     ]
 
 
 @pytest.mark.parametrize(("quote", "shown"), [
     ("„Morgen wieder“, sagt er. „Um sieben.“",
-     "«„Morgen wieder“, sagt er. „Um sieben.“»"),
-    ("  »Um sieben.«  ", "«Um sieben.»"),
-    ("'Um sieben.'", "«Um sieben.»"),
-    ("Um sieben.", "«Um sieben.»"),
+     "„„Morgen wieder“, sagt er. „Um sieben.““"),
+    ("  »Um sieben.«  ", "„Um sieben.“"),
+    ("'Um sieben.'", "„Um sieben.“"),
+    ("Um sieben.", "„Um sieben.“"),
     ("„“", ""),
 ])
 def test_quote_marks_in_the_key(quote: str, shown: str) -> None:
@@ -320,7 +320,7 @@ def test_the_key_without_quotes_is_unchanged() -> None:
     ]
     # a false statement quoted without a correction
     assert _key(_items({0: {"correction": None}}))[0] == (
-        "false – «Lena steht zum ersten Mal hinter der Theke»")
+        "false – „Lena steht zum ersten Mal hinter der Theke“")
 
 
 def test_the_key_speaks_the_learners_language() -> None:
@@ -328,7 +328,7 @@ def test_the_key_speaks_the_learners_language() -> None:
     data["source_lang"] = "de"
     data["target_lang"] = "fr"  # (the key words follow the source language)
     key = _key(data)
-    assert key[1].startswith("richtig – «") and key[2] == "steht nicht im Text"
+    assert key[1].startswith("richtig – «\u00a0") and key[2] == "steht nicht im Text"
     assert key[0].startswith("falsch – ")
 
 

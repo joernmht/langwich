@@ -374,7 +374,7 @@ def test_the_blanks_share_one_width_that_fits_the_line(page: str) -> None:
 def test_the_default_instruction_asks_for_the_key_word() -> None:
     assert _instruction(_lena()) == (
         "Complete the second sentence so that it means the same as the first. Use the word in "
-        'capitals. <span class="len">At most 5 words</span>')
+        'capitals. <span class="len">Use at most 5 words.</span>')
     # frames without key words: no word in capitals to use
     assert _instruction(_lena(TOLD), TOLD["title"]) == "Rewrite each sentence as shown."
     one = _items({0: {"keyword": "dass"}}, TOLD)
@@ -383,7 +383,7 @@ def test_the_default_instruction_asks_for_the_key_word() -> None:
 
 @pytest.mark.parametrize(("instruction", "shown"), [
     ("Lena sagt es anders. Schreibe 2–5 Wörter.", "Lena sagt es anders. Schreibe 2–5 Wörter."),
-    ("Use 15 words or 25.", 'Use 15 words or 25. <span class="len">At most 5 words</span>'),
+    ("Use 15 words or 25.", 'Use 15 words or 25. <span class="len">Use at most 5 words.</span>'),
 ])
 def test_an_own_instruction_gets_the_limit_unless_it_states_it(instruction: str,
                                                                 shown: str) -> None:
@@ -399,24 +399,24 @@ def test_the_instruction_speaks_the_learners_language() -> None:
     data["source_lang"] = "fr"  # (the instruction follows the source language)
     assert _instruction(data, page="epaper") == (
         "Complète la deuxième phrase pour qu’elle ait le même sens que la première. Utilise le "
-        'mot en majuscules. <span class="len">5 mots au maximum</span>')
+        'mot en majuscules. <span class="len">Utilise 5 mots au maximum.</span>')
     data["source_lang"] = "de"
     data["target_lang"] = "fr"
-    assert _instruction(data).endswith('<span class="len">Höchstens 5 Wörter</span>')
+    assert _instruction(data).endswith('<span class="len">Verwende höchstens 5 Wörter.</span>')
 
 
 def test_user_text_is_escaped() -> None:
     data = _items({0: {"keyword": "<b>soll</b>", "prompt": "Pass <i>auf</i> & los",
                        "frame": "Lena <u>muss</u> {{auf die <b>Bohnen</b> aufpassen}} & mehr."},
                    1: {"cue": "<em>zu</em>"}})
-    data["ui"] = {"kind.transform.max": "max. <b>{max}</b> Wörter"}
+    data["ui"] = {"kind.transform.max": "Max. <b>{max}</b> Wörter."}
     section = _section(build_html(worksheet_from_dict(data)))
     assert '<span class="kw" lang="de">&lt;b&gt;soll&lt;/b&gt;</span>' in section
     assert "Pass &lt;i&gt;auf&lt;/i&gt; &amp; los" in section
     assert "Lena &lt;u&gt;muss&lt;/u&gt; <span class=\"gap\">" in section
     assert "</span></span> &amp; mehr." in section
     assert '<span class="cue">→ &lt;em&gt;zu&lt;/em&gt;</span>' in section
-    assert '<span class="len">Max. &lt;b&gt;5&lt;/b&gt; Wörter</span>' in section
+    assert '<span class="len">Max. &lt;b&gt;5&lt;/b&gt; Wörter.</span>' in section
     assert "<b>" not in section and "<u>" not in section and "<em>" not in section
 
 

@@ -2844,7 +2844,9 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
       conjugates the very verb a gap asks for is one). In a word-box or
       choice task the words are printed anyway, so the rule or an example
       counts only when it is a near-copy of the item (it shares three more
-      words);
+      words). So does an open gap whose answer the grammar point names
+      ('dont' beside 'Relative pronouns: dont, où, lequel' is the topic),
+      in its table too;
     * a near-copy with several gaps: one example or table cell showing two
       answers of the same item ('werden … geröstet').
 
@@ -2877,12 +2879,12 @@ def _grammar_leak(task: Task, gp: GrammarPoint, lang: str) -> str | None:
             hints = [gap.answer, *markup.wrong_options(gap)] if choice else [gap.hint or ""]
             if any(_contains(about, h) for h in hints) or not _significant(gap.answer):
                 continue
-            if any(_contains(cell, gap.answer) for cell in cells):
+            named = not gap.hint and _contains(about, gap.answer)
+            if not named and any(_contains(cell, gap.answer) for cell in cells):
                 return gap.answer
-            for text in prose:
-                if _contains(text, gap.answer) and (
-                    not bank or _shared_words(text, item_text, gap.answer) >= NEAR_COPY_WORDS
-                ):
+            for text in [*prose, *cells] if named else prose:
+                if _contains(text, gap.answer) and (not (bank or named) or _shared_words(
+                    text, item_text, gap.answer) >= NEAR_COPY_WORDS):
                     return gap.answer
         answers = list(dict.fromkeys(g.answer for g in unit))
         for text in box:

@@ -1344,7 +1344,8 @@ class Builder:
                        f'<span class="model{" src" if source else ""}"{attr}>{model}</span>')
             points = "".join(
                 f"<li>{esc(p.point)}"
-                + (f" — «{self.tl(p.covered_by) if not source else esc(p.covered_by)}»"
+                + (" — " + (esc(locale.quoted(p.covered_by, self.src)) if source
+                            else self.tl(locale.quoted(p.covered_by, self.tgt)))
                    if p.covered_by else "")
                 + "</li>"
                 for p in task.points

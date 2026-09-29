@@ -99,7 +99,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Rewrite the sentences",
         "kind.transform.instruction": "Rewrite each sentence as shown.",
         "kind.transform.keyword": "Complete the second sentence so that it means the same as the first. Use the word in capitals.",
-        "kind.transform.max": "at most {max} words",
+        "kind.transform.max": "Use at most {max} words.",
         "kind.scramble.title": "Put the words in order",
         "kind.scramble.instruction": "Write the words as a sentence.",
         "kind.word_building.title": "Build new words",
@@ -209,7 +209,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Schreibe die Sätze um",
         "kind.transform.instruction": "Schreibe jeden Satz wie angegeben um.",
         "kind.transform.keyword": "Ergänze den zweiten Satz so, dass er dasselbe bedeutet wie der erste. Verwende das Wort in Großbuchstaben.",
-        "kind.transform.max": "höchstens {max} Wörter",
+        "kind.transform.max": "Verwende höchstens {max} Wörter.",
         "kind.scramble.title": "Bringe die Wörter in die richtige Reihenfolge",
         "kind.scramble.instruction": "Schreibe die Wörter als Satz.",
         "kind.word_building.title": "Bilde neue Wörter",
@@ -319,7 +319,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Transforme les phrases",
         "kind.transform.instruction": "Réécris chaque phrase comme indiqué.",
         "kind.transform.keyword": "Complète la deuxième phrase pour qu’elle ait le même sens que la première. Utilise le mot en majuscules.",
-        "kind.transform.max": "{max} mots au maximum",
+        "kind.transform.max": "Utilise {max} mots au maximum.",
         "kind.scramble.title": "Remets les mots dans l’ordre",
         "kind.scramble.instruction": "Écris les mots pour former une phrase.",
         "kind.word_building.title": "Forme de nouveaux mots",
@@ -429,7 +429,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Transforma las frases",
         "kind.transform.instruction": "Reescribe cada frase como se indica.",
         "kind.transform.keyword": "Completa la segunda frase para que signifique lo mismo que la primera. Usa la palabra en mayúsculas.",
-        "kind.transform.max": "como máximo {max} palabras",
+        "kind.transform.max": "Usa como máximo {max} palabras.",
         "kind.scramble.title": "Ordena las palabras",
         "kind.scramble.instruction": "Escribe las palabras formando una frase.",
         "kind.word_building.title": "Forma palabras nuevas",
@@ -539,7 +539,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Trasforma le frasi",
         "kind.transform.instruction": "Riscrivi ogni frase come indicato.",
         "kind.transform.keyword": "Completa la seconda frase in modo che abbia lo stesso significato della prima. Usa la parola in maiuscolo.",
-        "kind.transform.max": "al massimo {max} parole",
+        "kind.transform.max": "Usa al massimo {max} parole.",
         "kind.scramble.title": "Metti le parole in ordine",
         "kind.scramble.instruction": "Scrivi le parole formando una frase.",
         "kind.word_building.title": "Forma parole nuove",
@@ -649,7 +649,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "kind.transform.title": "Transforma as frases",
         "kind.transform.instruction": "Reescreve cada frase como indicado.",
         "kind.transform.keyword": "Completa a segunda frase para que signifique o mesmo que a primeira. Usa a palavra em maiúsculas.",
-        "kind.transform.max": "no máximo {max} palavras",
+        "kind.transform.max": "Usa no máximo {max} palavras.",
         "kind.scramble.title": "Põe as palavras por ordem",
         "kind.scramble.instruction": "Escreve as palavras formando uma frase.",
         "kind.word_building.title": "Forma palavras novas",
@@ -692,8 +692,25 @@ RTL_LANGUAGES = frozenset({"ar", "arc", "ckb", "dv", "fa", "he", "ks", "ps", "sd
                            "ur", "yi"})
 
 
+#: Quotation marks around words quoted from the story in the answer key, by
+#: the language of the words (French with its no-break spaces); other
+#: languages get « ».
+QUOTE_MARKS: dict[str, tuple[str, str]] = {
+    "de": ("„", "“"), "fr": ("«\u00a0", "\u00a0»"), "en": ("“", "”"), "nl": ("“", "”"),
+    "es": ("«", "»"), "it": ("«", "»"), "pt": ("«", "»"), "pl": ("„", "”"), "cs": ("„", "“"),
+    "sk": ("„", "“"), "hu": ("„", "”"), "ro": ("„", "”"), "sv": ("”", "”"), "fi": ("”", "”"),
+    "da": ("»", "«"), "tr": ("“", "”"), "ja": ("「", "」"), "zh": ("“", "”"), "ko": ("“", "”"),
+}
+
+
 def base_lang(code: str) -> str:
     return code.split("-", 1)[0].lower()
+
+
+def quoted(text: str, lang: str) -> str:
+    """``text`` in the quotation marks of ``lang`` (see :data:`QUOTE_MARKS`)."""
+    opening, closing = QUOTE_MARKS.get(base_lang(lang), ("«", "»"))
+    return f"{opening}{text}{closing}"
 
 
 def t(key: str, lang: str, overrides: Mapping[str, str] | None = None, **fmt: object) -> str:
