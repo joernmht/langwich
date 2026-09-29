@@ -5,13 +5,17 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+from typing import get_args
 
 import pytest
 
 from langwich.model import (
+    AMBIGUOUS_KINDS,
+    KIND_ALIASES,
     NO_PICTURE_SENTINEL,
     TASK_KINDS,
     ContractError,
+    Task,
     Worksheet,
     canonical_kind,
     is_no_picture_reply,
@@ -59,6 +63,14 @@ def test_discriminator_tag_is_dropped_from_pointer():
     with pytest.raises(ContractError) as exc:
         worksheet_from_dict(data)
     assert any(loc == "/tasks/2/items/0/answer" for loc, _ in exc.value.problems)
+
+
+def test_no_task_has_a_field_named_after_its_kind():
+    # the error locations drop the kind after a task's index as pydantic's
+    # union tag, so no task may have a field of that name
+    for model in get_args(get_args(Task)[0]):
+        (kind,) = get_args(model.model_fields["kind"].annotation)
+        assert kind not in model.model_fields, model.__name__
 
 
 def test_multiple_choice_answer_must_be_an_option():
@@ -280,9 +292,17 @@ def test_quirks_are_normalised_with_notes():
     ("fill_in_the_blanks", "cloze"), ("gap_fill", "cloze"), ("true_or_false", "true_false"),
     ("matching", "match"), ("ordering", "order_events"), ("short_answer", "questions"),
     ("essay", "writing"), ("drawing", "draw"), ("Cloze", "cloze"), ("quiz", None),
+    ("sort", None), ("Sorting", None), ("text completion", None),
 ])
 def test_canonical_kind(alias, kind):
     assert canonical_kind(alias) == kind
+
+
+def test_an_ambiguous_kind_name_is_no_alias():
+    # (reading 'sort' as classify sends an order_events task the wrong way)
+    assert not set(AMBIGUOUS_KINDS) & set(KIND_ALIASES)
+    for name, kinds in AMBIGUOUS_KINDS.items():
+        assert set(kinds) <= set(TASK_KINDS), name
 
 
 def test_load_worksheet_collects_notes(tmp_path):
@@ -353,6 +373,15 @@ def test_literal_and_pattern_messages():
     assert "did you mean 'warm_up'" in problems["/tasks/0/stage"]
     assert "did you mean 'de'" in problems["/target_lang"]
     assert "letters, digits" in problems["/story/characters/0/id"]
+
+
+def test_a_value_that_is_not_text_is_quoted_as_json():
+    data = _lena()
+    data["tasks"][0]["stage"] = None
+    data["tasks"][1]["stage"] = False
+    problems = _problems(data)
+    assert problems["/tasks/0/stage"].startswith("null is not allowed for 'stage'; use one of")
+    assert problems["/tasks/1/stage"].startswith("false is not allowed for 'stage'")
 
 
 def test_multiple_choice_message_lists_options_and_near_match():

@@ -181,7 +181,11 @@ class Plan:
 def default_seed(ws: Worksheet) -> int:
     """The seed derived from what the worksheet says: fields left at their
     default do not count, so a new optional field in the contract does not
-    reshuffle the worksheets written before it."""
+    reshuffle the worksheets written before it.
+
+    Leaving the defaults out changed every worksheet's seed once, when this
+    rule came in; that was intended, since each new field used to change
+    every hash anyway, and it keeps the seeds stable from then on."""
     dump = ws.model_dump_json(by_alias=True, exclude_defaults=True)
     digest = hashlib.sha256(dump.encode("utf-8")).hexdigest()
     return int(digest[:8], 16)
@@ -1120,28 +1124,44 @@ def _dedupe(words: list[str]) -> list[str]:
     return out
 
 
+def _word_box(words: list[str], seed: int, task_id: str) -> list[str]:
+    """A word box: ``words`` without repeats (ignoring case), in a seeded order."""
+    box = _dedupe(words)
+    _rng(seed, task_id, "bank").shuffle(box)
+    return box
+
+
+def _balanced_order(
+    options: list[str], answer: str, rng: random.Random, positions: list[int],
+) -> list[str]:
+    """``options`` shuffled for display (multiple_choice, cloze choice).
+
+    Three options or more never keep the written order (answer first), and
+    the answer never sits in the same place three times in a row, a pattern
+    learners spot; ``positions`` holds the answer's place in the earlier
+    items and gets this one's. Two options are shuffled freely: never
+    keeping their order would always put the answer second."""
+    order = _shuffle_not_identity(options, rng, min_len=3)
+    for _ in range(12):
+        if len(options) < 2 or positions[-2:] != [order.index(answer)] * 2:
+            break
+        order = _shuffle_not_identity(options, rng, min_len=3)
+    positions.append(order.index(answer))
+    return order
+
+
 def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
     task = pt.task
     if isinstance(task, MatchTask):
         n = len(task.pairs) + len(task.extra)
         pt.right_order = _shuffle_not_identity(list(range(n)), _rng(seed, task.id, "right"))
     elif isinstance(task, MultipleChoiceTask):
-        # Shuffle each item's options, but never let the right answer sit in
-        # the same position three times in a row (a pattern learners spot).
-        orders: list[list[str]] = []
         positions: list[int] = []
-        for i, item in enumerate(task.items):
-            rng = _rng(seed, task.id, "options", str(i))
-            order = _shuffle_not_identity(item.options, rng, min_len=3)
-            for _ in range(12):
-                pos = order.index(item.answer)
-                if len(positions) >= 2 and positions[-1] == positions[-2] == pos:
-                    order = _shuffle_not_identity(item.options, rng, min_len=3)
-                    continue
-                break
-            positions.append(order.index(item.answer))
-            orders.append(order)
-        pt.option_orders = orders
+        pt.option_orders = [
+            _balanced_order(item.options, item.answer, _rng(seed, task.id, "options", str(i)),
+                            positions)
+            for i, item in enumerate(task.items)
+        ]
     elif isinstance(task, OrderEventsTask):
         pt.events = _shuffle_not_identity(task.events, _rng(seed, task.id, "events"))
     elif isinstance(task, ScrambleTask):
@@ -1150,28 +1170,20 @@ def _prepare(pt: PlannedTask, ws: Worksheet, seed: int) -> None:
         _prepare_classify(pt, task, seed)
     elif isinstance(task, ClozeTask) and task.hint == "choice":
         _prepare_choice(pt, task, seed)
-    elif isinstance(task, TableTask):
-        _prepare_table(pt, task, seed)
     elif isinstance(task, GappedTextTask):
         _prepare_gapped_text(pt, task, seed)
     elif isinstance(task, CrosswordTask):
         _prepare_crossword(pt, task, seed)
-    elif isinstance(task, ClozeTask) and task.hint == "word_bank":
-        words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
-        _rng(seed, task.id, "bank").shuffle(words)
-        pt.bank = words
-    elif isinstance(task, DialogueTask) and task.bank:
-        words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
-        _rng(seed, task.id, "bank").shuffle(words)
-        pt.bank = words
+    elif ((isinstance(task, (ClozeTask, TableTask)) and task.hint == "word_bank")
+          or (isinstance(task, DialogueTask) and task.bank)):
+        pt.bank = _word_box([g.answer for g in _gaps_of(task)] + list(task.distractors),
+                            seed, task.id)
     elif isinstance(task, LabelTask) and task.bank:
         scene = ws.scene(task.scene)
         if scene and scene.picture and scene.picture.labels:
             # the box shows bare words: the learner adds the article (the key has it)
-            words = _dedupe([strip_article(lb.term, ws.target_lang)
-                             for lb in scene.picture.labels])
-            _rng(seed, task.id, "bank").shuffle(words)
-            pt.bank = words
+            pt.bank = _word_box([strip_article(lb.term, ws.target_lang)
+                                 for lb in scene.picture.labels], seed, task.id)
 
 
 def _prepare_scramble(pt: PlannedTask, task: ScrambleTask, seed: int) -> None:
@@ -1205,35 +1217,15 @@ def _prepare_classify(pt: PlannedTask, task: ClassifyTask, seed: int) -> None:
 
 
 def _prepare_choice(pt: PlannedTask, task: ClozeTask, seed: int) -> None:
-    """``pt.gap_options``: the options of every choice gap, shuffled."""
-    # As for multiple_choice: three options or more never keep the written
-    # order (answer first), and the answer never sits in the same place
-    # three times in a row. Two options are shuffled freely — never keeping
-    # their order would always put the answer second.
-    orders: list[list[str]] = []
+    """``pt.gap_options``: the options of every choice gap, shuffled (balanced
+    like multiple_choice options, see :func:`_balanced_order`)."""
     positions: list[int] = []
-    for k, gap in enumerate(_gaps_of(task)):
+    pt.gap_options = [
         # (options that differ only in case are two options: 'Sie' / 'sie')
-        options = list(dict.fromkeys([gap.answer, *markup.wrong_options(gap)]))
-        rng = _rng(seed, task.id, "choice", str(k))
-        order = _shuffle_not_identity(options, rng, min_len=3)
-        for _ in range(12):
-            pos = order.index(gap.answer)
-            if len(positions) >= 2 and positions[-1] == positions[-2] == pos and len(options) > 1:
-                order = _shuffle_not_identity(options, rng, min_len=3)
-                continue
-            break
-        positions.append(order.index(gap.answer))
-        orders.append(order)
-    pt.gap_options = orders
-
-
-def _prepare_table(pt: PlannedTask, task: TableTask, seed: int) -> None:
-    """``pt.bank`` for a table with a word box (like a word-bank cloze)."""
-    if task.hint == "word_bank":
-        words = _dedupe([g.answer for g in _gaps_of(task)] + list(task.distractors))
-        _rng(seed, task.id, "bank").shuffle(words)
-        pt.bank = words
+        _balanced_order(list(dict.fromkeys([gap.answer, *markup.wrong_options(gap)])),
+                        gap.answer, _rng(seed, task.id, "choice", str(k)), positions)
+        for k, gap in enumerate(_gaps_of(task))
+    ]
 
 
 def _prepare_gapped_text(pt: PlannedTask, task: GappedTextTask, seed: int) -> None:

@@ -175,6 +175,7 @@
         },
         "categories": {
           "items": {
+            "minLength": 1,
             "type": "string"
           },
           "maxItems": 6,
@@ -1095,6 +1096,7 @@
         "extra": {
           "description": "1–2 sentences that fit no gap (distractors).",
           "items": {
+            "minLength": 1,
             "type": "string"
           },
           "title": "Extra",

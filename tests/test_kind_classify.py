@@ -134,9 +134,26 @@ def test_contract_rejects_bad_tasks(change):
         worksheet_from_dict(data)
 
 
-def test_categories_must_be_distinct():
-    with pytest.raises(ContractError, match="categories must be distinct"):
-        _ws(categories=["Lena", "Frau Berger", "lena"])
+@pytest.mark.parametrize(("categories", "clash"), [
+    (["Lena", "Frau Berger", "lena"], "'Lena' and 'lena' are the same"),
+    (["Lena", "Frau Berger", "Lena"], "'Lena' is listed twice"),
+    ([CAST[0]] * 2, "'Lena' is listed twice"),  # (one str object twice)
+])
+def test_categories_must_be_distinct(categories, clash):
+    with pytest.raises(ContractError) as err:
+        _ws(categories=categories)
+    ((where, message),) = err.value.problems
+    assert where == f"/tasks/{AT}/categories"  # not the whole task
+    assert message == (f"categories must be distinct (capitals aside): {clash}; merge them into "
+                       "one category, or rename one")
+
+
+@pytest.mark.parametrize("empty", ["", "   "])
+def test_a_category_must_not_be_empty(empty):
+    with pytest.raises(ContractError) as err:
+        _ws(categories=["Lena", empty, "Herr Novak"])
+    assert err.value.problems == [(f"/tasks/{AT}/categories/1",
+                                   "each entry of 'categories' must not be empty.")]
 
 
 @pytest.mark.parametrize("answer, guess", [
@@ -155,13 +172,26 @@ def test_an_answer_must_be_copied_from_the_categories(answer, guess):
     assert guess in message
 
 
-@pytest.mark.parametrize("kind", ["categorize", "sorting", "who said what", "Multiple-Matching"])
+@pytest.mark.parametrize("kind", ["categorize", "who said what", "Multiple-Matching"])
 def test_lenient_loading_reads_the_aliases_as_classify(kind):
     data = _data()
     data["tasks"][AT]["kind"] = kind
     ws, notes = parse_worksheet(json.dumps(data, ensure_ascii=False))
     assert isinstance(ws.tasks[AT], ClassifyTask)
     assert any(n.code == "normalized" for n in notes)
+
+
+@pytest.mark.parametrize("kind", ["sort", "Sorting"])
+def test_sort_is_not_read_as_classify(kind):
+    # ('sort' may as well mean order_events: the error names both)
+    data = _data()
+    data["tasks"][AT]["kind"] = kind
+    with pytest.raises(ContractError) as err:
+        parse_worksheet(json.dumps(data, ensure_ascii=False))
+    ((where, message),) = err.value.problems
+    assert where == f"/tasks/{AT}"
+    assert message.startswith(f"'{kind}' is not a task kind (did you mean 'classify' or "
+                              "'order_events'?)")
 
 
 # ---------------------------------------------------------------------------

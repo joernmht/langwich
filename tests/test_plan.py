@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -424,3 +425,57 @@ def test_match_letters_continue_after_z():
     assert pt.letter_for_pair(25) == "Z"
     assert pt.letter_for_pair(26) == "AA"
     assert pt.letter_for_pair(29) == "AD"
+
+
+#: One task of every kind whose options or words the planner shuffles with
+#: a seed: option balancing (multiple_choice, cloze choice, including a gap
+#: with a single option) and the word boxes (cloze, table, dialogue, label).
+_SHUFFLED: dict = {
+    "schema": "langwich/3", "title": "Im Café", "source_lang": "en", "target_lang": "de",
+    "cefr_level": "B1", "topic": "coffee",
+    "story": {"logline": "Lena learns to roast coffee.", "scenes": [{
+        "id": "s1", "heading": "Die Rösterei", "text": "Lena röstet Kaffee.",
+        "picture": {"svg": "<svg></svg>", "labels": [
+            {"n": 1, "term": "die Tasse"}, {"n": 2, "term": "der Sack"},
+            {"n": 3, "term": "das Sieb"}, {"n": 4, "term": "die Waage"},
+        ]},
+    }]},
+    "vocabulary": {"items": [{"term": "die Tasse", "translation": "cup"}]},
+    "tasks": [
+        {"id": "mc", "kind": "multiple_choice", "stage": "detail", "scene": "s1", "items": [
+            {"question": f"Q{i}", "options": options, "answer": options[i % len(options)]}
+            for i, options in enumerate(
+                [["a", "b", "c"], ["d", "e", "f", "g"], ["h", "i"], ["j", "k", "l"],
+                 ["m", "n", "o", "p"], ["q", "r", "s"], ["t", "u"], ["v", "w", "x", "y"]]
+            )
+        ]},
+        {"id": "ch", "kind": "cloze", "stage": "form", "scene": "s1", "hint": "choice",
+         "text": "{{hat::ist|habe}} {{kommen::kommt}} {{in::auf|an|um}} {{weil::denn|da}} "
+                 "{{Sie::sie}} {{nur}} {{am::im|um}} {{wird::werden|wurde}} {{aus::von}}"},
+        {"id": "wb", "kind": "cloze", "stage": "practice", "scene": "s1",
+         "items": ["Sie {{röstet}} Kaffee.", "Der {{Sack}} ist {{schwer}}.", "Ein {{sack}}."],
+         "distractors": ["leicht", "Röstet", "die Bohne"]},
+        {"id": "tb", "kind": "table", "stage": "practice", "scene": "s1", "hint": "word_bank",
+         "head": ["Land", "Bohne"], "rows": [["{{Brasilien}}", "{{Arabica}}"],
+                                             ["{{Vietnam}}", "{{Robusta}}"]],
+         "distractors": ["Peru"]},
+        {"id": "dl", "kind": "dialogue", "stage": "practice", "scene": "s1", "bank": True,
+         "lines": [{"speaker": "Lena", "text": "Ich {{möchte}} einen {{Kaffee}}."},
+                   {"speaker": "Anna", "text": "Mit {{Milch}}?"}],
+         "distractors": ["Tee", "Zucker"]},
+        {"id": "lb", "kind": "label", "stage": "picture", "scene": "s1"},
+    ],
+}
+
+
+def test_seeded_orders_never_change():
+    """The same JSON and seed always give the same sheet: tidying the planner
+    must not move one option or word for any seed. (When a change of the
+    shuffles is intended, update the digest and rebuild the showcase.)"""
+    ws = worksheet_from_dict(_SHUFFLED)
+    orders = []
+    for seed in range(300):
+        for pt in plan(ws, seed=seed).tasks:
+            orders.append([pt.task.id, pt.option_orders, pt.gap_options, pt.bank])
+    digest = hashlib.sha256(json.dumps(orders, ensure_ascii=False).encode()).hexdigest()
+    assert digest == "87ddb45c56bcd9954cb5676f76150e00ef3c9f954bee847b2f80e053d3efe02c"
