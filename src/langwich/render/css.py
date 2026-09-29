@@ -11,12 +11,13 @@ WeasyPrint picks a host default and a third typeface sneaks into the PDF.
 Hyphenation uses "-" (Atkinson has no U+2010).
 
 Pagination: a task header never ends a page (it stays with the first two
-items); tasks that must be seen whole (match, order, label, draw, word box
-beside the items) move as a unit, the others break between items. A page
-that starts inside a task names it in the running header (named strings,
-see :func:`header_css`). ``break-after: avoid`` is never put on an element
-that can be a last child: WeasyPrint carries it up to the task and would
-glue the task to whatever follows.
+items); tasks that must be seen whole (match, order, label, draw, gapped
+text, crossword, a classify sort or short grid; while they fit, a word box
+beside the items, a table or a proofread draft) move as a unit, the others
+break between items. A page that starts inside a task names it in the
+running header (named strings, see :func:`header_css`). ``break-after:
+avoid`` is never put on an element that can be a last child: WeasyPrint
+carries it up to the task and would glue the task to whatever follows.
 """
 
 from __future__ import annotations

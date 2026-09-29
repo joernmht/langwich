@@ -153,16 +153,16 @@ classify task with `"layout": "columns"` shows its item texts; a label task
 shows the label terms without their articles (`plan.strip_article`), so the
 learner supplies the article — the answer key keeps the full term.
 
-**Other shuffles** use the same seed: match columns, multiple_choice options
-and the options of a `choice` cloze gap (three or more never in the written
-order, the answer never three times in a row in the same place), events,
-scramble tiles (never in a correct order, `alternatives` included), the rows
-of a classify grid, and the lettered sentences of a gapped_text (never gap 1 →
-A, gap 2 → B …). The default seed is a hash of the worksheet without the
-fields left at their default, so a new optional field in the contract does not
-reshuffle older worksheets. A crossword's grid comes from `crossword.layout`,
-which depends on the answers alone: the validator (`crossword-layout`) sees
-the grid every render prints.
+**Other shuffles** use the same seed: the right-hand column of a match (its
+`extra` included), multiple_choice options and the options of a `choice` cloze
+gap (three or more never in the written order, the answer never three times in
+a row in the same place), events, scramble tiles (never in a correct order,
+`alternatives` included), the rows of a classify grid, and the lettered
+sentences of a gapped_text (never gap 1 → A, gap 2 → B …). The default seed is
+a hash of the worksheet without the fields left at their default, so a new
+optional field in the contract does not reshuffle older worksheets. A
+crossword's grid comes from `crossword.layout`, which depends on the answers
+alone: the validator (`crossword-layout`) sees the grid every render prints.
 
 ## Loading (`model.py`)
 
@@ -251,16 +251,21 @@ do not use the same tiles; transform frames without exactly one gap; crossword
 answers that are not one word, or that cannot all be joined into one grid;
 `min_words > max_words`.
 
-Warnings: no production task; no gist/detail task; fewer or more tasks than
-`task_range` recommends for the level and scene count; fewer than 2 or more
-than 7 scenes; story length outside the CEFR range; target set size outside
-5–15, duplicate target words; target words used in fewer than two tasks or
-absent from the story; practice items that copy story sentences; word-box
-distractors and gapped_text extras that are also answers; hints that are the
-answer itself (a translation hint, a proofread "mistake" that is correct);
-grammar boxes that show the answers of the task beside them; no facts; no
-characters; unused series review words; missing `previously` for episode ≥ 2;
-unknown `ui` keys; missing furniture strings for a source language without
+Warnings: no production task; no gist/detail task; gist, detail, picture, form
+or practice tasks without a `scene`; fewer or more tasks than `task_range`
+recommends for the level and scene count; fewer than 2 or more than 7 scenes;
+story length outside the CEFR range; target set size outside 5–15, duplicate
+target words; target words used in fewer than two tasks or absent from the
+story; duplicate vocabulary items, items without `pos`; form, practice and
+production items that copy story sentences; word-box distractors and
+gapped_text extras that are also answers; word-box gaps at the start of a
+sentence; hints that are the answer itself (a translation hint, a proofread
+"mistake" that is correct); false true_false statements without a correction;
+writing model answers more than 15% outside the word range or that leave out a
+`must_use` word; grammar boxes that show the answers of the task beside them;
+no facts; no characters; unused series review words; missing `previously` for
+episode ≥ 2; unknown `ui` keys, `ui` strings whose placeholders differ from
+the built-in ones; missing furniture strings for a source language without
 built-in labels; nouns without article in languages that have articles;
 picture files that cannot be used where no task needs them; label tasks that
 fall back to "draw and label"; picture-stage tasks on a scene without a
@@ -302,8 +307,9 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   items, except those that need everything in view (match, order events, label,
   draw, a gapped text with its lettered sentences, a crossword, a classify sort
   into columns or a short classify grid, and — while they fit — tasks with a
-  word box). `--one-task-per-page` restores one task per page for
-  annotation-heavy e-paper use.
+  word box, tables, proofread drafts, true_false with a third box and choice
+  clozes with their options below). `--one-task-per-page` restores one task
+  per page for annotation-heavy e-paper use.
 * Scene: heading, paragraphs in a 120 mm column, glosses in a 52 mm side column
   beside the paragraph where the word first appears, glossed words underlined;
   fact and grammar sidebars in the side column — what does not fit beside the

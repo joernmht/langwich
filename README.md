@@ -466,15 +466,15 @@ of a `transform` frame:
 | `{{geröstet}}` | the answer |
 | `{{schwarz\|ohne Milch}}` | an answer and an accepted alternative |
 | `{{geröstet::rösten}}` | an answer and a hint printed in brackets (a base form or a translation) |
-| `{{ist::sind\|bist}}` | in a cloze with `"hint": "choice"`: the answer and the wrong options, shuffled for the learner to circle |
+| `{{ist::sind\|bist}}` | in a cloze with `"hint": "choice"`: the answer and the wrong options, shuffled for the learner to circle or tick |
 | `{{ist::sind}}` | in a proofread text: the correct form and the mistake the character wrote |
 
 The first answer goes into the answer key and the word box. A cloze's `hint` sets what the learner
 gets: `word_bank` (the default; add wrong words in `distractors`), `first_letter`, `base_form`,
-`translation`, `choice` (the options in brackets in the text, or with `"choice_layout": "below"`
-under numbered gaps) or `none`. With `base_form` and `translation`, every gap needs a `::hint`. A
-table takes the same hints except `choice` (its default is `none`). Gap markup belongs in tasks
-only, never in the story.
+`translation`, `choice` (the options in brackets in the text, to circle, or with
+`"choice_layout": "below"` numbered gaps and a row of options to tick under the text) or `none`.
+With `base_form` and `translation`, every gap needs a `::hint`. A table takes the same hints
+except `choice` (its default is `none`). Gap markup belongs in tasks only, never in the story.
 
 ```jsonc
 {
