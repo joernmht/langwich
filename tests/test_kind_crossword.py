@@ -340,6 +340,18 @@ def test_duplicate_entry():
     assert "entries/0" in hits[0].message
 
 
+def test_a_grammar_box_beside_the_crossword_must_not_show_its_words():
+    data = _data(grammar="g3")
+    data["grammar"].append({"id": "g3", "name": "Compound nouns",
+                            "explanation": "German glues nouns together.",
+                            "rule": "Nomen + Nomen", "examples": ["der Stadtplan"]})
+    assert not _hits(data, "grammar-gives-away")
+    data["grammar"][-1]["examples"] = ["die Milch + der Schaum = der Milchschaum"]
+    hits = _hits(data, "grammar-gives-away")
+    assert [i.where for i in hits] == ["/grammar/2"]
+    assert "shows its answer 'Milchschaum'" in hits[0].message
+
+
 def test_crossword_layout_names_the_words_the_grid_cannot_take():
     data = _data(NIGHT)
     hits = _hits(data, "crossword-layout")

@@ -23,6 +23,7 @@ COVERED_CODES = {"scramble-alternative", "scramble-punctuation", "scramble-capit
 
 REPO = Path(__file__).resolve().parent.parent
 LENA = REPO / "examples" / "lena_01_en_de.json"
+SHOWCASE = REPO / "tests" / "fixtures" / "kinds_showcase.json"
 
 #: A form task on scene 4 (it replaces the word_building task t8): verb
 #: second after a time, a question word and an imperative — two of them
@@ -52,6 +53,14 @@ def _lena(*items: dict[str, Any]) -> dict[str, Any]:
         task["items"] = list(items)
     assert data["tasks"][INDEX]["id"] == "t8"
     data["tasks"][INDEX] = task
+    return data
+
+
+def _showcase(*items: dict[str, Any]) -> dict[str, Any]:
+    """The French showcase fixture with ``items`` in its scramble task t18."""
+    data = json.loads(SHOWCASE.read_text(encoding="utf-8"))
+    task = next(t for t in data["tasks"] if t["id"] == "t18")
+    task["items"] = list(items)
     return data
 
 
@@ -155,6 +164,11 @@ def test_a_repeated_tile_must_be_repeated_in_the_alternative() -> None:
     (["Lena", "wartet …", "und", "wartet"], 1, "ends with '…'", "…"),
     # Spanish opening marks show the first tile (the key adds them)
     (["¿dónde", "está", "el café"], 0, "starts with '¿'", "?"),
+    # the end marks of other scripts: 'end' cannot print them
+    (["私は", "コーヒーを", "飲みます。"], 2, "ends with '。'", ""),
+    (["你", "喝", "咖啡吗？"], 2, "ends with '？'", ""),
+    (["هل", "تشرب", "القهوة؟"], 2, "ends with '؟'", ""),
+    (["मैं", "कॉफ़ी", "पीता हूँ।"], 2, "ends with '।'", ""),
 ])
 def test_sentence_punctuation_on_a_tile_is_flagged(
     chunks: list[str], k: int, shown: str, end: str,
@@ -164,6 +178,14 @@ def test_sentence_punctuation_on_a_tile_is_flagged(
         ("warning", f"/tasks/{INDEX}/items/0/chunks/{k}")]
     assert shown in issues[0].message
     assert f'set "end": "{end}" on the item' in issues[0].message
+
+
+def test_an_end_mark_that_end_cannot_print_is_left_off() -> None:
+    # with the default "end" '.', the key would print '飲みます。.'
+    issues = _issues(_lena({"chunks": ["私は", "コーヒーを", "飲みます。"]}),
+                     "scramble-punctuation")
+    assert "Write it as '飲みます' here and in every alternative" in issues[0].message
+    assert "'end' can only be '.', '?', '!' or '…'" in issues[0].message
 
 
 def test_the_fix_names_the_tile_without_its_mark() -> None:
@@ -190,8 +212,11 @@ def test_a_capitalised_first_tile_is_flagged() -> None:
     assert [(i.level, i.where) for i in issues] == [
         ("warning", f"/tasks/{INDEX}/items/0/chunks/0")]
     assert "the tile 'Am Freitag' starts the sentence" in issues[0].message
-    assert "Write it in lower case ('am Freitag')" in issues[0].message
-    assert "Keep a capital only for a name or a noun" in issues[0].message
+    assert ("If the word is written in lower case inside a sentence, write the tile so "
+            "('am Freitag') here and in every alternative") in issues[0].message
+    # never simply 'write it in lower case': that would turn a formal 'Sie' into 'sie'
+    assert ("If the word keeps its capital wherever it stands (a name, a noun or the formal "
+            "Sie), keep the capital") in issues[0].message
 
 
 def test_the_first_tile_of_an_alternative_counts_too() -> None:
@@ -215,10 +240,67 @@ def test_words_that_are_capitalised_anyway_are_fine(first: str) -> None:
     assert _issues(_lena(item), "scramble-capital") == []
 
 
+@pytest.mark.parametrize("item", [
+    # the formal Sie keeps its capital, though the story writes 'sie' (she)
+    {"chunks": ["Sie", "trinken", "die Melange", "mit Zucker"]},
+    {"chunks": ["Ihr Kaffee", "ist", "zu bitter"]},
+    {"chunks": ["Ihnen", "schmeckt", "die Melange"]},
+])
+def test_the_formal_sie_is_capitalised_anyway(item: dict[str, Any]) -> None:
+    assert _issues(_lena(item), "scramble-capital") == []
+
+
+def test_an_alternative_with_the_tile_inside_shows_that_the_capital_is_the_words() -> None:
+    # 'Essen' (a noun that vocabulary.items does not list) and the verb 'essen'
+    meal = {"chunks": ["Essen", "gibt es", "um zwölf"]}
+    verb = {"chunks": ["Lena", "will", "nichts", "essen"]}
+    issues = _issues(_lena(meal, verb), "scramble-capital")
+    assert [i.where for i in issues] == [f"/tasks/{INDEX}/items/0/chunks/0"]
+    assert "('essen')" in issues[0].message  # (only if it is written so inside a sentence)
+    meal["alternatives"] = [["um zwölf", "gibt es", "Essen"]]
+    assert _issues(_lena(meal, verb), "scramble-capital") == []
+
+
+def test_without_noun_capitals_any_capitalised_first_tile_is_flagged() -> None:
+    # French: 'normalement' is written nowhere in lower case, but only names
+    # keep their capital inside a French sentence
+    assert "normalement" not in SHOWCASE.read_text(encoding="utf-8").casefold()
+    item = {"chunks": ["Normalement", "Mila", "achète", "des fraises"]}
+    issues = _issues(_showcase(item), "scramble-capital")
+    assert len(issues) == 1
+    assert "write the tile so ('normalement')" in issues[0].message
+    assert "wherever it stands (a name), keep the capital" in issues[0].message
+
+
+@pytest.mark.parametrize("item", [
+    {"chunks": ["Mila", "achète", "des fraises"]},                 # a character's name
+    {"chunks": ["Madame Roux", "vend", "des fraises"]},            # ... with a title
+    {"chunks": ["Lyon", "est", "une grande ville"]},               # a place the story names
+    {"chunks": ["Pauline", "arrive", "demain"],                   # a name inside a sentence
+     "alternatives": [["demain", "arrive", "Pauline"]]},
+])
+def test_without_noun_capitals_names_are_fine(item: dict[str, Any]) -> None:
+    assert _issues(_showcase(item), "scramble-capital") == []
+
+
 def test_the_capital_after_an_opening_quote_mark_counts() -> None:
     issues = _issues(_lena({"chunks": ["„Warum", "fragst", "du“"]}), "scramble-capital")
     assert [i.where for i in issues] == [f"/tasks/{INDEX}/items/0/chunks/0"]
     assert "('„warum')" in issues[0].message
+
+
+@pytest.mark.parametrize("example", [
+    "Am Freitag darf Lena die Melange machen.",   # the sentence of the tiles
+    "Lena darf am Freitag die Melange machen.",   # ... in another correct order
+])
+def test_a_grammar_box_beside_the_scramble_must_not_show_its_sentence(example: str) -> None:
+    data = _lena()
+    data["tasks"][INDEX]["grammar"] = "g2"  # the box is printed beside the scramble
+    assert _issues(data, "grammar-gives-away") == []
+    data["grammar"][1]["examples"] = [example]
+    issues = _issues(data, "grammar-gives-away")
+    assert [i.where for i in issues] == ["/grammar/1"]
+    assert "beside task 't8'" in issues[0].message
 
 
 def test_a_scramble_that_copies_the_story_is_flagged() -> None:

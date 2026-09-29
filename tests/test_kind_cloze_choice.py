@@ -21,7 +21,7 @@ from langwich.render.css import GUTTER_W, MAIN_W
 from langwich.validate import CHECKS, Issue, validate
 
 #: The validator codes this file exercises (see tests/test_validate.py).
-COVERED_CODES = {"choice-options"}
+COVERED_CODES = {"choice-options", "unused-field"}
 
 LENA = Path(__file__).resolve().parent.parent / "examples" / "lena_01_en_de.json"
 MM = 72 / 25.4
@@ -217,6 +217,99 @@ def test_a_capital_at_the_start_of_a_sentence_gives_the_answer_away() -> None:
     # when the capital is the whole difference, the gap has to move
     hits = _choice_issues({**DIARY, "text": "{{Sie::sie}} kommen morgen, sagt Lena."})
     assert len(hits) == 1 and "inside the sentence" in hits[0].message
+
+
+@pytest.mark.parametrize(("text", "shown", "fix"), [
+    # the answer key would print '… Bohnen. der Duft …'
+    ("Lena röstet neue Bohnen. {{der::die|das}} Duft ist wunderbar.", "", "{{Der::Die|Das}}"),
+    # ... and the small letter marks the answer
+    ("{{der::Die|Das}} Duft ist wunderbar.",
+     ", and the capital letter of 'Die', 'Das' shows that they are wrong", "{{Der::Die|Das}}"),
+    ("Ist das Lena? {{ja::nein}}, das ist sie.", "", "{{Ja::Nein}}"),
+])
+def test_a_small_letter_at_the_start_of_a_sentence(text: str, shown: str, fix: str) -> None:
+    hits = _choice_issues({**DIARY, "text": text})
+    assert len(hits) == 1 and hits[0].where.endswith("/text")
+    answer = markup.gaps(text)[0].answer
+    assert (f"starts a sentence, but its answer '{answer}' has no capital letter, so the answer "
+            f"key would print the sentence with a small letter{shown}.") in hits[0].message
+    assert f"Write every option with a capital letter here: {fix}." in hits[0].message
+
+
+@pytest.mark.parametrize("text", [
+    "Lena kauft z. B. {{die::der|das}} Bohnen aus Äthiopien.",  # after an abbreviation
+    "Am 3. {{und::oder}} am 4. Mai ist das Café zu.",            # after an ordinal
+    "Lena weiß es: {{die::der|das}} Bohnen sind zu dunkel.",     # after a colon
+    "Lena wartet … {{und::oder}} wartet.",                       # after '…'
+    "{{der::die|das}} Kaffee",                                   # a phrase, not a sentence
+])
+def test_a_small_letter_may_follow_a_full_stop_inside_a_sentence(text: str) -> None:
+    assert _choice_issues({**DIARY, "text": text}) == []
+
+
+@pytest.mark.parametrize(("text", "fix"), [
+    ("Lena trinkt {{den::Die|Das}} Kaffee.", "{{den::die|das}}"),
+    ("Lena trinkt {{Den::die|das}} Kaffee.", "{{den::die|das}}"),
+    ("Lena trinkt {{den::Die|das}} Kaffee.", "{{den::die|das}}"),
+])
+def test_options_inside_a_sentence_start_alike(text: str, fix: str) -> None:
+    hits = _choice_issues({**DIARY, "text": text})
+    assert len(hits) == 1 and hits[0].where.endswith("/text")
+    message = hits[0].message
+    assert "do not start alike" in message and "the capital shows which option is right" in message
+    assert f"If these words are written in lower case inside a sentence, write them so: {fix}." \
+        in message
+    # never just 'write it in lower case': a noun or the formal Sie keeps its capital
+    assert "If a capital belongs to the word (a name, a noun or the formal Sie), keep it" in message
+
+
+@pytest.mark.parametrize("text", [
+    "Lena bringt die {{Tasse::schnell|gut}} an den Tisch.",   # a noun (vocabulary.items)
+    "Lena fragt: „Trinken {{Sie::du|ihr}} die Melange?“",    # the formal Sie
+    "Er gibt {{Lena::ihm|uns}} eine Schürze.",                # a name
+    "Lena lernt heute etwas {{Neues::neues}}.",               # the case is what the gap asks
+])
+def test_a_capital_that_belongs_to_the_word_is_no_give_away(text: str) -> None:
+    assert _choice_issues({**DIARY, "text": text}) == []
+
+
+@pytest.mark.parametrize(("gap", "joined", "fix"), [
+    ("{{sitzt::setzt, sitzen}}", "'setzt, sitzen'", "{{sitzt::setzt|sitzen}}"),
+    ("{{sitzt::setzt / sitzen|saß}}", "'setzt / sitzen'", "{{sitzt::setzt|sitzen|saß}}"),
+    ("{{sitzt::setzt;sitzen}}", "'setzt;sitzen'", "{{sitzt::setzt|sitzen}}"),
+    ("{{sitzt::setzt,}}", "'setzt,'", "{{sitzt::setzt}}"),
+])
+def test_wrong_options_joined_by_a_sign_print_as_one(gap: str, joined: str, fix: str) -> None:
+    hits = _choice_issues({**FRIDAY, "items": [f"Um sieben {gap} Herr Novak da."]})
+    assert len(hits) == 1
+    assert f"has the wrong option {joined}, which the choice would print as one option" \
+        in hits[0].message
+    assert f"Separate the wrong options with '|', not with ',', ';' or '/': {fix}." \
+        in hits[0].message
+
+
+@pytest.mark.parametrize("gap", [
+    "{{sitzt::setzt oder sitzen}}",          # a word, not a sign: 'or' is also a French word
+    "{{1/2::1/3|3/4}}",                      # the answer has the sign too
+    "{{sitzt, sagt Lena,::setzt, sagt Lena,}}",
+])
+def test_signs_that_the_answer_has_too_are_fine(gap: str) -> None:
+    hits = _choice_issues({**FRIDAY, "items": [f"Um sieben {gap} Herr Novak da."]})
+    assert not [h for h in hits if "print as one option" in h.message]
+
+
+def test_distractors_and_a_layout_need_the_hint_that_prints_them() -> None:
+    ws = _ws({**NOTE, "distractors": ["weil"]},
+             {**FRIDAY, "id": "wb", "hint": "word_bank", "choice_layout": "below",
+              "items": ["Um sieben {{sitzt}} Herr Novak schon am Fenster."]})
+    note, bank = _index(ws, "ch2"), _index(ws, "wb")
+    hits = [x for x in validate(ws).issues if x.code == "unused-field"]
+    assert [(x.where, x.level) for x in hits] == [
+        (f"/tasks/{note}/distractors", "warning"), (f"/tasks/{bank}/choice_layout", "warning")]
+    assert "its hint is 'choice', which prints no word box" in hits[0].message
+    assert "after the '::': {{right::wrong|wrong}}" in hits[0].message
+    assert "'choice_layout' \"below\" arranges the options of choice gaps" in hits[1].message
+    assert "the hint 'word_bank', so it has no effect" in hits[1].message
 
 
 def test_empty_and_broken_gaps_are_left_to_their_own_checks() -> None:
