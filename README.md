@@ -669,7 +669,7 @@ langwich/
 ├── docs/               the website (index.html), architecture.md, assets/, examples/ (PDFs)
 ├── .github/workflows/  ci.yml (lint, types, schema, tests), pages.yml (the website)
 ├── .claude/commands/langwich.md    the /langwich command for Claude Code
-└── LICENSE             MIT
+└── LICENSE             Apache-2.0
 ```
 
 [`docs/architecture.md`](docs/architecture.md) explains the design: the modules and their
@@ -737,6 +737,6 @@ or unidiomatic sentences, so read a worksheet before you hand it to someone else
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). The bundled fonts, Literata and Atkinson Hyperlegible Next, are
+Apache-2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The bundled fonts, Literata and Atkinson Hyperlegible Next, are
 licensed under the SIL Open Font License 1.1; their licence texts are in
 [`src/langwich/fonts/`](src/langwich/fonts/).

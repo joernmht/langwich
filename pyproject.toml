@@ -9,8 +9,8 @@ name = "langwich"
 dynamic = ["version"]
 description = "Story-driven language-learning worksheets for e-paper and print — written by any LLM, typeset by langwich"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE", "src/langwich/fonts/OFL-*.txt"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "src/langwich/fonts/OFL-*.txt"]
 requires-python = ">=3.11"
 authors = [
     {name = "Jörn Maurischat"},

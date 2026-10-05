@@ -1,0 +1,7 @@
+langwich
+Copyright 2026 Jörn Maurischat and langwich contributors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product bundles the fonts Literata and Atkinson Hyperlegible Next,
+licensed under the SIL Open Font License 1.1 (see src/langwich/fonts/).

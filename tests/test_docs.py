@@ -23,7 +23,7 @@ tests fail as soon as the docs drift away from the code:
    list) follows the lesson order in ``langwich.model.STAGES``;
 9. install instructions use a virtual environment (PEP 668), and every Ollama
    recipe raises the context size;
-10. packaging and CI agree with the docs: the MIT licence file, the licence
+10. packaging and CI agree with the docs: the Apache-2.0 licence file, the licence
     files in the wheel, one version source, the pinned ruff rule set, the
     Python versions, the system libraries and ``LANGWICH_REQUIRE_PDF`` in CI;
 11. ``scripts/build_showcase.py --help`` (or a mistyped option) never renders.
@@ -740,14 +740,15 @@ def _ci() -> str:
 
 def test_license_file_matches_the_metadata():
     license_text = (REPO_ROOT / "LICENSE").read_text(encoding="utf-8")
-    assert license_text.startswith("MIT License")
-    assert re.search(r"Copyright \(c\) \d{4} \S", license_text)
+    assert license_text.lstrip().startswith("Apache License")
+    notice_text = (REPO_ROOT / "NOTICE").read_text(encoding="utf-8")
+    assert re.search(r"Copyright \d{4} \S", notice_text)
     project = _pyproject()["project"]
-    assert project["license"] == "MIT"
+    assert project["license"] == "Apache-2.0"
     for pattern in project["license-files"]:
         assert list(REPO_ROOT.glob(pattern)), f"license-files entry matches nothing: {pattern}"
     assert "src/langwich/fonts/OFL-*.txt" in project["license-files"]
-    assert "MIT" in (REPO_ROOT / "README.md").read_text(encoding="utf-8").split("## License")[-1]
+    assert "Apache-2.0" in (REPO_ROOT / "README.md").read_text(encoding="utf-8").split("## License")[-1]
     requires = " ".join(_pyproject()["build-system"]["requires"])
     assert re.search(r"setuptools>=(7[7-9]|[89]\d|\d{3})", requires), requires
 
