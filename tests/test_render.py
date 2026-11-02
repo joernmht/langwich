@@ -10,11 +10,17 @@ import json
 import os
 import re
 import sys
+import threading
+import time
+from collections.abc import Iterator
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
 
 from langwich.answers import answer_key
+from langwich import images
 from langwich.images import prepare_picture
 from langwich.model import MatchTask, Picture, load_worksheet, worksheet_from_dict
 from langwich.plan import plan, strip_article
@@ -389,13 +395,92 @@ def test_raster_images_become_high_contrast_greyscale(tmp_path):
     img.save(tmp_path / "photo.png")
     warnings: list[str] = []
     mono = prepare_picture(Picture(image="photo.png"), tmp_path, True, warnings)
-    colour = prepare_picture(Picture(image=str(tmp_path / "photo.png")), None, False, warnings)
+    colour = prepare_picture(
+        Picture(image=str(tmp_path / "photo.png")), None, False, warnings,
+        allow_outside_images=True,
+    )
     assert warnings == []
     assert (mono.width, mono.height) == (40, 20) and not mono.is_vector
     decoded = PIL.open(io.BytesIO(base64.b64decode(mono.data_uri.split(",", 1)[1])))
     assert decoded.mode == "L"
     assert decoded.getextrema() == (0, 255)  # autocontrast stretches to black and white
     assert PIL.open(io.BytesIO(base64.b64decode(colour.data_uri.split(",", 1)[1]))).mode == "RGB"
+
+
+def test_outside_images_need_an_explicit_override(tmp_path):
+    from PIL import Image
+
+    outside = tmp_path.parent / "outside.png"
+    Image.new("RGB", (2, 2), "red").save(outside)
+    warnings: list[str] = []
+    assert prepare_picture(Picture(image=str(outside)), tmp_path, True, warnings) is None
+    assert "outside the worksheet folder" in warnings[0]
+    warnings.clear()
+    assert prepare_picture(
+        Picture(image=str(outside)), tmp_path, True, warnings,
+        allow_outside_images=True,
+    ) is not None
+    assert warnings == []
+
+
+@contextmanager
+def _http_server(handler: type[BaseHTTPRequestHandler]) -> Iterator[str]:
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}/picture.png"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def test_slow_http_image_obeys_one_overall_deadline(tmp_path, monkeypatch):
+    class SlowHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Length", "10")
+            self.end_headers()
+            for _ in range(10):
+                try:
+                    self.wfile.write(b"x")
+                    self.wfile.flush()
+                except OSError:
+                    return
+                time.sleep(0.15)
+
+        def log_message(self, format, *args):
+            pass
+
+    monkeypatch.setattr(images, "URL_DOWNLOAD_TIMEOUT", 0.35)
+    with _http_server(SlowHandler) as url:
+        warnings: list[str] = []
+        started = time.monotonic()
+        prepared = prepare_picture(Picture(image=url), tmp_path, True, warnings)
+        elapsed = time.monotonic() - started
+    assert prepared is None
+    assert elapsed < 1.5
+    assert "timed out" in warnings[0].lower() or "deadline" in warnings[0].lower()
+
+
+def test_http_image_with_short_content_length_is_rejected(tmp_path):
+    class TruncatedHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Length", "8")
+            self.end_headers()
+            self.wfile.write(b"short")
+            self.wfile.flush()
+
+        def log_message(self, format, *args):
+            pass
+
+    with _http_server(TruncatedHandler) as url:
+        warnings: list[str] = []
+        prepared = prepare_picture(Picture(image=url), tmp_path, True, warnings)
+    assert prepared is None
+    assert "5 of 8 declared bytes" in warnings[0]
 
 
 def test_picture_without_a_picture_task_follows_the_scene_text():

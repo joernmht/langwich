@@ -153,8 +153,16 @@ BASE: dict[str, Any] = {
 Mutation = Callable[[dict[str, Any]], None]
 
 
-def _issues(data: dict[str, Any], base_dir: Path | None = None) -> list[Issue]:
-    return validate(worksheet_from_dict(data), base_dir=base_dir).issues
+def _issues(
+    data: dict[str, Any],
+    base_dir: Path | None = None,
+    *,
+    allow_outside_images: bool = False,
+) -> list[Issue]:
+    return validate(
+        worksheet_from_dict(data), base_dir=base_dir,
+        allow_outside_images=allow_outside_images,
+    ).issues
 
 
 def _mutated(fn: Mutation) -> dict[str, Any]:
@@ -292,6 +300,10 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      "/story/scenes/1/picture/labels/1/n"),
     ("label-without-position", _set("story/scenes/1/picture/labels/0/x", None),
      "/story/scenes/1/picture/labels/0"),
+    ("image-outside-folder",
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", "../outside.png")),
+     "/story/scenes/1/picture/image"),
     ("image-not-found",
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", "pictures/missing.jpg")),
@@ -558,21 +570,62 @@ def _picture_codes(data: dict[str, Any], base_dir: Path) -> set[str]:
 def test_existing_image_and_urls_are_fine(tmp_path: Path) -> None:
     png = _png(tmp_path / "space dir" / "pic.png")
     for image in ("space dir/pic.png", "https://example.org/cafe.jpg",
-                  "HTTPS://EXAMPLE.ORG/CAFE.JPG", str(png), png.as_uri(),
+                  "HTTPS://EXAMPLE.ORG/CAFE.JPG",
                   "data:image/svg+xml;utf8," + SVG):
         assert _picture_codes(_image_case(image), tmp_path) == set(), image
+    for image in (str(png), png.as_uri()):
+        issues = _issues(_image_case(image), base_dir=tmp_path)
+        assert [i.code for i in issues if i.code == "image-outside-folder"] == [
+            "image-outside-folder",
+        ]
+        assert not [
+            i for i in _issues(_image_case(image), base_dir=tmp_path,
+                               allow_outside_images=True)
+            if i.code in PICTURE_CODES
+        ]
 
 
 def test_image_resolution_matches_the_renderer(tmp_path: Path) -> None:
     assert resolve_image("HTTPS://example.org/x.png", tmp_path).kind == "url"
     assert resolve_image("data:image/png;base64,AAAA", tmp_path).kind == "data"
     assert resolve_image("ftp://example.org/x.png", tmp_path).kind == "unsupported"
-    local = resolve_image("file:///tmp/space%20dir/pic.png", tmp_path)
-    assert local.kind == "file" and local.path == Path("/tmp/space dir/pic.png")
-    assert resolve_image("pics/a.jpg", tmp_path).path == tmp_path / "pics" / "a.jpg"
-    assert resolve_image("~/a.jpg", tmp_path).path == Path.home() / "a.jpg"
+    png = _png(tmp_path / "space dir" / "pic.png")
+    assert resolve_image(png.as_uri(), tmp_path).kind == "outside"
+    local = resolve_image(png.as_uri(), tmp_path, allow_outside_images=True)
+    assert local.kind == "file" and local.path == png.resolve()
+    assert resolve_image("pics/a.jpg", tmp_path).path == (tmp_path / "pics" / "a.jpg").resolve()
+    assert resolve_image(str(png), tmp_path).kind == "outside"
+    assert resolve_image("~/a.jpg", tmp_path).kind == "outside"
+    assert resolve_image("~/a.jpg", tmp_path, allow_outside_images=True).path == (
+        Path.home() / "a.jpg"
+    ).resolve()
     issues = _issues(_image_case("ftp://example.org/x.png"), base_dir=tmp_path)
     assert "image-not-found" in {i.code for i in issues}
+
+
+def test_relative_image_paths_cannot_escape_the_json_folder(tmp_path: Path) -> None:
+    outside = _png(tmp_path.parent / "outside.png")
+    for image in ("../outside.png", str(outside), outside.as_uri()):
+        issues = _issues(_image_case(image), base_dir=tmp_path)
+        assert [i.code for i in issues if i.code == "image-outside-folder"] == [
+            "image-outside-folder",
+        ]
+        assert not [
+            i for i in _issues(_image_case(image), base_dir=tmp_path,
+                               allow_outside_images=True)
+            if i.code in PICTURE_CODES
+        ]
+
+
+def test_symlink_to_image_outside_the_json_folder_is_rejected(tmp_path: Path) -> None:
+    outside = _png(tmp_path.parent / "linked-outside.png")
+    link = tmp_path / "linked.png"
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"symlink creation is unavailable: {exc}")
+    assert resolve_image("linked.png", tmp_path).kind == "outside"
+    assert "image-outside-folder" in _picture_codes(_image_case("linked.png"), tmp_path)
 
 
 def test_picture_problems_are_errors_only_when_the_picture_is_needed(tmp_path: Path) -> None:

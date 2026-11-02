@@ -495,7 +495,8 @@ class Builder:
             pic = scene.picture
             self._pictures[scene.id] = (
                 prepare_picture(pic, self.opts.base_dir, self.opts.monochrome, self.warnings,
-                                what=f"scene {scene.id!r} picture")
+                                what=f"scene {scene.id!r} picture",
+                                allow_outside_images=self.opts.allow_outside_images)
                 if pic is not None else None
             )
         return self._pictures[scene.id]

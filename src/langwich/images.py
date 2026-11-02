@@ -24,10 +24,12 @@ from __future__ import annotations
 
 import base64
 import binascii
+import http.client
 import io
 import re
+import time
 import urllib.parse
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 import urllib.request
 import warnings as _warnings
 import xml.etree.ElementTree as ET
@@ -45,6 +47,8 @@ MAX_RASTER_EDGE = 2400
 #: Refuse downloads and files larger than this.
 MAX_BYTES = 25 * 1024 * 1024
 URL_TIMEOUT = 15
+URL_DOWNLOAD_TIMEOUT = 30
+URL_CHUNK_SIZE = 64 * 1024
 USER_AGENT = "langwich/3 (worksheet renderer; +https://github.com/joernmht/langwich)"
 
 #: Images with more pixels than this are refused unless they can be decoded
@@ -336,17 +340,24 @@ _URL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://")
 class ImageSource:
     """Where a ``picture.image`` points: ``kind`` is ``'data'`` (a data: URI),
     ``'url'`` (http/https), ``'file'`` (with ``path``) or ``'unsupported'``
-    (another URL scheme, which the renderer cannot load)."""
+    (another URL scheme) or ``'outside'`` (a local path outside the worksheet
+    folder, rejected unless the caller explicitly allows it)."""
 
-    kind: Literal["data", "url", "file", "unsupported"]
+    kind: Literal["data", "url", "file", "unsupported", "outside"]
     path: Path | None = None
 
 
-def resolve_image(image: str, base_dir: Path | None) -> ImageSource:
+def resolve_image(
+    image: str,
+    base_dir: Path | None,
+    *,
+    allow_outside_images: bool = False,
+) -> ImageSource:
     """Resolve ``picture.image``: ``data:`` URIs and ``http(s)://`` URLs in any
-    letter case, ``file:`` URLs percent-decoded, ``~`` expanded, relative
-    paths against ``base_dir`` (the folder of the JSON file; the current
-    directory when ``None``)."""
+    letter case, ``~`` expanded, and relative paths against ``base_dir`` (the
+    folder of the JSON file; the current directory when ``None``). Local paths
+    must stay inside that folder after resolution unless explicitly allowed.
+    ``file:`` URLs are also outside paths unless explicitly allowed."""
     source = image.strip()
     low = source.lower()
     if low.startswith("data:"):
@@ -354,17 +365,37 @@ def resolve_image(image: str, base_dir: Path | None) -> ImageSource:
     if low.startswith(("http://", "https://")):
         return ImageSource("url")
     if low.startswith("file:"):
-        path = Path(unquote(urlparse(source).path)).expanduser()
+        if not allow_outside_images:
+            return ImageSource("outside")
+        parsed = urlparse(source)
+        path = Path(urllib.request.url2pathname(parsed.path)).expanduser()
+        if parsed.netloc and parsed.netloc.lower() != "localhost":
+            path = Path(f"//{parsed.netloc}{path}")
     elif _URL_RE.match(source):
         return ImageSource("unsupported")
     else:
         path = Path(source).expanduser()
-    if not path.is_absolute():
-        path = (base_dir if base_dir is not None else Path.cwd()) / path
-    return ImageSource("file", path)
+        if path.is_absolute() and not allow_outside_images:
+            return ImageSource("outside")
+    try:
+        root = (base_dir if base_dir is not None else Path.cwd()).resolve()
+        candidate = path if path.is_absolute() else root / path
+        resolved = candidate.resolve()
+    except (OSError, RuntimeError, ValueError):
+        return ImageSource("outside")
+    if not allow_outside_images and not resolved.is_relative_to(root):
+        return ImageSource("outside")
+    return ImageSource("file", resolved)
 
 
-def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[str]) -> bytes | None:
+def _read_source(
+    source: str,
+    base_dir: Path | None,
+    what: str,
+    warnings: list[str],
+    *,
+    allow_outside_images: bool = False,
+) -> bytes | None:
     try:
         low = source.strip().lower()
         if low.startswith("data:"):
@@ -374,13 +405,59 @@ def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[s
             return urllib.parse.unquote_to_bytes(payload)
         if low.startswith(("http://", "https://")):
             request = urllib.request.Request(source.strip(), headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(request, timeout=URL_TIMEOUT) as response:
-                raw = response.read(MAX_BYTES + 1)
+            deadline = time.monotonic() + URL_DOWNLOAD_TIMEOUT
+            with urllib.request.urlopen(
+                request, timeout=min(URL_TIMEOUT, URL_DOWNLOAD_TIMEOUT),
+            ) as response:
+                content_length: int | None = None
+                declared_length = response.headers.get("Content-Length")
+                if declared_length is not None:
+                    try:
+                        content_length = int(declared_length)
+                    except ValueError:
+                        warnings.append(f"{what}: {source} has an invalid Content-Length; left out.")
+                        return None
+                    if content_length < 0:
+                        warnings.append(f"{what}: {source} has an invalid Content-Length; left out.")
+                        return None
+                    if content_length > MAX_BYTES:
+                        warnings.append(
+                            f"{what}: {source} is larger than {MAX_BYTES // 2**20} MB; left out.",
+                        )
+                        return None
+                raw = bytearray()
+                while len(raw) <= MAX_BYTES:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError(
+                            f"download exceeded the {URL_DOWNLOAD_TIMEOUT}-second deadline",
+                        )
+                    sock = getattr(getattr(getattr(response, "fp", None), "raw", None), "_sock", None)
+                    if sock is not None:
+                        sock.settimeout(min(URL_TIMEOUT, remaining))
+                    chunk = response.read1(min(URL_CHUNK_SIZE, MAX_BYTES + 1 - len(raw)))
+                    if not chunk:
+                        break
+                    raw.extend(chunk)
             if len(raw) > MAX_BYTES:
                 warnings.append(f"{what}: {source} is larger than {MAX_BYTES // 2**20} MB; left out.")
                 return None
-            return raw
-        resolved = resolve_image(source, base_dir)
+            if content_length is not None and len(raw) != content_length:
+                warnings.append(
+                    f"{what}: {source} ended after {len(raw)} of {content_length} declared bytes; "
+                    "the image is left out.",
+                )
+                return None
+            return bytes(raw)
+        resolved = resolve_image(
+            source, base_dir, allow_outside_images=allow_outside_images,
+        )
+        if resolved.kind == "outside":
+            warnings.append(
+                f"{what}: {source!r} resolves outside the worksheet folder; copy it beside the "
+                "JSON file or pass --allow-outside-images to render it.",
+            )
+            return None
         if resolved.kind == "unsupported" or resolved.path is None:
             warnings.append(f"{what}: {source!r} is not a file path, http(s) URL or data: URI; left out.")
             return None
@@ -392,7 +469,7 @@ def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[s
             warnings.append(f"{what}: {path} is larger than {MAX_BYTES // 2**20} MB; left out.")
             return None
         return path.read_bytes()
-    except (OSError, ValueError, binascii.Error) as exc:
+    except (http.client.HTTPException, OSError, ValueError, binascii.Error) as exc:
         warnings.append(f"{what}: could not load image {source!r} ({exc.__class__.__name__}: {exc}).")
         return None
 
@@ -404,6 +481,7 @@ def prepare_picture(
     warnings: list[str],
     *,
     what: str = "picture",
+    allow_outside_images: bool = False,
 ) -> PreparedPicture | None:
     """Turn a :class:`~langwich.model.Picture` into an embeddable picture.
 
@@ -414,7 +492,10 @@ def prepare_picture(
         return svg_from_text(picture.svg, what, warnings)
     if not picture.image:
         return None
-    raw = _read_source(picture.image.strip(), base_dir, what, warnings)
+    raw = _read_source(
+        picture.image.strip(), base_dir, what, warnings,
+        allow_outside_images=allow_outside_images,
+    )
     if raw is None:
         return None
     if not raw:

@@ -9,7 +9,7 @@ Every finding is an :class:`Issue` with
 
 * a ``level`` — errors block rendering, warnings are printed (and fail the
   CLI with ``--strict``); picture problems (:data:`PICTURE_CODES`) are errors
-  only when a task needs the picture,
+  only when a task needs the picture, except for outside-folder paths,
 * a stable kebab-case ``code`` (see :data:`CHECKS`),
 * a JSON pointer ``where`` into the input file (``/tasks/3/items/1``),
 * a ``message`` written so that an LLM can fix the file from it alone —
@@ -102,6 +102,10 @@ CHECKS: dict[str, tuple[Level, str]] = {
         "error", "a picture.image file that cannot be decoded, e.g. HEIC without pillow-heif (a "
         "warning when no label or picture task needs the picture)",
     ),
+    "image-outside-folder": (
+        "error", "a local picture.image path that resolves outside the worksheet folder unless "
+        "rendering explicitly allows outside images",
+    ),
     "svg-invalid": (
         "error", "a picture svg that is not well-formed XML (a warning when no label or picture "
         "task needs the picture)",
@@ -170,12 +174,16 @@ CHECKS: dict[str, tuple[Level, str]] = {
 #: Problems in the user's environment (files, formats) rather than in the
 #: JSON: an LLM cannot fix them, so repair prompts leave them out and the CLI
 #: tells the user instead.
-ENVIRONMENT_CODES: frozenset[str] = frozenset({"image-not-found", "image-unreadable"})
+ENVIRONMENT_CODES: frozenset[str] = frozenset({
+    "image-not-found", "image-unreadable", "image-outside-folder",
+})
 
 #: Picture problems that are errors when the picture is needed — it has
 #: labels, or a label or picture-stage task uses its scene — and warnings
-#: otherwise (the renderer just leaves the picture out).
-PICTURE_CODES: frozenset[str] = frozenset({"image-not-found", "image-unreadable", "svg-invalid"})
+#: otherwise, except for unsafe outside-folder paths.
+PICTURE_CODES: frozenset[str] = frozenset({
+    "image-not-found", "image-unreadable", "image-outside-folder", "svg-invalid",
+})
 
 #: Stages whose tasks belong to a scene (the planner prints them after it).
 SCENE_STAGES: tuple[str, ...] = ("gist", "detail", "picture", "form", "practice")
@@ -593,9 +601,10 @@ def _verb_participle_pattern(item: VocabItem) -> re.Pattern[str] | None:
 
 
 class _Checker:
-    def __init__(self, ws: Worksheet, base_dir: Path | None):
+    def __init__(self, ws: Worksheet, base_dir: Path | None, allow_outside_images: bool = False):
         self.ws = ws
         self.base_dir = base_dir
+        self.allow_outside_images = allow_outside_images
         self.issues: list[Issue] = []
         self.target_lang = locale.base_lang(ws.target_lang)
         self.scene_ids = [s.id for s in ws.story.scenes]
@@ -613,9 +622,10 @@ class _Checker:
         self.issues.append(Issue("warning", code, where, message))
 
     def picture_problem(self, code: str, where: str, message: str, needed: bool) -> None:
-        """An error when a task needs the picture, else a warning (PICTURE_CODES)."""
+        """An error when needed, else a warning, except unsafe outside paths."""
         assert code in PICTURE_CODES, code
-        self.issues.append(Issue("error" if needed else "warning", code, where, message))
+        level: Level = "error" if needed or code == "image-outside-folder" else "warning"
+        self.issues.append(Issue(level, code, where, message))
 
     # -- examples for messages (in the worksheet's own target language) -------
 
@@ -1066,9 +1076,19 @@ class _Checker:
 
     def _check_image(self, pic: Picture, where: str, needed: bool, why: str) -> None:
         image = pic.image or ""
-        source = resolve_image(image, self.base_dir)
+        source = resolve_image(
+            image, self.base_dir, allow_outside_images=self.allow_outside_images,
+        )
         if source.kind == "url":
             return  # not fetched while validating
+        if source.kind == "outside":
+            self.picture_problem(
+                "image-outside-folder", where,
+                f"'{image}' is outside the folder containing the JSON. Copy it there and use a "
+                "relative path, or render with --allow-outside-images to use it explicitly.",
+                needed,
+            )
+            return
         if source.kind == "unsupported":
             self.picture_problem(
                 "image-not-found", where,
@@ -1805,16 +1825,24 @@ def _leakable_answers(task: Task, lang: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def validate(ws: Worksheet, base_dir: Path | None = None) -> Report:
+def validate(
+    ws: Worksheet,
+    base_dir: Path | None = None,
+    *,
+    allow_outside_images: bool = False,
+) -> Report:
     """Run every semantic check on a (schema-valid) worksheet.
 
     ``base_dir`` is the folder of the JSON file; relative ``picture.image``
     paths are looked up there (the current directory when ``None``).
     """
-    return Report(issues=_Checker(ws, base_dir).run(), worksheet=ws)
+    return Report(
+        issues=_Checker(ws, base_dir, allow_outside_images=allow_outside_images).run(),
+        worksheet=ws,
+    )
 
 
-def check_file(path: Path) -> Report:
+def check_file(path: Path, *, allow_outside_images: bool = False) -> Report:
     """Load a worksheet file and validate it; never raises for bad input.
 
     Unreadable files, invalid JSON and schema violations become ``contract``
@@ -1849,5 +1877,5 @@ def check_file(path: Path) -> Report:
             issues.append(Issue("error", "legacy-format", "/", exc.hint))
         return Report(issues, None)
     issues = [Issue("warning", n.code, n.where, n.message) for n in notes]
-    report = validate(ws, base_dir=path.parent)
+    report = validate(ws, base_dir=path.parent, allow_outside_images=allow_outside_images)
     return Report(issues + report.issues, ws)

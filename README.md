@@ -79,11 +79,13 @@ Without Pango, `langwich render` still writes the HTML file and tells you so: op
 browser and print it to PDF. The other commands (`prompt`, `validate`, `schema`, `kinds`) do not
 need Pango at all.
 
-**Offline by design.** langwich calls no AI service and stores no key. The renderer fetches
-nothing: WeasyPrint may load only `data:` URIs and the bundled fonts, and SVG line art is
-cleaned of scripts, `<foreignObject>` and links to outside files before it is embedded. The only
-thing langwich ever loads from outside the JSON is the picture a worksheet names in
-`picture.image` — a local file, or a URL it downloads when you render.
+**Offline by design.** langwich calls no AI service and stores no key. WeasyPrint may load only
+`data:` URIs and the bundled fonts, and SVG line art is cleaned of scripts, `<foreignObject>` and
+links to outside files before it is embedded. The only outside resource is a picture named in
+`picture.image`. Local paths must resolve inside the worksheet folder, including after following
+symlinks; absolute paths and `file:` URLs are refused by default. `--allow-outside-images` opts in
+to local paths elsewhere. HTTP downloads have an overall deadline and a byte limit, and a short
+response is left out.
 
 ---
 
@@ -226,7 +228,9 @@ langwich prompt --image photos/market.jpg --topic "a market in Valencia" -o prom
 - **The photo is copied into `data/pictures/`.** `langwich prompt --image` copies a local photo
   to `data/pictures/<name>.<ext>` (a plain ASCII file name) and tells the AI to write exactly
   `"pictures/<name>.<ext>"` as `picture.image`. Save the JSON in `data/` — relative paths are
-  resolved against the JSON file's folder — and the worksheet renders wherever the folder goes.
+  resolved against the JSON file's folder and must stay inside it after symlink resolution — and
+  the worksheet renders wherever the folder goes. Absolute paths and `file:` URLs are blocked by
+  default; `langwich render FILE --allow-outside-images` explicitly allows local paths elsewhere.
   `--data-dir DIR` copies to `DIR/pictures/` instead, for JSON you keep in `DIR`.
 - **Formats:** JPEG, PNG, WebP and GIF are copied as they are; any other format Pillow can read
   is converted to JPEG. iPhone HEIC photos need `pip install pillow-heif` (or
@@ -234,9 +238,9 @@ langwich prompt --image photos/market.jpg --topic "a market in Valencia" -o prom
   cannot read a file.
 - **A URL** is kept as it is: the brief names it, and langwich downloads it when you render.
 - **Missing pictures** are reported by `langwich validate` (`image-not-found`,
-  `image-unreadable`): as errors when the picture carries numbered labels or a label or picture
-  task needs it, otherwise as warnings. These are for you to fix, not the AI; the repair prompt
-  leaves them out.
+  `image-unreadable`, `image-outside-folder`): as errors when the picture carries numbered labels
+  or a label or picture task needs it, otherwise as warnings. An outside-folder path is always an
+  error. These are for you to fix, not the AI; the repair prompt leaves them out.
 - The AI estimates the label positions. Look at the picture page after rendering; if a number sits
   beside its object, adjust `x`/`y` in the JSON and render again.
 - **Example:** [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) was made
@@ -618,6 +622,7 @@ problems are left.
 | `--solutions {append,separate,none}` | solutions at the end (default), as `<name>-solutions.pdf`, or none |
 | `--no-translations` | leave the scene translations out of the answer section |
 | `--allow-color` | keep images in colour (default: high-contrast greyscale) |
+| `--allow-outside-images` | allow local picture paths outside the worksheet folder |
 | `--seed SEED` | seed for the shuffles (default: derived from the JSON) |
 | `--html-only` | write the HTML only, no PDF |
 | `--strict` | refuse to render when validation reports warnings; exit with status 1 when rendering produced warnings |

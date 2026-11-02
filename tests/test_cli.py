@@ -48,6 +48,7 @@ class FakeRenderOptions:
     seed: int | None = None
     base_dir: Path | None = None
     html_only: bool = False
+    allow_outside_images: bool = False
 
 
 @dataclass
@@ -370,15 +371,36 @@ def test_render_defaults(workdir: Path, fake_render: Calls, capsys: pytest.Captu
 def test_render_options(workdir: Path, fake_render: Calls, capsys: pytest.CaptureFixture[str]) -> None:
     src = write_json(workdir, "lena.json", lena_data())
     argv = ["render", str(src), "-o", "out/sheet.pdf", "--page", "epaper", "--one-task-per-page",
-            "--solutions", "separate", "--no-translations", "--allow-color", "--seed", "42"]
+            "--solutions", "separate", "--no-translations", "--allow-color",
+            "--allow-outside-images", "--seed", "42"]
     assert main(argv) == 0
     _, out_pdf, options = fake_render.items[0]
     assert out_pdf == Path("out/sheet.pdf")
     assert options == FakeRenderOptions(
         page="epaper", one_task_per_page=True, solutions="separate", translations=False,
-        monochrome=False, seed=42, base_dir=workdir.resolve(), html_only=False,
+        monochrome=False, seed=42, base_dir=workdir.resolve(),
+        allow_outside_images=True, html_only=False,
     )
-    assert "solutions: out/sheet-solutions.pdf" in capsys.readouterr().out
+    assert f"solutions: {Path('out') / 'sheet-solutions.pdf'}" in capsys.readouterr().out
+
+
+def test_render_requires_explicit_override_for_an_absolute_picture(
+    workdir: Path, fake_render: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    from PIL import Image
+
+    outside = workdir.parent / "outside.png"
+    Image.new("RGB", (2, 2), "red").save(outside)
+    data = lena_data()
+    data["story"]["scenes"][1]["picture"] = {"image": str(outside)}
+    src = write_json(workdir, "outside-image.json", data)
+
+    assert main(["render", str(src)]) == 1
+    assert "[image-outside-folder]" in capsys.readouterr().err
+    assert fake_render.items == []
+
+    assert main(["render", str(src), "--allow-outside-images"]) == 0
+    assert fake_render.items[-1][2].allow_outside_images is True
 
 
 def test_render_html_only_and_html_output(workdir: Path, fake_render: Calls) -> None:

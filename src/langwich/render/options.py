@@ -17,6 +17,7 @@ class RenderOptions:
     seed: int | None = None        # passed to plan(); None = derived from the JSON
     base_dir: Path | None = None   # folder of the JSON file; relative image paths resolve against it
     html_only: bool = False        # write the .html only, no PDF
+    allow_outside_images: bool = False
 
 
 @dataclass(frozen=True)

@@ -39,9 +39,13 @@ Python never invents learner-facing content: it **checks**, **orders**,
    `langwich validate --prompt` prints a repair prompt. Nothing depends on a
    particular vendor, so a local model works. Chatty replies are read
    leniently (see *Loading*), every repair reported as a warning.
-7. **Offline.** No API, no key. The renderer fetches nothing: WeasyPrint may
-   load only `data:` URIs and the bundled fonts, and SVG is sanitised. The
-   only outside resource is a `picture.image` the JSON names.
+7. **Offline.** No AI API, no key. WeasyPrint may load only `data:` URIs and
+   the bundled fonts, and SVG is sanitised. A local `picture.image` must
+   resolve inside the worksheet folder, including after symlink resolution;
+   absolute paths and `file:` URLs are refused by default. Rendering can opt
+   in to other local paths with `--allow-outside-images`. HTTP image downloads
+   have an overall deadline and byte limit, and short `Content-Length`
+   responses are rejected.
 
 ## The contract (`langwich/3`)
 
@@ -162,9 +166,9 @@ that an LLM can fix it — `langwich validate FILE --prompt` wraps them into a
 repair prompt. The full list lives in `langwich.validate.CHECKS`.
 
 **Environment issues** (`validate.ENVIRONMENT_CODES`: `image-not-found`,
-`image-unreadable`) are problems no LLM can fix — a picture file that is
-missing or cannot be decoded. The repair prompt leaves them out; `validate
---prompt` prints them for the user on stderr and exits 1 when nothing else is
+`image-unreadable`, `image-outside-folder`) are problems no LLM can fix — a picture file that is
+missing, cannot be decoded, or resolves outside the worksheet folder. The repair prompt leaves
+them out; `validate --prompt` prints them for the user on stderr and exits 1 when nothing else is
 left. `image-not-found`, `image-unreadable` and `svg-invalid` are errors when
 the scene's picture has labels or a label or picture-stage task uses that
 scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
@@ -236,8 +240,10 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   CLI prints before its success line.
 * Offline: WeasyPrint gets a URL fetcher (`render.make_url_fetcher`) that
   allows only `data:` URIs and the bundled font files; every picture is
-  embedded as a `data:` URI first. `images.py` itself loads the one outside
-  resource, a `picture.image` path or URL named in the JSON.
+  embedded as a `data:` URI first. `images.py` loads the one outside resource,
+  a `picture.image` path or URL named in the JSON. Local paths stay inside the
+  JSON folder after resolution unless `--allow-outside-images` is passed;
+  HTTP reads are bounded by an overall deadline and validate `Content-Length`.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.

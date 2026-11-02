@@ -290,7 +290,8 @@ def _cmd_render(args: argparse.Namespace) -> int:
     if not path.is_file():
         _fail(f"{path} is not a file")
 
-    report = check_file(path)
+    allow_outside_images = bool(getattr(args, "allow_outside_images", False))
+    report = check_file(path, allow_outside_images=allow_outside_images)
     if report.issues:
         _err(f"{path}: {report.format_text()}")
     if not report.ok or report.worksheet is None:
@@ -324,6 +325,7 @@ def _cmd_render(args: argparse.Namespace) -> int:
         monochrome=not color,
         seed=args.seed,
         base_dir=path.parent.resolve(),
+        allow_outside_images=allow_outside_images,
         html_only=bool(args.html_only or html_only),
     )
     try:
@@ -762,6 +764,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="leave the scene translations out of the answer section")
     r.add_argument("--allow-color", action="store_true",
                    help="keep images in colour (default: high-contrast greyscale)")
+    r.add_argument("--allow-outside-images", action="store_true",
+                   help="allow local picture paths outside the worksheet folder")
     r.add_argument("--seed", type=int, default=None,
                    help="seed for shuffles (default: derived from the JSON)")
     r.add_argument("--html-only", action="store_true", help="write the HTML only, no PDF")
