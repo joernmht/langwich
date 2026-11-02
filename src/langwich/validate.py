@@ -28,7 +28,6 @@ import base64
 import binascii
 import copy
 import difflib
-import io
 import json
 import re
 import string
@@ -66,7 +65,13 @@ from langwich.model import (
     parse_worksheet,
 )
 from langwich.images import ImageSource, resolve_image  # noqa: F401 (re-exported)
-from langwich.images import MAX_PIXELS, MAX_RASTER_EDGE, sanitize_svg
+from langwich.images import (
+    MAX_PIXELS,
+    MAX_RASTER_EDGE,
+    is_svg_source,
+    open_raster,
+    sanitize_svg,
+)
 from langwich.plan import plan as make_plan
 from langwich.plan import strip_article, term_pattern
 
@@ -411,13 +416,6 @@ def _data_uri_bytes(uri: str) -> bytes:
     return unquote_to_bytes(payload)
 
 
-def _looks_like_svg(raw: bytes) -> bool:
-    head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
-    return head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head) or (
-        head.startswith(b"<!doctype svg")
-    )
-
-
 _HEIF_BRANDS = (b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1")
 
 
@@ -443,9 +441,9 @@ def _raster_problem(raw: bytes) -> str | None:
             _warnings.simplefilter("ignore", Image.DecompressionBombWarning)
             limit, Image.MAX_IMAGE_PIXELS = Image.MAX_IMAGE_PIXELS, None
             try:
-                with Image.open(io.BytesIO(raw)) as probe:
+                with open_raster(raw) as probe:
                     probe.verify()
-                img = Image.open(io.BytesIO(raw))
+                img = open_raster(raw)
             finally:
                 Image.MAX_IMAGE_PIXELS = limit
         with img:
@@ -1155,7 +1153,7 @@ class _Checker:
                 needed,
             )
             return
-        if _looks_like_svg(raw) or image.lower().split("?")[0].endswith(".svg"):
+        if is_svg_source(image, raw):
             is_file = source.kind == "file"
             try:
                 text = raw.decode("utf-8-sig")

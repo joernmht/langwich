@@ -238,9 +238,12 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   crash; `render --strict` exits 1 when rendering produced warnings, which the
   CLI prints before its success line.
 * Offline: WeasyPrint gets a URL fetcher (`render.make_url_fetcher`) that
-  allows only `data:` URIs and the bundled font files; every picture is
+  allows only the bundled font files and `data:` URIs that hold an SVG or a
+  PNG, JPEG, GIF or WebP picture (`images.is_safe_data_uri`); every picture is
   embedded as a `data:` URI first. `images.py` itself loads the one outside
-  resource, a `picture.image` path or URL named in the JSON.
+  resource, a `picture.image` path or URL named in the JSON, and decodes only
+  `images.RASTER_FORMATS`: Pillow picks its decoder from the content, and its
+  EPS reader would run Ghostscript.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.

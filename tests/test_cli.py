@@ -792,6 +792,33 @@ def test_prompt_image_that_cannot_be_read(
     assert not (workdir / "data" / "pictures" / "img-4711.jpg").exists()
 
 
+def test_prompt_image_never_hands_postscript_to_ghostscript(
+    workdir: Path, fake_prompt: Calls, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from PIL import EpsImagePlugin
+
+    calls: list[object] = []
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", lambda *a, **k: calls.append(a))
+    (workdir / "scan.eps").write_bytes(
+        b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n")
+    assert main(["prompt", "--image", "scan.eps"]) == 1
+    assert "not an image format langwich can read" in capsys.readouterr().err
+    assert calls == [] and fake_prompt.items == []
+
+
+def test_prompt_image_16_bit_tiff_is_converted_without_clipping(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    from PIL import Image, ImageStat
+
+    gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(lambda v: v * 257)
+    gradient.convert("I;16").save(workdir / "scan.tiff", "TIFF")
+    assert main(["prompt", "--image", "scan.tiff"]) == 0
+    with Image.open(workdir / "data" / "pictures" / "scan.jpg") as img:
+        assert 110 < ImageStat.Stat(img.convert("L")).mean[0] < 145  # not a white box
+
+
 def test_prompt_image_url_is_passed_through(workdir: Path, fake_prompt: Calls) -> None:
     url = "https://example.org/photos/market%20stall.jpg"
     assert main(["prompt", "--image", url]) == 0

@@ -671,6 +671,15 @@ class Builder:
             cells.append((c, text, False, lang))
         return cells
 
+    @staticmethod
+    def _table(gp: GrammarPoint) -> GrammarTable | None:
+        """The table of ``gp``, or ``None`` when it has no cell to print
+        (``"rows": [[]]`` passes the contract but lays out nothing)."""
+        table = gp.table
+        if table is None or not (any(table.rows) or any(h.strip() for h in table.head)):
+            return None
+        return table
+
     def table_layout(self, table: GrammarTable, avail: float, wide: bool) -> tuple[bool, bool, bool]:
         """``(fits, first_nowrap, overflows)`` for ``table`` in ``avail`` mm:
         does it fit with no cell wrapped to more than MAX_CELL_LINES lines,
@@ -679,6 +688,8 @@ class Builder:
         pt_td = 7.8 if wide else (9.0 if self.epaper else 8.5)
         pt_th = 8.5 if self.epaper else 7.0
         cells = self._table_cells(table)
+        if not cells:
+            return True, False, False
         ncols = max(c for c, *_ in cells) + 1
         pad = 1.2
         mins, maxs = [0.0] * ncols, [0.0] * ncols
@@ -724,16 +735,18 @@ class Builder:
     def grammar_fits_side(self, gp: GrammarPoint) -> bool:
         """Can ``gp`` sit in the 52 mm side column (A4) without its table
         running past the column or wrapping every cell into a tower?"""
-        if self.epaper or not gp.table or not gp.table.rows:
+        table = self._table(gp)
+        if self.epaper or table is None:
             return True
-        wide = max(len(r) for r in gp.table.rows) >= 3
-        return self.table_layout(gp.table, self.side_inner_w(), wide)[0]
+        wide = max(len(r) for r in table.rows) >= 3
+        return self.table_layout(table, self.side_inner_w(), wide)[0]
 
     def grammar_fits(self, gp: GrammarPoint, avail: float) -> bool:
         """Does the table of ``gp`` fit a column ``avail`` mm wide?"""
-        if not gp.table or not gp.table.rows:
+        table = self._table(gp)
+        if table is None:
             return True
-        return self.table_layout(gp.table, avail, False)[0]
+        return self.table_layout(table, avail, False)[0]
 
     def grammar_html(self, gp: GrammarPoint, cap: bool = True, full: bool = False,
                      avail: float | None = None) -> str:
@@ -744,15 +757,16 @@ class Builder:
             text.append(f'<div class="tl rule"{self.lang_attr()}>{esc_nw(gp.rule)}</div>')
         parts = [f'<span class="cap">{esc(self.t("grammar"))}</span>' if cap else ""]
         parts.append(f'<div class="gtext">{"".join(text)}</div>' if full else "".join(text))
-        if gp.table and gp.table.rows:
+        table = self._table(gp)
+        if table is not None:
             if avail is None:
                 avail = self.full_inner_w() if (full or self.epaper) else self.side_inner_w()
-            wide = max(len(r) for r in gp.table.rows) >= 3 and not full and not self.epaper
-            _, first_nowrap, overflows = self.table_layout(gp.table, avail, wide)
+            wide = max(len(r) for r in table.rows) >= 3 and not full and not self.epaper
+            _, first_nowrap, overflows = self.table_layout(table, avail, wide)
             classes = [c for c, on in (("wide", wide), ("fixed", overflows)) if on]
             head_cells: list[str] = []
             rows: list[list[str]] = []
-            for c, cell, head, lang in self._table_cells(gp.table):
+            for c, cell, head, lang in self._table_cells(table):
                 # (no hyphenation: in a narrow cell it breaks short forms like
                 # 'va-mos'; a table that does not fit moves to full width instead)
                 attrs, klass = "", []
@@ -963,8 +977,9 @@ class Builder:
             h += metrics.line_count(g.explanation, col, "sans", 9.0) * 4.45
             if g.rule:
                 h += 1.4 + metrics.line_count(g.rule, col, "serif-bold", 9.0) * 4.3
-            if g.table:
-                h += 2.5 + (len(g.table.rows) + (1 if g.table.head else 0)) * 4.4
+            table = Builder._table(g)
+            if table is not None:
+                h += 2.5 + (len(table.rows) + (1 if table.head else 0)) * 4.4
             for ex in g.examples:
                 h += metrics.line_count(ex, col, "serif-italic", 9.5) * 4.85
             return h + 2.0

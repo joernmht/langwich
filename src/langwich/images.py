@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import http.client
 import io
 import re
 import urllib.parse
@@ -32,10 +33,13 @@ import urllib.request
 import warnings as _warnings
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 
 from langwich.model import Picture
+
+if TYPE_CHECKING:
+    from PIL.Image import Image as PILImage
 
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
@@ -70,6 +74,52 @@ def _register_heif() -> bool:
 
 
 HEIF_SUPPORT = _register_heif()
+
+#: The raster formats langwich decodes (Pillow's names). Pillow never sees
+#: anything else from a worksheet: its EPS plugin, for one, runs Ghostscript
+#: on the bytes. (HEIF and AVIF only when a plugin registered them.)
+RASTER_FORMATS: tuple[str, ...] = (
+    "JPEG", "MPO", "PNG", "GIF", "WEBP", "TIFF", "BMP", "HEIF", "AVIF",
+)
+
+#: First bytes of the raster formats WeasyPrint may decode from a data: URI.
+_RASTER_SIGNATURES: tuple[bytes, ...] = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"GIF87a", b"GIF89a")
+
+
+def open_raster(raw: bytes) -> PILImage:
+    """``Image.open`` for picture bytes, limited to :data:`RASTER_FORMATS`
+    (those registered); anything else raises ``UnidentifiedImageError``."""
+    from PIL import Image
+
+    Image.init()
+    formats = [f for f in RASTER_FORMATS if f in Image.OPEN]
+    return Image.open(io.BytesIO(raw), formats=formats)
+
+
+def is_safe_data_uri(url: str) -> bool:
+    """May WeasyPrint decode this ``data:`` URI? An SVG (by its media type),
+    or a PNG, JPEG, GIF or WebP picture (by its first bytes). WeasyPrint hands
+    any other image to Pillow, which picks its decoder from the content, not
+    the media type: EPS bytes inside an SVG's ``<image>`` would reach Ghostscript."""
+    header, sep, payload = url.partition(",")
+    if not sep or not header.lower().startswith("data:"):
+        return False
+    media = header[5:].split(";", 1)[0].strip().lower()
+    if media == "image/svg+xml":
+        return True
+    try:
+        if ";base64" in header.lower():
+            head = base64.b64decode(re.sub(r"\s+", "", payload[:64])[:32] + "==", validate=False)
+        else:
+            head = urllib.parse.unquote_to_bytes(payload[:64])
+    except (ValueError, binascii.Error):
+        return False
+    return head.startswith(_RASTER_SIGNATURES) or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+
+
+def _shorten(source: str, limit: int = 80) -> str:
+    """``source`` for a message: a data: URI or long path cut to ``limit``."""
+    return source if len(source) <= limit else source[: limit - 1] + "…"
 
 
 def looks_like_heif(raw: bytes) -> bool:
@@ -135,7 +185,9 @@ def _int_size(w: float, h: float) -> tuple[int, int]:
 
 _DANGEROUS_TAGS = frozenset({"script", "foreignobject", "iframe", "object", "embed", "audio",
                              "video", "handler", "listener"})
-_CSS_URL = re.compile(r"url\(\s*(['\"]?)(?!#)[^)]*\1\s*\)", re.IGNORECASE)
+#: An external url(…): anything but an internal reference, which may be
+#: quoted or spaced (url(#g), url('#g'), url( "#g" )).
+_CSS_URL = re.compile(r"url\((?!\s*['\"]?\s*#)[^)]*\)", re.IGNORECASE)
 _CSS_IMPORT = re.compile(r"@import\b[^;]*;?", re.IGNORECASE)
 
 
@@ -229,11 +281,24 @@ def svg_from_text(text: str, what: str, warnings: list[str]) -> PreparedPicture 
 # ---------------------------------------------------------------------------
 
 
+#: Comments, an XML declaration and a doctype may come before the <svg>.
+_SVG_LEAD_RE = re.compile(rb"(?:\s+|<\?xml\b.*?\?>|<!--.*?-->|<!doctype\b[^>]*>)*<svg\b",
+                          re.IGNORECASE | re.DOTALL)
+
+
 def _looks_like_svg(raw: bytes) -> bool:
     head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
     return head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head) or (
         head.startswith(b"<!doctype svg")
-    )
+    ) or bool(_SVG_LEAD_RE.match(head))
+
+
+def is_svg_source(image: str, raw: bytes) -> bool:
+    """Is the picture.image ``image`` (with the bytes ``raw``) an SVG: by its
+    content, a ``data:image/svg+xml`` media type, or a ``.svg`` name?"""
+    low = image.strip().lower()
+    return (_looks_like_svg(raw) or low.startswith("data:image/svg+xml")
+            or low.split("?")[0].endswith(".svg"))
 
 
 def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
@@ -250,6 +315,21 @@ def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
         reason = re.sub(r"<_io\.BytesIO object at 0x[0-9a-f]+>", "the file", reason)
         reason = f"{exc.__class__.__name__}: {reason}"
     return f"{what}: the image{label} could not be read ({reason}); the picture is left out."
+
+
+def to_8bit(img: PILImage) -> PILImage:
+    """``img`` with 8-bit samples. Pillow's ``convert('L')`` clips 16-bit
+    greyscale ('I;16', 'I': 0…65535) at 255, which prints a white box; the
+    samples are scaled instead."""
+    if img.mode.startswith("I;16"):
+        img = img.convert("I")
+    if img.mode == "I":
+        high = img.getextrema()[1]  # one band: (low, high) numbers
+        if isinstance(high, (int, float)) and high > 255:
+            scale = 255 / max(high, 65535)  # 16-bit range (or wider, for 32-bit data)
+            img = img.point(lambda v: v * scale)
+        img = img.convert("L")
+    return img
 
 
 def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
@@ -269,9 +349,9 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
             _warnings.simplefilter("ignore", Image.DecompressionBombWarning)
             limit, Image.MAX_IMAGE_PIXELS = Image.MAX_IMAGE_PIXELS, None
             try:
-                with Image.open(io.BytesIO(raw)) as probe:
+                with open_raster(raw) as probe:
                     probe.verify()
-                img: Image.Image = Image.open(io.BytesIO(raw))
+                img: Image.Image = open_raster(raw)
             finally:
                 Image.MAX_IMAGE_PIXELS = limit
         fmt = img.format or ""
@@ -290,6 +370,9 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
                 return None
         img.load()
         img = ImageOps.exif_transpose(img) or img
+        # 16-bit samples ('I;16', 'I'): never passed through as they are
+        deep = img.mode.startswith("I")
+        img = to_8bit(img)
         resized = max(img.size) > MAX_RASTER_EDGE
         if resized:
             img.thumbnail((MAX_RASTER_EDGE, MAX_RASTER_EDGE), Image.Resampling.LANCZOS)
@@ -302,7 +385,7 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
             out, mime = io.BytesIO(), "image/png"
             img.save(out, "PNG", optimize=True)
             data = out.getvalue()
-        elif not resized and fmt in _RASTER_MIME:
+        elif not resized and not deep and fmt in _RASTER_MIME:
             data, mime = raw, _RASTER_MIME[fmt]
         else:
             out = io.BytesIO()
@@ -382,7 +465,8 @@ def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[s
             return raw
         resolved = resolve_image(source, base_dir)
         if resolved.kind == "unsupported" or resolved.path is None:
-            warnings.append(f"{what}: {source!r} is not a file path, http(s) URL or data: URI; left out.")
+            warnings.append(f"{what}: {_shorten(source)!r} is not a file path, http(s) URL or "
+                            "data: URI; left out.")
             return None
         path = resolved.path
         if not path.is_file():
@@ -392,8 +476,10 @@ def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[s
             warnings.append(f"{what}: {path} is larger than {MAX_BYTES // 2**20} MB; left out.")
             return None
         return path.read_bytes()
-    except (OSError, ValueError, binascii.Error) as exc:
-        warnings.append(f"{what}: could not load image {source!r} ({exc.__class__.__name__}: {exc}).")
+    except (OSError, ValueError, binascii.Error, http.client.HTTPException) as exc:
+        # (a server that breaks the protocol raises HTTPException, not OSError)
+        warnings.append(f"{what}: could not load image {_shorten(source)!r} "
+                        f"({exc.__class__.__name__}: {_shorten(str(exc), 200)}).")
         return None
 
 
@@ -418,13 +504,15 @@ def prepare_picture(
     if raw is None:
         return None
     if not raw:
-        warnings.append(f"{what}: the image {picture.image!r} is empty; the picture is left out.")
+        warnings.append(f"{what}: the image {_shorten(picture.image)!r} is empty; the picture "
+                        "is left out.")
         return None
-    if _looks_like_svg(raw) or picture.image.lower().split("?")[0].endswith(".svg"):
+    if is_svg_source(picture.image, raw):
         try:
             text = raw.decode("utf-8-sig")
         except UnicodeDecodeError:
-            warnings.append(f"{what}: {picture.image!r} is not UTF-8 SVG; the picture is left out.")
+            warnings.append(f"{what}: {_shorten(picture.image)!r} is not UTF-8 SVG; the picture "
+                            "is left out.")
             return None
         return svg_from_text(text, what, warnings)
     name = "" if picture.image.startswith("data:") else picture.image.strip()

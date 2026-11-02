@@ -96,8 +96,8 @@ STAGE_INFO: dict[str, str] = {stage: _STAGE_TEXT[stage] for stage in STAGES}
 #: Folder (inside the data folder) that ``prompt --image`` copies pictures to;
 #: the worksheet JSON in the data folder refers to them as "pictures/<file>".
 PICTURES_DIR = "pictures"
-#: Picture formats copied as they are; anything else Pillow can read is
-#: converted to JPEG.
+#: Picture formats copied as they are; the other formats of
+#: images.RASTER_FORMATS (TIFF, BMP, HEIC …) are converted to JPEG.
 _KEPT_FORMATS: dict[str, str] = {"JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp", "GIF": ".gif"}
 #: Longest edge of a picture that had to be converted or shrunk.
 _MAX_PICTURE_EDGE = 3000
@@ -667,7 +667,7 @@ def _import_picture(arg: str, data_dir: Path) -> Path:
     ``<data_dir>/pictures/<ascii-slug>.<ext>`` and return the copy's path.
 
     JPEG, PNG, WebP and GIF are copied as they are (after checking that they
-    decode); other formats Pillow can read are converted to JPEG. The worksheet
+    decode); TIFF, BMP, HEIC and AVIF are converted to JPEG. The worksheet
     JSON in ``data_dir`` then refers to the copy as ``pictures/<file>`` — a
     short, portable path without spaces or home folders.
     """
@@ -713,18 +713,20 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
         return raw, ".svg"
     from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError
 
+    from langwich.images import open_raster, to_8bit
+
     _register_heif()
     lenient = ImageFile.LOAD_TRUNCATED_IMAGES  # WeasyPrint turns this on when imported
     ImageFile.LOAD_TRUNCATED_IMAGES = False     # a cut-off download must be reported
     try:
-        with Image.open(io.BytesIO(raw)) as img:
+        with open_raster(raw) as img:
             fmt = img.format or ""
             if fmt in _KEPT_FORMATS and len(raw) <= MAX_IMAGE_BYTES:
                 img.draft("RGB", (512, 512))  # JPEG: decode small, still checks the whole file
                 img.load()
                 return raw, _KEPT_FORMATS[fmt]
             img.load()
-            picture = ImageOps.exif_transpose(img)
+            picture = to_8bit(ImageOps.exif_transpose(img) or img)
             if picture.mode in ("RGBA", "LA", "PA") or "transparency" in picture.info:
                 rgba = picture.convert("RGBA")
                 picture = Image.new("RGB", rgba.size, "white")

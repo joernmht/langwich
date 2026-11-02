@@ -1137,3 +1137,35 @@ def test_deeply_nested_json_is_a_contract_error_not_a_crash(tmp_path: Path) -> N
         report = check_file(path)
         assert not report.ok and [i.code for i in report.errors] == ["contract"]
         assert "nested far too deeply" in report.errors[0].message
+
+
+def test_postscript_pictures_are_refused_without_ghostscript(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import base64
+
+    from PIL import EpsImagePlugin
+
+    calls: list[object] = []
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", lambda *a, **k: calls.append(a))
+    eps = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n"
+    (tmp_path / "photo.eps").write_bytes(eps)
+    file_issue = next(i for i in _issues(_image_case("photo.eps"), base_dir=tmp_path)
+                      if i.code in PICTURE_CODES)
+    assert file_issue.code == "image-unreadable" and "not an image format" in file_issue.message
+    uri = "data:application/postscript;base64," + base64.b64encode(eps).decode()
+    codes = _picture_codes(_image_case(uri), tmp_path)
+    assert codes == {"image-invalid"}
+    assert calls == []
+
+
+def test_svg_like_the_renderer_reads_it(tmp_path: Path) -> None:
+    import base64
+
+    commented = "<!-- scene 2 -->\n" + SVG
+    for image in ("data:image/svg+xml;base64," + base64.b64encode(commented.encode()).decode(),
+                  "data:image/svg+xml;utf8," + commented):
+        assert _picture_codes(_image_case(image), tmp_path) == set(), image
+    quoted = SVG.replace("<rect ", """<defs><linearGradient id="g"/></defs><rect fill="url('#g')" """)
+    issues = _issues(_mutated(_set("story/scenes/1/picture/svg", quoted)))
+    assert "svg-external" not in {i.code for i in issues}
