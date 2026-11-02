@@ -97,41 +97,46 @@ def open_raster(raw: bytes) -> PILImage:
 
 
 def is_safe_data_uri(url: str) -> bool:
-    """May WeasyPrint decode this ``data:`` URI? An SVG (by its media type),
-    or a PNG, JPEG, GIF or WebP picture (by its first bytes). WeasyPrint hands
-    any other image to Pillow, which picks its decoder from the content, not
-    the media type: EPS bytes inside an SVG's ``<image>`` would reach Ghostscript."""
-    header, sep, payload = url.partition(",")
-    if not sep or not header.lower().startswith("data:"):
+    """May WeasyPrint decode this ``data:`` URI?
+
+    Decided on the bytes WeasyPrint gets (:func:`data_uri_bytes`, urllib's
+    reading, never a parse of langwich's own) and never on the media type:
+    WeasyPrint hands an image to Pillow first (an svg ``<image>`` forces
+    ``image/*``; a "SVG" that does not parse falls back to Pillow), and
+    Pillow picks its decoder from the content: EPS bytes would reach
+    Ghostscript. Safe are a PNG, JPEG, GIF or WebP picture (by its first
+    bytes) and a well-formed SVG document (XML cannot start like EPS)."""
+    if not url.startswith("data:"):
         return False
-    media = header[5:].split(";", 1)[0].strip().lower()
-    if media == "image/svg+xml":
+    try:
+        data = data_uri_bytes(url)
+    except (OSError, ValueError):
+        return False
+    if data.startswith(_RASTER_SIGNATURES) or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"):
         return True
     try:
-        head = data_uri_bytes(url, prefix=16)
-    except (ValueError, binascii.Error):
+        root = ET.fromstring(data)
+    except (ET.ParseError, ValueError):
         return False
-    return head.startswith(_RASTER_SIGNATURES) or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+    return _local(str(root.tag)) == "svg"
 
 
-def data_uri_bytes(uri: str, prefix: int | None = None) -> bytes:
-    """The bytes a ``data:`` URI holds, decoded as ``urllib`` (and so
-    WeasyPrint) decodes them: percent-escapes first, then base64. With
-    ``prefix``, only (at least) the first ``prefix`` bytes, to check a
-    signature; ``binascii.Error`` for base64 that does not decode."""
-    header, _, payload = uri.strip().partition(",")
-    if prefix is not None:
-        payload = payload[: prefix * 6 + 16]  # room for %XX escapes
-    raw = urllib.parse.unquote_to_bytes(payload)
-    if ";base64" not in header.lower():
-        return raw
-    if prefix is not None:
-        # the alphabet only; a short last group is padded (a lone last
-        # character holds no byte), so a short payload keeps all its bytes
-        raw = re.sub(rb"[^A-Za-z0-9+/]", b"", raw)[: (prefix + 2) // 3 * 4]
-        raw = raw[: len(raw) - 1] if len(raw) % 4 == 1 else raw
-        raw += b"=" * (-len(raw) % 4)
-    return base64.b64decode(raw, validate=False)
+#: Decodes data: URIs exactly as WeasyPrint's fetcher does (urllib's DataHandler).
+_DATA_OPENER = urllib.request.OpenerDirector()
+_DATA_OPENER.add_handler(urllib.request.DataHandler())
+
+
+def data_uri_bytes(uri: str) -> bytes:
+    """The bytes a ``data:`` URI holds, decoded by urllib's ``DataHandler``:
+    the code WeasyPrint fetches it with, so langwich never reads a URI another
+    way than the renderer does. (urllib percent-decodes, and base64-decodes
+    only when the media type ends with ``;base64`` exactly, in lower case.)
+    ``OSError`` or ``ValueError`` when it does not decode."""
+    if uri[:5].lower() != "data:":
+        raise ValueError("not a data: URI")
+    with _DATA_OPENER.open(urllib.request.Request(uri)) as response:
+        data: bytes = response.read()
+    return data
 
 
 def _shorten(source: str, limit: int = 80) -> str:

@@ -10,6 +10,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -889,6 +890,28 @@ def test_the_renderer_fetches_only_data_and_the_bundled_fonts(weasy):
 EPS = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n"
 
 
+def _dos_eps() -> bytes:
+    """A DOS-binary EPS whose padding holds the base64 text of a PNG
+    signature: a base64 decoder that drops the other bytes sees a PNG."""
+    import struct
+
+    head = b"\xc5\xd0\xd3\xc6" + struct.pack("<II", 64, len(EPS)) + b"\x00" * 20
+    return (head + b"iVBORw0KGgoAAAAAAA").ljust(64, b"\x00") + EPS
+
+
+#: data: URIs that hold EPS but could pass for a picture to a decoder that
+#: reads the header or the media type differently from urllib (and so from
+#: WeasyPrint, which fetches through it): urllib base64-decodes only after a
+#: final, lower-case ';base64', and WeasyPrint tries Pillow on an svg <image>
+#: (forced 'image/*') and on a "SVG" that does not parse.
+_DISGUISED_EPS: dict[str, str] = {
+    "upper-case BASE64": "data:image/png;BASE64," + urllib.parse.quote_from_bytes(_dos_eps()),
+    "base64 then a parameter": ("data:image/png;base64;x=y,"
+                                + urllib.parse.quote_from_bytes(_dos_eps())),
+    "typed as svg": "data:image/svg+xml;base64," + base64.b64encode(EPS).decode(),
+}
+
+
 @pytest.fixture
 def ghostscript_calls(monkeypatch):
     """Records every call Pillow makes to Ghostscript (and runs none)."""
@@ -916,9 +939,12 @@ def test_data_uris_must_hold_a_picture_format_langwich_embeds(weasy):
                 "data:image/png,%89PNG%0D%0A%1A%0A", "data:image/png;base64,%69VBORw0KGgo=",
                 "data:image/png;base64,iVBOR%770KG\n go="):
         assert is_allowed_url(url), url
+    svg = base64.b64encode(b"<svg xmlns='http://www.w3.org/2000/svg'/>").decode()
+    assert is_allowed_url(f"data:image/svg+xml;base64,{svg}")
     eps = base64.b64encode(EPS).decode()
     for url in (f"data:image/png;base64,{eps}", f"data:application/postscript;base64,{eps}",
-                "data:text/html,<script>alert(1)</script>", "data:image/png;base64,AAAA", "data:"):
+                "data:text/html,<script>alert(1)</script>", "data:image/png;base64,AAAA", "data:",
+                *_DISGUISED_EPS.values()):
         assert not is_allowed_url(url), url
 
 
@@ -938,8 +964,14 @@ def test_postscript_never_reaches_ghostscript(tmp_path, ghostscript_calls, weasy
     nested = "data:image/svg+xml;base64," + base64.b64encode(inner.encode()).decode()
     # in the svg itself the sanitizer removes it (validate reports svg-external);
     # inside a nested svg it is left to the offline fetcher, which refuses it
-    for href, warning in ((eps_uri, "removed from the SVG"),
-                          (nested, "embedded picture was left out")):
+    cases = [(eps_uri, "removed from the SVG"), (nested, "embedded picture was left out")]
+    for disguised in _DISGUISED_EPS.values():
+        inner_d = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9">'
+                   f'<image href="{disguised}" width="9" height="9"/></svg>')
+        cases += [(disguised, "removed from the SVG"),
+                  ("data:image/svg+xml;base64," + base64.b64encode(inner_d.encode()).decode(),
+                   "embedded picture was left out")]
+    for href, warning in cases:
         data = _lena()
         pic = data["story"]["scenes"][3]["picture"]
         pic["svg"] = pic["svg"].replace(
