@@ -841,6 +841,23 @@ def test_prompt_image_file_url_on_another_host_is_an_error(
     assert fake_prompt.items == []
 
 
+@pytest.mark.parametrize(("brightest", "tags", "low", "high"), [
+    (3000, None, 0, 13),           # a dark full-range scan stays dark
+    (4095, {281: 4095}, 240, 255),  # 12-bit data that says so is stretched
+])
+def test_prompt_image_16_bit_tiff_keeps_its_brightness(
+    workdir: Path, fake_prompt: Calls, brightest: int, tags: dict | None, low: int, high: int,
+) -> None:
+    from PIL import Image
+
+    scan = Image.new("I", (32, 32), 0)
+    scan.paste(brightest, (0, 0, 16, 32))
+    scan.convert("I;16").save(workdir / "dark.tiff", "TIFF", **({"tiffinfo": tags} if tags else {}))
+    assert main(["prompt", "--image", "dark.tiff"]) == 0
+    with Image.open(workdir / "data" / "pictures" / "dark.jpg") as img:
+        assert low <= img.convert("L").getextrema()[1] <= high
+
+
 def test_prompt_image_16_bit_tiff_is_converted_without_clipping(
     workdir: Path, fake_prompt: Calls,
 ) -> None:

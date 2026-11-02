@@ -364,24 +364,42 @@ def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
     return f"{what}: the image{label} could not be read ({reason}); the picture is left out."
 
 
-def to_8bit(img: PILImage, *, full_range: bool = False) -> PILImage:
+def sample_max(img: PILImage) -> int | None:
+    """The largest sample value a TIFF declares for itself (SMaxSampleValue,
+    else MaxSampleValue: 4095 for 12-bit data in 16 bits), when it is less
+    than 16 bits allow; ``None`` otherwise."""
+    tags = getattr(img, "tag_v2", None)
+    if tags is None:
+        return None
+    for tag in (341, 281):  # SMaxSampleValue, MaxSampleValue
+        value = tags.get(tag)
+        if isinstance(value, tuple):
+            value = value[0] if value else None
+        try:
+            top = int(value)
+        except (TypeError, ValueError):
+            continue
+        if 255 < top < 65535:
+            return top
+    return None
+
+
+def to_8bit(img: PILImage, *, max_value: int | None = None) -> PILImage:
     """``img`` with 8-bit samples. Pillow's ``convert('L')`` clips 16-bit
     greyscale ('I;16', 'I') at 255, which prints a white box; the samples are
-    scaled instead.
-
-    ``full_range`` (PNG: its specification scales every 16-bit sample to
-    0…65535) divides by 65535, so a dark picture stays dark. Otherwise (TIFF
-    and the like) the scale follows the bit depth the brightest sample needs:
-    10-, 12- and 14-bit data is often stored in 16 bits without being scaled
-    up, and dividing it by 65535 would leave a near-black picture."""
+    scaled instead: from the full 16-bit range, as PNG specifies and every
+    viewer reads a 16-bit TIFF, or from ``max_value``, the maximum the file
+    declares (:func:`sample_max`). Never from a guess at the pixels: a dark
+    scan stays dark, and 12-bit data is stretched only when the file says so."""
     if img.mode.startswith("I;16"):
         img = img.convert("I")
     if img.mode == "I":
+        top = max_value or 65535
         high = img.getextrema()[1]  # one band: (low, high) numbers
-        if isinstance(high, (int, float)) and (full_range or high > 255):
-            bits = 16 if full_range else int(high).bit_length()  # 4095 → 12 bits
-            scale = 255 / (2 ** bits - 1)
-            img = img.point(lambda v: v * scale)
+        if isinstance(high, (int, float)) and high > top:
+            top = 2 ** int(high).bit_length() - 1  # 32-bit samples or a wrong tag: never clip
+        scale = 255 / top
+        img = img.point(lambda v: v * scale)
         img = img.convert("L")
     return img
 
@@ -423,10 +441,11 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
                     "The picture is left out.")
                 return None
         img.load()
+        declared_max = sample_max(img)  # before exif_transpose, which drops the tags
         img = ImageOps.exif_transpose(img) or img
         # 16-bit samples ('I;16', 'I'): never passed through as they are
         deep = img.mode.startswith("I")
-        img = to_8bit(img, full_range=fmt == "PNG")
+        img = to_8bit(img, max_value=declared_max)
         resized = max(img.size) > MAX_RASTER_EDGE
         if resized:
             img.thumbnail((MAX_RASTER_EDGE, MAX_RASTER_EDGE), Image.Resampling.LANCZOS)

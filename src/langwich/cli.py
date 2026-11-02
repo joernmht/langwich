@@ -712,7 +712,7 @@ def _register_heif() -> None:
 
 def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
     """``(bytes to save, extension)`` for a picture, or a clear error."""
-    from langwich.images import is_svg_source, open_raster, to_8bit
+    from langwich.images import is_svg_source, open_raster, sample_max, to_8bit
 
     # by content first: a PNG saved as 'drawing.svg' is still a PNG
     if is_svg_source(what, raw, by_name=False):
@@ -730,7 +730,7 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
                 img.load()
                 return raw, _KEPT_FORMATS[fmt]
             img.load()
-            picture = to_8bit(ImageOps.exif_transpose(img) or img, full_range=fmt == "PNG")
+            picture = to_8bit(ImageOps.exif_transpose(img) or img, max_value=sample_max(img))
             if picture.mode in ("RGBA", "LA", "PA") or "transparency" in picture.info:
                 rgba = picture.convert("RGBA")
                 picture = Image.new("RGB", rgba.size, "white")

@@ -673,10 +673,11 @@ class Builder:
 
     @staticmethod
     def _table(gp: GrammarPoint) -> GrammarTable | None:
-        """The table of ``gp``, or ``None`` when it has no cell to print
-        (``"rows": [[]]`` passes the contract but lays out nothing)."""
+        """The table of ``gp``, or ``None`` when no cell has anything to print
+        (``"rows": [[]]`` or ``[[""]]`` pass the contract but show nothing)."""
         table = gp.table
-        if table is None or not (any(table.rows) or any(h.strip() for h in table.head)):
+        if table is None or not (any(c.strip() for row in table.rows for c in row)
+                                 or any(h.strip() for h in table.head)):
             return None
         return table
 

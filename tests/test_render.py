@@ -1016,29 +1016,34 @@ def test_a_long_broken_data_uri_gives_a_short_warning():
     assert warnings and len(warnings[0]) < 400
 
 
+@pytest.mark.parametrize("rows", [[[]], [[""]], [["", " "], [""]]], ids=["no-cell", "blank", "blanks"])
 @pytest.mark.parametrize("page", ["a4", "epaper"])
-def test_a_grammar_table_without_cells_is_left_out(page):
-    # "rows": [[]] passes the contract; the layout once took max() of nothing
+def test_a_grammar_table_without_cells_is_left_out(page, rows):
+    # "rows": [[]] passes the contract; the layout once took max() of nothing,
+    # and a table of blank cells printed as an empty box
     data = _showcase()
-    data["grammar"][0]["table"] = {"rows": [[]]}
+    data["grammar"][0]["table"] = {"rows": rows}
     empty = build_html(worksheet_from_dict(data), RenderOptions(page=page, seed=1))
     data["grammar"][0].pop("table")
     assert empty == build_html(worksheet_from_dict(data), RenderOptions(page=page, seed=1))
 
 
 @pytest.mark.parametrize("monochrome", [True, False])
-@pytest.mark.parametrize(("fmt", "factor"), [("PNG", 257), ("TIFF", 257), ("TIFF", 16)],
-                         ids=["16-bit-png", "16-bit-tiff", "12-bit-in-16-tiff"])
-def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, fmt, factor):
+@pytest.mark.parametrize(("fmt", "factor", "tags"), [
+    ("PNG", 257, None), ("TIFF", 257, None),
+    ("TIFF", 16, {281: 4095}),  # 12-bit data, MaxSampleValue 4095
+    ("TIFF", 16, {341: 4095}),  # 12-bit data, SMaxSampleValue 4095
+], ids=["16-bit-png", "16-bit-tiff", "12-bit-tiff-max", "12-bit-tiff-smax"])
+def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, fmt, factor, tags):
     """convert('L') clips 16-bit samples at 255: the picture came out white.
-    12-bit data stored in a 16-bit TIFF (brightest sample 4080) must not come
-    out near black either: there the scale follows the bit depth the samples use."""
+    12-bit data in a 16-bit TIFF is stretched when the file declares its
+    maximum (MaxSampleValue or SMaxSampleValue)."""
     from PIL import Image, ImageStat
 
     gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(
         lambda v: v * factor)
     buf = io.BytesIO()
-    gradient.convert("I;16").save(buf, fmt)
+    gradient.convert("I;16").save(buf, fmt, **({"tiffinfo": tags} if tags else {}))
     prepared = prepare_raster(buf.getvalue(), monochrome, "picture", [])
     embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
     assert 110 < ImageStat.Stat(embedded.convert("L")).mean[0] < 145
@@ -1046,18 +1051,21 @@ def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, fmt, factor):
     assert sum(1 for count in embedded.convert("L").histogram() if count) > 24
 
 
-def test_a_dark_16_bit_png_stays_dark():
-    """PNG scales every 16-bit sample to 0…65535, so a brightest sample of
-    300 is near black, not 9-bit data to stretch."""
+@pytest.mark.parametrize("fmt", ["PNG", "TIFF"])
+@pytest.mark.parametrize("brightest", [300, 3000])
+def test_a_dark_16_bit_picture_stays_dark(fmt, brightest):
+    """16-bit samples span 0…65535 (PNG specifies it; a TIFF that does not
+    declare a smaller maximum is read so by every viewer): a dark scan is not
+    9- or 12-bit data to stretch."""
     from PIL import Image
 
     dark = Image.new("I", (32, 32), 0)
-    dark.paste(300, (0, 0, 16, 32))
+    dark.paste(brightest, (0, 0, 16, 32))
     buf = io.BytesIO()
-    dark.convert("I;16").save(buf, "PNG")
+    dark.convert("I;16").save(buf, fmt)
     prepared = prepare_raster(buf.getvalue(), False, "picture", [])
     embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
-    assert embedded.convert("L").getextrema()[1] <= 2
+    assert embedded.convert("L").getextrema()[1] <= round(brightest * 255 / 65535) + 1
 
 
 def test_quoted_internal_svg_references_are_kept():
