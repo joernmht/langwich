@@ -281,16 +281,35 @@ def svg_from_text(text: str, what: str, warnings: list[str]) -> PreparedPicture 
 # ---------------------------------------------------------------------------
 
 
-#: Comments, an XML declaration and a doctype may come before the <svg>.
-_SVG_LEAD_RE = re.compile(rb"(?:\s+|<\?xml\b.*?\?>|<!--.*?-->|<!doctype\b[^>]*>)*<svg\b",
-                          re.IGNORECASE | re.DOTALL)
+def _svg_prolog_end(head: bytes) -> int:
+    """Where the element after the prolog starts: whitespace, comments,
+    processing instructions (the XML declaration) and a doctype are skipped.
+
+    A plain scan, linear in ``len(head)``: a backtracking regex for this
+    took exponential time on a long whitespace run or a row of comments that
+    is not followed by <svg."""
+    pos, end = 0, len(head)
+    while pos < end:
+        if head[pos] in b" \t\r\n\f\v":
+            pos += 1
+            continue
+        for opening, closing in ((b"<!--", b"-->"), (b"<?", b"?>"), (b"<!doctype", b">")):
+            if head.startswith(opening, pos):
+                found = head.find(closing, pos + len(opening))
+                if found < 0:
+                    return end  # unclosed: no element follows
+                pos = found + len(closing)
+                break
+        else:
+            return pos
+    return pos
 
 
 def _looks_like_svg(raw: bytes) -> bool:
     head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
     return head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head) or (
         head.startswith(b"<!doctype svg")
-    ) or bool(_SVG_LEAD_RE.match(head))
+    ) or head.startswith(b"<svg", _svg_prolog_end(head))
 
 
 def is_svg_source(image: str, raw: bytes) -> bool:
@@ -319,14 +338,17 @@ def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
 
 def to_8bit(img: PILImage) -> PILImage:
     """``img`` with 8-bit samples. Pillow's ``convert('L')`` clips 16-bit
-    greyscale ('I;16', 'I': 0…65535) at 255, which prints a white box; the
-    samples are scaled instead."""
+    greyscale ('I;16', 'I') at 255, which prints a white box; the samples are
+    scaled instead, by the bit depth the brightest one needs: 10-, 12- and
+    14-bit data is often stored in 16 bits without being scaled up, and
+    dividing it by 65535 would leave a near-black picture."""
     if img.mode.startswith("I;16"):
         img = img.convert("I")
     if img.mode == "I":
         high = img.getextrema()[1]  # one band: (low, high) numbers
         if isinstance(high, (int, float)) and high > 255:
-            scale = 255 / max(high, 65535)  # 16-bit range (or wider, for 32-bit data)
+            bits = int(high).bit_length()  # 4095 → 12 bits, 65535 → 16
+            scale = 255 / (2 ** bits - 1)
             img = img.point(lambda v: v * scale)
         img = img.convert("L")
     return img

@@ -807,6 +807,19 @@ def test_prompt_image_never_hands_postscript_to_ghostscript(
     assert calls == [] and fake_prompt.items == []
 
 
+@pytest.mark.parametrize(("name", "prolog"), [
+    ("drawing.svg", b"<!-- drawn for scene 2 -->\n"),
+    ("drawing", b'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "svg11.dtd">\n'),
+])
+def test_prompt_image_reads_svg_like_the_renderer(
+    workdir: Path, fake_prompt: Calls, name: str, prolog: bytes,
+) -> None:
+    (workdir / name).write_bytes(prolog + b"<svg viewBox='0 0 4 3'><rect width='1' height='1'/></svg>")
+    assert main(["prompt", "--image", name]) == 0
+    assert fake_prompt.items[-1].image == "pictures/drawing.svg"
+    assert (workdir / "data" / "pictures" / "drawing.svg").read_bytes().startswith(prolog)
+
+
 def test_prompt_image_16_bit_tiff_is_converted_without_clipping(
     workdir: Path, fake_prompt: Calls,
 ) -> None:

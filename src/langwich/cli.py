@@ -708,12 +708,11 @@ def _register_heif() -> None:
 
 def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
     """``(bytes to save, extension)`` for a picture, or a clear error."""
-    head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
-    if head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head):
+    from langwich.images import is_svg_source, open_raster, to_8bit
+
+    if is_svg_source(what, raw):  # the renderer's and the validator's test
         return raw, ".svg"
     from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError
-
-    from langwich.images import open_raster, to_8bit
 
     _register_heif()
     lenient = ImageFile.LOAD_TRUNCATED_IMAGES  # WeasyPrint turns this on when imported

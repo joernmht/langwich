@@ -973,16 +973,22 @@ def test_a_grammar_table_without_cells_is_left_out(page):
 
 
 @pytest.mark.parametrize("monochrome", [True, False])
-def test_16_bit_greyscale_is_scaled_not_clipped(monochrome):
-    """convert('L') clips 16-bit samples at 255: the picture came out white."""
+@pytest.mark.parametrize("factor", [257, 16], ids=["16-bit", "12-bit-in-16"])
+def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, factor):
+    """convert('L') clips 16-bit samples at 255: the picture came out white.
+    12-bit data stored in 16 bits (brightest sample 4080) must not come out
+    near black either: the scale follows the bit depth the samples use."""
     from PIL import Image, ImageStat
 
-    gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(lambda v: v * 257)
+    gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(
+        lambda v: v * factor)
     buf = io.BytesIO()
     gradient.convert("I;16").save(buf, "PNG")
     prepared = prepare_raster(buf.getvalue(), monochrome, "picture", [])
     embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
     assert 110 < ImageStat.Stat(embedded.convert("L")).mean[0] < 145
+    # all 32 grey steps of the gradient survive (12 bits divided by 65535 kept 16)
+    assert sum(1 for count in embedded.convert("L").histogram() if count) > 24
 
 
 def test_quoted_internal_svg_references_are_kept():
@@ -994,6 +1000,24 @@ def test_quoted_internal_svg_references_are_kept():
     prepared = prepare_picture(Picture(svg=svg), None, True, warnings)
     text = base64.b64decode(prepared.data_uri.split(",", 1)[1]).decode()
     assert warnings == [] and "url('#g')" in text and "#m" in text
+
+
+@pytest.mark.parametrize("raw", [
+    b"<!---->" + b" " * 26 + b"x",                 # a whitespace run after a comment
+    b"<!---->" * 26 + b"x",                        # a row of comments
+    b"<?xml version='1.0'?>" + b"\f" * 26 + b"x",
+], ids=["spaces", "comments", "form-feeds"])
+def test_svg_sniffing_takes_linear_time(raw):
+    """A backtracking regex took exponential time here (seconds at 26
+    characters, days at 40): a picture could hang validate and render."""
+    import time
+
+    from langwich.images import _looks_like_svg
+
+    start = time.perf_counter()
+    assert _looks_like_svg(raw) is False
+    assert time.perf_counter() - start < 1.0  # fails (not hangs) if it turns exponential again
+    assert _looks_like_svg(raw * 100) is False  # 2.6 KB: only reached when linear
 
 
 @pytest.mark.parametrize("encode", ["base64", "utf8"])
