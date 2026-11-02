@@ -296,9 +296,18 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", "pictures/missing.jpg")),
      "/story/scenes/1/picture/image"),
-    ("image-unreadable",
+    ("image-unreadable",  # a file that is not a picture (this test module)
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", str(Path(__file__).resolve()))),
+     "/story/scenes/1/picture/image"),
+    # what the JSON itself says is wrong: the LLM's to fix
+    ("image-invalid",
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", NOT_AN_IMAGE)),
+     "/story/scenes/1/picture/image"),
+    ("image-invalid",
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", "ftp://example.org/cafe.jpg")),
      "/story/scenes/1/picture/image"),
     ("svg-invalid", _set("story/scenes/1/picture/svg", BROKEN_SVG), "/story/scenes/1/picture/svg"),
     ("svg-invalid", _set("story/scenes/1/picture/svg", SVG[:-6]), "/story/scenes/1/picture/svg"),
@@ -572,7 +581,7 @@ def test_image_resolution_matches_the_renderer(tmp_path: Path) -> None:
     assert resolve_image("pics/a.jpg", tmp_path).path == tmp_path / "pics" / "a.jpg"
     assert resolve_image("~/a.jpg", tmp_path).path == Path.home() / "a.jpg"
     issues = _issues(_image_case("ftp://example.org/x.png"), base_dir=tmp_path)
-    assert "image-not-found" in {i.code for i in issues}
+    assert "image-invalid" in {i.code for i in issues}
 
 
 def test_picture_problems_are_errors_only_when_the_picture_is_needed(tmp_path: Path) -> None:
@@ -993,3 +1002,138 @@ def test_contract_errors_have_clean_pointers_and_suggestions(tmp_path: Path) -> 
     assert "did you mean 'label'" in by_where["/tasks/3"]
     assert "did you mean 'pairs'" in by_where["/tasks/0/pairz"]
     assert "did you mean 'en'" in by_where["/source_lang"]
+
+
+# ---------------------------------------------------------------------------
+# The validator agrees with the planner and the renderer
+# ---------------------------------------------------------------------------
+
+
+def test_raster_size_rule_matches_the_renderer(tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    """A picture is a problem exactly when the renderer would leave it out:
+    Pillow's own decompression-bomb limit does not apply (the renderer turns
+    it off), a JPEG over MAX_PIXELS is decoded at a reduced scale, and any
+    other format over MAX_PIXELS is too large. (Limits scaled down here.)"""
+    from PIL import Image
+
+    import langwich.images as images
+    import langwich.validate as validate_module
+
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1000)
+    for module in (images, validate_module):
+        monkeypatch.setattr(module, "MAX_PIXELS", 50_000)
+        monkeypatch.setattr(module, "MAX_RASTER_EDGE", 100)
+    cases = {"over-bomb-limit.png": ("PNG", (200, 150), True),
+             "too-large.png": ("PNG", (400, 300), False),
+             "large.jpg": ("JPEG", (400, 300), True)}
+    for name, (fmt, size, usable) in cases.items():
+        Image.new("L", size, 200).save(tmp_path / name, fmt)
+        rendered = images.prepare_raster((tmp_path / name).read_bytes(), True, "picture", [])
+        issues = [i for i in _issues(_image_case(name), base_dir=tmp_path)
+                  if i.code in PICTURE_CODES]
+        assert (rendered is not None) is usable, name
+        assert (issues == []) is usable, (name, [i.message for i in issues])
+        if not usable:
+            assert issues[0].code == "image-unreadable" and "too large" in issues[0].message
+
+
+@pytest.mark.parametrize("svg_part", [
+    "<iframe src='https://example.org'/>",
+    "<object data='https://example.org/x.svg'/>",
+    "<image src='https://example.org/cup.png'/>",
+    "<a href='data:text/html,&lt;b&gt;hi&lt;/b&gt;'><rect width='1' height='1'/></a>",
+    "<rect width='1' height='1' fill='url(https://example.org/p.svg#a)'/>",
+    "<rect width='1' height='1' style='fill:url(data:image/png;base64,AAAA)'/>",
+])
+def test_svg_external_parts_are_what_the_renderer_removes(svg_part: str) -> None:
+    from langwich.images import svg_from_text
+
+    svg = SVG.replace("<rect", svg_part + "<rect", 1)
+    warnings: list[str] = []
+    svg_from_text(svg, "picture", warnings)
+    assert any("removed from the SVG" in w for w in warnings), warnings  # the renderer
+    issues = _issues(_mutated(_set("story/scenes/1/picture/svg", svg)))
+    assert "svg-external" in {i.code for i in issues}  # and so the validator
+
+
+@pytest.mark.parametrize(("item", "absent"), [
+    ("Mein Bruder trinkt gern {{}} mit Milch.", "unbalanced-braces"),
+    ("Mein Bruder trinkt gern {{}} mit {{Milch}}.", "unbalanced-braces"),
+    ("Mein Bruder trinkt gern {{ }} mit Milch.", None),
+])
+def test_an_empty_gap_is_reported_as_empty_gap(item: str, absent: str | None) -> None:
+    issues = _issues(_mutated(_set("tasks/2/items/0", item)))
+    codes = {i.code for i in issues}
+    assert "empty-gap" in codes, codes
+    assert absent not in codes
+    assert "/tasks/2/items/0" in [i.where for i in issues if i.code == "empty-gap"]
+
+
+def test_escaped_braces_in_formatted_ui_strings_are_fine() -> None:
+    # ui-placeholders tells the author to write a literal brace as {{ or }}
+    data = _mutated(_set("ui", {"kind.writing.length": "Schreibe {min}–{max} Wörter {{ca.}}"}))
+    codes = {i.code for i in _issues(data)}
+    assert "markup-outside-gaps" not in codes and "ui-placeholders" not in codes
+    # a string without placeholders is printed as it is, braces included
+    data = _mutated(_set("ui", {"solutions": "{{Lösungen}}"}))
+    hits = [i for i in _issues(data) if i.code == "markup-outside-gaps"]
+    assert [i.where for i in hits] == ["/ui/solutions"]
+
+
+def test_grammar_gives_away_points_at_the_leaking_point_despite_a_duplicate_id() -> None:
+    data = _mutated(_chain(
+        _set("grammar/0/examples", ["Zum Geburtstag gibt es einen großen Kuchen."]),
+        lambda d: d["grammar"].append({"id": "g1", "name": "Wortstellung",
+                                       "explanation": "Word order."}),
+    ))
+    issues = _issues(data)
+    assert "duplicate-id" in {i.code for i in issues}
+    assert [i.where for i in issues if i.code == "grammar-gives-away"] == ["/grammar/0"]
+
+
+def test_task_texts_count_only_target_language_fields() -> None:
+    """A loanword in a source-language prompt, cue or translation hint is not
+    practice of the target word."""
+    from langwich.model import ClozeTask, DialogueLine, DialogueTask, DrawTask, WritingTask
+    from langwich.validate import _Checker
+
+    checker = _Checker(worksheet_from_dict(copy.deepcopy(BASE)), None)
+    writing = WritingTask(id="w", kind="writing", stage="production",
+                          prompt="Write about your favourite café.", starter="Ich trinke")
+    draw = DrawTask(id="d", kind="draw", stage="picture", prompt="Draw the café.",
+                    labels=["die Tasse"])
+    dialogue = DialogueTask(id="g", kind="dialogue", stage="practice", lines=[
+        DialogueLine(speaker="A", text="Einen {{Kaffee}}, bitte."),
+        DialogueLine(speaker="B", cue="Order a café latte.", answer="Einen Milchkaffee."),
+    ])
+    translated = ClozeTask(id="c", kind="cloze", stage="practice", hint="translation",
+                           items=["Ich trinke {{Kaffee::coffee}}."])
+    base_form = ClozeTask(id="b", kind="cloze", stage="practice", hint="base_form",
+                          items=["Er {{trinkt::trinken}} Kaffee."])
+    texts = {task.id: " ".join(checker.task_texts(task))
+             for task in (writing, draw, dialogue, translated, base_form)}
+    assert "café" not in texts["w"] and "Ich trinke" in texts["w"]
+    assert "café" not in texts["d"] and "die Tasse" in texts["d"]
+    assert "latte" not in texts["g"] and "Einen Kaffee, bitte." in texts["g"]
+    assert "coffee" not in texts["c"] and "Ich trinke Kaffee." in texts["c"]
+    assert "(trinken)" in texts["b"]  # a base-form hint is target language
+
+
+@pytest.mark.parametrize(("source", "target"), [("de", "de-AT"), ("pt-BR", "pt-PT")])
+def test_regional_variants_of_one_language_are_the_same_language(source: str,
+                                                                 target: str) -> None:
+    data = _mutated(_chain(_set("source_lang", source), _set("target_lang", target)))
+    hits = [i for i in _issues(data) if i.code == "same-language"]
+    assert hits and "the same language" in hits[0].message
+
+
+def test_deeply_nested_json_is_a_contract_error_not_a_crash(tmp_path: Path) -> None:
+    for name, text in (("deep.json", "[" * 100_000 + "]" * 100_000),
+                       ("wrapped.json", "Here it is:\n" + '{"a": ' * 100_000 + "1"
+                        + "}" * 100_000)):
+        path = tmp_path / name
+        path.write_text(text, encoding="utf-8")
+        report = check_file(path)
+        assert not report.ok and [i.code for i in report.errors] == ["contract"]
+        assert "nested far too deeply" in report.errors[0].message

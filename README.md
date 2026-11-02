@@ -145,7 +145,8 @@ langwich validate data/sourdough_bread_en_de.json --prompt > repair.txt
 
 Some problems are not the AI's to fix, and the repair prompt leaves them out: a picture file that
 is missing (`image-not-found`) or cannot be read (`image-unreadable`). `--prompt` prints those for
-you on standard error instead. They are errors when the picture has numbered labels or a label
+you on standard error instead. A `picture.image` the AI got wrong itself — a URL langwich cannot
+load, or a `data:` URI without a usable picture (`image-invalid`) — stays in the repair prompt. They are errors when the picture has numbered labels or a label
 or picture task needs it, otherwise warnings. When nothing but such problems is left, `--prompt`
 prints no prompt at all and exits with status 1. And when the "JSON" is only the brief's
 `NO PICTURE ATTACHED` reply (`no-picture-attached`), there is nothing to repair: the AI never saw

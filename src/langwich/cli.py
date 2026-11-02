@@ -568,9 +568,10 @@ def _cmd_prompt(args: argparse.Namespace) -> int:
         resolved = resolve_options(opts)
     except ValueError as exc:
         _fail(str(exc))
-    if resolved.source_lang == resolved.target_lang:
-        _fail(f"source and target language are both '{resolved.source_lang}'; --source is your "
-              "own language, --target the one you are learning")
+    if resolved.source_lang.split("-")[0] == resolved.target_lang.split("-")[0]:
+        # 'de' and 'de-AT' too: validate rejects that pair as the same language
+        _fail(f"source and target language are both '{resolved.source_lang.split('-')[0]}'; "
+              "--source is your own language, --target the one you are learning")
     if (args.frame is None and (prev is None or prev.frame is None)
             and resolved.frame is not None and resolved.frame == profile.get("frame")):
         why = (" — every brief starts a series; remove \"frame\" from the profile if you do "

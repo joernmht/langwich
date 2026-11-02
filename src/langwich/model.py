@@ -1018,6 +1018,18 @@ def json_error_message(text: str, exc: json.JSONDecodeError, where: str = "") ->
     return message
 
 
+def _loads(text: str) -> Any:
+    """``json.loads``; JSON nested too deeply for Python's parser is a
+    :class:`ContractError`, not a ``RecursionError``."""
+    try:
+        return json.loads(text)
+    except RecursionError:
+        raise ContractError([(
+            "/", "the JSON is nested far too deeply to be a worksheet (thousands of [ or { "
+            "inside each other); write the worksheet object as the schema describes it.",
+        )]) from None
+
+
 def parse_json_text(text: str) -> tuple[Any, list[LoadNote]]:
     """Parse the text of a worksheet file leniently.
 
@@ -1031,13 +1043,13 @@ def parse_json_text(text: str) -> tuple[Any, list[LoadNote]]:
     if is_no_picture_reply(text):
         raise ContractError([("/", NO_PICTURE_MESSAGE)], code="no-picture-attached")
     try:
-        return json.loads(text), []
+        return _loads(text), []
     except json.JSONDecodeError as exc:
         first_error = exc
     candidates = _candidates(text)
     for start, body in candidates:
         try:
-            data = json.loads(body)
+            data = _loads(body)
         except json.JSONDecodeError:
             continue
         if isinstance(data, dict) and _WORKSHEET_KEYS & set(data):
@@ -1053,7 +1065,7 @@ def parse_json_text(text: str) -> tuple[Any, list[LoadNote]]:
     # Report the error inside the most likely object, at its place in the file.
     start, body = candidates[0]
     try:
-        json.loads(body)
+        _loads(body)
     except json.JSONDecodeError as inner:
         mapped = json.JSONDecodeError(inner.msg, text, start + inner.pos)
         fenced = any(offset <= start < offset + len(b) + 1 for offset, b in _fenced_blocks(text))

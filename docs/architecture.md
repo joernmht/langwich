@@ -165,9 +165,12 @@ repair prompt. The full list lives in `langwich.validate.CHECKS`.
 `image-unreadable`) are problems no LLM can fix — a picture file that is
 missing or cannot be decoded. The repair prompt leaves them out; `validate
 --prompt` prints them for the user on stderr and exits 1 when nothing else is
-left. `image-not-found`, `image-unreadable` and `svg-invalid` are errors when
-the scene's picture has labels or a label or picture-stage task uses that
-scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
+left. What the JSON itself gets wrong stays in the repair prompt: `image-invalid`
+(a `picture.image` with a URL scheme langwich cannot load, or a `data:` URI
+that holds no usable picture) and `svg-invalid` (an `svg` or SVG `data:` URI
+that is not well-formed). `image-not-found`, `image-unreadable`,
+`image-invalid` and `svg-invalid` are errors when the scene's picture has
+labels or a label or picture-stage task uses that scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
 `no-picture-attached` file: the model never saw the photo, and a repair would
 only make it invent one.
 

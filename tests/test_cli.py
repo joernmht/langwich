@@ -334,6 +334,29 @@ def test_validate_prompt_leaves_environment_issues_to_the_user(
     assert "[image-not-found]" in captured.err and "leaves out the picture problems" in captured.err
 
 
+def test_validate_prompt_gives_an_unusable_image_value_to_the_llm(
+    workdir: Path, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # the LLM wrote the bad value, so the repair prompt must ask it to fix it
+    data = clean_data()
+    picture = data["story"]["scenes"][1]["picture"]
+    picture.pop("svg")
+    picture["image"] = "ftp://example.org/market.jpg"
+    path = write_json(workdir, "ftp.json", data)
+    assert main(["validate", "--prompt", str(path)]) == 1
+    captured = capsys.readouterr()
+    assert "[image-invalid]" in captured.out and "ftp://example.org/market.jpg" in captured.out
+    assert "Nothing for the LLM to repair" not in captured.err
+
+
+def test_prompt_rejects_regional_variants_of_one_language(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["prompt", "--source", "de", "--target", "de-AT"]) == 1
+    assert "source and target language are both 'de'" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
 @pytest.mark.parametrize("reply", ["NO PICTURE ATTACHED\n", "NO PICTURE ATTACHED."])
 def test_validate_prompt_refuses_the_no_picture_reply(
     workdir: Path, capsys: pytest.CaptureFixture[str], reply: str,
