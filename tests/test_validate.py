@@ -296,9 +296,18 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", "pictures/missing.jpg")),
      "/story/scenes/1/picture/image"),
-    ("image-unreadable",
+    ("image-unreadable",  # a file that is not a picture (this test module)
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", str(Path(__file__).resolve()))),
+     "/story/scenes/1/picture/image"),
+    # what the JSON itself says is wrong: the LLM's to fix
+    ("image-invalid",
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", NOT_AN_IMAGE)),
+     "/story/scenes/1/picture/image"),
+    ("image-invalid",
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", "ftp://example.org/cafe.jpg")),
      "/story/scenes/1/picture/image"),
     ("svg-invalid", _set("story/scenes/1/picture/svg", BROKEN_SVG), "/story/scenes/1/picture/svg"),
     ("svg-invalid", _set("story/scenes/1/picture/svg", SVG[:-6]), "/story/scenes/1/picture/svg"),
@@ -563,6 +572,13 @@ def test_existing_image_and_urls_are_fine(tmp_path: Path) -> None:
         assert _picture_codes(_image_case(image), tmp_path) == set(), image
 
 
+def test_a_file_url_on_another_host_is_not_read_as_a_local_file(tmp_path: Path) -> None:
+    # dropping the host would read /share/a.jpg on this computer
+    assert resolve_image("file://server/share/a.jpg", tmp_path).kind == "unsupported"
+    assert "image-invalid" in _picture_codes(_image_case("file://server/share/a.jpg"), tmp_path)
+    assert resolve_image("file://localhost/tmp/a%20b.jpg", tmp_path).path == Path("/tmp/a b.jpg")
+
+
 def test_image_resolution_matches_the_renderer(tmp_path: Path) -> None:
     assert resolve_image("HTTPS://example.org/x.png", tmp_path).kind == "url"
     assert resolve_image("data:image/png;base64,AAAA", tmp_path).kind == "data"
@@ -572,7 +588,7 @@ def test_image_resolution_matches_the_renderer(tmp_path: Path) -> None:
     assert resolve_image("pics/a.jpg", tmp_path).path == tmp_path / "pics" / "a.jpg"
     assert resolve_image("~/a.jpg", tmp_path).path == Path.home() / "a.jpg"
     issues = _issues(_image_case("ftp://example.org/x.png"), base_dir=tmp_path)
-    assert "image-not-found" in {i.code for i in issues}
+    assert "image-invalid" in {i.code for i in issues}
 
 
 def test_picture_problems_are_errors_only_when_the_picture_is_needed(tmp_path: Path) -> None:
@@ -624,6 +640,25 @@ def test_heic_photos_get_a_conversion_tip(tmp_path: Path) -> None:
     issue = next(i for i in _issues(_image_case("IMG_4711.HEIC"), base_dir=tmp_path)
                  if i.code == "image-unreadable")
     assert "JPEG" in issue.message and "pillow-heif" in issue.message
+
+
+def test_a_heic_data_uri_without_the_plugin_is_for_the_user(tmp_path: Path) -> None:
+    """A missing pillow-heif is this computer's problem, not the JSON's: the
+    user is told (environment code), the LLM is not asked to fix it."""
+    import base64
+
+    try:
+        import pillow_heif  # noqa: F401
+    except ImportError:
+        pass
+    else:
+        pytest.skip("pillow-heif is installed, so HEIC photos are readable")
+    heic = b"\x00\x00\x00\x18ftypheic\x00\x00\x00\x00mif1heic" + b"\x00" * 64
+    uri = "data:image/heic;base64," + base64.b64encode(heic).decode()
+    issue = next(i for i in _issues(_image_case(uri), base_dir=tmp_path)
+                 if i.code in PICTURE_CODES)
+    assert issue.code == "image-unreadable" and issue.code in ENVIRONMENT_CODES
+    assert "pillow-heif" in issue.message and "svg" not in issue.message
 
 
 def test_svg_files_and_data_uris_are_parsed_as_svg(tmp_path: Path) -> None:
@@ -993,3 +1028,185 @@ def test_contract_errors_have_clean_pointers_and_suggestions(tmp_path: Path) -> 
     assert "did you mean 'label'" in by_where["/tasks/3"]
     assert "did you mean 'pairs'" in by_where["/tasks/0/pairz"]
     assert "did you mean 'en'" in by_where["/source_lang"]
+
+
+# ---------------------------------------------------------------------------
+# The validator agrees with the planner and the renderer
+# ---------------------------------------------------------------------------
+
+
+def test_raster_size_rule_matches_the_renderer(tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    """A picture is a problem exactly when the renderer would leave it out:
+    Pillow's own decompression-bomb limit does not apply (the renderer turns
+    it off), a JPEG over MAX_PIXELS is decoded at a reduced scale, and any
+    other format over MAX_PIXELS is too large. (Limits scaled down here.)"""
+    from PIL import Image
+
+    import langwich.images as images
+    import langwich.validate as validate_module
+
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1000)
+    for module in (images, validate_module):
+        monkeypatch.setattr(module, "MAX_PIXELS", 50_000)
+        monkeypatch.setattr(module, "MAX_RASTER_EDGE", 100)
+    cases = {"over-bomb-limit.png": ("PNG", (200, 150), True),
+             "too-large.png": ("PNG", (400, 300), False),
+             "large.jpg": ("JPEG", (400, 300), True)}
+    for name, (fmt, size, usable) in cases.items():
+        Image.new("L", size, 200).save(tmp_path / name, fmt)
+        rendered = images.prepare_raster((tmp_path / name).read_bytes(), True, "picture", [])
+        issues = [i for i in _issues(_image_case(name), base_dir=tmp_path)
+                  if i.code in PICTURE_CODES]
+        assert (rendered is not None) is usable, name
+        assert (issues == []) is usable, (name, [i.message for i in issues])
+        if not usable:
+            assert issues[0].code == "image-unreadable" and "too large" in issues[0].message
+
+
+@pytest.mark.parametrize("svg_part", [
+    "<iframe src='https://example.org'/>",
+    "<object data='https://example.org/x.svg'/>",
+    "<image src='https://example.org/cup.png'/>",
+    "<a href='data:text/html,&lt;b&gt;hi&lt;/b&gt;'><rect width='1' height='1'/></a>",
+    "<rect width='1' height='1' fill='url(https://example.org/p.svg#a)'/>",
+    "<rect width='1' height='1' style='fill:url(data:image/png;base64,AAAA)'/>",
+    # a data: picture the offline fetcher would refuse (BMP, TIFF, EPS …)
+    "<image href='data:image/bmp;base64,Qk1GAAAAAAAAADYAAAAoAAAA' width='1' height='1'/>",
+])
+def test_svg_external_parts_are_what_the_renderer_removes(svg_part: str) -> None:
+    from langwich.images import svg_from_text
+
+    svg = SVG.replace("<rect", svg_part + "<rect", 1)
+    warnings: list[str] = []
+    svg_from_text(svg, "picture", warnings)
+    assert any("removed from the SVG" in w for w in warnings), warnings  # the renderer
+    issues = _issues(_mutated(_set("story/scenes/1/picture/svg", svg)))
+    assert "svg-external" in {i.code for i in issues}  # and so the validator
+
+
+@pytest.mark.parametrize(("item", "absent"), [
+    ("Mein Bruder trinkt gern {{}} mit Milch.", "unbalanced-braces"),
+    ("Mein Bruder trinkt gern {{}} mit {{Milch}}.", "unbalanced-braces"),
+    ("Mein Bruder trinkt gern {{ }} mit Milch.", None),
+])
+def test_an_empty_gap_is_reported_as_empty_gap(item: str, absent: str | None) -> None:
+    issues = _issues(_mutated(_set("tasks/2/items/0", item)))
+    codes = {i.code for i in issues}
+    assert "empty-gap" in codes, codes
+    assert absent not in codes
+    assert "/tasks/2/items/0" in [i.where for i in issues if i.code == "empty-gap"]
+
+
+def test_escaped_braces_in_formatted_ui_strings_are_fine() -> None:
+    # ui-placeholders tells the author to write a literal brace as {{ or }}
+    data = _mutated(_set("ui", {"kind.writing.length": "Schreibe {min}–{max} Wörter {{ca.}}"}))
+    codes = {i.code for i in _issues(data)}
+    assert "markup-outside-gaps" not in codes and "ui-placeholders" not in codes
+    # a string without placeholders is printed as it is, braces included
+    data = _mutated(_set("ui", {"solutions": "{{Lösungen}}"}))
+    hits = [i for i in _issues(data) if i.code == "markup-outside-gaps"]
+    assert [i.where for i in hits] == ["/ui/solutions"]
+
+
+def test_grammar_gives_away_points_at_the_leaking_point_despite_a_duplicate_id() -> None:
+    data = _mutated(_chain(
+        _set("grammar/0/examples", ["Zum Geburtstag gibt es einen großen Kuchen."]),
+        lambda d: d["grammar"].append({"id": "g1", "name": "Wortstellung",
+                                       "explanation": "Word order."}),
+    ))
+    issues = _issues(data)
+    assert "duplicate-id" in {i.code for i in issues}
+    assert [i.where for i in issues if i.code == "grammar-gives-away"] == ["/grammar/0"]
+
+
+def test_task_texts_count_only_target_language_fields() -> None:
+    """A loanword in a source-language prompt, cue or translation hint is not
+    practice of the target word."""
+    from langwich.model import (
+        ClozeTask,
+        DialogueLine,
+        DialogueTask,
+        DrawTask,
+        TransformItem,
+        TransformTask,
+        WritingTask,
+    )
+    from langwich.validate import _Checker
+
+    checker = _Checker(worksheet_from_dict(copy.deepcopy(BASE)), None)
+    writing = WritingTask(id="w", kind="writing", stage="production",
+                          prompt="Write about your favourite café.", starter="Ich trinke")
+    draw = DrawTask(id="d", kind="draw", stage="picture", prompt="Draw the café.",
+                    labels=["die Tasse"])
+    dialogue = DialogueTask(id="g", kind="dialogue", stage="practice", lines=[
+        DialogueLine(speaker="A", text="Einen {{Kaffee}}, bitte."),
+        DialogueLine(speaker="B", cue="Order a café latte.", answer="Einen Milchkaffee."),
+    ])
+    translated = ClozeTask(id="c", kind="cloze", stage="practice", hint="translation",
+                           items=["Ich trinke {{Kaffee::coffee}}."])
+    base_form = ClozeTask(id="b", kind="cloze", stage="practice", hint="base_form",
+                          items=["Er {{trinkt::trinken}} Kaffee."])
+    # a transform cue may be in either language ("S or T")
+    transform = TransformTask(id="t", kind="transform", stage="form", items=[
+        TransformItem(prompt="Anna trinkt Tee.", cue="use: café", answer="Anna hat Tee getrunken."),
+    ])
+    texts = {task.id: " ".join(checker.task_texts(task))
+             for task in (writing, draw, dialogue, translated, base_form, transform)}
+    assert "café" not in texts["w"] and "Ich trinke" in texts["w"]
+    assert "café" not in texts["d"] and "die Tasse" in texts["d"]
+    assert "latte" not in texts["g"] and "Einen Kaffee, bitte." in texts["g"]
+    assert "coffee" not in texts["c"] and "Ich trinke Kaffee." in texts["c"]
+    assert "(trinken)" in texts["b"]  # a base-form hint is target language
+    assert "café" not in texts["t"] and "Anna hat Tee getrunken." in texts["t"]
+
+
+@pytest.mark.parametrize(("source", "target"), [("de", "de-AT"), ("pt-BR", "pt-PT")])
+def test_regional_variants_of_one_language_are_the_same_language(source: str,
+                                                                 target: str) -> None:
+    data = _mutated(_chain(_set("source_lang", source), _set("target_lang", target)))
+    hits = [i for i in _issues(data) if i.code == "same-language"]
+    assert hits and "the same language" in hits[0].message
+
+
+def test_deeply_nested_json_is_a_contract_error_not_a_crash(tmp_path: Path) -> None:
+    for name, text in (("deep.json", "[" * 100_000 + "]" * 100_000),
+                       ("wrapped.json", "Here it is:\n" + '{"a": ' * 100_000 + "1"
+                        + "}" * 100_000)):
+        path = tmp_path / name
+        path.write_text(text, encoding="utf-8")
+        report = check_file(path)
+        assert not report.ok and [i.code for i in report.errors] == ["contract"]
+        assert "nested far too deeply" in report.errors[0].message
+
+
+def test_postscript_pictures_are_refused_without_ghostscript(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import base64
+
+    from PIL import EpsImagePlugin
+
+    calls: list[object] = []
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", lambda *a, **k: calls.append(a))
+    eps = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n"
+    (tmp_path / "photo.eps").write_bytes(eps)
+    file_issue = next(i for i in _issues(_image_case("photo.eps"), base_dir=tmp_path)
+                      if i.code in PICTURE_CODES)
+    assert file_issue.code == "image-unreadable" and "not an image format" in file_issue.message
+    uri = "data:application/postscript;base64," + base64.b64encode(eps).decode()
+    codes = _picture_codes(_image_case(uri), tmp_path)
+    assert codes == {"image-invalid"}
+    assert calls == []
+
+
+def test_svg_like_the_renderer_reads_it(tmp_path: Path) -> None:
+    import base64
+
+    commented = "<!-- scene 2 -->\n" + SVG
+    for image in ("data:image/svg+xml;base64," + base64.b64encode(commented.encode()).decode(),
+                  "data:image/svg+xml;utf8," + commented):
+        assert _picture_codes(_image_case(image), tmp_path) == set(), image
+    quoted = SVG.replace("<rect ", """<defs><linearGradient id="g"/></defs><rect fill="url('#g')" """)
+    issues = _issues(_mutated(_set("story/scenes/1/picture/svg", quoted)))
+    assert "svg-external" not in {i.code for i in issues}

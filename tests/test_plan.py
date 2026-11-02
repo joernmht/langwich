@@ -424,3 +424,25 @@ def test_match_letters_continue_after_z():
     assert pt.letter_for_pair(25) == "Z"
     assert pt.letter_for_pair(26) == "AA"
     assert pt.letter_for_pair(29) == "AD"
+
+
+@pytest.mark.parametrize(("term", "lang", "bare"), [
+    ("der/das Joghurt", "de", "Joghurt"),
+    ("Der/Die Angestellte", "de", "Angestellte"),
+    ("o/a estudante", "pt", "estudante"),
+    ("il/la cantante", "it", "cantante"),
+    ("le/la prof", "fr", "prof"),
+    ("el/la turista", "es", "turista"),
+    ("und/oder Sache", "de", "und/oder Sache"),  # not articles: kept
+    ("der/", "de", "der/"),
+])
+def test_two_gender_articles_are_stripped(term: str, lang: str, bare: str) -> None:
+    """The validator accepts 'der/das Joghurt' as a noun with its article,
+    so the planner must strip it too: for the label word box, the glosses
+    and finding the word in the story."""
+    assert strip_article(term, lang) == bare
+
+
+def test_a_two_gender_noun_is_found_in_the_story() -> None:
+    item = VocabItem(term="der/das Joghurt", translation="yoghurt", pos="noun")
+    assert term_pattern(item, "de").search("Sie isst einen Joghurt mit Honig.")

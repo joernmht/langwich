@@ -165,9 +165,12 @@ repair prompt. The full list lives in `langwich.validate.CHECKS`.
 `image-unreadable`) are problems no LLM can fix — a picture file that is
 missing or cannot be decoded. The repair prompt leaves them out; `validate
 --prompt` prints them for the user on stderr and exits 1 when nothing else is
-left. `image-not-found`, `image-unreadable` and `svg-invalid` are errors when
-the scene's picture has labels or a label or picture-stage task uses that
-scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
+left. What the JSON itself gets wrong stays in the repair prompt: `image-invalid`
+(a `picture.image` with a URL scheme langwich cannot load, or a `data:` URI
+that holds no usable picture) and `svg-invalid` (an `svg` or SVG `data:` URI
+that is not well-formed). `image-not-found`, `image-unreadable`,
+`image-invalid` and `svg-invalid` are errors when the scene's picture has
+labels or a label or picture-stage task uses that scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
 `no-picture-attached` file: the model never saw the photo, and a repair would
 only make it invent one.
 
@@ -231,13 +234,20 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
 * Raster images are converted to high-contrast greyscale unless colour is
   accepted (`--allow-color`); SVG is embedded after `images.sanitize_svg` has
   removed `<script>`, `<foreignObject>` and every external `href`/`xlink:href`,
-  `src`, `url()` and `@import`. Unreadable images produce a warning, never a
+  `src`, `url()` and `@import`, and every `data:` picture other than SVG, PNG,
+  JPEG, GIF and WebP. Unreadable images produce a warning, never a
   crash; `render --strict` exits 1 when rendering produced warnings, which the
   CLI prints before its success line.
 * Offline: WeasyPrint gets a URL fetcher (`render.make_url_fetcher`) that
-  allows only `data:` URIs and the bundled font files; every picture is
-  embedded as a `data:` URI first. `images.py` itself loads the one outside
-  resource, a `picture.image` path or URL named in the JSON.
+  allows only the bundled font files and `data:` URIs that hold a PNG, JPEG,
+  GIF or WebP picture or a well-formed SVG (`images.is_safe_data_uri`); every
+  picture is embedded as a `data:` URI first. `images.py` itself loads the one
+  outside resource, a `picture.image` path or URL named in the JSON, and
+  decodes only `images.RASTER_FORMATS`: Pillow picks its decoder from the
+  content, and its EPS reader would run Ghostscript. Pictures nested in an
+  SVG are decoded by WeasyPrint with all of Pillow, so the fetcher judges each
+  `data:` URI on the bytes urllib decodes from it — the code WeasyPrint
+  fetches with — and never on its media type.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.

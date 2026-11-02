@@ -390,6 +390,13 @@ def test_drawn_picture_mode_offers_svg_or_draw_task(normal: str):
     assert "draw task" in compact and "no \"svg\"" in compact
 
 
+def test_picture_questions_are_offered_only_with_a_drawing(normal: str):
+    # with drawing B the page has no picture: a picture-stage questions task
+    # would raise picture-task-without-picture
+    assert ("a label task (drawing A) or a draw task (B); with drawing A only, optionally a "
+            "questions task about the picture") in _flat(normal)
+
+
 # ---------------------------------------------------------------------------
 # Series
 # ---------------------------------------------------------------------------
@@ -410,6 +417,20 @@ def test_continuation_mode(lena: Worksheet):
     assert "previously" in text
     assert _flat(lena.story.scenes[-1].text.split("\n\n")[0]) in text
     assert "episode 3" in text  # the new teaser
+
+
+def test_continuation_in_another_language_does_not_recycle_the_old_words(lena: Worksheet):
+    text = _flat(build_prompt(PromptOptions(continue_from=lena, target_lang="fr")))
+    assert '"review": []' in text and "[5–8 of the review words]" not in text
+    assert "the earlier episodes were in German" in text
+    assert "write this one in French (T) only" in text
+    assert 'Recycle every word in "series.review"' not in text
+    for word in lena.vocabulary.target:
+        assert word not in text.split("Review words from earlier episodes:", 1)[1][:200]
+    # the same language keeps the review words
+    same = _flat(build_prompt(PromptOptions(continue_from=lena, target_lang="de-AT")))
+    assert '"review": [5–8 of the review words]' in same
+    assert 'Recycle every word in "series.review"' in same
 
 
 def test_continuation_with_an_explicit_level_uses_it():
@@ -462,6 +483,8 @@ def test_resolve_options_skips_unusable_file_values_but_rejects_explicit_ones():
         resolve_options(PromptOptions(target_lang="German"))
     with pytest.raises(ValueError, match="CEFR"):
         resolve_options(PromptOptions(level="B3"))
+    with pytest.raises(ValueError, match="unknown frame 'Diary'"):
+        resolve_options(PromptOptions(frame="Diary"))
 
 
 def test_continuation_takes_languages_from_the_previous_episode():
@@ -507,6 +530,17 @@ def test_from_legacy_reuses_languages_and_topic():
     explicit = _flat(build_prompt(PromptOptions(from_legacy=legacy, level="B2")))
     assert "Level: B2" in explicit
     assert "this worksheet follows the brief" in explicit
+
+
+def test_legacy_language_note_reads_values_like_resolve_options():
+    # upper-case codes and a lower-case level are the same languages and level
+    same = dict(LEGACY, source_lang="DE", target_lang="FR", cefr_level="b1")
+    assert "The old file is" not in build_prompt(PromptOptions(from_legacy=same))
+    # 'level' instead of 'cefr_level' (resolve_options accepts both)
+    legacy = {k: v for k, v in LEGACY.items() if k != "cefr_level"}
+    legacy["level"] = "A2"
+    text = _flat(build_prompt(PromptOptions(from_legacy=legacy, target_lang="es")))
+    assert "The old file is de → fr, A2; this worksheet follows the brief (de → es, A2)" in text
 
 
 # ---------------------------------------------------------------------------
@@ -759,3 +793,13 @@ def test_repair_prompt_reads_languages_from_wrapped_json():
                '"tasks": []}\n```\nEnjoy!')
     text = repair_prompt(report, wrapped)
     assert "text in French" in text and "text in German" in text
+
+
+def test_repair_prompt_reference_reads_values_like_the_loader():
+    """'DE' and 'a2' are read as 'de' and 'A2' (the 'normalized' warnings say
+    so), and the field reference must not contradict them."""
+    report = _Report([_Issue("error", "contract", "/tasks/0/pairz", "not a field")])
+    text = _flat(repair_prompt(
+        report, '{"source_lang": "EN", "target_lang": "DE", "cefr_level": "a2", "tasks": []}'))
+    assert '"source_lang": "en", "target_lang": "de", "cefr_level": "A2"' in text
+    assert '"xx"' not in text and "text in German" in text
