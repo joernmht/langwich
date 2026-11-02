@@ -24,7 +24,6 @@ with a ``wrapped-json`` / ``normalized`` warning.
 
 from __future__ import annotations
 
-import base64
 import binascii
 import copy
 import difflib
@@ -37,7 +36,6 @@ from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import unquote_to_bytes
 
 from langwich import locale, markup
 from langwich.model import (
@@ -68,7 +66,9 @@ from langwich.images import ImageSource, resolve_image  # noqa: F401 (re-exporte
 from langwich.images import (
     MAX_PIXELS,
     MAX_RASTER_EDGE,
+    data_uri_bytes,
     is_svg_source,
+    looks_like_heif,
     open_raster,
     sanitize_svg,
 )
@@ -410,10 +410,7 @@ def _sentences(text: str) -> list[str]:
 
 
 def _data_uri_bytes(uri: str) -> bytes:
-    header, _, payload = uri.partition(",")
-    if ";base64" in header.lower():
-        return base64.b64decode(payload, validate=False)
-    return unquote_to_bytes(payload)
+    return data_uri_bytes(uri)  # as the renderer decodes it
 
 
 _HEIF_BRANDS = (b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1")
@@ -1169,6 +1166,9 @@ class _Checker:
             return
         problem = _raster_problem(raw)
         if problem:
+            if looks_like_heif(raw) and "pillow-heif" in problem:
+                # a missing plugin on this computer is the user's to fix, also for a data: URI
+                unreadable, redo = "image-unreadable", ""
             self.picture_problem(
                 unreadable, where, f"{name} cannot be used: {problem}{why}.{redo}", needed,
             )

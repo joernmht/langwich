@@ -642,6 +642,25 @@ def test_heic_photos_get_a_conversion_tip(tmp_path: Path) -> None:
     assert "JPEG" in issue.message and "pillow-heif" in issue.message
 
 
+def test_a_heic_data_uri_without_the_plugin_is_for_the_user(tmp_path: Path) -> None:
+    """A missing pillow-heif is this computer's problem, not the JSON's: the
+    user is told (environment code), the LLM is not asked to fix it."""
+    import base64
+
+    try:
+        import pillow_heif  # noqa: F401
+    except ImportError:
+        pass
+    else:
+        pytest.skip("pillow-heif is installed, so HEIC photos are readable")
+    heic = b"\x00\x00\x00\x18ftypheic\x00\x00\x00\x00mif1heic" + b"\x00" * 64
+    uri = "data:image/heic;base64," + base64.b64encode(heic).decode()
+    issue = next(i for i in _issues(_image_case(uri), base_dir=tmp_path)
+                 if i.code in PICTURE_CODES)
+    assert issue.code == "image-unreadable" and issue.code in ENVIRONMENT_CODES
+    assert "pillow-heif" in issue.message and "svg" not in issue.message
+
+
 def test_svg_files_and_data_uris_are_parsed_as_svg(tmp_path: Path) -> None:
     # a broken file is the user's to fix, a broken data: URI in the JSON the LLM's
     (tmp_path / "broken.svg").write_text(BROKEN_SVG, encoding="utf-8")

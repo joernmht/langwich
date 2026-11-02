@@ -108,13 +108,30 @@ def is_safe_data_uri(url: str) -> bool:
     if media == "image/svg+xml":
         return True
     try:
-        if ";base64" in header.lower():
-            head = base64.b64decode(re.sub(r"\s+", "", payload[:64])[:32] + "==", validate=False)
-        else:
-            head = urllib.parse.unquote_to_bytes(payload[:64])
+        head = data_uri_bytes(url, prefix=16)
     except (ValueError, binascii.Error):
         return False
     return head.startswith(_RASTER_SIGNATURES) or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+
+
+def data_uri_bytes(uri: str, prefix: int | None = None) -> bytes:
+    """The bytes a ``data:`` URI holds, decoded as ``urllib`` (and so
+    WeasyPrint) decodes them: percent-escapes first, then base64. With
+    ``prefix``, only (at least) the first ``prefix`` bytes, to check a
+    signature; ``binascii.Error`` for base64 that does not decode."""
+    header, _, payload = uri.strip().partition(",")
+    if prefix is not None:
+        payload = payload[: prefix * 6 + 16]  # room for %XX escapes
+    raw = urllib.parse.unquote_to_bytes(payload)
+    if ";base64" not in header.lower():
+        return raw
+    if prefix is not None:
+        # the alphabet only; a short last group is padded (a lone last
+        # character holds no byte), so a short payload keeps all its bytes
+        raw = re.sub(rb"[^A-Za-z0-9+/]", b"", raw)[: (prefix + 2) // 3 * 4]
+        raw = raw[: len(raw) - 1] if len(raw) % 4 == 1 else raw
+        raw += b"=" * (-len(raw) % 4)
+    return base64.b64decode(raw, validate=False)
 
 
 def _shorten(source: str, limit: int = 80) -> str:
@@ -342,18 +359,22 @@ def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
     return f"{what}: the image{label} could not be read ({reason}); the picture is left out."
 
 
-def to_8bit(img: PILImage) -> PILImage:
+def to_8bit(img: PILImage, *, full_range: bool = False) -> PILImage:
     """``img`` with 8-bit samples. Pillow's ``convert('L')`` clips 16-bit
     greyscale ('I;16', 'I') at 255, which prints a white box; the samples are
-    scaled instead, by the bit depth the brightest one needs: 10-, 12- and
-    14-bit data is often stored in 16 bits without being scaled up, and
-    dividing it by 65535 would leave a near-black picture."""
+    scaled instead.
+
+    ``full_range`` (PNG: its specification scales every 16-bit sample to
+    0…65535) divides by 65535, so a dark picture stays dark. Otherwise (TIFF
+    and the like) the scale follows the bit depth the brightest sample needs:
+    10-, 12- and 14-bit data is often stored in 16 bits without being scaled
+    up, and dividing it by 65535 would leave a near-black picture."""
     if img.mode.startswith("I;16"):
         img = img.convert("I")
     if img.mode == "I":
         high = img.getextrema()[1]  # one band: (low, high) numbers
-        if isinstance(high, (int, float)) and high > 255:
-            bits = int(high).bit_length()  # 4095 → 12 bits, 65535 → 16
+        if isinstance(high, (int, float)) and (full_range or high > 255):
+            bits = 16 if full_range else int(high).bit_length()  # 4095 → 12 bits
             scale = 255 / (2 ** bits - 1)
             img = img.point(lambda v: v * scale)
         img = img.convert("L")
@@ -400,7 +421,7 @@ def prepare_raster(raw: bytes, monochrome: bool, what: str, warnings: list[str],
         img = ImageOps.exif_transpose(img) or img
         # 16-bit samples ('I;16', 'I'): never passed through as they are
         deep = img.mode.startswith("I")
-        img = to_8bit(img)
+        img = to_8bit(img, full_range=fmt == "PNG")
         resized = max(img.size) > MAX_RASTER_EDGE
         if resized:
             img.thumbnail((MAX_RASTER_EDGE, MAX_RASTER_EDGE), Image.Resampling.LANCZOS)
@@ -494,10 +515,7 @@ def _read_source(source: str, base_dir: Path | None, what: str, warnings: list[s
     try:
         low = source.strip().lower()
         if low.startswith("data:"):
-            header, _, payload = source.strip().partition(",")
-            if ";base64" in header.lower():
-                return base64.b64decode(payload, validate=False)
-            return urllib.parse.unquote_to_bytes(payload)
+            return data_uri_bytes(source)
         if low.startswith(("http://", "https://")):
             request = urllib.request.Request(source.strip(), headers={"User-Agent": USER_AGENT})
             with urllib.request.urlopen(request, timeout=URL_TIMEOUT) as response:

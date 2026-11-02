@@ -909,9 +909,12 @@ def test_data_uris_must_hold_a_picture_format_langwich_embeds(weasy):
 
     gif = base64.b64encode(b"GIF89a" + b"\x00" * 8).decode()
     webp = base64.b64encode(b"RIFF\x00\x00\x00\x00WEBPVP8 ").decode()
+    # percent-escapes in a base64 payload are decoded first, as urllib (and so
+    # WeasyPrint) does: '%69VBOR…' is 'iVBOR…'
     for url in ("data:image/svg+xml;utf8,<svg/>", "data:image/jpeg;base64,/9j/4AAQ",
                 f"data:image/gif;base64,{gif}", f"data:image/webp;base64,{webp}",
-                "data:image/png,%89PNG%0D%0A%1A%0A"):
+                "data:image/png,%89PNG%0D%0A%1A%0A", "data:image/png;base64,%69VBORw0KGgo=",
+                "data:image/png;base64,iVBOR%770KG\n go="):
         assert is_allowed_url(url), url
     eps = base64.b64encode(EPS).decode()
     for url in (f"data:image/png;base64,{eps}", f"data:application/postscript;base64,{eps}",
@@ -962,6 +965,17 @@ def test_a_server_that_breaks_http_is_a_warning_not_a_crash(monkeypatch):
     assert warnings and "BadStatusLine" in warnings[0]
 
 
+def test_a_percent_encoded_base64_picture_is_embedded():
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("L", (4, 4), 0).save(buf, "PNG")
+    payload = base64.b64encode(buf.getvalue()).decode()
+    warnings: list[str] = []
+    picture = Picture(image="data:image/png;base64,%69" + payload[1:])
+    assert prepare_picture(picture, None, True, warnings) is not None and warnings == []
+
+
 def test_a_long_broken_data_uri_gives_a_short_warning():
     # base64 cut off mid-way (one character more than a multiple of four)
     warnings: list[str] = []
@@ -981,22 +995,37 @@ def test_a_grammar_table_without_cells_is_left_out(page):
 
 
 @pytest.mark.parametrize("monochrome", [True, False])
-@pytest.mark.parametrize("factor", [257, 16], ids=["16-bit", "12-bit-in-16"])
-def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, factor):
+@pytest.mark.parametrize(("fmt", "factor"), [("PNG", 257), ("TIFF", 257), ("TIFF", 16)],
+                         ids=["16-bit-png", "16-bit-tiff", "12-bit-in-16-tiff"])
+def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, fmt, factor):
     """convert('L') clips 16-bit samples at 255: the picture came out white.
-    12-bit data stored in 16 bits (brightest sample 4080) must not come out
-    near black either: the scale follows the bit depth the samples use."""
+    12-bit data stored in a 16-bit TIFF (brightest sample 4080) must not come
+    out near black either: there the scale follows the bit depth the samples use."""
     from PIL import Image, ImageStat
 
     gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(
         lambda v: v * factor)
     buf = io.BytesIO()
-    gradient.convert("I;16").save(buf, "PNG")
+    gradient.convert("I;16").save(buf, fmt)
     prepared = prepare_raster(buf.getvalue(), monochrome, "picture", [])
     embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
     assert 110 < ImageStat.Stat(embedded.convert("L")).mean[0] < 145
     # all 32 grey steps of the gradient survive (12 bits divided by 65535 kept 16)
     assert sum(1 for count in embedded.convert("L").histogram() if count) > 24
+
+
+def test_a_dark_16_bit_png_stays_dark():
+    """PNG scales every 16-bit sample to 0…65535, so a brightest sample of
+    300 is near black, not 9-bit data to stretch."""
+    from PIL import Image
+
+    dark = Image.new("I", (32, 32), 0)
+    dark.paste(300, (0, 0, 16, 32))
+    buf = io.BytesIO()
+    dark.convert("I;16").save(buf, "PNG")
+    prepared = prepare_raster(buf.getvalue(), False, "picture", [])
+    embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
+    assert embedded.convert("L").getextrema()[1] <= 2
 
 
 def test_quoted_internal_svg_references_are_kept():

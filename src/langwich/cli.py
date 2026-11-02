@@ -730,7 +730,7 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
                 img.load()
                 return raw, _KEPT_FORMATS[fmt]
             img.load()
-            picture = to_8bit(ImageOps.exif_transpose(img) or img)
+            picture = to_8bit(ImageOps.exif_transpose(img) or img, full_range=fmt == "PNG")
             if picture.mode in ("RGBA", "LA", "PA") or "transparency" in picture.info:
                 rgba = picture.convert("RGBA")
                 picture = Image.new("RGB", rgba.size, "white")
