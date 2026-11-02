@@ -495,6 +495,25 @@ def test_broken_ui_override_falls_back_instead_of_crashing():
     assert "Zeichne die Szene" in result_html and "Schreibe 40–60 Wörter." in result_html
 
 
+@pytest.mark.parametrize("override", ["{min[0]} bis {max}", "{min} bis {max.real.x}"])
+def test_ui_override_with_an_indexed_placeholder_falls_back_with_a_warning(tmp_path, override):
+    # str.format raises TypeError / AttributeError for these, not KeyError
+    data = _showcase()
+    data["ui"] = {"kind.writing.length": override}
+    result = render_worksheet(worksheet_from_dict(data), tmp_path / "x.pdf",
+                              RenderOptions(html_only=True))
+    assert "Schreibe 40–60 Wörter." in result.html.read_text(encoding="utf-8")
+    assert any("'kind.writing.length' could not be formatted" in w for w in result.warnings)
+
+
+def test_empty_ui_override_prints_the_built_in_label():
+    data = _showcase()
+    data["ui"] = {"solutions": "  "}
+    html = build_html(worksheet_from_dict(data))
+    assert '<h2 class="big">Lösungen</h2>' in html
+    assert '<h2 class="big"></h2>' not in html
+
+
 def test_series_previously_teaser_and_characters_on_the_page():
     html = build_html(load_worksheet(SHOWCASE))
     body = _text(_body(html))

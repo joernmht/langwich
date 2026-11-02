@@ -24,6 +24,7 @@ import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, get_args
+from urllib.parse import unquote, urlparse
 
 from langwich import __version__
 from langwich.model import (
@@ -181,6 +182,19 @@ def _scene_count(value: str) -> int:
 
 def _is_url(value: str) -> bool:
     return bool(_URL_RE.match(value)) or value.startswith("data:")
+
+
+def _image_arg(value: str) -> str:
+    """``prompt --image`` as langwich can use it: an http(s) URL or ``data:``
+    URI as it is, a ``file:`` URL as a local path (copied like any other);
+    other URL schemes are an error, because the worksheet could not load them."""
+    low = value.strip().lower()
+    if low.startswith("file:"):
+        return unquote(urlparse(value.strip()).path)
+    if _is_url(value) and not low.startswith(("http://", "https://", "data:")):
+        _fail(f"--image {value}: langwich loads pictures only from a local file, an http(s) "
+              "URL or a data: URI. Download the picture and give its file path.", 2)
+    return value
 
 
 def _page(choice: str | None, device: Any) -> PageSize:
@@ -496,6 +510,11 @@ def _cmd_kinds(args: argparse.Namespace | None = None) -> int:
 
 
 def _cmd_prompt(args: argparse.Namespace) -> int:
+    if args.continue_from and args.series is False:
+        _fail("--no-series cannot be combined with --continue: the next episode always "
+              "continues the series. Leave out --continue for a one-off story.", 2)
+    if args.image:
+        args.image = _image_arg(args.image)
     profile = _profile()
     data_dir = Path(args.data_dir)
 

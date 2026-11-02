@@ -776,6 +776,25 @@ def test_prompt_image_url_is_passed_through(workdir: Path, fake_prompt: Calls) -
     assert not (workdir / "data").exists()
 
 
+def test_prompt_image_url_langwich_cannot_load_is_an_error(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # validate rejects every scheme but http(s), data: and file:
+    assert main(["prompt", "--image", "ftp://example.org/market.jpg"]) == 2
+    assert "only from a local file, an http(s) URL or a data: URI" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
+def test_prompt_image_file_url_is_copied_like_a_path(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    photo = _picture(workdir / "My Photos" / "market stall.png")
+    url = "file://" + str(photo).replace(" ", "%20")
+    assert main(["prompt", "--image", url]) == 0
+    assert fake_prompt.items[-1].image == "pictures/market-stall.png"
+    assert (workdir / "data" / "pictures" / "market-stall.png").read_bytes() == photo.read_bytes()
+
+
 def test_real_prompt_names_the_copied_picture_relatively(
     workdir: Path, capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -934,6 +953,16 @@ def test_prompt_series_and_device_flags(
     assert saved["device"] == "color"
     assert main(["prompt", "--frame", "episode", "--no-series"]) == 0
     assert fake_prompt.items[-1].series is False
+
+
+def test_prompt_continue_rejects_no_series(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # the next episode is always part of the series: --no-series cannot hold
+    assert main(["prompt", "--continue", str(LENA), "--no-series"]) == 2
+    assert "--no-series cannot be combined with --continue" in capsys.readouterr().err
+    assert fake_prompt.items == []
+    assert main(["prompt", "--continue", str(LENA), "--series"]) == 0
 
 
 def test_prompt_continue_suggests_next_episode_file(

@@ -322,12 +322,15 @@ class Builder:
     # -- language ------------------------------------------------------------
 
     def t(self, key: str, **fmt: object) -> str:
-        try:
-            return locale.t(key, self.src, self.ws.ui, **fmt)
-        except (KeyError, IndexError, ValueError):
-            # a ui override with stray {braces}: fall back to the built-in string
-            self.warn(f"ui string {key!r} could not be formatted; the built-in text is used.")
-            return locale.t(key, self.src, None, **fmt)
+        override = self.ws.ui.get(key)
+        if override and fmt:
+            try:
+                override.format(**fmt)
+            except (KeyError, IndexError, ValueError, TypeError, AttributeError):
+                # a ui override with stray {braces}: fall back to the built-in string
+                self.warn(f"ui string {key!r} could not be formatted; the built-in text is used.")
+                return locale.t(key, self.src, None, **fmt)
+        return locale.t(key, self.src, self.ws.ui, **fmt)
 
     def warn(self, message: str) -> None:
         if message not in self.warnings:
