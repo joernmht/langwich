@@ -63,7 +63,7 @@ from langwich.model import (
     WritingTask,
     parse_worksheet,
 )
-from langwich.images import ImageSource, resolve_image  # noqa: F401 (re-exported)
+from langwich.images import ImageSource, read_local_image, resolve_image  # noqa: F401 (re-exported)
 from langwich.plan import plan as make_plan
 from langwich.plan import strip_article, term_pattern
 
@@ -1123,7 +1123,9 @@ class _Checker:
                         needed,
                     )
                     return
-                raw = path.read_bytes()
+                raw = read_local_image(
+                    path, self.base_dir, allow_outside_images=self.allow_outside_images,
+                )
         except (OSError, ValueError, binascii.Error) as exc:
             self.picture_problem(
                 "image-unreadable", where,

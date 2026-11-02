@@ -436,6 +436,35 @@ def _http_server(handler: type[BaseHTTPRequestHandler]) -> Iterator[str]:
         thread.join(timeout=2)
 
 
+def test_http_image_follows_redirect_and_loads(tmp_path):
+    from PIL import Image
+
+    data = io.BytesIO()
+    Image.new("RGB", (3, 2), "red").save(data, format="PNG")
+    payload = data.getvalue()
+
+    class RedirectImage(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/picture.png":
+                self.send_response(302)
+                self.send_header("Location", "/image")
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, format, *args):
+            pass
+
+    with _http_server(RedirectImage) as url:
+        warnings = []
+        picture = prepare_picture(Picture(image=url), tmp_path, False, warnings)
+    assert picture is not None and (picture.width, picture.height) == (3, 2)
+    assert warnings == []
+
+
 def test_slow_http_image_obeys_one_overall_deadline(tmp_path, monkeypatch):
     class SlowHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -462,6 +491,49 @@ def test_slow_http_image_obeys_one_overall_deadline(tmp_path, monkeypatch):
     assert prepared is None
     assert elapsed < 1.5
     assert "timed out" in warnings[0].lower() or "deadline" in warnings[0].lower()
+
+
+def test_slow_http_headers_obey_overall_deadline(tmp_path, monkeypatch):
+    class SlowHeaders(BaseHTTPRequestHandler):
+        def do_GET(self):
+            for byte in b"HTTP/1.1 200 OK\r\nContent-Length: 1\r\n\r\nx":
+                try:
+                    self.wfile.write(bytes([byte]))
+                    self.wfile.flush()
+                except OSError:
+                    return
+                time.sleep(0.1)
+
+        def log_message(self, format, *args):
+            pass
+
+    monkeypatch.setattr(images, "URL_DOWNLOAD_TIMEOUT", 0.5)
+    with _http_server(SlowHeaders) as url:
+        warnings = []
+        started = time.monotonic()
+        assert prepare_picture(Picture(image=url), tmp_path, True, warnings) is None
+        assert time.monotonic() - started < 1.5
+    assert "deadline" in warnings[0]
+
+
+def test_redirects_obey_overall_deadline(tmp_path, monkeypatch):
+    class SlowRedirect(BaseHTTPRequestHandler):
+        def do_GET(self):
+            time.sleep(0.2)
+            self.send_response(302)
+            self.send_header("Location", "/again")
+            self.end_headers()
+
+        def log_message(self, format, *args):
+            pass
+
+    monkeypatch.setattr(images, "URL_DOWNLOAD_TIMEOUT", 0.5)
+    with _http_server(SlowRedirect) as url:
+        warnings = []
+        started = time.monotonic()
+        assert prepare_picture(Picture(image=url), tmp_path, True, warnings) is None
+        assert time.monotonic() - started < 1.5
+    assert "deadline" in warnings[0]
 
 
 def test_http_image_with_short_content_length_is_rejected(tmp_path):

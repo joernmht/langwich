@@ -403,6 +403,24 @@ def test_render_requires_explicit_override_for_an_absolute_picture(
     assert fake_render.items[-1][2].allow_outside_images is True
 
 
+@pytest.mark.parametrize("output", [[], ["--json"], ["--prompt"]])
+def test_validate_allows_outside_image_only_with_override(
+    workdir: Path, capsys: pytest.CaptureFixture[str], output: list[str],
+) -> None:
+    from PIL import Image
+
+    outside = workdir.parent / "outside-validate.png"
+    Image.new("RGB", (2, 2), "red").save(outside)
+    data = lena_data()
+    data["story"]["scenes"][1]["picture"] = {"image": str(outside)}
+    src = write_json(workdir, "outside-validate.json", data)
+
+    assert main(["validate", str(src), *output]) == 1
+    assert "image-outside-folder" in "".join(capsys.readouterr())
+    assert main(["validate", str(src), *output, "--allow-outside-images"]) == 0
+    assert "image-outside-folder" not in "".join(capsys.readouterr())
+
+
 def test_render_html_only_and_html_output(workdir: Path, fake_render: Calls) -> None:
     src = write_json(workdir, "lena.json", lena_data())
     assert main(["render", str(src), "--html-only"]) == 0

@@ -24,10 +24,13 @@ from __future__ import annotations
 
 import base64
 import binascii
-import http.client
 import io
+import json
+import os
 import re
-import time
+import stat
+import subprocess
+import sys
 import urllib.parse
 from urllib.parse import urlparse
 import urllib.request
@@ -48,7 +51,6 @@ MAX_RASTER_EDGE = 2400
 MAX_BYTES = 25 * 1024 * 1024
 URL_TIMEOUT = 15
 URL_DOWNLOAD_TIMEOUT = 30
-URL_CHUNK_SIZE = 64 * 1024
 USER_AGENT = "langwich/3 (worksheet renderer; +https://github.com/joernmht/langwich)"
 
 #: Images with more pixels than this are refused unless they can be decoded
@@ -388,6 +390,58 @@ def resolve_image(
     return ImageSource("file", resolved)
 
 
+def _opened_path(fd: int) -> Path:
+    """Return the final path of an open file, failing closed when unavailable."""
+    if sys.platform == "win32":
+        import ctypes
+        import msvcrt
+        from ctypes import wintypes
+
+        get_path = ctypes.windll.kernel32.GetFinalPathNameByHandleW
+        get_path.argtypes = [wintypes.HANDLE, wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD]
+        get_path.restype = wintypes.DWORD
+        handle = msvcrt.get_osfhandle(fd)
+        size = get_path(handle, None, 0, 0)
+        if not size:
+            raise OSError("cannot determine opened image path")
+        buffer = ctypes.create_unicode_buffer(size + 1)
+        written = get_path(handle, buffer, len(buffer), 0)
+        if not written or written >= len(buffer):
+            raise OSError("cannot determine opened image path")
+        name = buffer.value
+        if name.startswith("\\\\?\\UNC\\"):
+            name = "\\\\" + name[8:]
+        elif name.startswith("\\\\?\\"):
+            name = name[4:]
+        return Path(name)
+    if sys.platform.startswith("linux"):
+        return Path(os.readlink(f"/proc/self/fd/{fd}"))
+    if sys.platform == "darwin":
+        import fcntl
+
+        return Path(os.fsdecode(fcntl.fcntl(fd, 50, b"\0" * 1024).split(b"\0", 1)[0]))
+    raise OSError("cannot verify opened image path on this platform")
+
+
+def read_local_image(path: Path, base_dir: Path | None, *, allow_outside_images: bool) -> bytes:
+    """Read a bounded regular file after checking the opened file's location."""
+    root = (base_dir if base_dir is not None else Path.cwd()).resolve()
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
+    fd = os.open(path, flags)
+    with os.fdopen(fd, "rb") as image:
+        info = os.fstat(image.fileno())
+        if not stat.S_ISREG(info.st_mode):
+            raise OSError("image is not a regular file")
+        if not allow_outside_images and not _opened_path(image.fileno()).is_relative_to(root):
+            raise OSError("opened image is outside the worksheet folder")
+        if info.st_size > MAX_BYTES:
+            raise ValueError(f"image is larger than {MAX_BYTES // 2**20} MB")
+        raw = image.read(MAX_BYTES + 1)
+        if len(raw) > MAX_BYTES:
+            raise ValueError(f"image is larger than {MAX_BYTES // 2**20} MB")
+        return raw
+
+
 def _read_source(
     source: str,
     base_dir: Path | None,
@@ -404,51 +458,22 @@ def _read_source(
                 return base64.b64decode(payload, validate=False)
             return urllib.parse.unquote_to_bytes(payload)
         if low.startswith(("http://", "https://")):
-            request = urllib.request.Request(source.strip(), headers={"User-Agent": USER_AGENT})
-            deadline = time.monotonic() + URL_DOWNLOAD_TIMEOUT
-            with urllib.request.urlopen(
-                request, timeout=min(URL_TIMEOUT, URL_DOWNLOAD_TIMEOUT),
-            ) as response:
-                content_length: int | None = None
-                declared_length = response.headers.get("Content-Length")
-                if declared_length is not None:
-                    try:
-                        content_length = int(declared_length)
-                    except ValueError:
-                        warnings.append(f"{what}: {source} has an invalid Content-Length; left out.")
-                        return None
-                    if content_length < 0:
-                        warnings.append(f"{what}: {source} has an invalid Content-Length; left out.")
-                        return None
-                    if content_length > MAX_BYTES:
-                        warnings.append(
-                            f"{what}: {source} is larger than {MAX_BYTES // 2**20} MB; left out.",
-                        )
-                        return None
-                raw = bytearray()
-                while len(raw) <= MAX_BYTES:
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise TimeoutError(
-                            f"download exceeded the {URL_DOWNLOAD_TIMEOUT}-second deadline",
-                        )
-                    sock = getattr(getattr(getattr(response, "fp", None), "raw", None), "_sock", None)
-                    if sock is not None:
-                        sock.settimeout(min(URL_TIMEOUT, remaining))
-                    chunk = response.read1(min(URL_CHUNK_SIZE, MAX_BYTES + 1 - len(raw)))
-                    if not chunk:
-                        break
-                    raw.extend(chunk)
-            if len(raw) > MAX_BYTES:
-                warnings.append(f"{what}: {source} is larger than {MAX_BYTES // 2**20} MB; left out.")
-                return None
-            if content_length is not None and len(raw) != content_length:
-                warnings.append(
-                    f"{what}: {source} ended after {len(raw)} of {content_length} declared bytes; "
-                    "the image is left out.",
+            request_data = json.dumps({
+                "url": source.strip(), "agent": USER_AGENT,
+                "timeout": URL_TIMEOUT, "limit": MAX_BYTES,
+            })
+            try:
+                result = subprocess.run(
+                    [sys.executable, str(Path(__file__).with_name("_image_download.py"))],
+                    input=request_data, capture_output=True, text=True,
+                    timeout=URL_DOWNLOAD_TIMEOUT, check=True,
                 )
-                return None
-            return bytes(raw)
+            except subprocess.TimeoutExpired as exc:
+                raise TimeoutError(f"download exceeded the {URL_DOWNLOAD_TIMEOUT}-second deadline") from exc
+            result_data = json.loads(result.stdout)
+            if "error" in result_data:
+                raise ValueError(result_data["error"])
+            return base64.b64decode(result_data["data"], validate=True)
         resolved = resolve_image(
             source, base_dir, allow_outside_images=allow_outside_images,
         )
@@ -461,15 +486,12 @@ def _read_source(
         if resolved.kind == "unsupported" or resolved.path is None:
             warnings.append(f"{what}: {source!r} is not a file path, http(s) URL or data: URI; left out.")
             return None
-        path = resolved.path
-        if not path.is_file():
-            warnings.append(f"{what}: image file not found: {path}")
+        try:
+            return read_local_image(resolved.path, base_dir, allow_outside_images=allow_outside_images)
+        except FileNotFoundError:
+            warnings.append(f"{what}: image file not found: {resolved.path}")
             return None
-        if path.stat().st_size > MAX_BYTES:
-            warnings.append(f"{what}: {path} is larger than {MAX_BYTES // 2**20} MB; left out.")
-            return None
-        return path.read_bytes()
-    except (http.client.HTTPException, OSError, ValueError, binascii.Error) as exc:
+    except (OSError, ValueError, binascii.Error, subprocess.SubprocessError) as exc:
         warnings.append(f"{what}: could not load image {source!r} ({exc.__class__.__name__}: {exc}).")
         return None
 

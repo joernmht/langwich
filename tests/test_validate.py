@@ -628,6 +628,33 @@ def test_symlink_to_image_outside_the_json_folder_is_rejected(tmp_path: Path) ->
     assert "image-outside-folder" in _picture_codes(_image_case("linked.png"), tmp_path)
 
 
+def test_opened_image_path_is_checked_by_validator_and_renderer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from langwich import images
+    from langwich.model import Picture
+
+    import os
+
+    _png(tmp_path / "image.png")
+    outside = _png(tmp_path.parent / "raced-outside.png")
+    original_open = os.open
+
+    def swapped_open(path, flags, *args, **kwargs):
+        return original_open(outside if Path(path) == tmp_path / "image.png" else path,
+                             flags, *args, **kwargs)
+
+    monkeypatch.setattr(images.os, "open", swapped_open)
+    warnings: list[str] = []
+    assert images.prepare_picture(Picture(image="image.png"), tmp_path, True, warnings) is None
+    assert "outside the worksheet folder" in warnings[0]
+    issues = _issues(_image_case("image.png"), base_dir=tmp_path)
+    assert "image-unreadable" in {issue.code for issue in issues}
+    assert images.prepare_picture(
+        Picture(image="image.png"), tmp_path, True, [], allow_outside_images=True,
+    ) is not None
+
+
 def test_picture_problems_are_errors_only_when_the_picture_is_needed(tmp_path: Path) -> None:
     needed = _issues(_image_case("missing.jpg"), base_dir=tmp_path)
     assert [i.level for i in needed if i.code == "image-not-found"] == ["error"]

@@ -402,7 +402,7 @@ def _report_image_prompts(ws: Worksheet, prompts: list[tuple[str, str]]) -> None
 
 def _cmd_validate(args: argparse.Namespace) -> int:
     path = Path(args.file)
-    report = check_file(path)
+    report = check_file(path, allow_outside_images=args.allow_outside_images)
     if args.json:
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     elif args.prompt:
@@ -784,6 +784,8 @@ def build_parser() -> argparse.ArgumentParser:
                      help="print a repair prompt to give to the LLM that wrote the file "
                           "(problems only you can fix, like a missing photo, go to stderr)")
     v.add_argument("--strict", action="store_true", help="exit with status 1 on warnings too")
+    v.add_argument("--allow-outside-images", action="store_true",
+                   help="allow local picture paths outside the worksheet folder")
     v.set_defaults(func=_cmd_validate)
 
     s = sub.add_parser("schema", help="print the langwich/3 JSON Schema",
