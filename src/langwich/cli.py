@@ -24,7 +24,6 @@ import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, get_args
-from urllib.parse import unquote, urlparse
 
 from langwich import __version__
 from langwich.model import (
@@ -38,6 +37,7 @@ from langwich.model import (
     load_worksheet,
 )
 from langwich.profile import SAVED_KEYS, load_profile, save_profile
+from langwich.images import file_url_path
 from langwich.series import (
     next_episode,
     next_episode_filename,
@@ -190,7 +190,11 @@ def _image_arg(value: str) -> str:
     other URL schemes are an error, because the worksheet could not load them."""
     low = value.strip().lower()
     if low.startswith("file:"):
-        return unquote(urlparse(value.strip()).path)
+        path = file_url_path(value)
+        if path is None:
+            _fail(f"--image {value}: this file: URL names a file on another computer. Copy the "
+                  "picture to this one and give its path.", 2)
+        return str(path)
     if _is_url(value) and not low.startswith(("http://", "https://", "data:")):
         _fail(f"--image {value}: langwich loads pictures only from a local file, an http(s) "
               "URL or a data: URI. Download the picture and give its file path.", 2)
@@ -710,7 +714,8 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
     """``(bytes to save, extension)`` for a picture, or a clear error."""
     from langwich.images import is_svg_source, open_raster, to_8bit
 
-    if is_svg_source(what, raw):  # the renderer's and the validator's test
+    # by content first: a PNG saved as 'drawing.svg' is still a PNG
+    if is_svg_source(what, raw, by_name=False):
         return raw, ".svg"
     from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError
 
@@ -737,6 +742,8 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
             picture.save(out, "JPEG", quality=90)
             return out.getvalue(), ".jpg"
     except UnidentifiedImageError:
+        if is_svg_source(what, raw) and b"<svg" in raw.lower():
+            return raw, ".svg"  # an svg by its name whose prolog the content test cannot place
         if raw[4:8] == b"ftyp" and raw[8:12] in _HEIF_BRANDS:
             _fail(f"cannot read the picture {what}: it is a HEIC/HEIF photo, which langwich can "
                   "read only with the pillow-heif plugin. Export it as JPEG (or PNG) and try "

@@ -234,7 +234,8 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
 * Raster images are converted to high-contrast greyscale unless colour is
   accepted (`--allow-color`); SVG is embedded after `images.sanitize_svg` has
   removed `<script>`, `<foreignObject>` and every external `href`/`xlink:href`,
-  `src`, `url()` and `@import`. Unreadable images produce a warning, never a
+  `src`, `url()` and `@import`, and every `data:` picture other than SVG, PNG,
+  JPEG, GIF and WebP. Unreadable images produce a warning, never a
   crash; `render --strict` exits 1 when rendering produced warnings, which the
   CLI prints before its success line.
 * Offline: WeasyPrint gets a URL fetcher (`render.make_url_fetcher`) that

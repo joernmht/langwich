@@ -929,14 +929,22 @@ def test_postscript_never_reaches_ghostscript(tmp_path, ghostscript_calls, weasy
     assert "not an image format langwich can read" in warnings[0]
     (tmp_path / "photo.eps").write_bytes(EPS)
     assert prepare_picture(Picture(image="photo.eps"), tmp_path, True, []) is None
-    data = _lena()
-    pic = data["story"]["scenes"][3]["picture"]
-    uri = "data:image/png;base64," + base64.b64encode(EPS).decode()
-    pic["svg"] = pic["svg"].replace("</svg>", f'<image href="{uri}" width="9" height="9"/></svg>')
-    result = render_worksheet(worksheet_from_dict(data), tmp_path / "x.pdf",
-                              RenderOptions(solutions="none"))
-    assert result.pdf is not None
-    assert any("embedded picture was left out" in w for w in result.warnings), result.warnings
+    eps_uri = "data:image/png;base64," + base64.b64encode(EPS).decode()
+    inner = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9">'
+             f'<image href="{eps_uri}" width="9" height="9"/></svg>')
+    nested = "data:image/svg+xml;base64," + base64.b64encode(inner.encode()).decode()
+    # in the svg itself the sanitizer removes it (validate reports svg-external);
+    # inside a nested svg it is left to the offline fetcher, which refuses it
+    for href, warning in ((eps_uri, "removed from the SVG"),
+                          (nested, "embedded picture was left out")):
+        data = _lena()
+        pic = data["story"]["scenes"][3]["picture"]
+        pic["svg"] = pic["svg"].replace(
+            "</svg>", f'<image href="{href}" width="9" height="9"/></svg>')
+        result = render_worksheet(worksheet_from_dict(data), tmp_path / "x.pdf",
+                                  RenderOptions(solutions="none"))
+        assert result.pdf is not None
+        assert any(warning in w for w in result.warnings), result.warnings
     assert ghostscript_calls == []
 
 

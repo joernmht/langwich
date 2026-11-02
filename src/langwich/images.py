@@ -28,7 +28,7 @@ import http.client
 import io
 import re
 import urllib.parse
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 import urllib.request
 import warnings as _warnings
 import xml.etree.ElementTree as ET
@@ -196,8 +196,13 @@ def _local(name: str) -> str:
 
 
 def _safe_ref(value: str) -> bool:
+    """An internal reference (``#id``), or a ``data:image/…`` URI the offline
+    fetcher lets WeasyPrint decode (:func:`is_safe_data_uri`). Any other one
+    would be refused at render time, so it is removed here, where the
+    validator sees it too (``svg-external``)."""
     value = value.strip()
-    return value.startswith("#") or value.lower().startswith("data:image/")
+    return value.startswith("#") or (
+        value.lower().startswith("data:image/") and is_safe_data_uri(value))
 
 
 def sanitize_svg(root: ET.Element) -> list[str]:
@@ -312,12 +317,13 @@ def _looks_like_svg(raw: bytes) -> bool:
     ) or head.startswith(b"<svg", _svg_prolog_end(head))
 
 
-def is_svg_source(image: str, raw: bytes) -> bool:
+def is_svg_source(image: str, raw: bytes, *, by_name: bool = True) -> bool:
     """Is the picture.image ``image`` (with the bytes ``raw``) an SVG: by its
-    content, a ``data:image/svg+xml`` media type, or a ``.svg`` name?"""
+    content, a ``data:image/svg+xml`` media type, or (``by_name``) a ``.svg``
+    name?"""
     low = image.strip().lower()
     return (_looks_like_svg(raw) or low.startswith("data:image/svg+xml")
-            or low.split("?")[0].endswith(".svg"))
+            or (by_name and low.split("?")[0].endswith(".svg")))
 
 
 def _unreadable(raw: bytes, what: str, name: str, exc: Exception) -> str:
@@ -447,6 +453,18 @@ class ImageSource:
     path: Path | None = None
 
 
+def file_url_path(url: str) -> Path | None:
+    """The local path a ``file:`` URL names, read as ``urllib.request``
+    reads it (percent-decoded; ``file:///C:/x.jpg`` is ``C:\\x.jpg`` on
+    Windows), or ``None`` for a file on another host
+    (``file://server/share/a.jpg``): dropping the host would read a
+    different, local file."""
+    parsed = urlparse(url.strip())
+    if parsed.netloc.lower() not in ("", "localhost"):
+        return None
+    return Path(urllib.request.url2pathname(parsed.path)).expanduser()
+
+
 def resolve_image(image: str, base_dir: Path | None) -> ImageSource:
     """Resolve ``picture.image``: ``data:`` URIs and ``http(s)://`` URLs in any
     letter case, ``file:`` URLs percent-decoded, ``~`` expanded, relative
@@ -459,7 +477,10 @@ def resolve_image(image: str, base_dir: Path | None) -> ImageSource:
     if low.startswith(("http://", "https://")):
         return ImageSource("url")
     if low.startswith("file:"):
-        path = Path(unquote(urlparse(source).path)).expanduser()
+        local = file_url_path(source)
+        if local is None:
+            return ImageSource("unsupported")  # a file on another computer
+        path = local
     elif _URL_RE.match(source):
         return ImageSource("unsupported")
     else:

@@ -572,6 +572,13 @@ def test_existing_image_and_urls_are_fine(tmp_path: Path) -> None:
         assert _picture_codes(_image_case(image), tmp_path) == set(), image
 
 
+def test_a_file_url_on_another_host_is_not_read_as_a_local_file(tmp_path: Path) -> None:
+    # dropping the host would read /share/a.jpg on this computer
+    assert resolve_image("file://server/share/a.jpg", tmp_path).kind == "unsupported"
+    assert "image-invalid" in _picture_codes(_image_case("file://server/share/a.jpg"), tmp_path)
+    assert resolve_image("file://localhost/tmp/a%20b.jpg", tmp_path).path == Path("/tmp/a b.jpg")
+
+
 def test_image_resolution_matches_the_renderer(tmp_path: Path) -> None:
     assert resolve_image("HTTPS://example.org/x.png", tmp_path).kind == "url"
     assert resolve_image("data:image/png;base64,AAAA", tmp_path).kind == "data"
@@ -1045,6 +1052,8 @@ def test_raster_size_rule_matches_the_renderer(tmp_path: Path,
     "<a href='data:text/html,&lt;b&gt;hi&lt;/b&gt;'><rect width='1' height='1'/></a>",
     "<rect width='1' height='1' fill='url(https://example.org/p.svg#a)'/>",
     "<rect width='1' height='1' style='fill:url(data:image/png;base64,AAAA)'/>",
+    # a data: picture the offline fetcher would refuse (BMP, TIFF, EPS …)
+    "<image href='data:image/bmp;base64,Qk1GAAAAAAAAADYAAAAoAAAA' width='1' height='1'/>",
 ])
 def test_svg_external_parts_are_what_the_renderer_removes(svg_part: str) -> None:
     from langwich.images import svg_from_text

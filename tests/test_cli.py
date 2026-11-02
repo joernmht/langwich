@@ -820,6 +820,27 @@ def test_prompt_image_reads_svg_like_the_renderer(
     assert (workdir / "data" / "pictures" / "drawing.svg").read_bytes().startswith(prolog)
 
 
+def test_prompt_image_goes_by_content_not_by_name(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    # a PNG saved as 'drawing.svg' is copied as the PNG it is
+    png = _picture(workdir / "drawing.svg")
+    assert main(["prompt", "--image", str(png)]) == 0
+    assert fake_prompt.items[-1].image == "pictures/drawing.png"
+    # an svg whose prolog is too long for the content test still counts by its name
+    (workdir / "long.svg").write_bytes(b"<!--" + b"x" * 5000 + b"--><svg viewBox='0 0 1 1'/>")
+    assert main(["prompt", "--image", "long.svg"]) == 0
+    assert fake_prompt.items[-1].image == "pictures/long.svg"
+
+
+def test_prompt_image_file_url_on_another_host_is_an_error(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["prompt", "--image", "file://server/share/a.jpg"]) == 2
+    assert "names a file on another computer" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
 def test_prompt_image_16_bit_tiff_is_converted_without_clipping(
     workdir: Path, fake_prompt: Calls,
 ) -> None:
