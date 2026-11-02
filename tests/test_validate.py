@@ -1104,7 +1104,15 @@ def test_grammar_gives_away_points_at_the_leaking_point_despite_a_duplicate_id()
 def test_task_texts_count_only_target_language_fields() -> None:
     """A loanword in a source-language prompt, cue or translation hint is not
     practice of the target word."""
-    from langwich.model import ClozeTask, DialogueLine, DialogueTask, DrawTask, WritingTask
+    from langwich.model import (
+        ClozeTask,
+        DialogueLine,
+        DialogueTask,
+        DrawTask,
+        TransformItem,
+        TransformTask,
+        WritingTask,
+    )
     from langwich.validate import _Checker
 
     checker = _Checker(worksheet_from_dict(copy.deepcopy(BASE)), None)
@@ -1120,13 +1128,18 @@ def test_task_texts_count_only_target_language_fields() -> None:
                            items=["Ich trinke {{Kaffee::coffee}}."])
     base_form = ClozeTask(id="b", kind="cloze", stage="practice", hint="base_form",
                           items=["Er {{trinkt::trinken}} Kaffee."])
+    # a transform cue may be in either language ("S or T")
+    transform = TransformTask(id="t", kind="transform", stage="form", items=[
+        TransformItem(prompt="Anna trinkt Tee.", cue="use: café", answer="Anna hat Tee getrunken."),
+    ])
     texts = {task.id: " ".join(checker.task_texts(task))
-             for task in (writing, draw, dialogue, translated, base_form)}
+             for task in (writing, draw, dialogue, translated, base_form, transform)}
     assert "café" not in texts["w"] and "Ich trinke" in texts["w"]
     assert "café" not in texts["d"] and "die Tasse" in texts["d"]
     assert "latte" not in texts["g"] and "Einen Kaffee, bitte." in texts["g"]
     assert "coffee" not in texts["c"] and "Ich trinke Kaffee." in texts["c"]
     assert "(trinken)" in texts["b"]  # a base-form hint is target language
+    assert "café" not in texts["t"] and "Anna hat Tee getrunken." in texts["t"]
 
 
 @pytest.mark.parametrize(("source", "target"), [("de", "de-AT"), ("pt-BR", "pt-PT")])

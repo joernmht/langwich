@@ -692,7 +692,9 @@ class _Checker:
             hints = task.hint != "translation"  # translation hints are source language
             out += [_gap_text(t, hints) for t in texts] + task.distractors
         elif isinstance(task, TransformTask):
-            out += [f"{i.prompt} {i.cue or ''} {i.answer}" for i in task.items]
+            # the cue may be in either language (S or T): like a translation hint, it
+            # is not practice; the prompt and the answer are
+            out += [f"{i.prompt} {i.answer}" for i in task.items]
         elif isinstance(task, WordBuildingTask):
             out += [p for i in task.items for p in i.parts] + [i.answer for i in task.items]
         elif isinstance(task, LabelTask):
