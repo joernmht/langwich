@@ -85,3 +85,11 @@ select = ["E4", "E7", "E9", "F"]
 python_version = "3.11"
 files = ["src/langwich"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Pillow's type hints import numpy, and numpy 2.5+ (pulled in by PyMuPDF on
+# Python 3.12+) writes its stubs with 3.12-only syntax that mypy rejects
+# under python_version 3.11. langwich never uses numpy itself.
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
