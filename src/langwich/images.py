@@ -505,6 +505,10 @@ class ImageSource:
     path: Path | None = None
 
 
+class ImageOutsideFolderError(OSError):
+    """The file opened, but it was not the file resolved inside the worksheet folder."""
+
+
 def resolve_image(
     image: str,
     base_dir: Path | None,
@@ -521,11 +525,11 @@ def resolve_image(
         return ImageSource("url")
     if low.startswith("file:"):
         parsed = urlparse(source)
-        if not allow_outside_images:
-            return ImageSource("outside")
-        path = Path(urllib.request.url2pathname(parsed.path)).expanduser()
         if parsed.netloc and parsed.netloc.lower() != "localhost":
-            path = Path(f"//{parsed.netloc}{path}")
+            return ImageSource("unsupported")
+        path = Path(urllib.request.url2pathname(parsed.path)).expanduser()
+        if not allow_outside_images:
+            return ImageSource("outside", path)
     elif _URL_RE.match(source):
         return ImageSource("unsupported")
     else:
@@ -555,56 +559,44 @@ def file_url_path(url: str) -> Path | None:
     return Path(urllib.request.url2pathname(parsed.path)).expanduser()
 
 
-def _opened_path(fd: int) -> Path:
-    """Return the final path of an open file, failing closed when unavailable."""
-    if sys.platform == "win32":
-        import ctypes
-        import msvcrt
-        from ctypes import wintypes
-
-        get_path = ctypes.windll.kernel32.GetFinalPathNameByHandleW
-        get_path.argtypes = [wintypes.HANDLE, wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD]
-        get_path.restype = wintypes.DWORD
-        handle = msvcrt.get_osfhandle(fd)
-        size = get_path(handle, None, 0, 0)
-        if not size:
-            raise OSError("cannot determine opened image path")
-        buffer = ctypes.create_unicode_buffer(size + 1)
-        written = get_path(handle, buffer, len(buffer), 0)
-        if not written or written >= len(buffer):
-            raise OSError("cannot determine opened image path")
-        name = buffer.value
-        if name.startswith("\\\\?\\UNC\\"):
-            name = "\\\\" + name[8:]
-        elif name.startswith("\\\\?\\"):
-            name = name[4:]
-        return Path(name)
-    if sys.platform.startswith("linux"):
-        return Path(os.readlink(f"/proc/self/fd/{fd}"))
-    if sys.platform == "darwin":
-        import fcntl
-
-        return Path(os.fsdecode(fcntl.fcntl(fd, 50, b"\0" * 1024).split(b"\0", 1)[0]))
-    raise OSError("cannot verify opened image path on this platform")
-
-
 def read_local_image(path: Path, base_dir: Path | None, *, allow_outside_images: bool) -> bytes:
     """Read a bounded regular file after checking the opened file's location."""
-    root = (base_dir if base_dir is not None else Path.cwd()).resolve()
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
     fd = os.open(path, flags)
     with os.fdopen(fd, "rb") as image:
         info = os.fstat(image.fileno())
         if not stat.S_ISREG(info.st_mode):
             raise OSError("image is not a regular file")
-        if not allow_outside_images and not _opened_path(image.fileno()).is_relative_to(root):
-            raise OSError("opened image is outside the worksheet folder")
+        if not allow_outside_images:
+            try:
+                current = os.stat(path)
+            except OSError as exc:
+                raise ImageOutsideFolderError("image path changed while it was opened") from exc
+            if (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
+                raise ImageOutsideFolderError("opened image is outside the worksheet folder")
         if info.st_size > MAX_BYTES:
             raise ValueError(f"image is larger than {MAX_BYTES // 2**20} MB")
         raw = image.read(MAX_BYTES + 1)
         if len(raw) > MAX_BYTES:
             raise ValueError(f"image is larger than {MAX_BYTES // 2**20} MB")
         return raw
+
+
+def _download_http(source: str) -> bytes:
+    """Download one HTTP image in an isolated interpreter with a hard deadline."""
+    request_data = json.dumps({
+        "url": source.strip(), "agent": USER_AGENT,
+        "timeout": URL_TIMEOUT, "limit": MAX_BYTES,
+    })
+    result = subprocess.run(
+        [sys.executable, "-I", "-P", str(Path(__file__).with_name("_image_download.py"))],
+        input=request_data, capture_output=True, text=True,
+        timeout=URL_DOWNLOAD_TIMEOUT, check=True,
+    )
+    result_data = json.loads(result.stdout)
+    if "error" in result_data:
+        raise ValueError(result_data["error"])
+    return base64.b64decode(result_data["data"], validate=True)
 
 
 def _read_source(
@@ -620,22 +612,10 @@ def _read_source(
         if low.startswith("data:"):
             return data_uri_bytes(source)
         if low.startswith(("http://", "https://")):
-            request_data = json.dumps({
-                "url": source.strip(), "agent": USER_AGENT,
-                "timeout": URL_TIMEOUT, "limit": MAX_BYTES,
-            })
             try:
-                result = subprocess.run(
-                    [sys.executable, str(Path(__file__).with_name("_image_download.py"))],
-                    input=request_data, capture_output=True, text=True,
-                    timeout=URL_DOWNLOAD_TIMEOUT, check=True,
-                )
+                return _download_http(source)
             except subprocess.TimeoutExpired as exc:
                 raise TimeoutError(f"download exceeded the {URL_DOWNLOAD_TIMEOUT}-second deadline") from exc
-            result_data = json.loads(result.stdout)
-            if "error" in result_data:
-                raise ValueError(result_data["error"])
-            return base64.b64decode(result_data["data"], validate=True)
         resolved = resolve_image(
             source, base_dir, allow_outside_images=allow_outside_images,
         )
@@ -651,11 +631,12 @@ def _read_source(
             return None
         try:
             return read_local_image(resolved.path, base_dir, allow_outside_images=allow_outside_images)
+        except ImageOutsideFolderError as exc:
+            warnings.append(f"{what}: opened image is outside the worksheet folder ({exc}).")
+            return None
         except FileNotFoundError:
             warnings.append(f"{what}: image file not found: {resolved.path}")
             return None
-    except (OSError, ValueError, binascii.Error, subprocess.SubprocessError) as exc:
-        warnings.append(f"{what}: could not load image {source!r} ({exc.__class__.__name__}: {exc}).")
     except (OSError, ValueError, binascii.Error, subprocess.SubprocessError, http.client.HTTPException) as exc:
         warnings.append(f"{what}: could not load image {_shorten(source)!r} "
                         f"({exc.__class__.__name__}: {_shorten(str(exc), 200)}).")

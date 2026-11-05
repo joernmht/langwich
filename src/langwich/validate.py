@@ -62,7 +62,7 @@ from langwich.model import (
     WritingTask,
     parse_worksheet,
 )
-from langwich.images import ImageSource, read_local_image, resolve_image  # noqa: F401 (re-exported)
+from langwich.images import ImageOutsideFolderError, ImageSource, read_local_image, resolve_image  # noqa: F401 (re-exported)
 from langwich.images import (
     MAX_PIXELS,
     MAX_RASTER_EDGE,
@@ -1161,6 +1161,13 @@ class _Checker:
                 raw = read_local_image(
                     path, self.base_dir, allow_outside_images=self.allow_outside_images,
                 )
+        except ImageOutsideFolderError as exc:
+            self.picture_problem(
+                "image-outside-folder", where,
+                f"{name} resolves outside the folder containing the JSON ({exc}){why}. "
+                "Copy it there, or render with --allow-outside-images.", needed,
+            )
+            return
         except (OSError, ValueError, binascii.Error) as exc:
             self.picture_problem(
                 unreadable, where,

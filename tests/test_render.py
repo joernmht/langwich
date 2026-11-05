@@ -22,7 +22,6 @@ import pytest
 
 from langwich.answers import answer_key
 from langwich import images
-from langwich.images import prepare_picture
 from langwich.images import prepare_picture, prepare_raster
 from langwich.model import MatchTask, Picture, load_worksheet, worksheet_from_dict
 from langwich.plan import plan, strip_article
@@ -465,6 +464,20 @@ def test_http_image_follows_redirect_and_loads(tmp_path):
         picture = prepare_picture(Picture(image=url), tmp_path, False, warnings)
     assert picture is not None and (picture.width, picture.height) == (3, 2)
     assert warnings == []
+
+
+def test_http_download_helper_isolated_from_package_import_path(monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        return type("Result", (), {
+            "stdout": json.dumps({"data": base64.b64encode(b"raw").decode()}),
+        })()
+
+    monkeypatch.setattr(images.subprocess, "run", fake_run)
+    assert images._download_http("https://example.org/x.png") == b"raw"
+    assert calls and calls[0][1:3] == ["-I", "-P"]
 
 
 def test_slow_http_image_obeys_one_overall_deadline(tmp_path, monkeypatch):
@@ -1143,12 +1156,10 @@ def test_postscript_never_reaches_ghostscript(tmp_path, ghostscript_calls, weasy
 
 def test_a_server_that_breaks_http_is_a_warning_not_a_crash(monkeypatch):
     import http.client
-    import urllib.request
-
     def broken(*args, **kwargs):
         raise http.client.BadStatusLine("SSH-2.0-OpenSSH")
 
-    monkeypatch.setattr(urllib.request, "urlopen", broken)
+    monkeypatch.setattr(images, "_download_http", broken)
     warnings: list[str] = []
     assert prepare_picture(Picture(image="https://example.org/x.png"), None, True,
                            warnings) is None

@@ -251,10 +251,8 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   a `picture.image` path or URL named in the JSON. Local paths stay inside the
   JSON folder after resolution unless `--allow-outside-images` is passed;
   HTTP reads are bounded by an overall deadline and validate `Content-Length`.
-  allows only safe `data:` URIs and the bundled font files; every picture is
-  embedded as a `data:` URI first. `images.py` loads local or HTTP resources,
-  enforces the worksheet-folder boundary unless explicitly overridden, bounds
-  downloads, and validates raster formats before Pillow or WeasyPrint decode.
+  Downloads are isolated from the package import path and raster formats are
+  validated before Pillow or WeasyPrint decode.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.

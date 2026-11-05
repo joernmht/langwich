@@ -308,7 +308,7 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", "pictures/missing.jpg")),
      "/story/scenes/1/picture/image"),
-    ("image-unreadable",  # a file that is not a picture (this test module)
+    ("image-outside-folder",  # an absolute path is outside the worksheet folder
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", str(Path(__file__).resolve()))),
      "/story/scenes/1/picture/image"),
@@ -665,7 +665,7 @@ def test_opened_image_path_is_checked_by_validator_and_renderer(
     assert images.prepare_picture(Picture(image="image.png"), tmp_path, True, warnings) is None
     assert "outside the worksheet folder" in warnings[0]
     issues = _issues(_image_case("image.png"), base_dir=tmp_path)
-    assert "image-unreadable" in {issue.code for issue in issues}
+    assert "image-outside-folder" in {issue.code for issue in issues}
     assert images.prepare_picture(
         Picture(image="image.png"), tmp_path, True, [], allow_outside_images=True,
     ) is not None
