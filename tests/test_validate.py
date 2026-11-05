@@ -312,6 +312,10 @@ CASES: list[tuple[str, Mutation, str | None]] = [
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
             _set("story/scenes/1/picture/image", str(Path(__file__).resolve()))),
      "/story/scenes/1/picture/image"),
+    ("image-unreadable",
+     _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
+            _set("story/scenes/1/picture/image", "bad.txt")),
+     "/story/scenes/1/picture/image"),
     # what the JSON itself says is wrong: the LLM's to fix
     ("image-invalid",
      _chain(lambda d: d["story"]["scenes"][1]["picture"].pop("svg"),
@@ -485,6 +489,8 @@ CASES: list[tuple[str, Mutation, str | None]] = [
 def test_mutation_triggers_code(
     code: str, mutate: Mutation, where: str | None, tmp_path: Path,
 ) -> None:
+    if code == "image-unreadable":
+        (tmp_path / "bad.txt").write_text("not an image", encoding="utf-8")
     issues = _issues(_mutated(mutate), base_dir=tmp_path)
     hits = [i for i in issues if i.code == code]
     assert hits, f"expected {code}, got {[(i.code, i.where) for i in issues]}"

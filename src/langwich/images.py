@@ -509,6 +509,43 @@ class ImageOutsideFolderError(OSError):
     """The file opened, but it was not the file resolved inside the worksheet folder."""
 
 
+def _opened_path(fd: int) -> Path | None:
+    """Return the final path for an open file when the platform exposes it."""
+    if sys.platform == "win32":
+        import ctypes
+        import msvcrt
+        from ctypes import wintypes
+        get_path = ctypes.windll.kernel32.GetFinalPathNameByHandleW
+        get_path.argtypes = [wintypes.HANDLE, wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD]
+        get_path.restype = wintypes.DWORD
+        handle = msvcrt.get_osfhandle(fd)
+        size = get_path(handle, None, 0, 0)
+        if not size:
+            return None
+        buffer = ctypes.create_unicode_buffer(size + 1)
+        written = get_path(handle, buffer, len(buffer), 0)
+        if not written or written >= len(buffer):
+            return None
+        name = buffer.value
+        if name.startswith("\\\\?\\UNC\\"):
+            name = "\\\\" + name[8:]
+        elif name.startswith("\\\\?\\"):
+            name = name[4:]
+        return Path(name)
+    if sys.platform.startswith("linux"):
+        try:
+            return Path(os.readlink(f"/proc/self/fd/{fd}"))
+        except OSError:
+            return None
+    if sys.platform == "darwin":
+        import fcntl
+        try:
+            return Path(os.fsdecode(fcntl.fcntl(fd, 50, b"\0" * 1024).split(b"\0", 1)[0]))
+        except OSError:
+            return None
+    return None
+
+
 def resolve_image(
     image: str,
     base_dir: Path | None,
@@ -568,12 +605,21 @@ def read_local_image(path: Path, base_dir: Path | None, *, allow_outside_images:
         if not stat.S_ISREG(info.st_mode):
             raise OSError("image is not a regular file")
         if not allow_outside_images:
-            try:
-                current = os.stat(path)
-            except OSError as exc:
-                raise ImageOutsideFolderError("image path changed while it was opened") from exc
-            if (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
-                raise ImageOutsideFolderError("opened image is outside the worksheet folder")
+            root = (base_dir if base_dir is not None else Path.cwd()).resolve()
+            opened = _opened_path(image.fileno())
+            if opened is not None:
+                try:
+                    if not opened.resolve().is_relative_to(root):
+                        raise ImageOutsideFolderError("opened image is outside the worksheet folder")
+                except (OSError, RuntimeError, ValueError) as exc:
+                    raise ImageOutsideFolderError("cannot verify opened image path") from exc
+            else:
+                try:
+                    current = os.stat(path)
+                except OSError as exc:
+                    raise ImageOutsideFolderError("image path changed while it was opened") from exc
+                if (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
+                    raise ImageOutsideFolderError("opened image is outside the worksheet folder")
         if info.st_size > MAX_BYTES:
             raise ValueError(f"image is larger than {MAX_BYTES // 2**20} MB")
         raw = image.read(MAX_BYTES + 1)

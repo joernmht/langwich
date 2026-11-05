@@ -169,16 +169,14 @@ repair prompt. The full list lives in `langwich.validate.CHECKS`.
 `image-unreadable`, `image-outside-folder`) are problems no LLM can fix — a picture file that is
 missing, cannot be decoded, or resolves outside the worksheet folder. The repair prompt leaves
 them out; `validate --prompt` prints them for the user on stderr and exits 1 when nothing else is
-left. `image-not-found`, `image-unreadable` and `svg-invalid` are errors when
-the scene's picture has labels or a label or picture-stage task uses that
-scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
-`image-invalid` (a `picture.image` with a URL scheme langwich cannot load, or a `data:` URI
-that holds no usable picture) and `svg-invalid` (an `svg` or SVG `data:` URI
-that is not well-formed). `image-not-found`, `image-unreadable`,
-`image-outside-folder`, `image-invalid` and `svg-invalid` are errors when the
-scene's picture has labels or a label or picture-stage task uses that scene,
-otherwise warnings. `repair_prompt` refuses (`ValueError`) a
-`no-picture-attached` file: the model never saw the photo, and a repair would
+left. `image-not-found`, `image-unreadable`, `image-outside-folder`,
+`image-invalid` and `svg-invalid` are errors when the scene's picture has
+labels or a label or picture-stage task uses that scene, otherwise warnings.
+`repair_prompt` refuses (`ValueError`) an `image-invalid` (a `picture.image`
+with a URL scheme langwich cannot load, or a `data:` URI that holds no usable
+picture) and `svg-invalid` (an `svg` or SVG `data:` URI that is not well-formed).
+It also refuses a `no-picture-attached` file: the model never saw the photo,
+and a repair would
 only make it invent one.
 
 Errors: contract violations (`contract`, `legacy-format`,
@@ -251,8 +249,9 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   a `picture.image` path or URL named in the JSON. Local paths stay inside the
   JSON folder after resolution unless `--allow-outside-images` is passed;
   HTTP reads are bounded by an overall deadline and validate `Content-Length`.
-  Downloads are isolated from the package import path and raster formats are
-  validated before Pillow or WeasyPrint decode.
+  HTTP downloads are isolated from the package import path, while local paths
+  stay inside the JSON folder unless `--allow-outside-images` is passed.
+  Raster formats are validated before Pillow or WeasyPrint decode.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.
