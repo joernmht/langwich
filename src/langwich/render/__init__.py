@@ -26,6 +26,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Literal
 
+from langwich.images import is_safe_data_uri
 from langwich.model import Worksheet
 from langwich.render.css import FONTS_DIR, font_face_css
 from langwich.render.html import FONT_MARKER, Builder
@@ -87,9 +88,11 @@ def _load_weasyprint() -> tuple[Any, Any, Any]:
 
 
 def is_allowed_url(url: str) -> bool:
-    """``data:`` URIs and the bundled font files; nothing else."""
+    """``data:`` URIs that hold an SVG or a PNG, JPEG, GIF or WebP picture
+    (:func:`langwich.images.is_safe_data_uri`) and the bundled font files;
+    nothing else."""
     if url.startswith("data:"):
-        return True
+        return is_safe_data_uri(url)
     if not url.startswith("file:"):
         return False
     try:
@@ -416,6 +419,10 @@ def render_worksheet(ws: Worksheet, out_pdf: Path, options: RenderOptions | None
         _render(sol_html, options.base_dir, api, blocked).write_pdf(str(sol_pdf_path))
         result.solutions_pdf = sol_pdf_path
     for url in blocked:
-        warnings.append(f"an external resource was not loaded (langwich renders offline): "
-                        f"{url[:120]}")
+        if url.startswith("data:"):
+            warnings.append("an embedded picture was left out: it is not an SVG, PNG, JPEG, GIF "
+                            f"or WebP picture ({url[:60]}…)")
+        else:
+            warnings.append(f"an external resource was not loaded (langwich renders offline): "
+                            f"{url[:120]}")
     return result

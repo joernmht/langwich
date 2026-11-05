@@ -41,6 +41,7 @@ from langwich.model import (
     TASK_KINDS,
     ContractError,
     Worksheet,
+    normalize_quirks,
     parse_json_text,
 )
 from langwich.series import Continuation, continuation, slugify
@@ -915,6 +916,8 @@ def resolve_options(opts: PromptOptions) -> ResolvedOptions:
         _level_code, "unknown CEFR level {!r}; use one of " + ", ".join(LEVELS),
     )
     frame = opts.frame
+    if frame is not None and frame not in _FRAME_NAMES:
+        raise ValueError(f"unknown frame {frame!r}; use one of " + ", ".join(FRAMES))
     if frame is None and prev is not None:
         frame = prev.frame
     if frame is None and profile.get("frame") in _FRAME_NAMES:
@@ -1251,12 +1254,11 @@ Review words from earlier episodes: <<review_words>>
 
 - "series": {"id": "<<series_id>>", "title": "<<series_title>>", "episode": <<episode>>,
   "previously": S (a 2–3 sentence recap of the story so far), "next": T (a one- or two-sentence
-  teaser for episode <<next_episode>>), "review": [5–8 of the review words]}.
+  teaser for episode <<next_episode>>), "review": <<review_field>>}.
 - <<pickup>> The characters keep their personalities and history; let something from the last
   episode matter again.
 - <<topic_advice>> New facts and new key words ("target" repeats no review word).
-- Recycle every word in "series.review" in the warm-up or practice tasks, and in the story
-  where it fits naturally.
+- <<review_rule>>
 - A new title for this episode (T); end on a hook that makes the learner want the next one."""
 
 _SERIES_FIRST = """\
@@ -1508,8 +1510,11 @@ def _picture_tasks(b: _Brief) -> str:
                 "task about the picture (where things are).")
     if b.opts.compact:
         return "a draw task on the scene with the picture."
+    # Drawing B has no picture on the page, so a picture-stage questions task
+    # would have nothing to look at (validate warns: picture-task-without-picture).
     return ("on the scene with the picture: a label task (drawing A) or a draw task (B); "
-            "optionally a questions task about the picture (where things are).")
+            "with drawing A only, optionally a questions task about the picture (where things "
+            "are).")
 
 
 def _series_section(b: _Brief, values: Mapping[str, object]) -> str | None:
@@ -1531,13 +1536,33 @@ def _series_section(b: _Brief, values: Mapping[str, object]) -> str | None:
             old = f" (last time: {prev.topic})" if prev is not None else ""
             topic_advice = ("Choose a new topic the story leads to, or a new side of the old "
                             f"one{old}.")
+        if locale.base_lang(cont.target_lang) != locale.base_lang(b.tgt):
+            # The series goes on in another language: the earlier target words
+            # are in the old one and cannot be recycled in this worksheet.
+            old_name, new_name = _short_name(cont.target_lang), _short_name(b.tgt)
+            review_words = (f"(none: the earlier episodes were in {old_name}, so their words "
+                            "cannot be recycled)")
+            review_field = "[]"
+            review_rule = (f"The earlier episodes were written in {old_name}; write this one in "
+                           f"{new_name} (T) only. The characters, the setting and the plot go "
+                           "on; only the language changes.")
+        elif cont.review_words:
+            review_words = ", ".join(cont.review_words)
+            review_field = "[5–8 of the review words]"
+            review_rule = ('Recycle every word in "series.review" in the warm-up or practice '
+                           "tasks, and in the story where it fits naturally.")
+        else:
+            review_words = "(none)"
+            review_field = "[]"
+            review_rule = "Bring back a word or two from the last episode where it fits."
         extra = {
             "episode": cont.episode, "next_episode": cont.episode + 1,
             "series_id": cont.series_id, "series_title": cont.series_title,
             "story_so_far": cont.story_so_far,
             "last_scene": _fence(cont.last_scene, "text"),
             "teaser_block": teaser, "characters": chars,
-            "review_words": ", ".join(cont.review_words) or "(none)",
+            "review_words": review_words, "review_field": review_field,
+            "review_rule": review_rule,
             "pickup": pickup, "topic_advice": topic_advice,
         }
         return _fill(_SERIES_NEXT, {**values, **extra})
@@ -1563,10 +1588,12 @@ def _source_sections(b: _Brief, values: Mapping[str, object]) -> list[str]:
     if b.opts.from_legacy:
         legacy = b.opts.from_legacy
         langs = ""
-        old = (legacy.get("source_lang"), legacy.get("target_lang"), legacy.get("cefr_level"))
-        if all(isinstance(x, str) for x in old) and (
-            old[0] != b.src or old[1] != b.tgt or str(old[2]).upper() != b.level
-        ):
+        # Read the old values the way resolve_options does ('level' as well as
+        # 'cefr_level', 'EN' as 'en'), so the note appears exactly when they differ.
+        old = (_lang_code(_legacy_value(legacy, "source_lang")),
+               _lang_code(_legacy_value(legacy, "target_lang")),
+               _level_code(_legacy_value(legacy, "cefr_level", "level")))
+        if all(x is not None for x in old) and (old != (b.src, b.tgt, b.level)):
             langs = (f" The old file is {old[0]} → {old[1]}, {old[2]}; this worksheet follows the "
                      f"brief ({b.src} → {b.tgt}, {b.level}).")
         out.append(_fill(_FROM_LEGACY, {**values, "legacy_langs": langs}))
@@ -1702,6 +1729,9 @@ def _reference_values(json_text: str) -> dict[str, object]:
     except (ContractError, TypeError):
         data = None
     data = data if isinstance(data, dict) else {}
+    # read 'b1' and 'DE' as the loader does, so the reference agrees with the
+    # 'normalized' warnings in the same prompt
+    normalize_quirks(data)
 
     def lang(key: str, fallback: str) -> tuple[str, str]:
         code = data.get(key)

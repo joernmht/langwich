@@ -24,19 +24,18 @@ with a ``wrapped-json`` / ``normalized`` warning.
 
 from __future__ import annotations
 
-import base64
 import binascii
+import copy
 import difflib
-import io
 import json
 import re
 import string
+import warnings as _warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import unquote_to_bytes
 
 from langwich import locale, markup
 from langwich.model import (
@@ -64,6 +63,15 @@ from langwich.model import (
     parse_worksheet,
 )
 from langwich.images import ImageSource, read_local_image, resolve_image  # noqa: F401 (re-exported)
+from langwich.images import (
+    MAX_PIXELS,
+    MAX_RASTER_EDGE,
+    data_uri_bytes,
+    is_svg_source,
+    looks_like_heif,
+    open_raster,
+    sanitize_svg,
+)
 from langwich.plan import plan as make_plan
 from langwich.plan import strip_article, term_pattern
 
@@ -105,6 +113,11 @@ CHECKS: dict[str, tuple[Level, str]] = {
     "image-outside-folder": (
         "error", "a local picture.image path that resolves outside the worksheet folder unless "
         "rendering explicitly allows outside images",
+    ),
+    "image-invalid": (
+        "error", "a picture.image that is not a file path, http(s) URL or data: URI, or a data: "
+        "URI that holds no usable picture (a warning when no label or picture task needs the "
+        "picture)",
     ),
     "svg-invalid": (
         "error", "a picture svg that is not well-formed XML (a warning when no label or picture "
@@ -183,6 +196,7 @@ ENVIRONMENT_CODES: frozenset[str] = frozenset({
 #: otherwise, except for unsafe outside-folder paths.
 PICTURE_CODES: frozenset[str] = frozenset({
     "image-not-found", "image-unreadable", "image-outside-folder", "svg-invalid",
+    "image-invalid",
 })
 
 #: Stages whose tasks belong to a scene (the planner prints them after it).
@@ -363,8 +377,11 @@ def _parse_gaps(text: str) -> tuple[list[markup.Gap], str | None]:
         return [], str(exc)
 
 
-def _gap_text(text: str) -> str:
-    """Filled text plus the hints, for word searches."""
+_EMPTY_GAP_RE = re.compile(r"\{\{\s*\}\}")
+
+
+def _gap_text(text: str, hints: bool = True) -> str:
+    """Filled text plus the hints (unless ``hints`` is false), for word searches."""
     try:
         parts = markup.split(text)
     except ValueError:
@@ -373,7 +390,7 @@ def _gap_text(text: str) -> str:
     for p in parts:
         if isinstance(p, markup.Gap):
             out.append(p.answer)
-            if p.hint:
+            if p.hint and hints:
                 out.append(f" ({p.hint})")
         else:
             out.append(p)
@@ -400,17 +417,7 @@ def _sentences(text: str) -> list[str]:
 
 
 def _data_uri_bytes(uri: str) -> bytes:
-    header, _, payload = uri.partition(",")
-    if ";base64" in header.lower():
-        return base64.b64decode(payload, validate=False)
-    return unquote_to_bytes(payload)
-
-
-def _looks_like_svg(raw: bytes) -> bool:
-    head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
-    return head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head) or (
-        head.startswith(b"<!doctype svg")
-    )
+    return data_uri_bytes(uri)  # as the renderer decodes it
 
 
 _HEIF_BRANDS = (b"heic", b"heix", b"hevc", b"hevx", b"heim", b"heis", b"mif1", b"msf1")
@@ -431,10 +438,28 @@ def _raster_problem(raw: bytes) -> str | None:
         pass
     heif = raw[4:8] == b"ftyp" and raw[8:12] in _HEIF_BRANDS
     try:
-        with Image.open(io.BytesIO(raw)) as probe:
-            probe.verify()
-        with Image.open(io.BytesIO(raw)) as img:
-            img.draft("L", (512, 512))  # decode JPEGs at a small scale: fast, still complete
+        # The size rule of images.prepare_raster: Pillow's decompression-bomb
+        # limit is off, a JPEG over MAX_PIXELS is decoded at a reduced scale,
+        # and anything still over MAX_PIXELS is left out of the worksheet.
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore", Image.DecompressionBombWarning)
+            limit, Image.MAX_IMAGE_PIXELS = Image.MAX_IMAGE_PIXELS, None
+            try:
+                with open_raster(raw) as probe:
+                    probe.verify()
+                img = open_raster(raw)
+            finally:
+                Image.MAX_IMAGE_PIXELS = limit
+        with img:
+            if img.size[0] * img.size[1] > MAX_PIXELS:
+                if img.format == "JPEG":
+                    img.draft("L", (MAX_RASTER_EDGE, MAX_RASTER_EDGE))
+                if img.size[0] * img.size[1] > MAX_PIXELS:
+                    w, h = img.size
+                    return (f"it is too large ({w} × {h} pixels): scale it down to at most "
+                            f"{MAX_RASTER_EDGE * 2} pixels on the long edge")
+            else:
+                img.draft("L", (512, 512))  # decode JPEGs at a small scale: fast, still complete
             img.load()
     except UnidentifiedImageError:
         if heif:
@@ -449,7 +474,6 @@ def _raster_problem(raw: bytes) -> str | None:
 
 _SVG_NS = "http://www.w3.org/2000/svg"
 _SVG_OPEN_RE = re.compile(r"<svg\b[^>]*>", re.IGNORECASE | re.DOTALL)
-_CSS_URL_RE = re.compile(r"url\(\s*['\"]?\s*(?!#|data:)[^)'\"\s]|@import", re.IGNORECASE)
 
 
 def _svg_element(text: str) -> tuple[str, int] | None:
@@ -477,24 +501,10 @@ def _local_name(tag: str) -> str:
 
 
 def _svg_external_parts(root: ET.Element) -> list[str]:
-    """Links to other files, scripts and event handlers in an SVG (the
-    renderer removes them and loads nothing from outside)."""
-    found: list[str] = []
-    for el in root.iter():
-        tag = _local_name(str(el.tag))
-        if tag in ("script", "foreignObject"):
-            found.append(f"<{tag}>")
-        if tag == "style" and _CSS_URL_RE.search("".join(el.itertext())):
-            found.append("a url(…) in <style>")
-        for attr, value in el.attrib.items():
-            name = _local_name(attr)
-            if name == "href" and not value.strip().startswith(("#", "data:")):
-                found.append(f"{name}={_q(value, 40)}")
-            elif name.lower().startswith("on"):
-                found.append(f"{name}=…")
-            elif name == "style" and _CSS_URL_RE.search(value):
-                found.append("a url(…) in style")
-    return list(dict.fromkeys(found))
+    """Links to other files, scripts and event handlers in an SVG: exactly
+    what the renderer's :func:`langwich.images.sanitize_svg` removes (it is
+    run on a copy, so the two can never disagree)."""
+    return list(dict.fromkeys(sanitize_svg(copy.deepcopy(root))))
 
 
 def _svg_words(root: ET.Element) -> list[str]:
@@ -668,8 +678,10 @@ class _Checker:
         return any(p.search(t) for p in pats for t in texts)
 
     def task_texts(self, task: Task) -> list[str]:
-        """The item strings of a task (gaps filled, hints kept). Titles and
-        instructions are source-language furniture and do not count."""
+        """The target-language strings of a task (gaps filled, hints kept).
+        Titles, instructions and the other fields the brief writes in the
+        source language (a writing or draw prompt, a dialogue cue, a
+        translation hint) do not count: a loanword there is not practice."""
         out: list[str] = []
         if isinstance(task, MatchTask):
             out += [p.left for p in task.pairs] + [p.right for p in task.pairs] + task.extra
@@ -683,9 +695,12 @@ class _Checker:
             out += [i.question for i in task.items] + [i.answer or "" for i in task.items]
         elif isinstance(task, ClozeTask):
             texts = [task.text] if task.text is not None else list(task.items or [])
-            out += [_gap_text(t) for t in texts] + task.distractors
+            hints = task.hint != "translation"  # translation hints are source language
+            out += [_gap_text(t, hints) for t in texts] + task.distractors
         elif isinstance(task, TransformTask):
-            out += [f"{i.prompt} {i.cue or ''} {i.answer}" for i in task.items]
+            # the cue may be in either language (S or T): like a translation hint, it
+            # is not practice; the prompt and the answer are
+            out += [f"{i.prompt} {i.answer}" for i in task.items]
         elif isinstance(task, WordBuildingTask):
             out += [p for i in task.items for p in i.parts] + [i.answer for i in task.items]
         elif isinstance(task, LabelTask):
@@ -693,24 +708,28 @@ class _Checker:
             if scene and scene.picture:
                 out += [lb.term for lb in scene.picture.labels]
         elif isinstance(task, WritingTask):
-            out += [task.prompt, task.starter or "", task.model_answer or "", *task.must_use]
+            out += [task.starter or "", task.model_answer or "", *task.must_use]
         elif isinstance(task, DialogueTask):
             for line in task.lines:
-                out += [_gap_text(line.text or ""), line.cue or "", line.answer or ""]
+                out += [_gap_text(line.text or ""), line.answer or ""]
         elif isinstance(task, MediaSearchTask):
             out += task.queries + task.questions
         elif isinstance(task, DrawTask):
-            out += [task.prompt, *task.labels]
+            out += list(task.labels)
         return [t for t in out if t]
 
     # -- errors ---------------------------------------------------------------
 
     def check_languages(self) -> None:
         ws = self.ws
-        if ws.source_lang.casefold() == ws.target_lang.casefold():
+        # 'de' and 'de-AT' are one language here, as everywhere else in langwich
+        # (articles, word forms, page labels)
+        if locale.base_lang(ws.source_lang) == locale.base_lang(ws.target_lang):
+            same = (f"both '{ws.source_lang}'" if ws.source_lang == ws.target_lang
+                    else f"'{ws.source_lang}' and '{ws.target_lang}', the same language")
             self.error(
                 "same-language", "/target_lang",
-                f"source_lang and target_lang are both '{ws.source_lang}'. source_lang is the "
+                f"source_lang and target_lang are {same}. source_lang is the "
                 "learner's own language (translations, instructions); target_lang is the "
                 "language being learned (story, tasks). Set them to two different languages.",
             )
@@ -796,6 +815,15 @@ class _Checker:
 
     def _check_gap_text(self, task: ClozeTask | None, text: str, where: str, what: str) -> None:
         """Checks shared by cloze texts/items and dialogue lines."""
+        empty_gap = (
+            f"{what} contains an empty gap {{{{}}}}. Put the answer inside the braces, "
+            f"e.g. {{{{{self.example_word()}}}}}, or with a hint {{{{answer::hint}}}}."
+        )
+        if _EMPTY_GAP_RE.search(text):
+            # GAP_RE needs one character inside, so '{{}}' would otherwise read
+            # as an unmatched '{{' or swallow the next gap
+            self.error("empty-gap", where, empty_gap)
+            return
         if markup.has_unbalanced_braces(text):
             self.error(
                 "unbalanced-braces", where,
@@ -821,11 +849,7 @@ class _Checker:
                 )
         found, problem = _parse_gaps(text)
         if problem is not None:
-            self.error(
-                "empty-gap", where,
-                f"{what} contains an empty gap {{{{}}}}. Put the answer inside the braces, "
-                f"e.g. {{{{{self.example_word()}}}}}, or with a hint {{{{answer::hint}}}}.",
-            )
+            self.error("empty-gap", where, empty_gap)
             return
         if task is None:
             return
@@ -935,6 +959,12 @@ class _Checker:
                 continue
             if skip.match(where):
                 continue
+            if where.startswith("/ui/"):
+                # a ui string with {placeholders} is formatted, so '{{' and '}}' are
+                # how it writes a literal brace (as ui-placeholders advises)
+                key = where[len("/ui/"):].replace("~1", "/").replace("~0", "~")
+                if _format_fields(locale.STRINGS["en"].get(key, "")):
+                    continue
             if story_fields.match(where):
                 self.error(
                     "markup-in-story", where,
@@ -1091,7 +1121,7 @@ class _Checker:
             return
         if source.kind == "unsupported":
             self.picture_problem(
-                "image-not-found", where,
+                "image-invalid", where,
                 f"'{image}' is neither a local file nor an http(s) URL or data: URI, so the "
                 f"picture cannot be loaded{why}. Use a path relative to the JSON file (e.g. "
                 "'pictures/scene.jpg') or an https:// URL.",
@@ -1099,6 +1129,11 @@ class _Checker:
             )
             return
         name = "the data: URI" if source.kind == "data" else f"the picture file '{image}'"
+        # A data: URI is written into the JSON, so what is wrong with it is the
+        # LLM's to fix ('image-invalid'); a picture file is the user's.
+        unreadable = "image-invalid" if source.kind == "data" else "image-unreadable"
+        redo = (" Draw the picture as an \"svg\" instead, or leave picture.image out."
+                if source.kind == "data" else "")
         try:
             if source.kind == "data":
                 raw = _data_uri_bytes(image.strip())
@@ -1128,16 +1163,17 @@ class _Checker:
                 )
         except (OSError, ValueError, binascii.Error) as exc:
             self.picture_problem(
-                "image-unreadable", where,
-                f"{name} cannot be read ({exc.__class__.__name__}: {exc}){why}.", needed,
+                unreadable, where,
+                f"{name} cannot be read ({exc.__class__.__name__}: {exc}){why}.{redo}", needed,
             )
             return
         if not raw:
             self.picture_problem(
-                "image-unreadable", where, f"{name} is empty{why}. Save the picture again.", needed,
+                unreadable, where, f"{name} is empty{why}.{redo or ' Save the picture again.'}",
+                needed,
             )
             return
-        if _looks_like_svg(raw) or image.lower().split("?")[0].endswith(".svg"):
+        if is_svg_source(image, raw):
             is_file = source.kind == "file"
             try:
                 text = raw.decode("utf-8-sig")
@@ -1151,8 +1187,11 @@ class _Checker:
             return
         problem = _raster_problem(raw)
         if problem:
+            if looks_like_heif(raw) and "pillow-heif" in problem:
+                # a missing plugin on this computer is the user's to fix, also for a data: URI
+                unreadable, redo = "image-unreadable", ""
             self.picture_problem(
-                "image-unreadable", where, f"{name} cannot be used: {problem}{why}.", needed,
+                unreadable, where, f"{name} cannot be used: {problem}{why}.{redo}", needed,
             )
 
     def check_tasks(self) -> None:
@@ -1637,7 +1676,9 @@ class _Checker:
         """A grammar box is printed right beside a task (see plan.py); its rule,
         table and examples must not show that task's answers."""
         lang = self.target_lang
-        grammar_index = {g.id: i for i, g in enumerate(self.ws.grammar)}
+        # by identity, not id: with a duplicate id the pointer must still name
+        # the grammar point that leaks
+        grammar_index = {id(g): i for i, g in enumerate(self.ws.grammar)}
         try:
             planned = make_plan(self.ws).tasks
         except ValueError:  # e.g. an empty {{}} gap, reported by its own check
@@ -1650,7 +1691,7 @@ class _Checker:
                 leaked = _grammar_leak(pt.task, gp, lang)
                 if leaked:
                     self.warn(
-                        "grammar-gives-away", f"/grammar/{grammar_index[gp.id]}",
+                        "grammar-gives-away", f"/grammar/{grammar_index[id(gp)]}",
                         f"the grammar box '{gp.name}' is printed beside task '{pt.task.id}' and "
                         f"shows its answer {_q(leaked)}. Use rule examples and table forms that "
                         "are not part of the task (other words, other sentences); a table may "

@@ -479,7 +479,8 @@ def t(key: str, lang: str, overrides: Mapping[str, str] | None = None, **fmt: ob
     worksheet's ``ui`` map) win, English is the last resort."""
     text = None
     if overrides:
-        text = overrides.get(key)
+        # an empty override would print a blank label: treat it as not given
+        text = overrides.get(key) or None
     if text is None:
         text = STRINGS.get(base_lang(lang), {}).get(key)
     if text is None:
@@ -488,8 +489,9 @@ def t(key: str, lang: str, overrides: Mapping[str, str] | None = None, **fmt: ob
         return text
     try:
         return text.format(**fmt)
-    except (KeyError, IndexError, ValueError):
-        # an override with stray or unknown {placeholders}: use the built-in text
+    except (KeyError, IndexError, ValueError, TypeError, AttributeError):
+        # an override with stray or unknown {placeholders} ('{min[0]}', '{max.x}'
+        # raise TypeError and AttributeError): use the built-in text
         builtin = STRINGS.get(base_lang(lang), {}).get(key) or STRINGS["en"][key]
         return builtin.format(**fmt)
 
@@ -507,5 +509,5 @@ def missing_keys(lang: str, overrides: Mapping[str, str] | None = None) -> list[
     """Keys that would fall back to English for this source language."""
     if base_lang(lang) in STRINGS:
         return []
-    have = set(overrides or {})
+    have = {k for k, v in (overrides or {}).items() if v}
     return [k for k in STRINGS["en"] if k not in have]

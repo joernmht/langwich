@@ -147,7 +147,8 @@ langwich validate data/sourdough_bread_en_de.json --prompt > repair.txt
 
 Some problems are not the AI's to fix, and the repair prompt leaves them out: a picture file that
 is missing (`image-not-found`) or cannot be read (`image-unreadable`). `--prompt` prints those for
-you on standard error instead. They are errors when the picture has numbered labels or a label
+you on standard error instead. A `picture.image` the AI got wrong itself — a URL langwich cannot
+load, or a `data:` URI without a usable picture (`image-invalid`) — stays in the repair prompt. They are errors when the picture has numbered labels or a label
 or picture task needs it, otherwise warnings. When nothing but such problems is left, `--prompt`
 prints no prompt at all and exits with status 1. And when the "JSON" is only the brief's
 `NO PICTURE ATTACHED` reply (`no-picture-attached`), there is nothing to repair: the AI never saw
@@ -232,10 +233,10 @@ langwich prompt --image photos/market.jpg --topic "a market in Valencia" -o prom
   the worksheet renders wherever the folder goes. Absolute paths and `file:` URLs are blocked by
   default; `langwich render FILE --allow-outside-images` explicitly allows local paths elsewhere.
   `--data-dir DIR` copies to `DIR/pictures/` instead, for JSON you keep in `DIR`.
-- **Formats:** JPEG, PNG, WebP and GIF are copied as they are; any other format Pillow can read
-  is converted to JPEG. iPhone HEIC photos need `pip install pillow-heif` (or
-  `pip install -e ".[heic]"`) — or export the photo as JPEG first. langwich says so when it
-  cannot read a file.
+- **Formats:** JPEG, PNG, WebP and GIF are copied as they are; TIFF, BMP, HEIC and AVIF are
+  converted to JPEG. Other formats are refused (Pillow's EPS reader, for one, runs Ghostscript).
+  iPhone HEIC photos need `pip install pillow-heif` (or `pip install -e ".[heic]"`) — or export
+  the photo as JPEG first. langwich says so when it cannot read a file.
 - **A URL** is kept as it is: the brief names it, and langwich downloads it when you render.
 - **Missing pictures** are reported by `langwich validate` (`image-not-found`,
   `image-unreadable`, `image-outside-folder`): as errors when the picture carries numbered labels

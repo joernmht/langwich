@@ -37,6 +37,7 @@ from langwich.model import (
     load_worksheet,
 )
 from langwich.profile import SAVED_KEYS, load_profile, save_profile
+from langwich.images import file_url_path
 from langwich.series import (
     next_episode,
     next_episode_filename,
@@ -95,8 +96,8 @@ STAGE_INFO: dict[str, str] = {stage: _STAGE_TEXT[stage] for stage in STAGES}
 #: Folder (inside the data folder) that ``prompt --image`` copies pictures to;
 #: the worksheet JSON in the data folder refers to them as "pictures/<file>".
 PICTURES_DIR = "pictures"
-#: Picture formats copied as they are; anything else Pillow can read is
-#: converted to JPEG.
+#: Picture formats copied as they are; the other formats of
+#: images.RASTER_FORMATS (TIFF, BMP, HEIC …) are converted to JPEG.
 _KEPT_FORMATS: dict[str, str] = {"JPEG": ".jpg", "PNG": ".png", "WEBP": ".webp", "GIF": ".gif"}
 #: Longest edge of a picture that had to be converted or shrunk.
 _MAX_PICTURE_EDGE = 3000
@@ -181,6 +182,23 @@ def _scene_count(value: str) -> int:
 
 def _is_url(value: str) -> bool:
     return bool(_URL_RE.match(value)) or value.startswith("data:")
+
+
+def _image_arg(value: str) -> str:
+    """``prompt --image`` as langwich can use it: an http(s) URL or ``data:``
+    URI as it is, a ``file:`` URL as a local path (copied like any other);
+    other URL schemes are an error, because the worksheet could not load them."""
+    low = value.strip().lower()
+    if low.startswith("file:"):
+        path = file_url_path(value)
+        if path is None:
+            _fail(f"--image {value}: this file: URL names a file on another computer. Copy the "
+                  "picture to this one and give its path.", 2)
+        return str(path)
+    if _is_url(value) and not low.startswith(("http://", "https://", "data:")):
+        _fail(f"--image {value}: langwich loads pictures only from a local file, an http(s) "
+              "URL or a data: URI. Download the picture and give its file path.", 2)
+    return value
 
 
 def _page(choice: str | None, device: Any) -> PageSize:
@@ -498,6 +516,11 @@ def _cmd_kinds(args: argparse.Namespace | None = None) -> int:
 
 
 def _cmd_prompt(args: argparse.Namespace) -> int:
+    if args.continue_from and args.series is False:
+        _fail("--no-series cannot be combined with --continue: the next episode always "
+              "continues the series. Leave out --continue for a one-off story.", 2)
+    if args.image:
+        args.image = _image_arg(args.image)
     profile = _profile()
     data_dir = Path(args.data_dir)
 
@@ -551,9 +574,10 @@ def _cmd_prompt(args: argparse.Namespace) -> int:
         resolved = resolve_options(opts)
     except ValueError as exc:
         _fail(str(exc))
-    if resolved.source_lang == resolved.target_lang:
-        _fail(f"source and target language are both '{resolved.source_lang}'; --source is your "
-              "own language, --target the one you are learning")
+    if resolved.source_lang.split("-")[0] == resolved.target_lang.split("-")[0]:
+        # 'de' and 'de-AT' too: validate rejects that pair as the same language
+        _fail(f"source and target language are both '{resolved.source_lang.split('-')[0]}'; "
+              "--source is your own language, --target the one you are learning")
     if (args.frame is None and (prev is None or prev.frame is None)
             and resolved.frame is not None and resolved.frame == profile.get("frame")):
         why = (" — every brief starts a series; remove \"frame\" from the profile if you do "
@@ -649,7 +673,7 @@ def _import_picture(arg: str, data_dir: Path) -> Path:
     ``<data_dir>/pictures/<ascii-slug>.<ext>`` and return the copy's path.
 
     JPEG, PNG, WebP and GIF are copied as they are (after checking that they
-    decode); other formats Pillow can read are converted to JPEG. The worksheet
+    decode); TIFF, BMP, HEIC and AVIF are converted to JPEG. The worksheet
     JSON in ``data_dir`` then refers to the copy as ``pictures/<file>`` — a
     short, portable path without spaces or home folders.
     """
@@ -690,8 +714,10 @@ def _register_heif() -> None:
 
 def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
     """``(bytes to save, extension)`` for a picture, or a clear error."""
-    head = raw[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
-    if head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in head):
+    from langwich.images import is_svg_source, open_raster, sample_max, to_8bit
+
+    # by content first: a PNG saved as 'drawing.svg' is still a PNG
+    if is_svg_source(what, raw, by_name=False):
         return raw, ".svg"
     from PIL import Image, ImageFile, ImageOps, UnidentifiedImageError
 
@@ -699,14 +725,14 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
     lenient = ImageFile.LOAD_TRUNCATED_IMAGES  # WeasyPrint turns this on when imported
     ImageFile.LOAD_TRUNCATED_IMAGES = False     # a cut-off download must be reported
     try:
-        with Image.open(io.BytesIO(raw)) as img:
+        with open_raster(raw) as img:
             fmt = img.format or ""
             if fmt in _KEPT_FORMATS and len(raw) <= MAX_IMAGE_BYTES:
                 img.draft("RGB", (512, 512))  # JPEG: decode small, still checks the whole file
                 img.load()
                 return raw, _KEPT_FORMATS[fmt]
             img.load()
-            picture = ImageOps.exif_transpose(img)
+            picture = to_8bit(ImageOps.exif_transpose(img) or img, max_value=sample_max(img))
             if picture.mode in ("RGBA", "LA", "PA") or "transparency" in picture.info:
                 rgba = picture.convert("RGBA")
                 picture = Image.new("RGB", rgba.size, "white")
@@ -718,6 +744,8 @@ def _picture_bytes(raw: bytes, what: str) -> tuple[bytes, str]:
             picture.save(out, "JPEG", quality=90)
             return out.getvalue(), ".jpg"
     except UnidentifiedImageError:
+        if is_svg_source(what, raw) and b"<svg" in raw.lower():
+            return raw, ".svg"  # an svg by its name whose prolog the content test cannot place
         if raw[4:8] == b"ftyp" and raw[8:12] in _HEIF_BRANDS:
             _fail(f"cannot read the picture {what}: it is a HEIC/HEIF photo, which langwich can "
                   "read only with the pillow-heif plugin. Export it as JPEG (or PNG) and try "

@@ -172,6 +172,12 @@ them out; `validate --prompt` prints them for the user on stderr and exits 1 whe
 left. `image-not-found`, `image-unreadable` and `svg-invalid` are errors when
 the scene's picture has labels or a label or picture-stage task uses that
 scene, otherwise warnings. `repair_prompt` refuses (`ValueError`) a
+`image-invalid` (a `picture.image` with a URL scheme langwich cannot load, or a `data:` URI
+that holds no usable picture) and `svg-invalid` (an `svg` or SVG `data:` URI
+that is not well-formed). `image-not-found`, `image-unreadable`,
+`image-outside-folder`, `image-invalid` and `svg-invalid` are errors when the
+scene's picture has labels or a label or picture-stage task uses that scene,
+otherwise warnings. `repair_prompt` refuses (`ValueError`) a
 `no-picture-attached` file: the model never saw the photo, and a repair would
 only make it invent one.
 
@@ -235,7 +241,8 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
 * Raster images are converted to high-contrast greyscale unless colour is
   accepted (`--allow-color`); SVG is embedded after `images.sanitize_svg` has
   removed `<script>`, `<foreignObject>` and every external `href`/`xlink:href`,
-  `src`, `url()` and `@import`. Unreadable images produce a warning, never a
+  `src`, `url()` and `@import`, and every `data:` picture other than SVG, PNG,
+  JPEG, GIF and WebP. Unreadable images produce a warning, never a
   crash; `render --strict` exits 1 when rendering produced warnings, which the
   CLI prints before its success line.
 * Offline: WeasyPrint gets a URL fetcher (`render.make_url_fetcher`) that
@@ -244,6 +251,10 @@ HTML with print CSS, converted by WeasyPrint. Fonts ship in
   a `picture.image` path or URL named in the JSON. Local paths stay inside the
   JSON folder after resolution unless `--allow-outside-images` is passed;
   HTTP reads are bounded by an overall deadline and validate `Content-Length`.
+  allows only safe `data:` URIs and the bundled font files; every picture is
+  embedded as a `data:` URI first. `images.py` loads local or HTTP resources,
+  enforces the worksheet-folder boundary unless explicitly overridden, bounds
+  downloads, and validates raster formats before Pillow or WeasyPrint decode.
 * Solutions: appended (default, always on a new page), a separate
   `<name>-solutions.pdf`, or none. The word list follows the series teaser
   without a forced page break.

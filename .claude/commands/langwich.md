@@ -189,6 +189,8 @@ brief into the chat; a short "Writing the story now…" is enough.
    then. If you keep a warning on purpose, tell the user why in one line.
    - `image-not-found` / `image-unreadable` are about the picture *file*, not the JSON: check
      that `picture.image` is `"pictures/<file>"` and the file is in `data/pictures/`.
+     `image-invalid` is about the JSON: a `picture.image` that is neither a file path nor an
+     http(s) URL, or a `data:` URI without a usable picture — fix the value (or draw an `svg`).
    - `wrapped-json` or `normalized` means langwich had to read the file leniently (a code fence
      or text around the object, a kind like `multiple-choice`, a fact as a plain string): rewrite
      the file as the brief asks — exactly one clean JSON object.

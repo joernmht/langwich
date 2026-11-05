@@ -15,6 +15,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,7 @@ import pytest
 from langwich.answers import answer_key
 from langwich import images
 from langwich.images import prepare_picture
+from langwich.images import prepare_picture, prepare_raster
 from langwich.model import MatchTask, Picture, load_worksheet, worksheet_from_dict
 from langwich.plan import plan, strip_article
 from langwich.plan import tested_terms as collect_tested_terms
@@ -652,6 +654,25 @@ def test_broken_ui_override_falls_back_instead_of_crashing():
     assert "Zeichne die Szene" in result_html and "Schreibe 40–60 Wörter." in result_html
 
 
+@pytest.mark.parametrize("override", ["{min[0]} bis {max}", "{min} bis {max.real.x}"])
+def test_ui_override_with_an_indexed_placeholder_falls_back_with_a_warning(tmp_path, override):
+    # str.format raises TypeError / AttributeError for these, not KeyError
+    data = _showcase()
+    data["ui"] = {"kind.writing.length": override}
+    result = render_worksheet(worksheet_from_dict(data), tmp_path / "x.pdf",
+                              RenderOptions(html_only=True))
+    assert "Schreibe 40–60 Wörter." in result.html.read_text(encoding="utf-8")
+    assert any("'kind.writing.length' could not be formatted" in w for w in result.warnings)
+
+
+def test_empty_ui_override_prints_the_built_in_label():
+    data = _showcase()
+    data["ui"] = {"solutions": "  "}
+    html = build_html(worksheet_from_dict(data))
+    assert '<h2 class="big">Lösungen</h2>' in html
+    assert '<h2 class="big"></h2>' not in html
+
+
 def test_series_previously_teaser_and_characters_on_the_page():
     html = build_html(load_worksheet(SHOWCASE))
     body = _text(_body(html))
@@ -1013,7 +1034,7 @@ def test_the_renderer_fetches_only_data_and_the_bundled_fonts(weasy):
     from langwich.render.css import FONTS_DIR
 
     font = (FONTS_DIR / "Literata-400.ttf").resolve().as_uri()
-    assert is_allowed_url(font) and is_allowed_url("data:image/png;base64,AAAA")
+    assert is_allowed_url(font) and is_allowed_url("data:image/png;base64,iVBORw0KGgo=")
     for url in ("file:///etc/passwd", "http://127.0.0.1:9/x.png", "https://example.org/x.css",
                 (FONTS_DIR / ".." / "model.py").resolve().as_uri()):
         assert not is_allowed_url(url), url
@@ -1022,6 +1043,227 @@ def test_the_renderer_fetches_only_data_and_the_bundled_fonts(weasy):
     with pytest.raises(ValueError):
         fetcher("file:///etc/passwd")
     assert blocked == ["file:///etc/passwd"]
+
+
+EPS = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n"
+
+
+def _dos_eps() -> bytes:
+    """A DOS-binary EPS whose padding holds the base64 text of a PNG
+    signature: a base64 decoder that drops the other bytes sees a PNG."""
+    import struct
+
+    head = b"\xc5\xd0\xd3\xc6" + struct.pack("<II", 64, len(EPS)) + b"\x00" * 20
+    return (head + b"iVBORw0KGgoAAAAAAA").ljust(64, b"\x00") + EPS
+
+
+#: data: URIs that hold EPS but could pass for a picture to a decoder that
+#: reads the header or the media type differently from urllib (and so from
+#: WeasyPrint, which fetches through it): urllib base64-decodes only after a
+#: final, lower-case ';base64', and WeasyPrint tries Pillow on an svg <image>
+#: (forced 'image/*') and on a "SVG" that does not parse.
+_DISGUISED_EPS: dict[str, str] = {
+    "upper-case BASE64": "data:image/png;BASE64," + urllib.parse.quote_from_bytes(_dos_eps()),
+    "base64 then a parameter": ("data:image/png;base64;x=y,"
+                                + urllib.parse.quote_from_bytes(_dos_eps())),
+    "typed as svg": "data:image/svg+xml;base64," + base64.b64encode(EPS).decode(),
+}
+
+
+@pytest.fixture
+def ghostscript_calls(monkeypatch):
+    """Records every call Pillow makes to Ghostscript (and runs none)."""
+    from PIL import EpsImagePlugin
+
+    calls: list[object] = []
+
+    def fake(*args, **kwargs):
+        calls.append(args)
+        raise OSError("Ghostscript must never run")
+
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", fake)
+    return calls
+
+
+def test_data_uris_must_hold_a_picture_format_langwich_embeds(weasy):
+    from langwich.render import is_allowed_url
+
+    gif = base64.b64encode(b"GIF89a" + b"\x00" * 8).decode()
+    webp = base64.b64encode(b"RIFF\x00\x00\x00\x00WEBPVP8 ").decode()
+    # percent-escapes in a base64 payload are decoded first, as urllib (and so
+    # WeasyPrint) does: '%69VBOR…' is 'iVBOR…'
+    for url in ("data:image/svg+xml;utf8,<svg/>", "data:image/jpeg;base64,/9j/4AAQ",
+                f"data:image/gif;base64,{gif}", f"data:image/webp;base64,{webp}",
+                "data:image/png,%89PNG%0D%0A%1A%0A", "data:image/png;base64,%69VBORw0KGgo=",
+                "data:image/png;base64,iVBOR%770KG\n go="):
+        assert is_allowed_url(url), url
+    svg = base64.b64encode(b"<svg xmlns='http://www.w3.org/2000/svg'/>").decode()
+    assert is_allowed_url(f"data:image/svg+xml;base64,{svg}")
+    eps = base64.b64encode(EPS).decode()
+    for url in (f"data:image/png;base64,{eps}", f"data:application/postscript;base64,{eps}",
+                "data:text/html,<script>alert(1)</script>", "data:image/png;base64,AAAA", "data:",
+                *_DISGUISED_EPS.values()):
+        assert not is_allowed_url(url), url
+
+
+def test_postscript_never_reaches_ghostscript(tmp_path, ghostscript_calls, weasy):
+    """Pillow picks its decoder from the content and its EPS plugin runs
+    Ghostscript: no picture from a worksheet may get there, neither directly
+    nor inside an svg that WeasyPrint decodes."""
+    warnings: list[str] = []
+    assert prepare_picture(Picture(image="data:application/postscript;base64,"
+                                   + base64.b64encode(EPS).decode()), None, True, warnings) is None
+    assert "not an image format langwich can read" in warnings[0]
+    (tmp_path / "photo.eps").write_bytes(EPS)
+    assert prepare_picture(Picture(image="photo.eps"), tmp_path, True, []) is None
+    eps_uri = "data:image/png;base64," + base64.b64encode(EPS).decode()
+    inner = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9">'
+             f'<image href="{eps_uri}" width="9" height="9"/></svg>')
+    nested = "data:image/svg+xml;base64," + base64.b64encode(inner.encode()).decode()
+    # in the svg itself the sanitizer removes it (validate reports svg-external);
+    # inside a nested svg it is left to the offline fetcher, which refuses it
+    cases = [(eps_uri, "removed from the SVG"), (nested, "embedded picture was left out")]
+    for disguised in _DISGUISED_EPS.values():
+        inner_d = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9">'
+                   f'<image href="{disguised}" width="9" height="9"/></svg>')
+        cases += [(disguised, "removed from the SVG"),
+                  ("data:image/svg+xml;base64," + base64.b64encode(inner_d.encode()).decode(),
+                   "embedded picture was left out")]
+    for href, warning in cases:
+        data = _lena()
+        pic = data["story"]["scenes"][3]["picture"]
+        pic["svg"] = pic["svg"].replace(
+            "</svg>", f'<image href="{href}" width="9" height="9"/></svg>')
+        result = render_worksheet(worksheet_from_dict(data), tmp_path / "x.pdf",
+                                  RenderOptions(solutions="none"))
+        assert result.pdf is not None
+        assert any(warning in w for w in result.warnings), result.warnings
+    assert ghostscript_calls == []
+
+
+def test_a_server_that_breaks_http_is_a_warning_not_a_crash(monkeypatch):
+    import http.client
+    import urllib.request
+
+    def broken(*args, **kwargs):
+        raise http.client.BadStatusLine("SSH-2.0-OpenSSH")
+
+    monkeypatch.setattr(urllib.request, "urlopen", broken)
+    warnings: list[str] = []
+    assert prepare_picture(Picture(image="https://example.org/x.png"), None, True,
+                           warnings) is None
+    assert warnings and "BadStatusLine" in warnings[0]
+
+
+def test_a_percent_encoded_base64_picture_is_embedded():
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("L", (4, 4), 0).save(buf, "PNG")
+    payload = base64.b64encode(buf.getvalue()).decode()
+    warnings: list[str] = []
+    picture = Picture(image="data:image/png;base64,%69" + payload[1:])
+    assert prepare_picture(picture, None, True, warnings) is not None and warnings == []
+
+
+def test_a_long_broken_data_uri_gives_a_short_warning():
+    # base64 cut off mid-way (one character more than a multiple of four)
+    warnings: list[str] = []
+    prepare_picture(Picture(image="data:image/png;base64," + "A" * 200_001), None, True,
+                    warnings)
+    assert warnings and len(warnings[0]) < 400
+
+
+@pytest.mark.parametrize("rows", [[[]], [[""]], [["", " "], [""]]], ids=["no-cell", "blank", "blanks"])
+@pytest.mark.parametrize("page", ["a4", "epaper"])
+def test_a_grammar_table_without_cells_is_left_out(page, rows):
+    # "rows": [[]] passes the contract; the layout once took max() of nothing,
+    # and a table of blank cells printed as an empty box
+    data = _showcase()
+    data["grammar"][0]["table"] = {"rows": rows}
+    empty = build_html(worksheet_from_dict(data), RenderOptions(page=page, seed=1))
+    data["grammar"][0].pop("table")
+    assert empty == build_html(worksheet_from_dict(data), RenderOptions(page=page, seed=1))
+
+
+@pytest.mark.parametrize("monochrome", [True, False])
+@pytest.mark.parametrize(("fmt", "factor", "tags"), [
+    ("PNG", 257, None), ("TIFF", 257, None),
+    ("TIFF", 16, {281: 4095}),  # 12-bit data, MaxSampleValue 4095
+    ("TIFF", 16, {341: 4095}),  # 12-bit data, SMaxSampleValue 4095
+], ids=["16-bit-png", "16-bit-tiff", "12-bit-tiff-max", "12-bit-tiff-smax"])
+def test_16_bit_greyscale_is_scaled_not_clipped(monochrome, fmt, factor, tags):
+    """convert('L') clips 16-bit samples at 255: the picture came out white.
+    12-bit data in a 16-bit TIFF is stretched when the file declares its
+    maximum (MaxSampleValue or SMaxSampleValue)."""
+    from PIL import Image, ImageStat
+
+    gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(
+        lambda v: v * factor)
+    buf = io.BytesIO()
+    gradient.convert("I;16").save(buf, fmt, **({"tiffinfo": tags} if tags else {}))
+    prepared = prepare_raster(buf.getvalue(), monochrome, "picture", [])
+    embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
+    assert 110 < ImageStat.Stat(embedded.convert("L")).mean[0] < 145
+    # all 32 grey steps of the gradient survive (12 bits divided by 65535 kept 16)
+    assert sum(1 for count in embedded.convert("L").histogram() if count) > 24
+
+
+@pytest.mark.parametrize("fmt", ["PNG", "TIFF"])
+@pytest.mark.parametrize("brightest", [300, 3000])
+def test_a_dark_16_bit_picture_stays_dark(fmt, brightest):
+    """16-bit samples span 0…65535 (PNG specifies it; a TIFF that does not
+    declare a smaller maximum is read so by every viewer): a dark scan is not
+    9- or 12-bit data to stretch."""
+    from PIL import Image
+
+    dark = Image.new("I", (32, 32), 0)
+    dark.paste(brightest, (0, 0, 16, 32))
+    buf = io.BytesIO()
+    dark.convert("I;16").save(buf, fmt)
+    prepared = prepare_raster(buf.getvalue(), False, "picture", [])
+    embedded = Image.open(io.BytesIO(base64.b64decode(prepared.data_uri.split(",", 1)[1])))
+    assert embedded.convert("L").getextrema()[1] <= round(brightest * 255 / 65535) + 1
+
+
+def test_quoted_internal_svg_references_are_kept():
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">'
+           '<defs><linearGradient id="g"/><marker id="m"/></defs>'
+           """<rect width="9" height="9" fill="url('#g')"/>"""
+           '<path d="M0 0 L9 9" style="marker-end: url( &quot;#m&quot; )"/></svg>')
+    warnings: list[str] = []
+    prepared = prepare_picture(Picture(svg=svg), None, True, warnings)
+    text = base64.b64decode(prepared.data_uri.split(",", 1)[1]).decode()
+    assert warnings == [] and "url('#g')" in text and "#m" in text
+
+
+@pytest.mark.parametrize("raw", [
+    b"<!---->" + b" " * 26 + b"x",                 # a whitespace run after a comment
+    b"<!---->" * 26 + b"x",                        # a row of comments
+    b"<?xml version='1.0'?>" + b"\f" * 26 + b"x",
+], ids=["spaces", "comments", "form-feeds"])
+def test_svg_sniffing_takes_linear_time(raw):
+    """A backtracking regex took exponential time here (seconds at 26
+    characters, days at 40): a picture could hang validate and render."""
+    import time
+
+    from langwich.images import _looks_like_svg
+
+    start = time.perf_counter()
+    assert _looks_like_svg(raw) is False
+    assert time.perf_counter() - start < 1.0  # fails (not hangs) if it turns exponential again
+    assert _looks_like_svg(raw * 100) is False  # 2.6 KB: only reached when linear
+
+
+@pytest.mark.parametrize("encode", ["base64", "utf8"])
+def test_svg_data_uri_with_a_leading_comment_is_an_svg(encode):
+    svg = ("<!-- drawn for scene 2 -->\n"
+           "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><rect width='5' height='5'/></svg>")
+    payload = base64.b64encode(svg.encode()).decode() if encode == "base64" else svg
+    warnings: list[str] = []
+    prepared = prepare_picture(Picture(image=f"data:image/svg+xml;{encode},{payload}"), None,
+                               True, warnings)
+    assert prepared is not None and prepared.is_vector and warnings == []
 
 
 def test_an_svg_cannot_pull_a_local_file_into_the_pdf(tmp_path, fitz):

@@ -179,6 +179,13 @@ def strip_article(term: str, lang: str | None = None) -> str:
     """The term without a leading article (language-aware when ``lang`` is given)."""
     low = term.lower()
     articles = ARTICLES.get((lang or "").split("-")[0].lower(), _SAFE_ARTICLES)
+    # a noun with two genders: 'der/das Joghurt', 'o/a estudante', 'il/la cantante'
+    first, space, rest = low.partition(" ")
+    if space and rest.strip() and "/" in first:
+        words = {a.strip() for a in articles if a.endswith(" ")}
+        parts = first.split("/")
+        if all(parts) and all(p in words for p in parts):
+            return term[len(first) + 1:].strip()
     for art in articles:
         if low.startswith(art) and len(term) > len(art):
             return term[len(art):].strip()

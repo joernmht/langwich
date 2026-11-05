@@ -335,6 +335,29 @@ def test_validate_prompt_leaves_environment_issues_to_the_user(
     assert "[image-not-found]" in captured.err and "leaves out the picture problems" in captured.err
 
 
+def test_validate_prompt_gives_an_unusable_image_value_to_the_llm(
+    workdir: Path, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # the LLM wrote the bad value, so the repair prompt must ask it to fix it
+    data = clean_data()
+    picture = data["story"]["scenes"][1]["picture"]
+    picture.pop("svg")
+    picture["image"] = "ftp://example.org/market.jpg"
+    path = write_json(workdir, "ftp.json", data)
+    assert main(["validate", "--prompt", str(path)]) == 1
+    captured = capsys.readouterr()
+    assert "[image-invalid]" in captured.out and "ftp://example.org/market.jpg" in captured.out
+    assert "Nothing for the LLM to repair" not in captured.err
+
+
+def test_prompt_rejects_regional_variants_of_one_language(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["prompt", "--source", "de", "--target", "de-AT"]) == 1
+    assert "source and target language are both 'de'" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
 @pytest.mark.parametrize("reply", ["NO PICTURE ATTACHED\n", "NO PICTURE ATTACHED."])
 def test_validate_prompt_refuses_the_no_picture_reply(
     workdir: Path, capsys: pytest.CaptureFixture[str], reply: str,
@@ -809,11 +832,108 @@ def test_prompt_image_that_cannot_be_read(
     assert not (workdir / "data" / "pictures" / "img-4711.jpg").exists()
 
 
+def test_prompt_image_never_hands_postscript_to_ghostscript(
+    workdir: Path, fake_prompt: Calls, monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from PIL import EpsImagePlugin
+
+    calls: list[object] = []
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", lambda *a, **k: calls.append(a))
+    (workdir / "scan.eps").write_bytes(
+        b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 10 10\nshowpage\n%%EOF\n")
+    assert main(["prompt", "--image", "scan.eps"]) == 1
+    assert "not an image format langwich can read" in capsys.readouterr().err
+    assert calls == [] and fake_prompt.items == []
+
+
+@pytest.mark.parametrize(("name", "prolog"), [
+    ("drawing.svg", b"<!-- drawn for scene 2 -->\n"),
+    ("drawing", b'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "svg11.dtd">\n'),
+])
+def test_prompt_image_reads_svg_like_the_renderer(
+    workdir: Path, fake_prompt: Calls, name: str, prolog: bytes,
+) -> None:
+    (workdir / name).write_bytes(prolog + b"<svg viewBox='0 0 4 3'><rect width='1' height='1'/></svg>")
+    assert main(["prompt", "--image", name]) == 0
+    assert fake_prompt.items[-1].image == "pictures/drawing.svg"
+    assert (workdir / "data" / "pictures" / "drawing.svg").read_bytes().startswith(prolog)
+
+
+def test_prompt_image_goes_by_content_not_by_name(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    # a PNG saved as 'drawing.svg' is copied as the PNG it is
+    png = _picture(workdir / "drawing.svg")
+    assert main(["prompt", "--image", str(png)]) == 0
+    assert fake_prompt.items[-1].image == "pictures/drawing.png"
+    # an svg whose prolog is too long for the content test still counts by its name
+    (workdir / "long.svg").write_bytes(b"<!--" + b"x" * 5000 + b"--><svg viewBox='0 0 1 1'/>")
+    assert main(["prompt", "--image", "long.svg"]) == 0
+    assert fake_prompt.items[-1].image == "pictures/long.svg"
+
+
+def test_prompt_image_file_url_on_another_host_is_an_error(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["prompt", "--image", "file://server/share/a.jpg"]) == 2
+    assert "names a file on another computer" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
+@pytest.mark.parametrize(("brightest", "tags", "low", "high"), [
+    (3000, None, 0, 13),           # a dark full-range scan stays dark
+    (4095, {281: 4095}, 240, 255),  # 12-bit data that says so is stretched
+])
+def test_prompt_image_16_bit_tiff_keeps_its_brightness(
+    workdir: Path, fake_prompt: Calls, brightest: int, tags: dict | None, low: int, high: int,
+) -> None:
+    from PIL import Image
+
+    scan = Image.new("I", (32, 32), 0)
+    scan.paste(brightest, (0, 0, 16, 32))
+    scan.convert("I;16").save(workdir / "dark.tiff", "TIFF", **({"tiffinfo": tags} if tags else {}))
+    assert main(["prompt", "--image", "dark.tiff"]) == 0
+    with Image.open(workdir / "data" / "pictures" / "dark.jpg") as img:
+        assert low <= img.convert("L").getextrema()[1] <= high
+
+
+def test_prompt_image_16_bit_tiff_is_converted_without_clipping(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    from PIL import Image, ImageStat
+
+    gradient = Image.linear_gradient("L").resize((256, 32)).convert("I").point(lambda v: v * 257)
+    gradient.convert("I;16").save(workdir / "scan.tiff", "TIFF")
+    assert main(["prompt", "--image", "scan.tiff"]) == 0
+    with Image.open(workdir / "data" / "pictures" / "scan.jpg") as img:
+        assert 110 < ImageStat.Stat(img.convert("L")).mean[0] < 145  # not a white box
+
+
 def test_prompt_image_url_is_passed_through(workdir: Path, fake_prompt: Calls) -> None:
     url = "https://example.org/photos/market%20stall.jpg"
     assert main(["prompt", "--image", url]) == 0
     assert fake_prompt.items[-1].image == url
     assert not (workdir / "data").exists()
+
+
+def test_prompt_image_url_langwich_cannot_load_is_an_error(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # validate rejects every scheme but http(s), data: and file:
+    assert main(["prompt", "--image", "ftp://example.org/market.jpg"]) == 2
+    assert "only from a local file, an http(s) URL or a data: URI" in capsys.readouterr().err
+    assert fake_prompt.items == []
+
+
+def test_prompt_image_file_url_is_copied_like_a_path(
+    workdir: Path, fake_prompt: Calls,
+) -> None:
+    photo = _picture(workdir / "My Photos" / "market stall.png")
+    url = "file://" + str(photo).replace(" ", "%20")
+    assert main(["prompt", "--image", url]) == 0
+    assert fake_prompt.items[-1].image == "pictures/market-stall.png"
+    assert (workdir / "data" / "pictures" / "market-stall.png").read_bytes() == photo.read_bytes()
 
 
 def test_real_prompt_names_the_copied_picture_relatively(
@@ -974,6 +1094,16 @@ def test_prompt_series_and_device_flags(
     assert saved["device"] == "color"
     assert main(["prompt", "--frame", "episode", "--no-series"]) == 0
     assert fake_prompt.items[-1].series is False
+
+
+def test_prompt_continue_rejects_no_series(
+    workdir: Path, fake_prompt: Calls, capsys: pytest.CaptureFixture[str],
+) -> None:
+    # the next episode is always part of the series: --no-series cannot hold
+    assert main(["prompt", "--continue", str(LENA), "--no-series"]) == 2
+    assert "--no-series cannot be combined with --continue" in capsys.readouterr().err
+    assert fake_prompt.items == []
+    assert main(["prompt", "--continue", str(LENA), "--series"]) == 0
 
 
 def test_prompt_continue_suggests_next_episode_file(
