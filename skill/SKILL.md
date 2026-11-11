@@ -139,9 +139,10 @@ as downloads in whatever way this app allows. Tell them in plain words:
 > Your worksheet is ready: *Die Nachtbäckerei*, 14 pages. Print it double-sided, or copy it to
 > your e-reader. Keep the small .json file too: send it to me next time and I'll write episode 2.
 
-**No PDF tools in this sandbox** (the offline path of step 0): `render` then ends with
-`PDF not created: WeasyPrint could not be loaded` and exit status 1. That is expected, not a
-problem with the worksheet — don't change the JSON or render again. The HTML file it names is the
+**When `render` ends with `PDF not created: WeasyPrint could not be loaded`** and exit status 1,
+this sandbox cannot make PDFs — after the offline path of step 0, or because a system library
+WeasyPrint needs is missing even though the install worked. That is not a problem with the
+worksheet — don't change the JSON or render again. The HTML file it names is the
 worksheet. Its fonts are linked to files in this sandbox, so first embed them, or the person's
 browser prints it in other fonts:
 

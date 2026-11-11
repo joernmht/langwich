@@ -180,6 +180,7 @@ def test_the_bundled_engine_installs_with_pip(skill_zip: Path, tmp_path: Path) -
     Without build isolation, so no download is needed: this checks the zip's
     pyproject.toml (readme, licence files, package data), not the network.
     """
+    pytest.importorskip("pip")
     pytest.importorskip("setuptools", minversion="77")
     engine = _unpack(skill_zip, tmp_path / "unpacked")
     target = tmp_path / "site"
