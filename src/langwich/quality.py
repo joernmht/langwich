@@ -22,9 +22,10 @@ Three dimensions:
   word box, nothing in the task that shows its own answer, room to write.
 
 Where a number comes from the authoring brief (``langwich prompt``) the rule
-says so; the level table is read from :data:`langwich.prompt.LEVELS`, so the
-rubric and the brief cannot drift apart. The other rules are common
-item-writing practice (the right option must not be the longest one; a word
+says so. The writing range is read from :data:`langwich.prompt.LEVELS`; the
+sentence limits are this module's own table, which the tests hold against the
+numbers the brief gives (A1 to B1 — beyond that the brief gives none). The
+other rules are common item-writing practice (the right option must not be the longest one; a word
 box needs spare words; a true/false task needs both kinds).
 
 What no deterministic rule can see: whether the facts are true, whether the
