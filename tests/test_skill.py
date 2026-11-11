@@ -231,3 +231,37 @@ def test_the_label_check_works_without_a_pdf(tmp_path: Path) -> None:
     assert done.returncode == 0, done.stderr
     for scene in labelled:
         assert (tmp_path / f"labels-{scene}.png").is_file()
+
+
+def test_the_label_check_turns_a_phone_photo_upright(tmp_path: Path) -> None:
+    """A phone photo stores "turn me" in EXIF, and the renderer turns it (images.py). The
+    label check must mark the labels on the same upright picture, or Claude would "fix"
+    markers that are right."""
+    from PIL import Image
+
+    match = re.search(r"python3 - data/<file>\.json <<'EOF'\n(.*?)\nEOF\n", _skill_md(), re.S)
+    assert match
+    # stored 300 wide x 200 high; orientation 6 means: show it turned 90 degrees clockwise,
+    # so the learner sees 200 x 300
+    stored = Image.new("RGB", (300, 200), "white")
+    exif = stored.getexif()
+    exif[0x0112] = 6
+    (tmp_path / "pictures").mkdir()
+    stored.save(tmp_path / "pictures" / "phone.jpg", exif=exif)
+    sheet = {"story": {"scenes": [{"id": "s1", "picture": {
+        "image": "pictures/phone.jpg",
+        "labels": [{"n": 1, "term": "der Turm", "x": 0.25, "y": 0.75}],
+    }}]}}
+    (tmp_path / "sheet.json").write_text(json.dumps(sheet), encoding="utf-8")
+    done = subprocess.run(
+        [sys.executable, "-", str(tmp_path / "sheet.json")], input=match.group(1),
+        capture_output=True, text=True, check=False, cwd=tmp_path,
+    )
+    assert done.returncode == 0, done.stderr
+    marked = Image.open(tmp_path / "labels-s1.png").convert("RGB")
+    assert marked.size == (200, 300), "the photo was not turned upright"
+    # the marker's ring passes through (x * width +/- r, y * height) of the upright picture
+    r = max(8, marked.width // 60)
+    red = [marked.getpixel((int(0.25 * 200) + dx, int(0.75 * 300)))
+           for dx in range(-r - 2, -r + 3)]
+    assert any(p[0] > 200 and p[1] < 80 and p[2] < 80 for p in red), "no marker at the label"

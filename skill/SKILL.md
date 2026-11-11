@@ -137,7 +137,7 @@ picture to look at:
 ```bash
 python3 - data/<file>.json <<'EOF'
 import json, os, sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 path = sys.argv[1]
 sheet = json.load(open(path, encoding="utf-8"))
 for scene in sheet["story"]["scenes"]:
@@ -145,7 +145,8 @@ for scene in sheet["story"]["scenes"]:
     image, labels = pic.get("image"), pic.get("labels") or []
     if not image or image.startswith(("http:", "https:", "data:")) or not labels:
         continue
-    img = Image.open(os.path.join(os.path.dirname(path), image)).convert("RGB")
+    img = Image.open(os.path.join(os.path.dirname(path), image))
+    img = (ImageOps.exif_transpose(img) or img).convert("RGB")  # upright, as on the sheet
     draw, r = ImageDraw.Draw(img), max(8, img.width // 60)
     for label in labels:
         if label.get("x") is None or label.get("y") is None:
