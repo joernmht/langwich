@@ -43,7 +43,7 @@ findings is well built, not necessarily good.
 
 ## The 50 rules
 
-Where a number comes from the authoring brief (`langwich prompt`), the reason says so; the level table is read from the brief's own, so the two cannot drift apart. The other rules are common item-writing practice.
+Where a number comes from the authoring brief (`langwich prompt`), the reason says so; the tests hold those numbers against the brief, so the two cannot drift apart. The other rules are common item-writing practice.
 
 ### Story (16)
 
@@ -138,7 +138,7 @@ What is counted in a task of each kind, how many of it a task should have (`item
 
 ## Level limits
 
-`sentence-length` and `writing-scaffold` scale with the CEFR level. The writing range is the brief's; a task may leave it by half at the lower end and by half at the upper end before the rule reports it.
+`sentence-length` and `writing-scaffold` scale with the CEFR level. The sentence limits are the rubric's own table: from A1 to B1 they are the upper ends of the brief's level table, and a test holds them against it; beyond B1 the brief gives no numbers. The writing range is read from the brief; a task may leave it by half at the lower end and by half at the upper end before the rule reports it.
 
 | Level | Words per sentence (mean, at most) | Longest sentence (at most) | Writing task (words) |
 |---|---|---|---|

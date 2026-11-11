@@ -223,9 +223,10 @@ box, room to write). [`quality.md`](quality.md) lists every rule; it is generate
   worksheet order). `tests/test_quality.py` checks the report against a second run, against the
   same JSON with its keys reordered and across interpreters with different hash seeds, and
   runs the rubric with file and socket access blocked.
-* **One source for the numbers.** Level-dependent limits come from `prompt.LEVELS`, the table the
-  brief prints; the rubric's own thresholds are constants at the top of the module. The brief's
-  example (`prompt.MINI_EXAMPLE`) must have no findings.
+* **Where the numbers come from.** The writing range is read from `prompt.LEVELS`, the table the
+  brief prints. The sentence limits are constants in the rubric: a test holds A1–B1 against the
+  numbers in the brief, and beyond B1 the brief gives none. The other thresholds are constants
+  at the top of the module. The brief's example (`prompt.MINI_EXAMPLE`) must have no findings.
 * **Shared word search.** A key word "comes up" in a task when the validator's patterns
   (`plan.term_pattern`) find it; a character is "named" when a word of the name that is not a
   title (`quality.name_keys`) occurs as a whole word — in languages that put case endings on

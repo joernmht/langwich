@@ -10,7 +10,8 @@ Four groups:
    hold the declaration against.
 2. **One broken worksheet per rule** — the brief's own example
    (``prompt.MINI_EXAMPLE``) has no findings; each mutation breaks one thing,
-   and exactly that rule must report it. A rule without a mutation fails the
+   and that rule must report it — alone, or together with the rules listed
+   in ``ALSO`` that the same change cannot help triggering. A rule without a mutation fails the
    suite, so no rule goes untested.
 3. **The corpus** — every bundled example is held to the rubric. ``ACCEPTED``
    lists the findings that are known and tolerated, each with a reason; the
@@ -30,6 +31,7 @@ import ast
 import copy
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -160,9 +162,13 @@ def test_the_level_limits_are_the_briefs() -> None:
     # are the upper ends of the brief's level table
     assert set(SENTENCE_WORDS) == set(LEVELS)
     for level in ("A1", "A2", "B1"):
-        assert str(SENTENCE_WORDS[level]) in LEVELS[level].sentences, level
+        numbers = [int(n) for n in re.findall(r"\d+", LEVELS[level].sentences)]
+        assert max(numbers) == SENTENCE_WORDS[level], (level, LEVELS[level].sentences)
+    for level in ("B2", "C1", "C2"):
+        # the brief gives no numbers here; once it does, the rubric has to follow
+        assert not re.search(r"\d", LEVELS[level].sentences), (level, LEVELS[level].sentences)
     limits = [SENTENCE_WORDS[level] for level in LEVELS]
-    assert limits == sorted(limits)
+    assert limits == sorted(limits) and len(set(limits)) == len(limits)
 
 
 def test_the_briefs_own_example_meets_the_rubric() -> None:
@@ -183,10 +189,9 @@ def _third_scene(d: dict[str, Any]) -> None:
     scenes.append({**copy.deepcopy(scenes[1]), "id": "s3", "beat": "resolution"})
     scenes[1]["beat"] = "development"
     scenes[2].pop("picture", None)
+    _task(d, "t2")["scene"] = ["s1", "s3"]  # the new scene is checked: only the turn is missing
 
 
-def _swap_beats(d: dict[str, Any]) -> None:
-    _scene(d, 0)["beat"], _scene(d, 1)["beat"] = "resolution", "setup"
 
 
 def _hide_protagonist(d: dict[str, Any]) -> None:
@@ -221,7 +226,7 @@ def _other_warm_up_words(d: dict[str, Any]) -> None:
         {"left": "staunen", "right": "to be amazed"},
         {"left": "der Stiefel", "right": "boot"},
         {"left": "der Schlick", "right": "mud"},
-        {"left": "die Sandbank", "right": "sandbank"},
+        {"left": "der Priel", "right": "tidal creek"},
     ]
 
 
@@ -285,7 +290,7 @@ def _right_is_always_longest(d: dict[str, Any]) -> None:
                      "Mia geht zu langsam."],
          "answer": "Mia läuft zu den Seehunden hin."},
         {"question": "Wann stehen sie vor dem Leuchtturm?",
-         "options": ["um zehn Uhr", "um halb eins am Mittag", "um ein Uhr"],
+         "options": ["um zehn Uhr am Morgen", "um halb eins am Mittag", "um ein Uhr am Tag"],
          "answer": "um halb eins am Mittag"},
         {"question": "Was ist eine Stunde später mit dem Weg?",
          "options": ["Er ist trocken.", "Er ist wieder unter Wasser.", "Er ist voller Leute."],
@@ -294,12 +299,11 @@ def _right_is_always_longest(d: dict[str, Any]) -> None:
 
 
 def _dense_cloze(d: dict[str, Any]) -> None:
-    _task(d, "t5")["text"] = "Die {{Ebbe}} und die {{Flut}} im {{Watt}} bei der {{Insel}}."
+    _task(d, "t5")["text"] = "Mia sieht {{Ebbe}} und {{Flut}} im {{Watt}} bei der {{Insel}}."
 
 
 def _same_word_twice(d: dict[str, Any]) -> None:
-    cloze = _task(d, "t5")
-    cloze["text"] = cloze["text"].replace("{{Flut}}", "{{Ebbe}}")
+    _task(d, "t5")["text"] += " Morgen früh ist wieder {{Ebbe}}."
 
 
 def _answer_in_plain_sight(d: dict[str, Any]) -> None:
@@ -315,11 +319,12 @@ def _crowd_the_markers(d: dict[str, Any]) -> None:
     labels[1]["x"], labels[1]["y"] = labels[0]["x"] + 0.01, labels[0]["y"]
 
 
-#: rule code -> a mutation of the clean example that breaks exactly this rule.
+#: rule code -> a mutation of the clean example that breaks this rule, and
+#: nothing else except what ``ALSO`` lists.
 MUTANTS: dict[str, Mutation] = {
     # story
     "beat-missing": lambda d: _scene(d, 0).pop("beat"),
-    "beat-order": _swap_beats,
+    "beat-order": lambda d: _scene(d, 0).update(beat="development"),
     "no-turn": _third_scene,
     "no-resolution": lambda d: _scene(d, 1).update(beat="complication"),
     "protagonist-absent": _hide_protagonist,
@@ -328,7 +333,9 @@ MUTANTS: dict[str, Mutation] = {
     "logline-without-protagonist": lambda d: d["story"].update(
         logline="A nurse on holiday wants to walk to an island before the water returns."),
     "no-direct-speech": _no_speech,
-    "scene-unbalanced": lambda d: _scene(d, 1).update(text=" ".join([_scene(d, 1)["text"]] * 3)),
+    "scene-unbalanced": lambda d: _scene(d, 1).update(
+        text=" ".join([_scene(d, 1)["text"]] * 3),
+        translation=" ".join([_scene(d, 1)["translation"]] * 3)),
     "sentence-length": _long_sentence,
     "translation-missing": lambda d: _scene(d, 0).pop("translation"),
     "fact-repeats-story": lambda d: d["facts"][0].update(
@@ -438,8 +445,21 @@ def test_the_lines_suggestion_is_the_fewest_lines_that_pass() -> None:
     assert "lines-too-few" not in _codes(data)
 
 
+#: What a mutation triggers besides its own rule, because the same change
+#: cannot help it: without a warm-up the key words are not pre-taught; without
+#: form and practice tasks the grammar goes unpractised and the key words come
+#: up in fewer tasks. Everything else must stay silent, so two rules that fire
+#: on the same thing show up here as a failing test.
+ALSO: dict[str, set[str]] = {
+    "no-warm-up": {"target-not-pretaught"},
+    "no-language-work": {"grammar-unpractised", "target-thinly-practised"},
+    "target-not-pretaught": {"target-thinly-practised"},
+}
+
+
 def test_every_rule_has_a_mutant() -> None:
     assert set(MUTANTS) == set(RULES)
+    assert set(ALSO) <= set(RULES) and all(extra <= set(RULES) for extra in ALSO.values())
 
 
 @pytest.mark.parametrize("code", list(RULES))
@@ -448,8 +468,14 @@ def test_the_rule_reports_its_mutant(code: str) -> None:
     assert _codes(data) == set()
     MUTANTS[code](data)
     report = assess(worksheet_from_dict(data))
+    fired = {f.code for f in report.findings}
+    assert code in fired, f"{code} did not fire; got {sorted(fired)}"
+    expected = {code} | ALSO.get(code, set())
+    assert fired == expected, (
+        f"the mutation for {code} also triggered {sorted(fired - expected)} and missed "
+        f"{sorted(expected - fired)}: narrow the mutation, or list the rule in ALSO with a reason"
+    )
     hits = [f for f in report.findings if f.code == code]
-    assert hits, f"{code} did not fire; got {sorted({f.code for f in report.findings})}"
     for finding in hits:
         assert finding.where.startswith("/"), finding
         assert finding.dimension == RULES[code].dimension
@@ -473,7 +499,8 @@ VARIANTS: list[tuple[str, Mutation]] = [
         distractors=["Sonne", "Schlick", "Stiefel", "Strand", "Sand", "Pferd"])),
     ("distractor-stands-out", lambda d: _task(d, "t5").update(distractors=["nass"])),
     ("item-count", lambda d: _task(d, "t1").update(pairs=_task(d, "t1")["pairs"][:3])),
-    ("beat-order", lambda d: _scene(d, 0).update(beat="development")),
+    ("beat-order", lambda d: (_scene(d, 0).update(beat="resolution"),
+                             _scene(d, 1).update(beat="setup"))),
     ("cover-incomplete", lambda d: d["story"].pop("setting")),
     ("cover-incomplete", lambda d: d["story"]["characters"][1].pop("role")),
     ("cover-incomplete", lambda d: d["story"]["characters"].pop()),
