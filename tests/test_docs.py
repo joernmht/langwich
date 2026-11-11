@@ -1,6 +1,6 @@
 """Contract tests that keep the documentation honest.
 
-The README, CLAUDE.md, the ``/langwich`` slash command and the landing page
+The README, CLAUDE.md, the ``/langwich`` slash command, the Claude skill and the landing page
 show commands, flags and JSON that people — and LLMs — copy verbatim. These
 tests fail as soon as the docs drift away from the code:
 
@@ -62,6 +62,7 @@ DOC_FILES: tuple[str, ...] = (
     "README.md",
     "CLAUDE.md",
     ".claude/commands/langwich.md",
+    "skill/SKILL.md",
     "docs/index.html",
     "docs/architecture.md",
     "docs/quality.md",

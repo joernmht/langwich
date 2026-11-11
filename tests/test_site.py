@@ -31,8 +31,8 @@ DOCS = REPO_ROOT / "docs"
 INDEX = DOCS / "index.html"
 EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.json"))
 GITHUB_BLOB = "https://github.com/joernmht/langwich/blob/main/"
-#: Published by the Pages workflow, not checked in.
-DEPLOY_ONLY = ("schema/",)
+#: Published by the Pages workflow, not checked in (the skill: scripts/build_skill.py).
+DEPLOY_ONLY = ("schema/", "langwich-skill.zip")
 
 
 class _Page(HTMLParser):
@@ -200,3 +200,77 @@ def test_languages_are_named_as_langwich_names_them(atlas: dict) -> None:
         assert english and endonym, code
         if code in ENDONYMS:
             assert endonym == ENDONYMS[code], code
+
+
+# -- the audience switch -------------------------------------------------------------
+
+
+_VOID = frozenset({"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+                   "source", "track", "wbr", "path"})
+
+
+class _Views(HTMLParser):
+    """Per top-level region (the hero and each <section>): which views it has content for."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.regions: dict[str, set[str]] = {}
+        self.switches: list[tuple[dict[str, str], bool]] = []
+        self._region: str | None = None
+        self._stack: list[set[str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        a = {k: v or "" for k, v in attrs}
+        classes = a.get("class", "").split()
+        if tag == "section" or (tag == "div" and "hero" in classes):
+            self._region = a.get("id", "hero")
+            self.regions.setdefault(self._region, set())
+        if self._region is not None:
+            for view in ("only-simple", "only-nerd"):
+                if view in classes:
+                    self.regions[self._region].add(view)
+        if tag not in _VOID:
+            self._stack.append(set(classes))
+        if "data-view" in a:
+            above = set().union(*self._stack)
+            # hidden without JavaScript: inside the header control (hidden until the script
+            # shows it) or inside .needs-js
+            self.switches.append((a, bool(above & {"audience", "needs-js"})))
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag not in _VOID and self._stack:
+            self._stack.pop()
+
+
+def test_both_views_cover_the_same_sections() -> None:
+    """A region written for one view needs a version for the other: the switch hides the
+    first, and nothing else would tell that the second is missing."""
+    parser = _Views()
+    parser.feed(INDEX.read_text(encoding="utf-8"))
+    for region, views in parser.regions.items():
+        assert views in (set(), {"only-simple", "only-nerd"}), (
+            f"#{region} has {sorted(views)} only: give it the other version too"
+        )
+    assert {r for r, v in parser.regions.items() if v} >= {
+        "hero", "how-it-works", "lesson", "examples", "your-ai", "get-started"
+    }
+
+
+def test_the_switch_works_and_fails_safe() -> None:
+    """The head script picks a view; without it both versions show and the switches go."""
+    text = INDEX.read_text(encoding="utf-8")
+    assert '<html lang="en">' in text, "no view in the markup: without JavaScript show both"
+    head = text[:text.index("<style>")]
+    assert "localStorage.getItem('langwich-view')" in head and "get('view')" in head
+    assert "dataset.audience" in head
+    style = text[text.index("<style>"):text.index("</style>")]
+    for rule in ('html[data-audience="simple"] .only-nerd',
+                 'html[data-audience="nerd"] .only-simple',
+                 "html:not([data-audience]) .needs-js"):
+        assert rule in style, rule
+    parser = _Views()
+    parser.feed(text)
+    assert parser.switches
+    for attrs, hidden_without_js in parser.switches:
+        assert attrs["data-view"] in ("simple", "nerd")
+        assert hidden_without_js, f"this switch shows, dead, without JavaScript: {attrs}"

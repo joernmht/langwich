@@ -48,6 +48,10 @@ dev = [
     "ruff>=0.15,<0.17",
     "mypy>=1.8,<2",
     "pymupdf>=1.23",
+    # tests/test_skill.py builds the skill's engine with pip, offline (no build isolation)
+    "setuptools>=77",
+    # tests/test_skill.py reads the skill's frontmatter as YAML, as Claude does
+    "pyyaml>=6",
 ]
 
 [project.urls]

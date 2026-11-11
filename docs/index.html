@@ -12,6 +12,16 @@
 <meta property="og:url" content="https://joernmht.github.io/langwich/">
 <meta property="og:image" content="https://joernmht.github.io/langwich/assets/lena-01-page1.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='22' height='26' rx='2' fill='%23ffffff' stroke='%23003399' stroke-width='2.5'/%3E%3Cpath d='M10 10h12M10 15h12' stroke='%23003399' stroke-width='2.5'/%3E%3Cpath d='M10 21h8' stroke='%23ffcc00' stroke-width='4'/%3E%3C/svg%3E">
+<script>
+  // The audience switch: "simple" (the default) or "nerd". Applied before the page is drawn, so
+  // a returning reader never sees the other version flash by. ?view=nerd or ?view=simple wins.
+  // Without JavaScript no view is set, and the page shows both versions of every section.
+  (() => {
+    let view = new URLSearchParams(location.search).get('view');
+    try { view = view || localStorage.getItem('langwich-view'); } catch { /* no storage */ }
+    document.documentElement.dataset.audience = view === 'nerd' ? 'nerd' : 'simple';
+  })();
+</script>
 <style>
   /* The page is set in the worksheets' own typefaces (scripts/build_page_fonts.py). */
   @font-face { font-family: "Atkinson Hyperlegible Next"; font-weight: 400; font-display: swap;
@@ -113,6 +123,30 @@
   nav.links { display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; }
   nav.links a { color: var(--ink); text-decoration: none; }
   nav.links a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: var(--yellow); }
+
+  /* ---------- the audience switch ---------- */
+  html[data-audience="simple"] .only-nerd,
+  html[data-audience="nerd"] .only-simple { display: none !important; }
+  /* without JavaScript nothing can switch, so the switches go */
+  html:not([data-audience]) .needs-js { display: none !important; }
+  /* ... and both versions show: where they sit side by side in one line, keep them apart */
+  html:not([data-audience]) :is(span, b, code).only-simple + :is(span, b, code).only-nerd::before,
+  html:not([data-audience]) :is(span, b, code).only-nerd + :is(span, b, code).only-simple::before {
+    content: " / "; font-family: inherit; color: var(--muted);
+  }
+  .audience {
+    display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 999px; padding: 3px;
+    font-size: 14px;
+  }
+  .audience[hidden] { display: none; }
+  .audience span { align-self: center; padding: 0 8px 0 10px; color: var(--muted); }
+  .audience button {
+    font: inherit; font-weight: 700; padding: 5px 13px; cursor: pointer; border-radius: 999px;
+    background: transparent; color: var(--muted); border: none;
+  }
+  .audience button:hover { color: var(--ink); }
+  .audience button[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); }
+  .nav-right { display: flex; align-items: center; gap: 12px 24px; flex-wrap: wrap; }
 
   /* ---------- hero: the 30 ---------- */
   .hero { background: var(--blue); color: var(--on-blue); }
@@ -377,6 +411,41 @@
   .start-note { font-size: 16px; color: var(--muted); margin-top: 16px; }
   .start-grid .cta-row { margin-top: 26px; }
 
+  /* the plain-words guide */
+  ol.howto { list-style: none; counter-reset: howto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 40px; }
+  .howto li { border-top: 2px solid var(--ink); padding-top: 18px; max-width: 34em; }
+  .howto h3 { font-size: 20px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .howto h3::before {
+    counter-increment: howto; content: counter(howto);
+    flex: none; width: 30px; height: 30px; background: var(--ink); color: var(--paper);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .howto p, .howto ul { font-size: 16.5px; color: var(--muted); }
+  .howto p + p, .howto p + ul { margin-top: 10px; }
+  .howto ul { margin-left: 20px; }
+  .howto ul li { border: none; padding: 0; margin-bottom: 6px; }
+  .howto b { color: var(--ink); }
+  .howto .btn { margin-top: 4px; }
+  .say {
+    font-family: "Literata", Georgia, serif; font-style: italic; color: var(--ink) !important;
+    background: var(--blue-wash); border-left: 5px solid var(--yellow); padding: 12px 16px;
+  }
+  .good-to-know { margin-top: 48px; padding-top: 18px; border-top: 2px solid var(--ink); max-width: 52em; }
+  .good-to-know h3 { font-size: 20px; margin-bottom: 10px; }
+  .good-to-know ul { margin-left: 20px; color: var(--muted); font-size: 16px; }
+  .good-to-know li { margin-bottom: 8px; }
+  .good-to-know b { color: var(--ink); }
+  .linklike {
+    font: inherit; color: var(--link); background: none; border: none; padding: 0;
+    text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  }
+  .start-cards { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+  .start-cards li { border-top: 2px solid var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .start-cards h3 { font-size: 20px; }
+  .start-cards p { font-size: 16px; color: var(--muted); flex: 1; }
+  button.btn { font-family: inherit; cursor: pointer; }
+  dl.kinds dt b { font-size: 15.5px; }
+
   /* footer: the 30 again */
   footer { background: var(--blue); color: var(--on-blue-muted); padding: 40px 0 48px; }
   .foot-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 15px; }
@@ -389,13 +458,14 @@
     .hero-grid { grid-template-columns: 1fr; gap: 44px; padding-top: 52px; padding-bottom: 60px; }
     .paper-stack { width: min(100%, 360px); justify-self: start; }
     .reasons, .steps { grid-template-columns: 1fr 1fr; }
+    .start-cards { grid-template-columns: 1fr; gap: 28px; }
     .ex-grid, .start-grid, .atlas { grid-template-columns: 1fr; }
     .ex-side, .atlas-map { position: static; }
     .atlas-map { max-width: 560px; }
   }
   @media (max-width: 620px) {
     body { font-size: 16.5px; }
-    .reasons, .steps { grid-template-columns: 1fr; }
+    .reasons, .steps, ol.howto { grid-template-columns: 1fr; }
     section { padding: 60px 0; }
     nav.links { gap: 14px; font-size: 14.5px; }
     .facts { grid-template-columns: 1fr; }
@@ -418,15 +488,22 @@
       <svg viewBox="0 0 24 28" width="21" height="24" aria-hidden="true"><rect x="1.25" y="1.25" width="21.5" height="25.5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M6 9h12M6 14h12" stroke="currentColor" stroke-width="2.5"/><path d="M6 19.5h8" stroke="#ffcc00" stroke-width="4"/></svg>
       langwich
     </a>
-    <nav class="links" aria-label="Sections">
-      <a href="#why-paper">Why paper</a>
-      <a href="#how-it-works">How it works</a>
-      <a href="#lesson">The lesson</a>
-      <a href="#examples">Examples</a>
-      <a href="#your-ai">Use with your AI</a>
-      <a href="#get-started">Get started</a>
-      <a href="https://github.com/joernmht/langwich">GitHub ↗</a>
-    </nav>
+    <div class="nav-right">
+      <nav class="links" aria-label="Sections">
+        <a href="#why-paper">Why paper</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#lesson">The lesson</a>
+        <a href="#examples">Examples</a>
+        <a href="#your-ai"><span class="only-simple">Make your own</span><span class="only-nerd">Use with your AI</span></a>
+        <a href="#get-started">Get started</a>
+        <a class="only-nerd" href="https://github.com/joernmht/langwich">GitHub ↗</a>
+      </nav>
+      <div class="audience" role="group" aria-label="How technical should this page be?" hidden>
+        <span>I’m</span>
+        <button type="button" data-view="simple" aria-pressed="true">Non-technical</button>
+        <button type="button" data-view="nerd" aria-pressed="false">an IT nerd</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -438,16 +515,30 @@
       <div>
         <p class="hero-kicker">Story worksheets for print &amp; e-paper</p>
         <h1>Screens generate.<br><span class="alt">Paper teaches.</span></h1>
-        <p class="lede">langwich turns a short story into a language worksheet you work through
+        <p class="lede only-simple">Tell an AI chat which language you are learning and what you
+        are curious about. A few minutes later you have a worksheet to print: a short story with
+        true facts woven in, tasks to fill in by hand, and the answers at the back. Then the screen
+        goes off.</p>
+        <p class="lede only-nerd">langwich turns a short story into a language worksheet you work through
         with a pen. Any AI — Claude, ChatGPT, Gemini, or one running on your own computer —
         writes the story, weaves in true facts and builds every task around it. langwich checks
         its work and typesets the lot for e-paper and print.
         Then the screen goes off.</p>
-        <div class="cta-row">
+        <div class="cta-row only-simple">
+          <a class="btn primary" href="#your-ai">Make your own worksheet</a>
+          <a class="btn ghost" href="#examples">Print a ready-made one</a>
+        </div>
+        <div class="cta-row only-nerd">
           <a class="btn primary" href="#get-started">Get started</a>
           <a class="btn ghost" href="https://github.com/joernmht/langwich">View on GitHub</a>
         </div>
-        <ul class="facts">
+        <ul class="facts only-simple">
+          <li>Free and open source, nothing to install</li>
+          <li>Made in a chat with Claude</li>
+          <li>Print it, or read it on an e-reader</li>
+          <li>Your own photo can start the story</li>
+        </ul>
+        <ul class="facts only-nerd">
           <li>Python 3.11+ · Apache-2.0</li>
           <li>Claude, ChatGPT, Gemini &amp; local models</li>
           <li>A4 or e-paper PDF</li>
@@ -459,8 +550,10 @@
         <img class="sheet front" src="assets/lena-01-page1.png" width="910" height="1287"
              alt="First page of a generated worksheet: the title “Fünf Tage im Café Lindner”, the characters, the route through the lesson and a first matching task with German words and English meanings.">
         <figcaption class="paper-caption">
-          Real output — <code>examples/lena_01_en_de.json</code>, episode&nbsp;1 of a series,
-          rendered to an A4 worksheet (English&nbsp;→&nbsp;German, level&nbsp;B1).
+          <span class="only-simple">A real worksheet: episode&nbsp;1 of a story series for
+          English speakers learning German, level&nbsp;B1.</span>
+          <span class="only-nerd">Real output — <code>examples/lena_01_en_de.json</code>, episode&nbsp;1 of a series,
+          rendered to an A4 worksheet (English&nbsp;→&nbsp;German, level&nbsp;B1).</span>
           <a href="#examples">More examples below.</a>
         </figcaption>
       </figure>
@@ -524,12 +617,34 @@
       <div class="section-head">
         <p class="phase"><span class="n">2</span>The workflow</p>
         <h2>From an idea to a printout in three steps</h2>
-        <p>langwich is deliberately split in two: an AI writes every word, a small Python tool
+        <p class="only-simple">You talk, the AI writes, langwich checks the result and lays it out
+        for paper. Nothing to install, no account with us, nothing to configure.</p>
+        <p class="only-nerd">langwich is deliberately split in two: an AI writes every word, a small Python tool
         checks it and sets it on paper. langwich itself calls no API and needs no key and
         no account — and its renderer fetches nothing from the network: the PDF is made
         from the JSON, the bundled fonts and the picture the JSON names.</p>
       </div>
-      <div class="steps">
+      <div class="steps only-simple">
+        <div class="step">
+          <h3>Say what you’d like</h3>
+          <p>Your language, the one you are learning, your level — and what the story should be
+          about: bread, night trains, your next holiday. Or send a photo, and the story is built
+          around it.</p>
+        </div>
+        <div class="step">
+          <h3>The AI writes the story</h3>
+          <p>A short story in scenes, with real facts and characters you want to follow. Around
+          it: word lists, grammar tips and tasks that walk you through it, each with its answer.
+          Want more? Ask for episode&nbsp;2.</p>
+        </div>
+        <div class="step">
+          <h3>You get a calm PDF</h3>
+          <p>langwich checks the AI’s work and sends mistakes back for fixing, so you don’t have to
+          spot them. Then it lays everything out in lesson order: black and white, room to write,
+          the answers at the back.</p>
+        </div>
+      </div>
+      <div class="steps only-nerd">
         <div class="step">
           <h3>Ask for a prompt</h3>
           <p><code>langwich prompt --topic bread</code> prints a complete brief for the AI:
@@ -569,72 +684,72 @@
         happened, look at the picture, work with the language, read on — then write something
         of your own and take it further. The AI picks from
         <span data-count="task-kinds">13</span> kinds of task; langwich puts each one right after
-        the scene it belongs to. (These numbers aren’t hand-written, by the way — they’re read
-        from the code on every deploy.)</p>
+        the scene it belongs to.<span class="only-nerd"> (These numbers aren’t hand-written, by the way — they’re read
+        from the code on every deploy.)</span></p>
       </div>
       <div class="ex-grid">
         <div>
           <div class="family">
             <div class="family-head">
               <h3>Before you read</h3>
-              <span class="stages"><span class="stage">warm_up</span></span>
+              <span class="stages only-nerd"><span class="stage">warm_up</span></span>
             </div>
             <p>Meet the key words and make a guess about the story before its first line.</p>
             <dl class="kinds">
-              <dt><code>match</code></dt><dd>Pair each word with its meaning; a few spare answers keep it honest.</dd>
+              <dt><code class="only-nerd">match</code><b class="only-simple">Matching</b></dt><dd>Pair each word with its meaning; a few spare answers keep it honest.</dd>
             </dl>
           </div>
           <div class="family">
             <div class="family-head">
               <h3>Scene by scene: what happened</h3>
-              <span class="stages"><span class="stage">gist</span><span class="stage">detail</span></span>
+              <span class="stages only-nerd"><span class="stage">gist</span><span class="stage">detail</span></span>
             </div>
             <p>After each scene: first the main events, then a closer look at facts, reasons
             and feelings.</p>
             <dl class="kinds">
-              <dt><code>true_false</code></dt><dd>Tick true or false, and correct the false statements.</dd>
-              <dt><code>multiple_choice</code></dt><dd>Tick the one right answer.</dd>
-              <dt><code>order_events</code></dt><dd>Number the events in the order they happened.</dd>
-              <dt><code>questions</code></dt><dd>Answer in writing, on lines sized for handwriting.</dd>
+              <dt><code class="only-nerd">true_false</code><b class="only-simple">True or false</b></dt><dd>Tick true or false, and correct the false statements.</dd>
+              <dt><code class="only-nerd">multiple_choice</code><b class="only-simple">Multiple choice</b></dt><dd>Tick the one right answer.</dd>
+              <dt><code class="only-nerd">order_events</code><b class="only-simple">Put in order</b></dt><dd>Number the events in the order they happened.</dd>
+              <dt><code class="only-nerd">questions</code><b class="only-simple">Questions</b></dt><dd>Answer in writing, on lines sized for handwriting.</dd>
             </dl>
           </div>
           <div class="family">
             <div class="family-head">
               <h3>Scene by scene: the picture</h3>
-              <span class="stages"><span class="stage">picture</span></span>
+              <span class="stages only-nerd"><span class="stage">picture</span></span>
             </div>
             <p>One scene has a picture — your photo, or simple line art the AI drew. Its tasks
             come right after you have understood the scene.</p>
             <dl class="kinds">
-              <dt><code>label</code></dt><dd>Name the numbered objects in the scene picture; the word box gives the words, you add the article.</dd>
-              <dt><code>draw</code></dt><dd>No picture? Draw the scene yourself and label it.</dd>
+              <dt><code class="only-nerd">label</code><b class="only-simple">Name it</b></dt><dd>Name the numbered objects in the scene picture; the word box gives the words, you add the article.</dd>
+              <dt><code class="only-nerd">draw</code><b class="only-simple">Draw it</b></dt><dd>No picture? Draw the scene yourself and label it.</dd>
             </dl>
           </div>
           <div class="family">
             <div class="family-head">
               <h3>Scene by scene: the language</h3>
-              <span class="stages"><span class="stage">form</span><span class="stage">practice</span></span>
+              <span class="stages only-nerd"><span class="stage">form</span><span class="stage">practice</span></span>
             </div>
             <p>Notice the grammar the scene uses, then put the new words and forms into new
             sentences that carry the story on. A grammar box sits beside the task that
             practises it.</p>
             <dl class="kinds">
-              <dt><code>cloze</code></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
-              <dt><code>transform</code></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
-              <dt><code>word_building</code></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
-              <dt><code>dialogue</code></dt><dd>Fill in, or write, the missing lines of a conversation — with a few wrong words in the box.</dd>
+              <dt><code class="only-nerd">cloze</code><b class="only-simple">Fill the gaps</b></dt><dd>Fill the gaps — with a word box, first letters, base forms, translations or no help at all.</dd>
+              <dt><code class="only-nerd">transform</code><b class="only-simple">Rewrite it</b></dt><dd>Rewrite sentences following a cue: another tense, another person.</dd>
+              <dt><code class="only-nerd">word_building</code><b class="only-simple">Build the word</b></dt><dd>Put the parts together into one word: der Kaffee + die Kirsche.</dd>
+              <dt><code class="only-nerd">dialogue</code><b class="only-simple">Dialogue</b></dt><dd>Fill in, or write, the missing lines of a conversation — with a few wrong words in the box.</dd>
             </dl>
           </div>
           <div class="family">
             <div class="family-head">
               <h3>Your turn — and take it further</h3>
-              <span class="stages"><span class="stage">production</span><span class="stage">epilogue</span></span>
+              <span class="stages only-nerd"><span class="stage">production</span><span class="stage">epilogue</span></span>
             </div>
             <p>Write about the story or about yourself, then go looking for more in the
             language you are learning.</p>
             <dl class="kinds">
-              <dt><code>writing</code></dt><dd>Write a text: a prompt, a first line, words to use, a word count — and a model answer at the back.</dd>
-              <dt><code>media_search</code></dt><dd>Search online in the target language: search terms instead of links, and what to find out.</dd>
+              <dt><code class="only-nerd">writing</code><b class="only-simple">Write</b></dt><dd>Write a text: a prompt, a first line, words to use, a word count — and a model answer at the back.</dd>
+              <dt><code class="only-nerd">media_search</code><b class="only-simple">Look it up</b></dt><dd>Search online in the target language: search terms instead of links, and what to find out.</dd>
             </dl>
           </div>
           <p class="lesson-note">These are the usual places — any kind of task can sit at
@@ -647,7 +762,7 @@
           <img class="shot" src="assets/mercado-valencia-picture.png" loading="lazy" width="910" height="1287"
                alt="A worksheet page with a line drawing of a market stall: numbered markers on the awning, the scales, tomatoes, beans, oranges, rice, a basket and the stallholder, answer lines below and a word box.">
           <figcaption>The picture stage in <em>La lista de la abuela Pepa</em>:
-          line art that came with the JSON, numbered where the AI placed its labels, and a word
+          line art the AI drew along with the story, numbered where the AI placed its labels, and a word
           box for the Spanish words.</figcaption>
         </figure>
       </div>
@@ -660,8 +775,10 @@
       <div class="section-head">
         <p class="phase"><span class="n">4</span>See it on paper</p>
         <h2>Pick a country, print a story</h2>
-        <p>These <span data-count="examples">10</span> worksheets come with the repository — render
-        them yourself before involving any AI. Each one wraps true facts in a made-up story set
+        <p><span class="only-simple">Here are <span data-count="examples">10</span> finished
+        worksheets — click a PDF and print it, no AI needed.</span><span class="only-nerd">These
+        <span data-count="examples">10</span> worksheets come with the repository — render
+        them yourself before involving any AI.</span> Each one wraps true facts in a made-up story set
         somewhere in Europe, and every instruction is in the learner’s own language. Choose a
         country on the map to see the worksheets for the languages spoken there, or filter by
         language and level.</p>
@@ -757,7 +874,7 @@
                 <p class="links">
                   <a href="examples/lena_01_en_de.pdf">Worksheet (PDF)</a>
                   <a href="examples/lena_01_en_de-epaper.pdf">E-paper PDF</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/lena_01_en_de.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/lena_01_en_de.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -775,7 +892,7 @@
                 opens with a “Previously” recap and brings back words from the first.</p>
                 <p class="links">
                   <a href="examples/lena_02_en_de.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/lena_02_en_de.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/lena_02_en_de.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -792,7 +909,7 @@
                 screening, the film reel is gone — and one word on its tin means two things.</p>
                 <p class="links">
                   <a href="examples/festival_lyon_de_fr.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/festival_lyon_de_fr.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/festival_lyon_de_fr.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -810,7 +927,7 @@
                 could go wrong?</p>
                 <p class="links">
                   <a href="examples/mercado_valencia_en_es.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/mercado_valencia_en_es.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/mercado_valencia_en_es.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -829,7 +946,7 @@
                 grew out of what the picture shows, and the numbered markers sit on it.</p>
                 <p class="links">
                   <a href="examples/evora_street_en_pt.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/evora_street_en_pt.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/evora_street_en_pt.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -847,7 +964,7 @@
                 bicycle garage, under Utrecht Centraal?</p>
                 <p class="links">
                   <a href="examples/fiets_utrecht_de_nl.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/fiets_utrecht_de_nl.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/fiets_utrecht_de_nl.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -865,7 +982,7 @@
                 dwarf — until an old man on a bench tells him where to look.</p>
                 <p class="links">
                   <a href="examples/krasnale_wroclaw_de_pl.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/krasnale_wroclaw_de_pl.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/krasnale_wroclaw_de_pl.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -883,7 +1000,7 @@
                 that Pils is a German beer. Whose beer is it really?</p>
                 <p class="links">
                   <a href="examples/pivo_plzen_de_cs.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/pivo_plzen_de_cs.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/pivo_plzen_de_cs.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -901,7 +1018,7 @@
                 are shut — but there is a dusty box in the attic, fifty years old.</p>
                 <p class="links">
                   <a href="examples/klodser_billund_de_da.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/klodser_billund_de_da.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/klodser_billund_de_da.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -920,7 +1037,7 @@
                 and what they don’t.</p>
                 <p class="links">
                   <a href="examples/gottardo_lugano_de_it.pdf">Worksheet (PDF)</a>
-                  <a href="https://github.com/joernmht/langwich/blob/main/examples/gottardo_lugano_de_it.json">Source JSON ↗</a>
+                  <a class="only-nerd" href="https://github.com/joernmht/langwich/blob/main/examples/gottardo_lugano_de_it.json">Source JSON ↗</a>
                 </p>
               </div>
             </li>
@@ -936,7 +1053,10 @@
         </a>
         <div>
           <h3>The same sheet on an e-reader</h3>
-          <p>With <code>--page epaper</code> every worksheet is set at 157.8 × 210.4&nbsp;mm in
+          <p class="only-simple">Every worksheet also comes in an e-reader size: one column, larger
+          type, notes in boxes below the text. Ask for it when you make yours — or for a version
+          with one task per page, so there is room for notes.</p>
+          <p class="only-nerd">With <code>--page epaper</code> every worksheet is set at 157.8 × 210.4&nbsp;mm in
           a single column; notes from the margin move into boxes below the text. Add
           <code>--one-task-per-page</code> for room to annotate, and
           <code>--solutions separate</code> to keep the answers in a second file.</p>
@@ -982,7 +1102,68 @@
 
   <!-- ================= USE WITH YOUR AI ================= -->
   <section id="your-ai" class="on-sheet">
-    <div class="wrap">
+    <div class="wrap only-simple">
+      <div class="section-head">
+        <p class="phase"><span class="n">5</span>Make your own</p>
+        <h2>Your own worksheet, in a chat with Claude</h2>
+        <p>No code and no terminal. You add one file to Claude once; after that you just ask
+        for worksheets in your own words, and Claude hands you the finished PDF.</p>
+      </div>
+      <ol class="howto">
+        <li>
+          <h3>Download the langwich skill</h3>
+          <p>One small file that teaches Claude how to make langwich worksheets.</p>
+          <p><a class="btn primary" href="langwich-skill.zip" download>Download langwich-skill.zip</a></p>
+        </li>
+        <li>
+          <h3>Add it to Claude — once</h3>
+          <p>On <a href="https://claude.ai">claude.ai</a> or in the Claude desktop app (a free
+          account is enough):</p>
+          <ul>
+            <li>In <b>Settings → Capabilities</b>, check that <b>Code execution and file
+            creation</b> is on (in newer versions: <b>Create and edit files</b>).</li>
+            <li>Go to <b>Customize → Skills</b>, click <b>+</b>, then <b>Create skill → Upload a
+            skill</b>, and choose the file you downloaded. Leave the zip as it is.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Ask for a worksheet</h3>
+          <p>Start a new chat and write what you want, for example:</p>
+          <p class="say">“Make me a worksheet for learning Spanish, level A2, about the markets
+          of Valencia.”</p>
+          <p>Claude asks two or three quick questions, suggests story ideas, writes the story,
+          checks it and gives you a PDF to download. That takes a few minutes.</p>
+        </li>
+        <li>
+          <h3>Print it, or put it on your e-reader</h3>
+          <p>Claude also gives you a small <b>.json</b> file. Keep it: attach it next time and
+          ask for “episode 2”, and the story goes on with the same characters.</p>
+        </li>
+      </ol>
+      <div class="good-to-know">
+        <h3>Good to know</h3>
+        <ul>
+          <li><b>A photo can start the story.</b> Attach one and write “build the story around
+          this photo”. Claude numbers things in it, and you name them on paper.</li>
+          <li><b>Not sure of your level?</b> Just describe it — “I can order in a café but not
+          follow the news” — and Claude picks one.</li>
+          <li><b>No Customize → Skills in your app?</b> Update the Claude app, or use
+          <a href="https://claude.ai">claude.ai</a> in your browser; skills are on every plan,
+          the free one included. Upload the file on a computer — the phone apps don’t offer it.</li>
+          <li><b>Using Claude at work?</b> Your administrator may have to allow skills and
+          code execution first. If Claude can only make a web page instead of a PDF, open it
+          and choose <b>Print → Save as PDF</b>.</li>
+          <li><b>ChatGPT, Gemini and others</b> write good stories too, but they cannot run
+          langwich in their chat, so they cannot hand you the finished PDF. Someone technical
+          can set langwich up on your computer in about ten minutes<span class="needs-js"> — switch the page to
+          <button type="button" class="linklike" data-view="nerd">IT nerd</button> to see how</span>.</li>
+          <li><b>Mistakes?</b> langwich catches mistakes in how the worksheet is put together,
+          and Claude checks the language and the facts, but an AI can still be wrong now and
+          then. If something looks odd, ask Claude in the same chat.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap only-nerd">
       <div class="section-head">
         <p class="phase"><span class="n">5</span>Bring your own AI</p>
         <h2>Works with the AI you already use</h2>
@@ -1016,6 +1197,11 @@ claude
         <code class="mono">.venv</code> (and installs it there if it is missing). Your defaults
         are kept in <code class="mono">.langwich/profile.json</code>. Works in the Claude Code
         CLI, the desktop app and on claude.ai/code.</p>
+        <p class="hint">No terminal at all? <a href="langwich-skill.zip">langwich-skill.zip</a>
+        is the same companion as an Agent Skill for claude.ai and the Claude desktop app: it
+        bundles langwich, installs it in Claude’s code sandbox and hands back the PDF and the
+        JSON (built by <code class="mono">scripts/build_skill.py</code> from
+        <a href="https://github.com/joernmht/langwich/blob/main/skill/SKILL.md">skill/SKILL.md</a>).</p>
       </div>
 
       <div class="tabpanel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
@@ -1158,7 +1344,33 @@ langwich render "data/$day.json"</pre>
 
   <!-- ================= GET STARTED ================= -->
   <section id="get-started">
-    <div class="wrap start-grid">
+    <div class="wrap only-simple">
+      <div class="section-head">
+        <p class="phase"><span class="n">6</span>Get started</p>
+        <h2>Three ways to start today</h2>
+      </div>
+      <ul class="start-cards">
+        <li>
+          <h3>Print one now</h3>
+          <p>Pick a worksheet from the map, print it double-sided in black and white, and put
+          your phone in another room.</p>
+          <a class="btn ghost" href="#examples">Choose a worksheet</a>
+        </li>
+        <li>
+          <h3>Make your own with Claude</h3>
+          <p>Add the langwich skill to Claude once, then ask for any language, level and topic.
+          The instructions on the sheet are in your own language.</p>
+          <a class="btn primary" href="#your-ai">Show me how</a>
+        </li>
+        <li>
+          <h3>Set it up on a computer</h3>
+          <p>For a model on your own computer, a new worksheet every morning or any other AI:
+          langwich as a small program. Ask someone technical, or have a go yourself.</p>
+          <button type="button" class="btn ghost needs-js" data-view="nerd">Switch to IT nerd view</button>
+        </li>
+      </ul>
+    </div>
+    <div class="wrap start-grid only-nerd">
       <div>
         <p class="phase"><span class="n">6</span>Get started</p>
         <h2>A few commands to your first worksheet</h2>
@@ -1221,6 +1433,28 @@ langwich render data/a_bakery_in_lyon_en_fr.json</pre>
 </footer>
 
 <script>
+  // The audience switch: every [data-view] button sets the view; the choice is remembered.
+  (() => {
+    const root = document.documentElement;
+    const toggles = Array.from(document.querySelectorAll('.audience button'));
+    const show = view => {
+      root.dataset.audience = view;
+      toggles.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    };
+    document.querySelectorAll('[data-view]').forEach(button => {
+      button.addEventListener('click', () => {
+        const view = button.dataset.view;
+        show(view);
+        try { localStorage.setItem('langwich-view', view); } catch { /* no storage */ }
+        // a switch inside a section keeps the reader at the start of that section
+        const section = button.closest('section');
+        if (section) section.scrollIntoView();
+      });
+    });
+    show(root.dataset.audience === 'nerd' ? 'nerd' : 'simple');
+    document.querySelector('.audience').hidden = false;
+  })();
+
   // Tabs
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   function selectTab(tab) {
@@ -1444,8 +1678,11 @@ langwich render data/a_bakery_in_lyon_en_fr.json</pre>
           const level = Array.from(state.levels)[0] || 'A2';
           noResult.append('No worksheet in ' + list(missing.map(langName))
             + ' yet. Any language works — make the first one: ');
+          const simple = el('a', 'ask Claude for it', 'only-simple');
+          simple.href = '#your-ai';
+          noResult.append(simple);
           noResult.append(el('code', 'langwich prompt --target ' + missing[0] + ' --level '
-            + level + ' --topic "…" -o prompt.txt'));
+            + level + ' --topic "…" -o prompt.txt', 'only-nerd'));
         } else {
           noResult.append('No worksheet matches these filters yet.');
         }

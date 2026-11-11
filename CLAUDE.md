@@ -31,6 +31,16 @@ pages — PyMuPDF from the dev extra does the same job (see the slash command).
 worksheet here: profile → story idea from the user → `langwich prompt` → JSON in `data/` →
 validate and repair → render → check the picture page.
 
+## No-code path: the Claude skill
+
+`skill/SKILL.md` is the same companion for people without a terminal: `scripts/build_skill.py`
+packs it with an installable copy of langwich into `langwich-skill.zip` (reproducible; the Pages
+workflow publishes it next to `docs/index.html`, it is not checked in), which they upload in
+claude.ai or the Claude desktop app. Claude's skill rules: the zip holds one `langwich/` folder,
+the description is at most 200 characters (`tests/test_skill.py`). The landing page has a
+"Non-technical / IT nerd" switch: `.only-simple` and `.only-nerd` content; keep both versions in
+step when you change a section.
+
 ## The LLM writes all content; Python checks, orders and renders
 
 There is no content generator in Python and there must never be one: no text slicing, no

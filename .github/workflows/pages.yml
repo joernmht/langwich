@@ -8,6 +8,12 @@ on:
       - "src/langwich/**"
       - "examples/**"
       - "scripts/update_page_stats.py"
+      - "scripts/build_skill.py"
+      - "skill/**"
+      - "README.md"
+      - "pyproject.toml"
+      - "LICENSE"
+      - "NOTICE"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -41,6 +47,10 @@ jobs:
       # publish the checked-in copy at exactly that address.
       - name: Publish the JSON Schema
         run: mkdir -p docs/schema && cp src/langwich/schema/langwich-3.json docs/schema/langwich-3.json
+      # The download on the landing page for people without a terminal: the skill for the
+      # Claude apps, with an installable copy of langwich.
+      - name: Pack the Claude skill
+        run: python3 scripts/build_skill.py -o docs/langwich-skill.zip
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
