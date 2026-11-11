@@ -770,8 +770,10 @@ python3 scripts/build_showcase.py --check
   folder and compares page count and page text with the committed PDFs.
 - **Versions:** the version is `__version__` in `src/langwich/__init__.py`; `pyproject.toml`
   reads it from there.
-- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) installs Pango and HarfBuzz and
-  runs ruff, mypy, the schema check, pytest (with `LANGWICH_REQUIRE_PDF=1`) and the showcase
+- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) installs Pango and HarfBuzz
+  (a package mirror that cannot be reached is a warning there, as long as Pango is on the runner;
+  every other failure fails the step, and [`tests/test_ci.py`](tests/test_ci.py) runs that step
+  with apt stubbed) and runs ruff, mypy, the schema check, pytest (with `LANGWICH_REQUIRE_PDF=1`) and the showcase
   check on Python 3.11, 3.12 and 3.13; a second job installs the oldest dependency versions
   `pyproject.toml` allows and runs the tests (except the page-break checks tuned to the newest
   WeasyPrint) and a render of every example; [`.github/workflows/pages.yml`](.github/workflows/pages.yml)

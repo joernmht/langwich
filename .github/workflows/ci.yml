@@ -36,21 +36,23 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
         # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
-        # WeasyPrint still works without it. So ONE kind of apt failure is a warning instead
-        # of an error: a package mirror that cannot be reached, as long as Pango is there.
-        # Any other apt failure (a package that no longer exists, a broken install) fails the
-        # step as before. If WeasyPrint cannot load after all, the PDF tests fail
-        # (LANGWICH_REQUIRE_PDF).
+        # WeasyPrint still works without it. So ONE apt failure is a warning instead of an
+        # error: the install cannot fetch a package because its mirror is unreachable, and
+        # Pango is there. Only the install's own "E: Failed to fetch" line decides that; what
+        # 'apt-get update' printed about other sources does not. Every other failure (update
+        # fails, a package no longer exists, a broken install) fails the step as before, and
+        # if WeasyPrint cannot load after all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        # tests/test_ci.py runs this step with apt stubbed.
         run: |
           set -o pipefail
-          log="$RUNNER_TEMP/apt.log"
+          sudo apt-get update
+          log="$RUNNER_TEMP/apt-install.log"
           {
-            sudo apt-get update &&
             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
           } 2>&1 | tee "$log" && exit 0
           unreachable='Temporary failure resolving|Could not resolve|Could not connect|Connection timed out|Network is unreachable'
-          if ! grep -qE "$unreachable" "$log"; then
-            echo "::error::apt-get failed, and not because the package mirror was unreachable."
+          if ! grep -qE "^E: Failed to fetch .*($unreachable)" "$log"; then
+            echo "::error::The libraries could not be installed, and not because the package mirror was unreachable."
             exit 1
           fi
           echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."
@@ -84,21 +86,23 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
         # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
-        # WeasyPrint still works without it. So ONE kind of apt failure is a warning instead
-        # of an error: a package mirror that cannot be reached, as long as Pango is there.
-        # Any other apt failure (a package that no longer exists, a broken install) fails the
-        # step as before. If WeasyPrint cannot load after all, the PDF tests fail
-        # (LANGWICH_REQUIRE_PDF).
+        # WeasyPrint still works without it. So ONE apt failure is a warning instead of an
+        # error: the install cannot fetch a package because its mirror is unreachable, and
+        # Pango is there. Only the install's own "E: Failed to fetch" line decides that; what
+        # 'apt-get update' printed about other sources does not. Every other failure (update
+        # fails, a package no longer exists, a broken install) fails the step as before, and
+        # if WeasyPrint cannot load after all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        # tests/test_ci.py runs this step with apt stubbed.
         run: |
           set -o pipefail
-          log="$RUNNER_TEMP/apt.log"
+          sudo apt-get update
+          log="$RUNNER_TEMP/apt-install.log"
           {
-            sudo apt-get update &&
             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
           } 2>&1 | tee "$log" && exit 0
           unreachable='Temporary failure resolving|Could not resolve|Could not connect|Connection timed out|Network is unreachable'
-          if ! grep -qE "$unreachable" "$log"; then
-            echo "::error::apt-get failed, and not because the package mirror was unreachable."
+          if ! grep -qE "^E: Failed to fetch .*($unreachable)" "$log"; then
+            echo "::error::The libraries could not be installed, and not because the package mirror was unreachable."
             exit 1
           fi
           echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."

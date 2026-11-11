@@ -604,6 +604,9 @@ def _name_forms(key: str, lang: str) -> list[str]:
     is not listed, a name is matched as written, with a genitive -s.
     """
     esc = re.escape
+    inflecting = lang in _CASE_SUFFIX or lang in _CASE_ENDING or lang in _CASE_ENDING_S
+    if inflecting and len(key) <= 2:
+        return [esc(key)]  # 'Jo' is not every 'Ja', 'Al' not every 'Ale': as written only
     if lang in _CASE_SUFFIX:
         forms = [esc(key) + r"\w{0,5}"]
         if len(key) >= 5:  # consonant gradation: Pekka → Pekan

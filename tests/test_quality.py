@@ -626,6 +626,11 @@ def test_name_keys(name: str, keys: list[str]) -> None:
     ("Jonas", "Telefon Jonasa dzwoni.", "pl", True),
     ("Маша", "Машина стоит здесь.", "ru", False),
     ("Маша", "Книга Маши лежит здесь.", "ru", True),
+    # a name of two letters is matched as it is written, or it is every short word
+    ("Jo", "Ja mam mapę.", "pl", False),
+    ("Jo", "To jest Jo.", "pl", True),
+    ("Al", "Ale to nic.", "pl", False),
+    ("Jo", "Jos haluat, tule.", "fi", False),
     # the whole name is a word too, not a substring
     ("Eva", "Evangelium je kniha.", "cs", False),
     ("Eva", "Evangelium ist ein Buch.", "de", False),
