@@ -74,7 +74,8 @@ a label box shows the terms without articles (the answer key keeps them).
    (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
    outside resource is a `picture.image` the JSON names, loaded by `images.py`.
 9. **The design rubric stays deterministic.** `quality.py` reads the worksheet and nothing else:
-   no model, no files, no network, no randomness (`tests/test_quality.py` checks its imports). A
+   no model, no files, no network, no randomness (`tests/test_quality.py` checks its imports
+   and runs it with files and sockets blocked). A
    new rule needs a broken example in `MUTANTS`, a new task kind an entry in `KIND_DESIGN`; then
    run `python scripts/export_rubric.py`. Every bundled example must meet the rubric
    (`langwich validate FILE --quality`) or be listed in `ACCEPTED` with a reason.

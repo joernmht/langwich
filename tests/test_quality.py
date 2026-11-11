@@ -612,6 +612,37 @@ def test_name_keys(name: str, keys: list[str]) -> None:
     ("Lena", "Der Lenker ist kaputt.", "de", False),
     ("Marta", "Ola daje Marcie mapę.", "pl", True),  # the dative of Marta
     ("Marta", "Ola idzie do domu.", "pl", False),
+    # a short name is not every word that starts like it
+    ("Mia", "Mimo to idzie dalej.", "pl", False),
+    ("Mia", "Miasto jest duże.", "pl", False),
+    ("Mia", "Miał mapę.", "pl", False),
+    ("Mia", "Mi się to podoba.", "pl", False),
+    ("Mia", "Jonas dzwoni do Mii.", "pl", True),
+    ("Mia", "Jonas widzi Mię.", "pl", True),
+    ("Tom", "To je pivo.", "cs", False),
+    ("Tom", "Jana volá Toma.", "cs", True),
+    ("Tom", "Jana jde s Tomem.", "cs", True),
+    ("Jonas", "Jony są małe.", "pl", False),
+    ("Jonas", "Telefon Jonasa dzwoni.", "pl", True),
+    ("Маша", "Машина стоит здесь.", "ru", False),
+    ("Маша", "Книга Маши лежит здесь.", "ru", True),
+    # the whole name is a word too, not a substring
+    ("Eva", "Evangelium je kniha.", "cs", False),
+    ("Eva", "Evangelium ist ein Buch.", "de", False),
+    ("Eva", "Jdu k Evě.", "cs", True),
+    # softened consonants, a vowel that drops out, a vocative
+    ("Monika", "Daj to Monice.", "pl", True),
+    ("Olga", "Píšu Olze.", "cs", True),
+    ("Petra", "Jdu k Petře.", "cs", True),
+    ("Marek", "Jonas pyta pana Marka.", "pl", True),
+    ("Klára", "Kláro, zítra máte skupinu.", "cs", True),
+    ("pan Huber", "Dobrá otázka, pane Hubere.", "cs", True),
+    ("Kowalski", "To jest dom Kowalskiego.", "pl", True),
+    # other families of languages
+    ("Jonas", "Ji kalba su Jonu.", "lt", True),
+    ("Pekka", "Tämä on Pekan kirja.", "fi", True),
+    ("Anna", "Ez Annának a könyve.", "hu", True),
+    ("Mara", "Mara's zus woont in Münster.", "nl", True),
     ("Marta", "Ola szuka Marty.", "pl", True),
     ("Marta", "Ola widzi Martę.", "pl", True),
     ("Pavel", "Jana volá Pavla.", "cs", True),
@@ -847,20 +878,64 @@ def test_the_report_does_not_depend_on_the_hash_seed() -> None:
     assert json.loads(outputs[0])
 
 
+#: What the rubric may import: text tools from the standard library, and the
+#: parts of langwich that read a worksheet. Not 'images', 'render', 'cli',
+#: 'profile' or 'series', which read files.
+RUBRIC_IMPORTS = {"__future__", "collections", "dataclasses", "difflib", "re", "typing",
+                  "unicodedata"}
+RUBRIC_LANGWICH = {"locale", "markup", "model", "plan", "prompt", "validate"}
+
+
 def test_the_rubric_imports_nothing_that_varies() -> None:
-    """No randomness, no clock, no files, no network: by construction."""
+    """No randomness and no clock, and nothing whose job is files or the network."""
     tree = ast.parse(Path(quality.__file__).read_text(encoding="utf-8"))
-    imported: set[str] = set()
+    stdlib: set[str] = set()
+    ours: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            imported |= {alias.name.split(".")[0] for alias in node.names}
+            modules = [alias.name for alias in node.names]
         elif isinstance(node, ast.ImportFrom) and node.module:
-            imported.add(node.module.split(".")[0])
-    allowed = {"__future__", "collections", "dataclasses", "difflib", "re", "typing",
-               "unicodedata", "langwich"}
-    assert imported <= allowed, sorted(imported - allowed)
+            # 'from langwich import locale, markup' names its submodules in the aliases
+            modules = ([f"langwich.{alias.name}" for alias in node.names]
+                       if node.module == "langwich" else [node.module])
+        else:
+            continue
+        for module in modules:
+            top, _, rest = module.partition(".")
+            if top == "langwich":
+                ours.add(rest.split(".")[0])
+            else:
+                stdlib.add(top)
+    assert stdlib <= RUBRIC_IMPORTS, sorted(stdlib - RUBRIC_IMPORTS)
+    assert ours <= RUBRIC_LANGWICH, sorted(ours - RUBRIC_LANGWICH)
     names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
-    assert not names & {"open", "random", "time", "datetime", "os", "hash", "id", "set"} - {"set"}
+    assert not names & {"open", "random", "time", "datetime", "os", "hash", "id"}
+
+
+def test_the_rubric_runs_with_files_and_sockets_blocked(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The imports say what the rubric may use; this says what it does. The
+    validator it borrows its word search from can read picture files — the
+    rubric must never get there."""
+    import builtins
+    import io
+    import os
+    import socket
+
+    sheets = [load_worksheet(path) for path in EXAMPLES]
+    sheets.append(worksheet_from_dict(MINI_EXAMPLE))
+    expected = [assess(ws).to_dict() for ws in sheets]  # also loads anything lazy
+
+    def refuse(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError(f"the rubric reached for a file or the network: {args[:1]}")
+
+    with monkeypatch.context() as blocked:
+        for owner, name in ((builtins, "open"), (io, "open"), (os, "open"), (os, "listdir"),
+                            (os, "scandir"), (socket, "socket"), (socket, "create_connection"),
+                            (Path, "open"), (Path, "read_text"), (Path, "read_bytes"),
+                            (Path, "iterdir"), (Path, "glob")):
+            blocked.setattr(owner, name, refuse)
+        again = [assess(ws).to_dict() for ws in sheets]
+    assert again == expected
 
 
 def test_findings_come_in_a_stable_order() -> None:

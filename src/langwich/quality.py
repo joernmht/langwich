@@ -357,12 +357,22 @@ MUST_USE_MIN = 3
 WRITING_LOW, WRITING_HIGH = 0.5, 1.5
 MARKER_DISTANCE = 0.05
 
-#: Languages that inflect names (Marta, Martę, Marty): a name is matched by
-#: its stem there.
-_INFLECTING = frozenset({
-    "pl", "cs", "sk", "sl", "hr", "sr", "bs", "ru", "uk", "bg", "lt", "lv", "et", "fi", "hu",
-    "tr", "el", "is", "la",
-})
+#: Languages that put case endings on names. In the first group a name
+#: changes its last letters (Marta, Marty, Marcie; Marek, Marka); in the
+#: second the nominative ending falls away as well (Jonas, Jono); in the third
+#: endings are added to the whole name (Mia, Mialle; Pekka, Pekan).
+_CASE_ENDING = frozenset({"pl", "cs", "sk", "sl", "hr", "sr", "bs", "ru", "uk", "bg"})
+_CASE_ENDING_S = frozenset({"lt", "lv", "el", "is", "la"})
+_CASE_SUFFIX = frozenset({"fi", "et", "hu", "tr"})
+#: Letters a name loses before a case ending (Marta → Marty, Игорь → Игоря).
+_FINAL_VOWELS = frozenset("aeiouyáéíóúýąęěůäöüőűаеёиоуыэюяіїєьй")
+#: Polish and Czech soften the last consonant before the -e of the dative and
+#: locative: Marta → Marcie, Monika → Monice, Olga → Oldze / Olze, Petra → Petře.
+_SOFTENED: dict[str, tuple[str, ...]] = {
+    "t": ("ci",), "d": ("dzi",), "k": ("c",), "g": ("dz", "z"), "r": ("rz", "ř"),
+    "n": ("ni",), "s": ("si",), "z": ("zi",), "w": ("wi",), "m": ("mi",), "b": ("bi",),
+    "p": ("pi",), "f": ("fi",), "ł": ("l",), "h": ("z",),
+}
 #: Titles and family words that are part of a name but do not identify it.
 _HONORIFICS = frozenset({
     "herr", "frau", "fräulein", "onkel", "tante", "oma", "opa", "signor", "signora",
@@ -586,20 +596,57 @@ def name_keys(name: str) -> list[str]:
     return keys or capitalised or words or [name]
 
 
+def _name_forms(key: str, lang: str) -> list[str]:
+    """Regular expressions for the forms a name takes in ``lang``.
+
+    Deliberately narrow: a short name must not be found in every word that
+    starts like it ('Mia' in 'Miasto', 'Tom' in 'To je …'). Where a language
+    is not listed, a name is matched as written, with a genitive -s.
+    """
+    esc = re.escape
+    if lang in _CASE_SUFFIX:
+        forms = [esc(key) + r"\w{0,5}"]
+        if len(key) >= 5:  # consonant gradation: Pekka → Pekan
+            forms.append(esc(key[:-2]) + r"\w{1,6}")
+        if key[-1] in "ae":  # Hungarian lengthens the vowel: Anna → Annának
+            forms.append(esc(key[:-1]) + ("á" if key[-1] == "a" else "é") + r"\w{0,5}")
+        return forms
+    if lang not in _CASE_ENDING and lang not in _CASE_ENDING_S:
+        return [esc(key) + "(?:['’]?s)?"]
+    last = key[-1].lower()
+    if last in _FINAL_VOWELS:
+        # the ending replaces the vowel: Marta → Marty, Martou; Mia → Mii, Mię;
+        # Kowalski → Kowalskiego. The shorter the stem, the shorter the ending
+        # it may take, or 'Маша' would be found in 'Машина'.
+        stem = key[:-1]
+        longest = 1 if len(stem) <= 2 else 2 if len(stem) <= 4 else 4
+        forms = [esc(key), esc(stem) + rf"\w{{1,{longest}}}"]
+        soft = _SOFTENED.get(stem[-1:].lower())
+        if soft:
+            forms.append(esc(stem[:-1]) + "(?:" + "|".join(soft) + ")e")
+        return forms
+    # the ending follows the consonant: Tom → Toma, Tomem, Tomowi
+    forms = [esc(key) + r"\w{0,3}"]
+    if len(key) >= 4 and key[-2].lower() == "e" and key[-3].lower() not in _FINAL_VOWELS:
+        forms.append(esc(key[:-2] + key[-1]) + r"\w{1,3}")  # Marek → Marka, Pavel → Pavla
+    if lang in _CASE_ENDING_S and len(key) >= 5:
+        forms.append(esc(key[:-2]) + r"\w{1,3}")  # Jonas → Jono, Marcus → Marci
+    return forms
+
+
 def _name_pattern(key: str, lang: str) -> re.Pattern[str]:
-    if lang in _INFLECTING:
-        # Marta → Martę, Pavel → Pavla, Tomáš → Tomášovi: the stem plus an ending
-        keep = len(key) - 1 if len(key) <= 4 else max(3, len(key) - 2)
-        stem = key[: max(2, keep)]
-        return re.compile(rf"(?<!\w){re.escape(stem)}\w{{0,4}}(?!\w)")
-    return re.compile(rf"(?<!\w){re.escape(key)}(?:['’]?s)?(?!\w)")
+    return re.compile(r"(?<!\w)(?:" + "|".join(_name_forms(key, lang)) + r")(?!\w)")
 
 
 def is_named(character: Character, text: str, lang: str) -> bool:
-    """True when ``text`` names ``character`` (by any identifying word)."""
-    if character.name in text:
+    """True when ``text`` names ``character``: the whole name as a word, or any
+    of its identifying words in a form the language allows."""
+    name = character.name
+    if lang in _NO_SPACE_LANGS:
+        return name in text  # no word boundaries to look for
+    if re.search(rf"(?<!\w){re.escape(name)}(?!\w)", text):
         return True
-    return any(_name_pattern(key, lang).search(text) for key in name_keys(character.name))
+    return any(_name_pattern(key, lang).search(text) for key in name_keys(name))
 
 
 def _similar(a: str, b: str) -> bool:

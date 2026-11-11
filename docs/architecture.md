@@ -221,13 +221,16 @@ box, room to write). [`quality.md`](quality.md) lists every rule; it is generate
 * **Deterministic.** A rule is a pure function of the `Worksheet`: no model, no file, no network,
   no randomness, no clock. Findings come in a fixed order (story, lesson, then the tasks in
   worksheet order). `tests/test_quality.py` checks the report against a second run, against the
-  same JSON with its keys reordered and across interpreters with different hash seeds.
+  same JSON with its keys reordered and across interpreters with different hash seeds, and
+  runs the rubric with file and socket access blocked.
 * **One source for the numbers.** Level-dependent limits come from `prompt.LEVELS`, the table the
   brief prints; the rubric's own thresholds are constants at the top of the module. The brief's
   example (`prompt.MINI_EXAMPLE`) must have no findings.
 * **Shared word search.** A key word "comes up" in a task when the validator's patterns
   (`plan.term_pattern`) find it; a character is "named" when a word of the name that is not a
-  title (`quality.name_keys`) occurs, by its stem in languages that inflect names.
+  title (`quality.name_keys`) occurs as a whole word — in languages that put case endings on
+  names, in one of the forms those endings allow (Marta, Marty, Marcie; but not Mia in
+  "Miasto").
 * **Task kinds.** `KIND_DESIGN` says for each kind what is counted, the sensible range, and
   whether the learner checks against one right answer, a model answer or nothing. The tests hold
   every entry against real tasks and against `answers.answer_key`.
