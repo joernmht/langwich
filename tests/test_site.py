@@ -31,8 +31,8 @@ DOCS = REPO_ROOT / "docs"
 INDEX = DOCS / "index.html"
 EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.json"))
 GITHUB_BLOB = "https://github.com/joernmht/langwich/blob/main/"
-#: Published by the Pages workflow, not checked in.
-DEPLOY_ONLY = ("schema/",)
+#: Published by the Pages workflow, not checked in (the skill: scripts/build_skill.py).
+DEPLOY_ONLY = ("schema/", "langwich-skill.zip")
 
 
 class _Page(HTMLParser):

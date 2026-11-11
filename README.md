@@ -18,6 +18,7 @@ calm, black-and-white PDF for an e-paper tablet or a printer. Then the screen go
 how to use langwich with whichever AI you have.
 
 **Contents:**
+[No code needed](#no-code-needed) ·
 [Quick start](#quick-start) ·
 [Make your own worksheet](#make-your-own-worksheet) ·
 [How a worksheet is built](#how-a-worksheet-is-built) ·
@@ -28,6 +29,25 @@ how to use langwich with whichever AI you have.
 [Project structure](#project-structure) ·
 [Development](#development) ·
 [AI disclaimer](#ai-disclaimer)
+
+---
+
+## No code needed
+
+You don't have to install anything or type a single command. With Claude (claude.ai or the
+Claude desktop app, a free account is enough):
+
+1. Download [`langwich-skill.zip`](https://joernmht.github.io/langwich/langwich-skill.zip).
+2. In Claude, open **Customize → Skills**, click **+**, then **Create skill → Upload a skill**, and
+   choose the file. (Code execution must be on: **Settings → Capabilities**.)
+3. Start a new chat and ask, in your own words: *"Make me a worksheet for learning Spanish, level
+   A2, about the markets of Valencia."* Claude asks a few questions, writes the story, checks it
+   with langwich and gives you the PDF to download.
+
+The [website](https://joernmht.github.io/langwich/#your-ai) walks through it step by step. The
+skill is [`skill/SKILL.md`](skill/SKILL.md) plus a copy of langwich, packed by
+`python3 scripts/build_skill.py` and published with the website; Claude installs langwich in its
+own code sandbox. Everything below is for running langwich on your own computer.
 
 ---
 
