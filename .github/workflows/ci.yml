@@ -35,7 +35,18 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
-        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+        # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
+        # WeasyPrint still works without it. So a package mirror that cannot be reached is a
+        # warning, not a failure, as long as Pango is there. If WeasyPrint cannot load after
+        # all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        run: |
+          if sudo apt-get update &&
+             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+          then
+            exit 0
+          fi
+          echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."
+          dpkg -s libpango-1.0-0 libpangoft2-1.0-0 > /dev/null
       - name: Install langwich
         run: python -m pip install --upgrade pip && pip install -e ".[dev]"
       - name: Lint
@@ -64,7 +75,18 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
-        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+        # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
+        # WeasyPrint still works without it. So a package mirror that cannot be reached is a
+        # warning, not a failure, as long as Pango is there. If WeasyPrint cannot load after
+        # all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        run: |
+          if sudo apt-get update &&
+             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+          then
+            exit 0
+          fi
+          echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."
+          dpkg -s libpango-1.0-0 libpangoft2-1.0-0 > /dev/null
       - name: Install langwich with the minimum versions
         run: |
           python -m pip install --upgrade pip
