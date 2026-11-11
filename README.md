@@ -62,6 +62,7 @@ Worksheets that come with the repository include:
 | [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) | *A mesma rua* — Hannah has one afternoon in Évora to find the street in her grandmother's fifty-year-old photo. Built from a real open-licence photo with `langwich prompt --image` (photo: Ken & Nyetta, CC BY 2.0). | English → Portuguese | A2 |
 | [`examples/fiets_utrecht_de_nl.json`](examples/fiets_utrecht_de_nl.json) | *Zwart, met een bel* — Mara has to return her flatmate's bike by six, and cannot find it again in the world's largest bicycle garage, under Utrecht Centraal. A one-off mystery. | German → Dutch | A2 |
 | [`examples/krasnale_wroclaw_de_pl.json`](examples/krasnale_wroclaw_de_pl.json) | *Gdzie jest Papa Krasnal?* — Jonas has one hour in Wrocław to photograph the city's first bronze dwarf for his daughter. A one-off story in the present tense. | German → Polish | A1 |
+| [`examples/pivo_plzen_de_cs.json`](examples/pivo_plzen_de_cs.json) | *Čí je to pivo?* — on her first tour through the brewery cellars of Plzeň, Klára has to answer a visitor from Bavaria: whose beer is Pils? A one-off story about the first Pilsner of 1842. | German → Czech | A2 |
 
 Every file in [`examples/`](examples/) validates without a single warning and meets the
 [design rubric](docs/quality.md); the PDFs are in [`docs/examples/`](docs/examples/). On the

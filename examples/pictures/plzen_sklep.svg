@@ -1,0 +1,85 @@
+<svg viewBox="0 0 178 100" xmlns="http://www.w3.org/2000/svg" stroke="#000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cellar vault and floor -->
+  <path d="M4,93 L4,34 Q4,6 40,6 L138,6 Q174,6 174,34 L174,93" stroke-width=".6"/>
+  <line x1="2" y1="93" x2="176" y2="93" stroke-width=".6"/>
+  <path d="M9,24 l6,-2 M22,12.5 l7,-1.5 M68,10 h8 M82,13 h7 M126,10 h8 M148,12.5 l7,1.5 M163,23 l5,3 M167,82 h4 M140,96.5 h9 M58,96.5 h8" stroke-width=".3"/>
+  <!-- stone stairs with a handrail -->
+  <g stroke-width=".55" fill="#fff">
+    <path d="M4,44 H16 V52 H23 V60 H30 V68 H37 V76 H44 V84 H51 V93 H4 Z"/>
+    <path d="M9.5,24.6 V44 M26.5,44 V60 M47.5,68 V84" stroke-width=".7" fill="none"/>
+    <path d="M9.5,24.6 L47.5,68" stroke-width=".9" fill="none"/>
+  </g>
+  <!-- hanging lamp -->
+  <g stroke-width=".5">
+    <line x1="50" y1="6" x2="50" y2="14.5"/>
+    <path d="M44.5,21 L47.6,14.5 L52.4,14.5 L55.5,21 Z" fill="#000"/>
+    <path d="M47.4,21 A2.6,2.6 0 0 0 52.6,21 Z" fill="#fff"/>
+    <path d="M50,25.6 V28.6 M45.8,24.6 L43.9,27 M54.2,24.6 L56.1,27" stroke-width=".4"/>
+  </g>
+  <!-- the guide -->
+  <g stroke-width=".55" fill="#fff">
+    <path d="M61.6,73 L61.2,90.5 L65.2,90.5 L66,76 L66.8,90.5 L70.8,90.5 L70.4,73 Z" stroke-width=".5"/>
+    <path d="M60,92.8 Q60,90.6 61.6,90.5 L65.4,90.5 L65.4,92.8 Z" fill="#000" stroke-width=".3"/>
+    <path d="M66.6,90.5 L70.4,90.5 Q72,90.6 72,92.8 L66.6,92.8 Z" fill="#000" stroke-width=".3"/>
+    <path d="M60.9,52 C58.8,54.5 58.2,61 58.2,65.6 L60,65.8 L61.4,56 Z" stroke-width=".5"/>
+    <circle cx="59.1" cy="66.8" r="1.15" stroke-width=".45"/>
+    <path d="M71,51.4 L79.4,56 L78.4,58 L71.2,55.2 Z" stroke-width=".5"/>
+    <circle cx="79.8" cy="57.4" r="1.2" stroke-width=".45"/>
+    <path d="M59.8,73 L60.8,53 C61,49.8 63,48.2 64.8,48 L67.2,48 C69,48.2 71,49.8 71.2,53 L72.2,73 Z"/>
+    <path d="M66,48.6 L66,73 M61.8,66 h3.2" stroke-width=".35" fill="none"/>
+    <rect x="62.3" y="62.3" width="2.4" height="3.7" stroke-width=".35"/>
+    <rect x="67.6" y="54" width="2.6" height="1.7" stroke-width=".3"/>
+    <path d="M64.9,45.9 L64.9,48 M67.1,45.9 L67.1,48" stroke-width=".45" fill="none"/>
+    <circle cx="66" cy="41.5" r="5.2"/>
+    <path d="M61.3,38.6 C58.7,39.2 58,42.6 58.7,46.4 C59.7,44.4 60.5,43.1 61.1,41.7 Z" fill="#000" stroke-width=".3"/>
+    <path d="M61,41.3 C60.3,36.4 63.2,35.8 66,35.8 C69,35.8 71.8,36.4 71,41.3 C70,38.8 68,38.1 66,38.2 C63.9,38.3 62,38.9 61,41.3 Z" fill="#000" stroke-width=".3"/>
+    <circle cx="64.4" cy="42.2" r=".4" fill="#000" stroke="none"/>
+    <circle cx="67.8" cy="42.2" r=".4" fill="#000" stroke="none"/>
+    <path d="M64.9,44.2 Q66.1,45.3 67.3,44.2" stroke-width=".35" fill="none"/>
+  </g>
+  <!-- rack and big oak barrel -->
+  <g stroke-width=".5" fill="#fff">
+    <rect x="87" y="72" width="10" height="21"/>
+    <rect x="119" y="72" width="10" height="21"/>
+    <rect x="83" y="88.5" width="50" height="4.5"/>
+    <circle cx="108" cy="54" r="26" stroke-width=".6"/>
+    <circle cx="108" cy="54" r="23.4" stroke-width=".45"/>
+    <path d="M96,33.9 V74.1 M104,30.9 V77.1 M112,30.9 V77.1 M120,33.9 V74.1" stroke-width=".3" fill="none"/>
+    <rect x="86.2" y="46" width="43.6" height="4" stroke-width=".45"/>
+  </g>
+  <!-- tap -->
+  <g stroke-width=".5" fill="#fff">
+    <rect x="107.3" y="58.2" width="1.4" height="4.8" stroke-width=".45"/>
+    <rect x="104.6" y="56.6" width="6.8" height="1.8" rx=".9" fill="#000" stroke-width=".3"/>
+    <path d="M106.7,66.6 L106.7,71.5 Q108,72.6 109.3,71.5 L109.3,66.6 Z"/>
+    <circle cx="108" cy="65" r="2.4"/>
+    <path d="M108,74.2 q-.9,1.5 0,2.1 q.9,-.6 0,-2.1 Z" fill="#000" stroke-width=".2"/>
+  </g>
+  <!-- small keg as a table -->
+  <g stroke-width=".55" fill="#fff">
+    <path d="M146,74 Q143.6,83.5 146.6,93 L169.4,93 Q172.4,83.5 170,74 Z"/>
+    <path d="M145.3,79.5 Q158,82.3 170.7,79.5 M145.4,88 Q158,90.8 170.6,88" stroke-width=".4" fill="none"/>
+    <ellipse cx="158" cy="74" rx="12" ry="2.4"/>
+  </g>
+  <!-- glass of beer with foam -->
+  <g stroke-width=".55" fill="#fff">
+    <path d="M164,58.5 Q169.6,58.5 169.6,63.5 Q169.6,68.5 163.5,68.5" stroke-width=".6" fill="none"/>
+    <path d="M164,60.5 Q167.6,60.5 167.6,63.5 Q167.6,66.5 163.7,66.5" stroke-width=".45" fill="none"/>
+    <path d="M153,55 L154,73 Q158.5,74.4 163,73 L164,55 Z"/>
+    <path d="M156,59.5 V71 M158.5,59.5 V71.4 M161,59.5 V71" stroke-width=".3" fill="none"/>
+    <path d="M152.4,55.2 C150.6,52.6 152.4,49.6 155,50.2 C155.4,47 159.4,46.2 161,48.6 C163.6,47.2 166.4,49.6 165,52.4 C165.8,53.6 165.2,55 164,55.2 Z"/>
+    <path d="M153,55 C152.2,57.6 153.2,59.4 154,60.2 C154.6,58.6 154.4,56.4 154.6,55.2" stroke-width=".4"/>
+    <circle cx="156" cy="52" r=".5" stroke-width=".25"/>
+    <circle cx="160" cy="50.4" r=".6" stroke-width=".25"/>
+    <circle cx="162.6" cy="52.6" r=".45" stroke-width=".25"/>
+  </g>
+  <!-- leader lines for the numbered markers -->
+  <g stroke-width=".3">
+    <line x1="39.4" y1="17.8" x2="45.4" y2="18.6"/>
+    <line x1="74.6" y1="32.4" x2="70.1" y2="37.3"/>
+    <line x1="108" y1="20.4" x2="108" y2="27.6"/>
+    <line x1="98.9" y1="65.9" x2="105.2" y2="65.3"/>
+    <line x1="144.4" y1="62" x2="152.9" y2="62"/>
+    <line x1="158.5" y1="39.4" x2="158.5" y2="46.4"/>
+  </g>
+</svg>

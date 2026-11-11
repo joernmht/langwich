@@ -1,0 +1,1116 @@
+{
+  "schema": "langwich/3",
+  "title": "Čí je to pivo?",
+  "standfirst": "Kláras erste eigene Führung durch die Brauerei in Pilsen, und die Chefin hört zu – da behauptet im kalten Keller ein Gast aus Bayern, Pils sei doch ein deutsches Bier. Wem gehört es wirklich, und was geschah 1842 in Pilsen?",
+  "source_lang": "de",
+  "target_lang": "cs",
+  "cefr_level": "A2",
+  "topic": "Pilsner Bier",
+  "frame": "episode",
+  "story": {
+    "logline": "Klára, neue Gästeführerin in der Pilsner Brauerei, muss bei ihrer ersten eigenen Führung ihre Chefin überzeugen – und einen Gast aus Bayern, der Pils für ein deutsches Bier hält.",
+    "setting": "Plzeň (Pilsen), Tschechien: ein Samstagvormittag in der Brauerei Plzeňský Prazdroj und in ihren historischen Kellern",
+    "characters": [
+      {
+        "id": "klara",
+        "name": "Klára",
+        "role": "25, Geschichtsstudentin und neue Gästeführerin in der Brauerei"
+      },
+      {
+        "id": "machova",
+        "name": "paní Machová",
+        "role": "Kláras Chefin; sie entscheidet, wer im Sommer Gruppen führen darf"
+      },
+      {
+        "id": "huber",
+        "name": "pan Huber",
+        "role": "Franz Huber, Tourist aus Bayern; er lernt Tschechisch und liebt sein Pils"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Sobota, deset hodin",
+        "beat": "setup",
+        "text": "Je sobota, deset hodin ráno. Klára stojí u brány pivovaru v Plzni a je nervózní. Je jí dvacet pět let, studuje historii a je tady nová průvodkyně. Dnes poprvé vede skupinu sama.\n\nVedle ní stojí její šéfka, paní Machová. „Dnes jdu s vámi. Budu jen poslouchat,“ říká. „Když budou turisté spokojení, dostanete práci na celé léto.“\n\nKlára drží v ruce papír s poznámkami: samé roky a čísla. Před ní už čeká patnáct turistů. Jeden z nich, pan Huber z Bavorska, se učí česky. „Slečno, kdy už bude pivo?“ ptá se. Všichni se smějí, jen Klára ne.",
+        "translation": "Es ist Samstag, zehn Uhr morgens. Klára steht am Tor der Brauerei in Pilsen und ist nervös. Sie ist fünfundzwanzig, studiert Geschichte und ist hier die neue Gästeführerin. Heute führt sie zum ersten Mal allein eine Gruppe.\n\nNeben ihr steht ihre Chefin, Frau Machová. „Heute gehe ich mit Ihnen mit. Ich werde nur zuhören“, sagt sie. „Wenn die Touristen zufrieden sind, bekommen Sie die Stelle für den ganzen Sommer.“\n\nKlára hält einen Zettel mit Notizen in der Hand: lauter Jahre und Zahlen. Vor ihr warten schon fünfzehn Touristen. Einer von ihnen, Herr Huber aus Bayern, lernt Tschechisch. „Junge Frau, wann gibt es denn endlich Bier?“, fragt er. Alle lachen, nur Klára nicht."
+      },
+      {
+        "id": "s2",
+        "heading": "Dole ve sklepě",
+        "beat": "complication",
+        "text": "Skupina jde po schodech dolů do sklepa. Je tu tma a zima, jen asi pět stupňů. Na zdi svítí lampy a voní tu mokré dřevo. Všude leží velké dubové sudy.\n\nKlára čte z papíru: „Sklepy jsou dlouhé devět kilometrů…“ Turisté se ale dívají na sudy, ne na ni. Paní Machová si něco píše do notesu.\n\n„Slečno, mám otázku,“ říká pan Huber. „Pils je přece německé pivo. Proč o něm mluvíte tady?“\n\nSkupina se směje. Klára hledá v poznámkách, ale odpověď tam není. Co teď?",
+        "translation": "Die Gruppe geht die Treppe hinunter in den Keller. Hier ist es dunkel und kalt, nur etwa fünf Grad. An der Wand leuchten Lampen, und es riecht nach nassem Holz. Überall liegen große Eichenfässer.\n\nKlára liest vom Zettel ab: „Die Keller sind neun Kilometer lang …“ Die Touristen schauen aber auf die Fässer, nicht auf sie. Frau Machová schreibt sich etwas in ihr Notizbuch.\n\n„Junge Frau, ich habe eine Frage“, sagt Herr Huber. „Pils ist doch ein deutsches Bier. Warum reden Sie hier darüber?“\n\nDie Gruppe lacht. Klára sucht in ihren Notizen, aber die Antwort steht dort nicht. Was jetzt?"
+      },
+      {
+        "id": "s3",
+        "heading": "Napůl naše",
+        "beat": "resolution",
+        "text": "Klára dává papír do kapsy. „Dobrá otázka, pane Hubere,“ říká. „V roce 1838 bylo pivo v Plzni špatné. Měšťané proto vylili 36 sudů před radnicí.“\n\n„Tolik piva!“ diví se pan Huber.\n\n„Potom postavili nový pivovar a pozvali sládka z Bavorska. Jmenoval se Josef Groll. Tady 5. října 1842 uvařil první várku: světlý ležák.“\n\n„Z Bavorska?“\n\n„Ano, sládek byl váš. Ale měkká voda, světlý slad a chmel ze Žatce byly naše. A slovo Pils je z německého jména Plzně: Pilsen.“\n\n„Tak to je napůl naše pivo!“ směje se pan Huber.\n\nKolega otevírá kohoutek a čepuje pivo přímo ze sudu. Ležák ve sklenicích je zlatý a pěna je hustá. „Na zdraví!“\n\nPaní Machová zavírá notes. „Kláro, zítra v deset máte další skupinu.“",
+        "translation": "Klára steckt den Zettel in die Tasche. „Gute Frage, Herr Huber“, sagt sie. „Im Jahr 1838 war das Bier in Pilsen schlecht. Deshalb schütteten die Bürger 36 Fässer vor dem Rathaus aus.“\n\n„So viel Bier!“, wundert sich Herr Huber.\n\n„Dann bauten sie eine neue Brauerei und luden einen Braumeister aus Bayern ein. Er hieß Josef Groll. Hier braute er am 5. Oktober 1842 den ersten Sud: ein helles Lagerbier.“\n\n„Aus Bayern?“\n\n„Ja, der Braumeister war Ihrer. Aber das weiche Wasser, das helle Malz und der Hopfen aus Saaz waren unsere. Und das Wort Pils kommt vom deutschen Namen von Plzeň: Pilsen.“\n\n„Dann ist es ja zur Hälfte unser Bier!“, lacht Herr Huber.\n\nEin Kollege öffnet den Hahn und zapft Bier direkt aus dem Fass. Das Lagerbier in den Gläsern ist golden, und der Schaum ist dicht. „Zum Wohl!“\n\nFrau Machová klappt ihr Notizbuch zu. „Klára, morgen um zehn haben Sie die nächste Gruppe.“",
+        "picture": {
+          "svg": "<svg viewBox=\"0 0 178 100\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <!-- cellar vault and floor -->\n  <path d=\"M4,93 L4,34 Q4,6 40,6 L138,6 Q174,6 174,34 L174,93\" stroke-width=\".6\"/>\n  <line x1=\"2\" y1=\"93\" x2=\"176\" y2=\"93\" stroke-width=\".6\"/>\n  <path d=\"M9,24 l6,-2 M22,12.5 l7,-1.5 M68,10 h8 M82,13 h7 M126,10 h8 M148,12.5 l7,1.5 M163,23 l5,3 M167,82 h4 M140,96.5 h9 M58,96.5 h8\" stroke-width=\".3\"/>\n  <!-- stone stairs with a handrail -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M4,44 H16 V52 H23 V60 H30 V68 H37 V76 H44 V84 H51 V93 H4 Z\"/>\n    <path d=\"M9.5,24.6 V44 M26.5,44 V60 M47.5,68 V84\" stroke-width=\".7\" fill=\"none\"/>\n    <path d=\"M9.5,24.6 L47.5,68\" stroke-width=\".9\" fill=\"none\"/>\n  </g>\n  <!-- hanging lamp -->\n  <g stroke-width=\".5\">\n    <line x1=\"50\" y1=\"6\" x2=\"50\" y2=\"14.5\"/>\n    <path d=\"M44.5,21 L47.6,14.5 L52.4,14.5 L55.5,21 Z\" fill=\"#000\"/>\n    <path d=\"M47.4,21 A2.6,2.6 0 0 0 52.6,21 Z\" fill=\"#fff\"/>\n    <path d=\"M50,25.6 V28.6 M45.8,24.6 L43.9,27 M54.2,24.6 L56.1,27\" stroke-width=\".4\"/>\n  </g>\n  <!-- the guide -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M61.6,73 L61.2,90.5 L65.2,90.5 L66,76 L66.8,90.5 L70.8,90.5 L70.4,73 Z\" stroke-width=\".5\"/>\n    <path d=\"M60,92.8 Q60,90.6 61.6,90.5 L65.4,90.5 L65.4,92.8 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M66.6,90.5 L70.4,90.5 Q72,90.6 72,92.8 L66.6,92.8 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M60.9,52 C58.8,54.5 58.2,61 58.2,65.6 L60,65.8 L61.4,56 Z\" stroke-width=\".5\"/>\n    <circle cx=\"59.1\" cy=\"66.8\" r=\"1.15\" stroke-width=\".45\"/>\n    <path d=\"M71,51.4 L79.4,56 L78.4,58 L71.2,55.2 Z\" stroke-width=\".5\"/>\n    <circle cx=\"79.8\" cy=\"57.4\" r=\"1.2\" stroke-width=\".45\"/>\n    <path d=\"M59.8,73 L60.8,53 C61,49.8 63,48.2 64.8,48 L67.2,48 C69,48.2 71,49.8 71.2,53 L72.2,73 Z\"/>\n    <path d=\"M66,48.6 L66,73 M61.8,66 h3.2\" stroke-width=\".35\" fill=\"none\"/>\n    <rect x=\"62.3\" y=\"62.3\" width=\"2.4\" height=\"3.7\" stroke-width=\".35\"/>\n    <rect x=\"67.6\" y=\"54\" width=\"2.6\" height=\"1.7\" stroke-width=\".3\"/>\n    <path d=\"M64.9,45.9 L64.9,48 M67.1,45.9 L67.1,48\" stroke-width=\".45\" fill=\"none\"/>\n    <circle cx=\"66\" cy=\"41.5\" r=\"5.2\"/>\n    <path d=\"M61.3,38.6 C58.7,39.2 58,42.6 58.7,46.4 C59.7,44.4 60.5,43.1 61.1,41.7 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M61,41.3 C60.3,36.4 63.2,35.8 66,35.8 C69,35.8 71.8,36.4 71,41.3 C70,38.8 68,38.1 66,38.2 C63.9,38.3 62,38.9 61,41.3 Z\" fill=\"#000\" stroke-width=\".3\"/>\n    <circle cx=\"64.4\" cy=\"42.2\" r=\".4\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"67.8\" cy=\"42.2\" r=\".4\" fill=\"#000\" stroke=\"none\"/>\n    <path d=\"M64.9,44.2 Q66.1,45.3 67.3,44.2\" stroke-width=\".35\" fill=\"none\"/>\n  </g>\n  <!-- rack and big oak barrel -->\n  <g stroke-width=\".5\" fill=\"#fff\">\n    <rect x=\"87\" y=\"72\" width=\"10\" height=\"21\"/>\n    <rect x=\"119\" y=\"72\" width=\"10\" height=\"21\"/>\n    <rect x=\"83\" y=\"88.5\" width=\"50\" height=\"4.5\"/>\n    <circle cx=\"108\" cy=\"54\" r=\"26\" stroke-width=\".6\"/>\n    <circle cx=\"108\" cy=\"54\" r=\"23.4\" stroke-width=\".45\"/>\n    <path d=\"M96,33.9 V74.1 M104,30.9 V77.1 M112,30.9 V77.1 M120,33.9 V74.1\" stroke-width=\".3\" fill=\"none\"/>\n    <rect x=\"86.2\" y=\"46\" width=\"43.6\" height=\"4\" stroke-width=\".45\"/>\n  </g>\n  <!-- tap -->\n  <g stroke-width=\".5\" fill=\"#fff\">\n    <rect x=\"107.3\" y=\"58.2\" width=\"1.4\" height=\"4.8\" stroke-width=\".45\"/>\n    <rect x=\"104.6\" y=\"56.6\" width=\"6.8\" height=\"1.8\" rx=\".9\" fill=\"#000\" stroke-width=\".3\"/>\n    <path d=\"M106.7,66.6 L106.7,71.5 Q108,72.6 109.3,71.5 L109.3,66.6 Z\"/>\n    <circle cx=\"108\" cy=\"65\" r=\"2.4\"/>\n    <path d=\"M108,74.2 q-.9,1.5 0,2.1 q.9,-.6 0,-2.1 Z\" fill=\"#000\" stroke-width=\".2\"/>\n  </g>\n  <!-- small keg as a table -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M146,74 Q143.6,83.5 146.6,93 L169.4,93 Q172.4,83.5 170,74 Z\"/>\n    <path d=\"M145.3,79.5 Q158,82.3 170.7,79.5 M145.4,88 Q158,90.8 170.6,88\" stroke-width=\".4\" fill=\"none\"/>\n    <ellipse cx=\"158\" cy=\"74\" rx=\"12\" ry=\"2.4\"/>\n  </g>\n  <!-- glass of beer with foam -->\n  <g stroke-width=\".55\" fill=\"#fff\">\n    <path d=\"M164,58.5 Q169.6,58.5 169.6,63.5 Q169.6,68.5 163.5,68.5\" stroke-width=\".6\" fill=\"none\"/>\n    <path d=\"M164,60.5 Q167.6,60.5 167.6,63.5 Q167.6,66.5 163.7,66.5\" stroke-width=\".45\" fill=\"none\"/>\n    <path d=\"M153,55 L154,73 Q158.5,74.4 163,73 L164,55 Z\"/>\n    <path d=\"M156,59.5 V71 M158.5,59.5 V71.4 M161,59.5 V71\" stroke-width=\".3\" fill=\"none\"/>\n    <path d=\"M152.4,55.2 C150.6,52.6 152.4,49.6 155,50.2 C155.4,47 159.4,46.2 161,48.6 C163.6,47.2 166.4,49.6 165,52.4 C165.8,53.6 165.2,55 164,55.2 Z\"/>\n    <path d=\"M153,55 C152.2,57.6 153.2,59.4 154,60.2 C154.6,58.6 154.4,56.4 154.6,55.2\" stroke-width=\".4\"/>\n    <circle cx=\"156\" cy=\"52\" r=\".5\" stroke-width=\".25\"/>\n    <circle cx=\"160\" cy=\"50.4\" r=\".6\" stroke-width=\".25\"/>\n    <circle cx=\"162.6\" cy=\"52.6\" r=\".45\" stroke-width=\".25\"/>\n  </g>\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"39.4\" y1=\"17.8\" x2=\"45.4\" y2=\"18.6\"/>\n    <line x1=\"74.6\" y1=\"32.4\" x2=\"70.1\" y2=\"37.3\"/>\n    <line x1=\"108\" y1=\"20.4\" x2=\"108\" y2=\"27.6\"/>\n    <line x1=\"98.9\" y1=\"65.9\" x2=\"105.2\" y2=\"65.3\"/>\n    <line x1=\"144.4\" y1=\"62\" x2=\"152.9\" y2=\"62\"/>\n    <line x1=\"158.5\" y1=\"39.4\" x2=\"158.5\" y2=\"46.4\"/>\n  </g>\n</svg>",
+          "caption": "Ochutnávka ve sklepě pivovaru",
+          "prompt": "Black-and-white line drawing of a historic brewery cellar in Plzeň: stone stairs with a handrail on the left, a hanging lamp under the vault, a young woman guide pointing at a huge oak lager barrel with a tap, and a glass mug of beer with a thick head of foam standing on a small keg used as a table. Bold clean outlines, no grey shading.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "schody",
+              "x": 0.084,
+              "y": 0.74
+            },
+            {
+              "n": 2,
+              "term": "lampa",
+              "x": 0.202,
+              "y": 0.175
+            },
+            {
+              "n": 3,
+              "term": "průvodkyně",
+              "x": 0.433,
+              "y": 0.3
+            },
+            {
+              "n": 4,
+              "term": "sud",
+              "x": 0.607,
+              "y": 0.17
+            },
+            {
+              "n": 5,
+              "term": "kohoutek",
+              "x": 0.537,
+              "y": 0.66
+            },
+            {
+              "n": 6,
+              "term": "sklenice",
+              "x": 0.792,
+              "y": 0.62
+            },
+            {
+              "n": 7,
+              "term": "pěna",
+              "x": 0.89,
+              "y": 0.36
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s1",
+      "title": "Prazdroj",
+      "text": "Ležák z tohoto pivovaru se jmenuje Plzeňský Prazdroj, německy Pilsner Urquell. Slova „Prazdroj“ a „Urquell“ znamenají „původní zdroj“. Obě jména jsou z roku 1898."
+    },
+    {
+      "id": "f2",
+      "scene": "s2",
+      "title": "Sklepy v pískovci",
+      "text": "Sklepy pod pivovarem jsou v pískovci. Lidé je vykopali ručně."
+    },
+    {
+      "id": "f3",
+      "scene": "s3",
+      "title": "11. listopadu 1842",
+      "text": "Lidé v Plzni poprvé pili nový ležák 11. listopadu 1842. Dnes pivovary na celém světě vaří pivo „Pils“ nebo „Pilsner“."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "pivovar",
+      "sklep",
+      "sud",
+      "sládek",
+      "ležák",
+      "slad",
+      "chmel",
+      "pěna"
+    ],
+    "items": [
+      {
+        "term": "pivovar",
+        "translation": "die Brauerei",
+        "pos": "noun",
+        "plural": "pivovary",
+        "note": "m."
+      },
+      {
+        "term": "sklep",
+        "translation": "der Keller",
+        "pos": "noun",
+        "plural": "sklepy",
+        "note": "m."
+      },
+      {
+        "term": "sud",
+        "translation": "das Fass (Vorsicht: nicht „der Sud“!)",
+        "pos": "noun",
+        "plural": "sudy",
+        "note": "m."
+      },
+      {
+        "term": "sládek",
+        "translation": "der Braumeister",
+        "pos": "noun",
+        "plural": "sládci",
+        "note": "m."
+      },
+      {
+        "term": "ležák",
+        "translation": "das Lagerbier",
+        "pos": "noun",
+        "plural": "ležáky",
+        "note": "m."
+      },
+      {
+        "term": "slad",
+        "translation": "das Malz",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "chmel",
+        "translation": "der Hopfen",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "pěna",
+        "translation": "der Schaum",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "čí",
+        "translation": "wessen",
+        "pos": "pronoun"
+      },
+      {
+        "term": "brána",
+        "translation": "das Tor",
+        "pos": "noun",
+        "plural": "brány",
+        "note": "f."
+      },
+      {
+        "term": "Plzeň",
+        "translation": "Pilsen (v Plzni = in Pilsen)",
+        "pos": "other",
+        "forms": "Plzně, Plzni"
+      },
+      {
+        "term": "průvodkyně",
+        "translation": "die Gästeführerin",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "poprvé",
+        "translation": "zum ersten Mal",
+        "pos": "adverb"
+      },
+      {
+        "term": "vést",
+        "translation": "führen",
+        "pos": "verb",
+        "forms": "vedu, vede; vedl"
+      },
+      {
+        "term": "skupina",
+        "translation": "die Gruppe",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "sám",
+        "translation": "allein; selbst",
+        "pos": "pronoun",
+        "forms": "sama, samo"
+      },
+      {
+        "term": "šéfka",
+        "translation": "die Chefin",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "spokojený",
+        "translation": "zufrieden",
+        "pos": "adjective",
+        "forms": "spokojení"
+      },
+      {
+        "term": "dostat",
+        "translation": "bekommen",
+        "pos": "verb",
+        "forms": "dostanu, dostane; dostal"
+      },
+      {
+        "term": "držet",
+        "translation": "halten",
+        "pos": "verb",
+        "forms": "držím, drží; držel"
+      },
+      {
+        "term": "poznámka",
+        "translation": "die Notiz",
+        "pos": "noun",
+        "plural": "poznámky",
+        "note": "f."
+      },
+      {
+        "term": "samý",
+        "translation": "lauter, nichts als",
+        "pos": "adjective",
+        "forms": "samá, samé"
+      },
+      {
+        "term": "číslo",
+        "translation": "die Zahl, die Nummer",
+        "pos": "noun",
+        "plural": "čísla",
+        "note": "n."
+      },
+      {
+        "term": "turista",
+        "translation": "der Tourist",
+        "pos": "noun",
+        "plural": "turisté",
+        "note": "m."
+      },
+      {
+        "term": "Bavorsko",
+        "translation": "Bayern (z Bavorska = aus Bayern)",
+        "pos": "other",
+        "forms": "Bavorska, Bavorsku"
+      },
+      {
+        "term": "učit se",
+        "translation": "lernen",
+        "pos": "verb",
+        "forms": "učím se, učí se; učil se"
+      },
+      {
+        "term": "slečna",
+        "translation": "die junge Frau, das Fräulein (Anrede: slečno!)",
+        "pos": "noun",
+        "note": "f.",
+        "forms": "slečno"
+      },
+      {
+        "term": "ptát se",
+        "translation": "fragen",
+        "pos": "verb",
+        "forms": "ptám se, ptá se; ptal se"
+      },
+      {
+        "term": "smát se",
+        "translation": "lachen",
+        "pos": "verb",
+        "forms": "směju se, směje se; smál se"
+      },
+      {
+        "term": "schody",
+        "translation": "die Treppe",
+        "pos": "noun",
+        "note": "m. pl."
+      },
+      {
+        "term": "dolů",
+        "translation": "hinunter, nach unten",
+        "pos": "adverb"
+      },
+      {
+        "term": "tma",
+        "translation": "die Dunkelheit (je tma = es ist dunkel)",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "zima",
+        "translation": "die Kälte; der Winter (je zima = es ist kalt)",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "stupeň",
+        "translation": "der Grad",
+        "pos": "noun",
+        "plural": "stupně",
+        "note": "m.",
+        "forms": "stupňů"
+      },
+      {
+        "term": "zeď",
+        "translation": "die Wand, die Mauer",
+        "pos": "noun",
+        "plural": "zdi",
+        "note": "f."
+      },
+      {
+        "term": "svítit",
+        "translation": "leuchten",
+        "pos": "verb",
+        "forms": "svítím, svítí; svítil"
+      },
+      {
+        "term": "lampa",
+        "translation": "die Lampe",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "vonět",
+        "translation": "duften, (gut) riechen",
+        "pos": "verb",
+        "forms": "voním, voní; voněl"
+      },
+      {
+        "term": "mokrý",
+        "translation": "nass",
+        "pos": "adjective",
+        "forms": "mokrá, mokré"
+      },
+      {
+        "term": "dřevo",
+        "translation": "das Holz",
+        "pos": "noun",
+        "note": "n."
+      },
+      {
+        "term": "všude",
+        "translation": "überall",
+        "pos": "adverb"
+      },
+      {
+        "term": "ležet",
+        "translation": "liegen",
+        "pos": "verb",
+        "forms": "ležím, leží; ležel"
+      },
+      {
+        "term": "dubový",
+        "translation": "Eichen-, aus Eichenholz",
+        "pos": "adjective",
+        "forms": "dubová, dubové"
+      },
+      {
+        "term": "dívat se",
+        "translation": "schauen",
+        "pos": "verb",
+        "forms": "dívám se, dívá se; díval se"
+      },
+      {
+        "term": "notes",
+        "translation": "das Notizbuch",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "přece",
+        "translation": "doch",
+        "pos": "other"
+      },
+      {
+        "term": "odpověď",
+        "translation": "die Antwort",
+        "pos": "noun",
+        "plural": "odpovědi",
+        "note": "f."
+      },
+      {
+        "term": "kapsa",
+        "translation": "die Tasche (an Jacke oder Hose)",
+        "pos": "noun",
+        "plural": "kapsy",
+        "note": "f."
+      },
+      {
+        "term": "pane Hubere!",
+        "translation": "Herr Huber! (Anrede im 5. Fall, dem Vokativ)",
+        "pos": "phrase"
+      },
+      {
+        "term": "měšťan",
+        "translation": "der Bürger (einer Stadt)",
+        "pos": "noun",
+        "plural": "měšťané",
+        "note": "m."
+      },
+      {
+        "term": "proto",
+        "translation": "deshalb",
+        "pos": "adverb"
+      },
+      {
+        "term": "vylít",
+        "translation": "ausschütten, ausgießen",
+        "pos": "verb",
+        "forms": "vyliju, vylije; vylil"
+      },
+      {
+        "term": "radnice",
+        "translation": "das Rathaus",
+        "pos": "noun",
+        "note": "f.",
+        "forms": "radnicí"
+      },
+      {
+        "term": "tolik",
+        "translation": "so viel",
+        "pos": "other"
+      },
+      {
+        "term": "divit se",
+        "translation": "sich wundern, staunen",
+        "pos": "verb",
+        "forms": "divím se, diví se; divil se"
+      },
+      {
+        "term": "postavit",
+        "translation": "bauen, errichten",
+        "pos": "verb"
+      },
+      {
+        "term": "pozvat",
+        "translation": "einladen",
+        "pos": "verb",
+        "forms": "pozvu, pozve; pozval"
+      },
+      {
+        "term": "jmenovat se",
+        "translation": "heißen",
+        "pos": "verb",
+        "forms": "jmenuju se, jmenuje se; jmenoval se"
+      },
+      {
+        "term": "uvařit",
+        "translation": "brauen; kochen",
+        "pos": "verb"
+      },
+      {
+        "term": "várka",
+        "translation": "der Sud (eine Portion gebrautes Bier)",
+        "pos": "noun",
+        "note": "f.",
+        "forms": "várku"
+      },
+      {
+        "term": "světlý",
+        "translation": "hell",
+        "pos": "adjective",
+        "forms": "světlá, světlé"
+      },
+      {
+        "term": "měkký",
+        "translation": "weich",
+        "pos": "adjective",
+        "forms": "měkká, měkké"
+      },
+      {
+        "term": "Žatec",
+        "translation": "Saaz, Stadt in Nordböhmen (ze Žatce = aus Saaz)",
+        "pos": "other",
+        "forms": "Žatce"
+      },
+      {
+        "term": "napůl",
+        "translation": "zur Hälfte, halb",
+        "pos": "adverb"
+      },
+      {
+        "term": "čepovat",
+        "translation": "zapfen",
+        "pos": "verb",
+        "forms": "čepuju, čepuje; čepoval"
+      },
+      {
+        "term": "přímo",
+        "translation": "direkt",
+        "pos": "adverb"
+      },
+      {
+        "term": "sklenice",
+        "translation": "das Glas (zum Trinken)",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "zlatý",
+        "translation": "golden",
+        "pos": "adjective",
+        "forms": "zlatá, zlaté"
+      },
+      {
+        "term": "hustý",
+        "translation": "dicht, fest",
+        "pos": "adjective",
+        "forms": "hustá, husté"
+      },
+      {
+        "term": "Na zdraví!",
+        "translation": "Zum Wohl! Prost!",
+        "pos": "phrase"
+      },
+      {
+        "term": "další",
+        "translation": "nächster, weiterer",
+        "pos": "adjective"
+      },
+      {
+        "term": "kohoutek",
+        "translation": "der Hahn (Zapfhahn, Wasserhahn)",
+        "pos": "noun",
+        "plural": "kohoutky",
+        "note": "m."
+      },
+      {
+        "term": "ochutnávka",
+        "translation": "die Verkostung",
+        "pos": "noun",
+        "note": "f."
+      },
+      {
+        "term": "znamenat",
+        "translation": "bedeuten",
+        "pos": "verb"
+      },
+      {
+        "term": "původní",
+        "translation": "ursprünglich, Ur-",
+        "pos": "adjective"
+      },
+      {
+        "term": "zdroj",
+        "translation": "die Quelle",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "pískovec",
+        "translation": "der Sandstein",
+        "pos": "noun",
+        "note": "m.",
+        "forms": "pískovci"
+      },
+      {
+        "term": "vykopat",
+        "translation": "graben, ausheben",
+        "pos": "verb"
+      },
+      {
+        "term": "ručně",
+        "translation": "von Hand",
+        "pos": "adverb"
+      },
+      {
+        "term": "svět",
+        "translation": "die Welt",
+        "pos": "noun",
+        "note": "m.",
+        "forms": "světě"
+      },
+      {
+        "term": "teprve",
+        "translation": "erst",
+        "pos": "adverb"
+      },
+      {
+        "term": "měsíc",
+        "translation": "der Monat",
+        "pos": "noun",
+        "plural": "měsíce",
+        "note": "m."
+      },
+      {
+        "term": "vyprávět",
+        "translation": "erzählen",
+        "pos": "verb"
+      },
+      {
+        "term": "myslet",
+        "translation": "denken, meinen",
+        "pos": "verb"
+      },
+      {
+        "term": "ochutnat",
+        "translation": "probieren, kosten",
+        "pos": "verb"
+      },
+      {
+        "term": "chutnat",
+        "translation": "schmecken",
+        "pos": "verb"
+      },
+      {
+        "term": "příběh",
+        "translation": "die Geschichte (die man erzählt)",
+        "pos": "noun",
+        "note": "m."
+      },
+      {
+        "term": "vítat",
+        "translation": "begrüßen, willkommen heißen",
+        "pos": "verb",
+        "forms": "vítám, vítá; vítal"
+      },
+      {
+        "term": "bunda",
+        "translation": "die Jacke",
+        "pos": "noun",
+        "plural": "bundy",
+        "note": "f."
+      },
+      {
+        "term": "zrát",
+        "translation": "reifen",
+        "pos": "verb",
+        "forms": "zraju, zraje; zrál"
+      },
+      {
+        "term": "hořký",
+        "translation": "bitter",
+        "pos": "adjective",
+        "forms": "hořká, hořké"
+      },
+      {
+        "term": "jako první",
+        "translation": "als Erster, als Erste",
+        "pos": "phrase"
+      },
+      {
+        "term": "říjen",
+        "translation": "der Oktober (5. října = am 5. Oktober)",
+        "pos": "noun",
+        "note": "m.",
+        "forms": "října"
+      },
+      {
+        "term": "listopad",
+        "translation": "der November (11. listopadu = am 11. November)",
+        "pos": "noun",
+        "note": "m.",
+        "forms": "listopadu"
+      },
+      {
+        "term": "oba",
+        "translation": "beide",
+        "pos": "other",
+        "forms": "obě"
+      },
+      {
+        "term": "Rakousko",
+        "translation": "Österreich (z Rakouska = aus Österreich)",
+        "pos": "other",
+        "forms": "Rakouska"
+      },
+      {
+        "term": "vůbec",
+        "translation": "überhaupt",
+        "pos": "adverb"
+      },
+      {
+        "term": "nechat",
+        "translation": "lassen, liegen lassen",
+        "pos": "verb"
+      },
+      {
+        "term": "nahoře",
+        "translation": "oben",
+        "pos": "adverb"
+      },
+      {
+        "term": "podle",
+        "translation": "laut, nach (podle Kláry = laut Klára)",
+        "pos": "preposition"
+      },
+      {
+        "term": "nejdřív",
+        "translation": "zuerst",
+        "pos": "adverb"
+      },
+      {
+        "term": "na konci",
+        "translation": "am Ende",
+        "pos": "phrase"
+      },
+      {
+        "term": "zase",
+        "translation": "wieder",
+        "pos": "adverb"
+      },
+      {
+        "term": "ukazovat",
+        "translation": "zeigen",
+        "pos": "verb",
+        "forms": "ukazuju, ukazuje; ukazoval"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Vergangenheit: die l-Form",
+      "explanation": "Für die Vergangenheit streichst du beim Infinitiv das -t und hängst -l an. Die Endung richtet sich nach dem Subjekt: -l (er), -la (sie), -lo (es), in der Mehrzahl -li (Männer, gemischte Gruppen) oder -ly (Frauen und die meisten Dinge). Bei ich, du, wir und ihr kommt eine Form von být dazu (byl jsem, byli jsme), in der 3. Person nicht.",
+      "rule": "Infinitiv ohne -t + -l / -la / -lo / -li / -ly",
+      "table": {
+        "head": [
+          "",
+          "dělat",
+          "být",
+          "mít"
+        ],
+        "rows": [
+          [
+            "on",
+            "dělal",
+            "byl",
+            "měl"
+          ],
+          [
+            "ona",
+            "dělala",
+            "byla",
+            "měla"
+          ],
+          [
+            "ono",
+            "dělalo",
+            "bylo",
+            "mělo"
+          ],
+          [
+            "oni",
+            "dělali",
+            "byli",
+            "měli"
+          ],
+          [
+            "ony",
+            "dělaly",
+            "byly",
+            "měly"
+          ]
+        ]
+      },
+      "examples": [
+        "Měšťané proto vylili 36 sudů před radnicí.",
+        "Jmenoval se Josef Groll.",
+        "Ano, sládek byl váš."
+      ],
+      "scene": "s3"
+    },
+    {
+      "id": "g2",
+      "name": "Zahlen ab 5: Genitiv Plural",
+      "explanation": "Nach 2, 3 und 4 steht das Nomen im Nominativ Plural, ab 5 im Genitiv Plural. Männliche Nomen bekommen dann meist -ů; weibliche auf -a oder -e und sächliche auf -o verlieren ihre Endung. Das Verb steht in der Einzahl: Čeká patnáct turistů.",
+      "rule": "1 kilometr · 2–4 kilometry · 5+ kilometrů",
+      "table": {
+        "head": [
+          "",
+          "1",
+          "2–4",
+          "5 und mehr"
+        ],
+        "rows": [
+          [
+            "m.",
+            "jeden kilometr",
+            "dva kilometry",
+            "pět kilometrů"
+          ],
+          [
+            "f. (-a)",
+            "jedna koruna",
+            "dvě koruny",
+            "pět korun"
+          ],
+          [
+            "f. (-e)",
+            "jedna ulice",
+            "dvě ulice",
+            "pět ulic"
+          ],
+          [
+            "n.",
+            "jedno město",
+            "dvě města",
+            "pět měst"
+          ],
+          [
+            "!",
+            "jeden rok",
+            "dva roky",
+            "pět let"
+          ]
+        ]
+      },
+      "examples": [
+        "Před ní už čeká patnáct turistů.",
+        "Je tu tma a zima, jen asi pět stupňů."
+      ],
+      "scene": "s2"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Acht Wörter für den Bierkeller",
+      "instruction": "Diese acht Wörter nimmst du gleich mit in den Keller. Ordne jedem tschechischen Wort die deutsche Bedeutung zu und schreib den Buchstaben in das Kästchen. Zwei Bedeutungen bleiben übrig.",
+      "pairs": [
+        {
+          "left": "pivovar",
+          "right": "die Brauerei"
+        },
+        {
+          "left": "sklep",
+          "right": "der Keller"
+        },
+        {
+          "left": "sud",
+          "right": "das Fass"
+        },
+        {
+          "left": "sládek",
+          "right": "der Braumeister"
+        },
+        {
+          "left": "ležák",
+          "right": "das Lagerbier"
+        },
+        {
+          "left": "slad",
+          "right": "das Malz"
+        },
+        {
+          "left": "chmel",
+          "right": "der Hopfen"
+        },
+        {
+          "left": "pěna",
+          "right": "der Schaum"
+        }
+      ],
+      "extra": [
+        "die Flasche",
+        "der Wirt"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Samstag, zehn Uhr am Brauereitor",
+      "instruction": "Richtig oder falsch? Kreuze an und verbessere die falschen Sätze.",
+      "items": [
+        {
+          "statement": "Klára pracuje v pivovaru už dlouho.",
+          "answer": false,
+          "correction": "Klára je v pivovaru nová."
+        },
+        {
+          "statement": "Dnes jde se skupinou i paní Machová.",
+          "answer": true
+        },
+        {
+          "statement": "Na papíře má Klára hodně čísel.",
+          "answer": true
+        },
+        {
+          "statement": "Pan Huber je z Rakouska.",
+          "answer": false,
+          "correction": "Pan Huber je z Bavorska."
+        },
+        {
+          "statement": "Klára může dostat práci na celé léto.",
+          "answer": true
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "Kalt, dunkel – und dann diese Frage",
+      "instruction": "Kreuze die richtige Antwort an.",
+      "items": [
+        {
+          "question": "Jak je dole ve sklepě?",
+          "options": [
+            "Je tam zima a tma.",
+            "Je tam teplo a světlo.",
+            "Je tam zima, ale hodně světla."
+          ],
+          "answer": "Je tam zima a tma."
+        },
+        {
+          "question": "Na co se turisté dívají, když Klára čte?",
+          "options": [
+            "Na velké sudy.",
+            "Na lampy na zdi.",
+            "Na papír s poznámkami."
+          ],
+          "answer": "Na velké sudy."
+        },
+        {
+          "question": "Co si pan Huber myslí o pivu Pils?",
+          "options": [
+            "Že je německé.",
+            "Že je moc drahé.",
+            "Že není dobré."
+          ],
+          "answer": "Že je německé."
+        },
+        {
+          "question": "Proč Klára neví, co má říct?",
+          "options": [
+            "V poznámkách odpověď nemá.",
+            "Panu Huberovi vůbec nerozumí.",
+            "Papír s poznámkami nechala nahoře."
+          ],
+          "answer": "V poznámkách odpověď nemá."
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s2",
+      "grammar": "g2",
+      "hint": "base_form",
+      "title": "Fünfzehn Leute im Keller",
+      "instruction": "Wer und was ist da eigentlich unten im Keller? Setz das Nomen in Klammern in den Genitiv Plural.",
+      "items": [
+        "Ve skupině je sedm {{žen::žena}} a osm {{mužů::muž}}.",
+        "Pan Huber se učí česky teprve šest {{měsíců::měsíc}}.",
+        "Zná ale už asi sto českých {{slov::slovo}}.",
+        "Klára mluví už deset {{minut::minuta}} jen o číslech.",
+        "Nad sudy svítí jen pět {{lamp::lampa}}.",
+        "U schodů čeká na stole patnáct {{sklenic::sklenice}}."
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "questions",
+      "stage": "detail",
+      "scene": "s3",
+      "title": "Kláras Antwort",
+      "instruction": "Was hat Klára der Gruppe erzählt? Antworte auf Tschechisch in kurzen Sätzen.",
+      "items": [
+        {
+          "question": "Proč měšťané v roce 1838 vylili pivo před radnicí?",
+          "answer": "Protože bylo špatné.",
+          "lines": 1
+        },
+        {
+          "question": "Kdo uvařil v Plzni první světlý ležák a kdy?",
+          "answer": "Sládek Josef Groll, 5. října 1842.",
+          "lines": 1
+        },
+        {
+          "question": "Co bylo podle Kláry „naše“?",
+          "answer": "Měkká voda, světlý slad a chmel ze Žatce.",
+          "lines": 1
+        },
+        {
+          "question": "Proč říká pan Huber, že je to „napůl naše pivo“?",
+          "answer": "Protože sládek byl z Bavorska.",
+          "lines": 1
+        },
+        {
+          "question": "Jak víme, že paní Machová je s Klárou spokojená?",
+          "answer": "Dává jí na zítra další skupinu.",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s3",
+      "title": "Am großen Fass",
+      "instruction": "Das sieht die Gruppe unten im Keller. Schreib das tschechische Wort zu jeder Nummer.",
+      "bank": true
+    },
+    {
+      "id": "t7",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s3",
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Am Abend erzählt Frau Machová",
+      "instruction": "Am Abend erzählt Frau Machová zu Hause von Kláras erster Führung. Setz die Verben in Klammern in die Vergangenheit.",
+      "items": [
+        "Klára ve sklepě nejdřív {{mluvila::mluvit}} jen o číslech.",
+        "Turisté ji moc {{neposlouchali::neposlouchat}}.",
+        "Pan Huber {{myslel::myslet}}, že Pils je německé pivo.",
+        "Klára mu proto {{vyprávěla::vyprávět}} o roce 1838 a o sládkovi z Bavorska.",
+        "Na konci všichni {{ochutnali::ochutnat}} ležák přímo ze sudu.",
+        "Pivo jim moc {{chutnalo::chutnat}}.",
+        "A Klára {{dostala::dostat}} práci na celé léto."
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s3",
+      "hint": "word_bank",
+      "title": "Sonntag, zehn Uhr: die nächste Gruppe",
+      "instruction": "Am Sonntag führt Klára ihre zweite Gruppe – diesmal ohne Zettel. Ergänze die Lücken mit Wörtern aus dem Kasten. Drei Wörter bleiben übrig.",
+      "text": "V neděli v deset stojí Klára zase u brány. Dnes nemá žádné poznámky, jen příběh. „Vítám vás v plzeňském {{pivovaru}},“ říká. „Teď půjdeme spolu dolů do {{sklepa}}. Je tam zima, vezměte si bundy!“ Dole ukazuje na velký dubový {{sud}}: „V něm pomalu zraje náš {{ležák}}.“ „Proč je tak hořký?“ ptá se jedna paní. „To dělá {{chmel}} ze Žatce,“ říká Klára. „A zlatou barvu mu dává světlý {{slad}}.“ Potom kolega čepuje pivo. Na každé sklenici je hustá bílá {{pěna}}. „A kdo to pivo uvařil jako první?“ ptá se ta paní. Klára se směje: „Jeden {{sládek}} z Bavorska!“",
+      "distractors": [
+        "voda",
+        "papír",
+        "lampa"
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Herr Huber schreibt seiner Tschechischlehrerin",
+      "instruction": "Am Abend schreibt Herr Huber seiner Tschechischlehrerin, paní Novotná, was er in Pilsen erlebt und gelernt hat. Schreib seine Nachricht auf Tschechisch, in der Vergangenheit.",
+      "prompt": "Wo war er heute? Wie war es im Keller? Was hat er über das erste Pilsner erfahren? Und wie hat das Bier geschmeckt?",
+      "starter": "Dobrý večer, paní Novotná! Dnes jsem byl v Plzni v pivovaru. …",
+      "must_use": [
+        "pivovar",
+        "sklep",
+        "sud",
+        "sládek",
+        "ležák",
+        "slad",
+        "chmel"
+      ],
+      "min_words": 40,
+      "max_words": 70,
+      "lines": 9,
+      "model_answer": "Dobrý večer, paní Novotná! Dnes jsem byl v Plzni v pivovaru. Ve sklepě byla zima a všude ležely velké sudy. Myslel jsem, že Pils je německé pivo. Ale průvodkyně Klára vyprávěla, že první plzeňský ležák uvařil v roce 1842 sládek z Bavorska. Voda, slad a chmel ale byly české. Pivo přímo ze sudu mi moc chutnalo. Zdraví Vás Franz Huber"
+    },
+    {
+      "id": "t10",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Und was kommt aus deiner Stadt?",
+      "instruction": "Pils heißt nach Pilsen. Und bei dir zu Hause? Antworte auf Tschechisch in zwei bis drei Sätzen.",
+      "items": [
+        {
+          "question": "Jaké jídlo nebo pití je typické pro tvoje město nebo tvůj region? A víš, odkud má jméno?",
+          "lines": 4
+        }
+      ]
+    }
+  ]
+}
