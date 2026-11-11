@@ -9,7 +9,7 @@ import pytest
 
 from langwich import markup
 from langwich.model import VocabItem, Worksheet, load_worksheet, worksheet_from_dict
-from langwich.plan import _is_tested, plan, strip_article, term_pattern
+from langwich.plan import LETTERS, _is_tested, plan, strip_article, term_pattern
 from langwich.plan import tested_terms as collect_tested_terms
 
 LENA = Path(__file__).resolve().parent.parent / "examples" / "lena_01_en_de.json"
@@ -108,7 +108,7 @@ def test_match_letters_point_at_the_right_partner():
     column = match.right_column
     for i, pair in enumerate(match.task.pairs):
         letter = match.letter_for_pair(i)
-        assert column["ABCDEFGHIJ".index(letter)] == pair.right
+        assert column[LETTERS.index(letter)] == pair.right
     assert column != [pair.right for pair in match.task.pairs] + list(match.task.extra)
 
 

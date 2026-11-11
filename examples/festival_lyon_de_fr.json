@@ -530,7 +530,8 @@
         ]
       },
       "examples": [
-        "À l'entrée, un vendeur propose le programme du festival."
+        "À l'entrée, un vendeur propose le programme du festival.",
+        "Le pianiste joue pendant le film muet."
       ]
     }
   ],
@@ -647,7 +648,7 @@
           "options": [
             "Parce que la boîte avec le film n'est plus là.",
             "Parce que la séance est annulée.",
-            "Parce que le projecteur ne marche plus."
+            "Parce que le projecteur ne marche plus du tout."
           ],
           "answer": "Parce que la boîte avec le film n'est plus là."
         },
@@ -655,7 +656,7 @@
           "question": "Où Paula cherche-t-elle d'abord la boîte ?",
           "options": [
             "Dans la cabine et dans le couloir.",
-            "Dans la salle, près de l'écran.",
+            "Dans la grande salle, tout près de l'écran.",
             "Dans le bureau de Madame Faure."
           ],
           "answer": "Dans la cabine et dans le couloir."
@@ -771,7 +772,7 @@
       "hint": "base_form",
       "title": "Die Festivalzeitung berichtet",
       "instruction": "Am nächsten Tag erzählt die Festivalzeitung, was passiert ist. Setz die Verben in Klammern ins Imparfait oder ins Passé composé.",
-      "text": "Jeudi, vers 18 heures, tout {{était::être}} encore calme dans la cabine de projection. Soudain, le projectionniste {{a remarqué::remarquer}} que la bobine n'était plus là ! Une jeune bénévole {{cherchait::chercher}} la boîte dans le couloir quand la responsable des bénévoles {{est arrivée::arriver}}. Tout à coup, la bénévole {{a compris::comprendre}} : le mot SORTIE avait deux sens ! À 20 heures précises, la séance {{a commencé::commencer}}. Dans la salle, les spectateurs ne {{savaient::savoir}} rien de cette aventure."
+      "text": "Jeudi, vers 18 heures, tout {{était::être}} encore calme dans la cabine de projection. Soudain, le projectionniste {{a remarqué::remarquer}} qu'il manquait une bobine ! Une jeune bénévole {{cherchait::chercher}} la boîte dans le couloir quand la responsable des bénévoles {{est arrivée::arriver}}. Tout à coup, la bénévole {{a compris::comprendre}} : le mot SORTIE avait deux sens ! À 20 heures précises, la séance {{a commencé::commencer}}. Dans la salle, les spectateurs ne {{savaient::savoir}} rien de cette aventure."
     },
     {
       "id": "t8",
@@ -843,6 +844,11 @@
           "lines": 1
         },
         {
+          "question": "Que voit-on sur l'écran ?",
+          "answer": "On voit des ouvriers qui sortent de l'usine.",
+          "lines": 1
+        },
+        {
           "question": "La séance est-elle complète ? Comment le vois-tu ?",
           "answer": "Oui, elle est complète : tous les fauteuils sont occupés.",
           "lines": 2
@@ -861,8 +867,8 @@
         "la bobine",
         "disparaître",
         "le projectionniste",
-        "la séance",
-        "complet",
+        "l'usine",
+        "l'ouvrier",
         "la sortie"
       ],
       "min_words": 70,

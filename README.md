@@ -152,6 +152,34 @@ prints no prompt at all and exits with status 1. And when the "JSON" is only the
 `NO PICTURE ATTACHED` reply (`no-picture-attached`), there is nothing to repair: the AI never saw
 the photo, so `--prompt` says so and exits with status 1 — attach the picture and ask again.
 
+**The design rubric.** A file that validates will render. Whether it is a well-made lesson is
+another question, and `langwich validate FILE --quality` asks it: the story has a turn and an
+ending, the protagonist is there from the first scene to the last, every scene is checked, each
+key word comes back in three tasks and is written by the learner at least once, a true/false task
+has both kinds, the right option is not always the longest one, a word box has spare words, there
+is room to write. The rules are deterministic — no AI reads the sheet, and the same file always
+gets the same findings — so they work as a test: for your worksheet, for a change to the brief,
+for a new kind of task. A finding is not an error (the sheet still renders); with `--prompt` the
+findings go into the repair prompt, with `--strict` they set the exit status.
+
+```bash
+langwich validate data/sourdough_bread_en_de.json --quality
+```
+
+```text
+data/sourdough_bread_en_de.json: OK: no problems found.
+
+Design rubric: 2 findings (story 16/16, lesson 13/13, items 19/21 rules pass).
+  /tasks/0/extra  [match-no-spare]
+      the matching task has no spare answer, so the last pair is free. Add one or two plausible but wrong entries to "extra".
+  /tasks/3/items  [mc-longest-is-right]
+      in 3 of 4 questions the right option is the longest one. Rewrite options so that this holds for 2 at most: lengthen a wrong option here, shorten the right one there.
+```
+
+[`docs/quality.md`](docs/quality.md) lists every rule, why it is there and where its numbers come
+from — and says plainly what no rule can see: whether the facts are true, the language natural
+and the story worth reading.
+
 ### With Claude Code
 
 Open this repository in [Claude Code](https://claude.com/claude-code) and run `/langwich`,
@@ -602,8 +630,9 @@ level every time:
 | Option | Meaning |
 |---|---|
 | `--prompt` | print a repair prompt for the AI that wrote the file; problems only you can fix (a missing or unreadable picture file) go to standard error instead |
-| `--json` | print the report as JSON (`ok`, `error_count`, `warning_count`, `issues`) |
-| `--strict` | exit with status 1 on warnings too |
+| `--json` | print the report as JSON (`ok`, `error_count`, `warning_count`, `issues`; with `--quality` also `quality`: the findings, the rules passed per dimension and the measures) |
+| `--strict` | exit with status 1 on warnings too (with `--quality`: on findings too) |
+| `--quality` | also hold a renderable worksheet to the design rubric — deterministic rules for story craft, the lesson arc and item writing ([`docs/quality.md`](docs/quality.md)). The findings are listed after the report; `--prompt` puts them into the repair prompt |
 
 Exit status 0 means the file can be rendered. With `--prompt`, the exit status is 1 whenever no
 usable prompt could be printed: the file is the `NO PICTURE ATTACHED` reply, or only picture-file
@@ -647,6 +676,7 @@ langwich/
 │   ├── model.py        the langwich/3 contract (pydantic): the single source of truth
 │   ├── markup.py       {{gap}} markup
 │   ├── validate.py     checks beyond the schema; issues with locations and fixes
+│   ├── quality.py      the design rubric: deterministic rules for story, lesson and items
 │   ├── plan.py         the lesson arc, glosses, sidebars, seeded shuffles
 │   ├── answers.py      the answer key, independent of the renderer
 │   ├── images.py       load, convert and embed pictures
@@ -666,8 +696,8 @@ langwich/
 ├── examples/           example worksheets; pictures/ holds their pictures
 ├── data/               your worksheets, pictures/ and PDFs (created on first use; not in git)
 ├── tests/              pytest suite; tests/test_docs.py keeps this README honest
-├── scripts/            export_schema.py, update_page_stats.py, build_showcase.py
-├── docs/               the website (index.html), architecture.md, assets/, examples/ (PDFs)
+├── scripts/            export_schema.py, export_rubric.py, update_page_stats.py, build_showcase.py
+├── docs/               the website (index.html), architecture.md, quality.md, assets/, examples/ (PDFs)
 ├── .github/workflows/  ci.yml (lint, types, schema, tests), pages.yml (the website)
 ├── .claude/commands/langwich.md    the /langwich command for Claude Code
 └── LICENSE             Apache-2.0
@@ -687,6 +717,7 @@ pytest
 ruff check src tests scripts
 mypy
 python scripts/export_schema.py --check
+python scripts/export_rubric.py --check
 python3 scripts/update_page_stats.py --check
 python3 scripts/build_showcase.py --check
 ```
@@ -705,6 +736,13 @@ python3 scripts/build_showcase.py --check
   which compares the parsed JSON, so a pydantic release that only formats numbers differently
   is a note, not a failure. The Pages
   workflow publishes the file at its `$id`.
+- **Design rubric:** [`tests/test_quality.py`](tests/test_quality.py) holds every bundled
+  example to every rule of `src/langwich/quality.py`, breaks the brief's own example once per
+  rule (a rule without a broken example fails the suite) and checks that the report is the same
+  on every run. Findings that are known and tolerated are listed there in `ACCEPTED`, each with a
+  reason; a listed finding that no longer occurs fails the test, so the list only shrinks. A new
+  task kind needs an entry in `KIND_DESIGN`. After changing a rule, run
+  `python scripts/export_rubric.py` to regenerate [`docs/quality.md`](docs/quality.md).
 - **Website numbers:** `python3 scripts/update_page_stats.py` writes the number of task kinds,
   stages, built-in languages and examples into `docs/index.html`. The Pages workflow runs it
   before each deploy.

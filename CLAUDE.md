@@ -71,6 +71,11 @@ a label box shows the terms without articles (the answer key keeps them).
 8. **The renderer stays offline.** WeasyPrint may fetch only `data:` URIs and the bundled fonts
    (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
    outside resource is a `picture.image` the JSON names, loaded by `images.py`.
+9. **The design rubric stays deterministic.** `quality.py` reads the worksheet and nothing else:
+   no model, no files, no network, no randomness (`tests/test_quality.py` checks its imports). A
+   new rule needs a broken example in `MUTANTS`, a new task kind an entry in `KIND_DESIGN`; then
+   run `python scripts/export_rubric.py`. Every bundled example must meet the rubric
+   (`langwich validate FILE --quality`) or be listed in `ACCEPTED` with a reason.
 
 ## Module map (`src/langwich/`)
 
@@ -78,6 +83,7 @@ a label box shows the terms without articles (the answer key keeps them).
 |---|---|
 | `model.py` | the contract (pydantic), lenient loading (`load_worksheet`, `parse_worksheet`), `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
 | `validate.py` | semantic checks; `check_file(path) -> Report` with JSON-pointer issues and fix hints; `ENVIRONMENT_CODES` |
+| `quality.py` | the design rubric: deterministic rules for story, lesson and items (`RULES`, `KIND_DESIGN`, `assess(ws) -> QualityReport`); no I/O, no randomness |
 | `plan.py` | lesson arc, glosses, grammar and fact sidebars, word boxes, seeded shuffles |
 | `markup.py` | `{{answer\|alternative::hint}}` gap markup |
 | `answers.py` | renderer-neutral answer key |
@@ -97,6 +103,7 @@ langwich prompt --continue data/lena_02_en_de.json -o .langwich/prompt.md   # ne
 langwich prompt --image ~/Pictures/market.jpg -o .langwich/prompt.md        # story around a photo
 langwich prompt --from-text .langwich/source.txt -o .langwich/prompt.md     # story from a text
 langwich validate data/night_trains_en_de.json            # add --prompt, --json or --strict
+langwich validate data/night_trains_en_de.json --quality  # plus the design rubric (docs/quality.md)
 langwich render data/night_trains_en_de.json --page epaper --solutions separate
 ```
 
@@ -120,6 +127,7 @@ not in git.
 .venv/bin/ruff check src tests scripts             # pinned rule set in pyproject.toml
 .venv/bin/mypy
 .venv/bin/python scripts/export_schema.py --check
+.venv/bin/python scripts/export_rubric.py --check
 .venv/bin/python scripts/update_page_stats.py --check
 .venv/bin/python scripts/build_showcase.py --check
 ```

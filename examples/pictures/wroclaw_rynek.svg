@@ -1,0 +1,104 @@
+<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" stroke="#000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- edge of the square and a few cobbles -->
+  <line x1="2" y1="84" x2="198" y2="84" stroke-width=".5"/>
+  <path d="M72,96 q2,-1.2 4,0 M84,109 q2,-1.2 4,0 M128,116 q2,-1.2 4,0 M186,104 q2,-1.2 4,0 M10,116 q2,-1.2 4,0 M184,116 q2,-1.2 4,0 M90,116 q2,-1.2 4,0" stroke-width=".35"/>
+  <!-- town hall: tower, stepped gable, clock -->
+  <g stroke-width=".6" fill="#fff">
+    <rect x="68" y="22" width="12" height="62"/>
+    <path d="M66.5,22 L74,5 L81.5,22 Z"/>
+    <path d="M74,5 V1.5" fill="none"/>
+    <path d="M71.5,41 V34 A2.5,2.5 0 0 1 76.5,34 V41 Z" stroke-width=".45"/>
+    <path d="M68,52 H80" fill="none" stroke-width=".4"/>
+    <path d="M10,48 v-5 h4 v-5 h4 v-5 h4 v-5 h4 v-5 h4 v-5 h4 v-5 h8 v5 h4 v5 h4 v5 h4 v5 h4 v5 h4 v5 h4 v5 Z"/>
+    <rect x="12" y="48" width="52" height="36"/>
+    <path d="M33,84 V71 A5,5 0 0 1 43,71 V84" stroke-width=".5"/>
+    <path d="M38,66 V84" fill="none" stroke-width=".35"/>
+    <path d="M18,77 V61 A4,4 0 0 1 26,61 V77 Z M50,77 V61 A4,4 0 0 1 58,61 V77 Z" stroke-width=".45"/>
+    <path d="M22,57 V77 M18,67 H26 M54,57 V77 M50,67 H58" fill="none" stroke-width=".3"/>
+    <circle cx="38" cy="34" r="6.5"/>
+    <path d="M38,28.6 v1.2 M38,38.2 v1.2 M32.6,34 h1.2 M42.2,34 h1.2" fill="none" stroke-width=".4"/>
+    <path d="M38,34 V30.2 M38,34 L41,35.8" fill="none" stroke-width=".7"/>
+  </g>
+  <!-- three old houses -->
+  <g stroke-width=".5" fill="#fff">
+    <path d="M120,44 v-5 h4 v-5 h4 v-5 h8 v5 h4 v5 h4 v5 Z"/>
+    <rect x="120" y="44" width="24" height="40"/>
+    <path d="M124.5,49 h5 v7 h-5 Z M134.5,49 h5 v7 h-5 Z M124.5,61 h5 v7 h-5 Z M134.5,61 h5 v7 h-5 Z M129,84 v-10 h6 v10" stroke-width=".4"/>
+    <circle cx="132" cy="36.5" r="1.8" stroke-width=".4"/>
+    <path d="M144,38 L157,20 L170,38 Z"/>
+    <rect x="144" y="38" width="26" height="46"/>
+    <path d="M148.5,43 h5 v6 h-5 Z M160.5,43 h5 v6 h-5 Z M148.5,53 h5 v6 h-5 Z M160.5,53 h5 v6 h-5 Z M148.5,63 h5 v6 h-5 Z M160.5,63 h5 v6 h-5 Z" stroke-width=".4"/>
+    <circle cx="157" cy="31" r="2.6" stroke-width=".4"/>
+    <path d="M170,46 Q170,38 176,38 Q176,28 182,28 Q188,28 188,38 Q194,38 194,46 Z"/>
+    <rect x="170" y="46" width="24" height="38"/>
+    <path d="M174.5,51 h5 v7 h-5 Z M184.5,51 h5 v7 h-5 Z M174.5,63 h5 v7 h-5 Z M184.5,63 h5 v7 h-5 Z" stroke-width=".4"/>
+    <ellipse cx="182" cy="36.5" rx="2" ry="2.6" stroke-width=".4"/>
+  </g>
+  <!-- bench -->
+  <g stroke-width=".5" fill="#fff">
+    <rect x="19.2" y="91.5" width="1.8" height="21.5"/>
+    <rect x="57" y="91.5" width="1.8" height="21.5"/>
+    <rect x="17" y="93" width="44" height="3.2"/>
+    <rect x="17" y="98" width="44" height="3.2"/>
+    <rect x="15.5" y="103.5" width="47" height="2.8"/>
+    <path d="M17.2,113 H23 M55,113 H60.8" fill="none" stroke-width=".7"/>
+  </g>
+  <!-- street lamp -->
+  <g stroke-width=".55" fill="#fff">
+    <rect x="99" y="47" width="2" height="56"/>
+    <path d="M96.5,110 L97.5,103 H102.5 L103.5,110 Z"/>
+    <rect x="95.3" y="110" width="9.4" height="2.2"/>
+    <rect x="98.2" y="72" width="3.6" height="1.8" stroke-width=".4"/>
+    <path d="M95.5,50 H104.5 M97,47 H103" fill="none"/>
+    <path d="M96,46 L94,34 H106 L104,46 Z"/>
+    <path d="M100,34 V46" fill="none" stroke-width=".35"/>
+    <path d="M92.5,34 L100,27 L107.5,34 Z"/>
+    <path d="M100,27 V24.4" fill="none"/>
+    <circle cx="100" cy="23.4" r="1"/>
+  </g>
+  <!-- the dwarf at the foot of the lamp -->
+  <g stroke-width=".5" fill="#fff">
+    <ellipse cx="112" cy="111.8" rx="1.9" ry=".9"/>
+    <ellipse cx="116" cy="111.8" rx="1.9" ry=".9"/>
+    <path d="M110.4,111.4 Q109.7,106.8 111.8,105 H116.2 Q118.3,106.8 117.6,111.4 Z"/>
+    <path d="M110.8,106.3 L108.4,104 M117.2,106.3 L119.2,108.2" fill="none"/>
+    <circle cx="108.1" cy="103.7" r=".7"/>
+    <circle cx="119.5" cy="108.5" r=".7"/>
+    <circle cx="114" cy="102.6" r="2.7"/>
+    <path d="M111.5,103 Q111.3,107.8 114,108.6 Q116.7,107.8 116.5,103 Q114,104.8 111.5,103 Z"/>
+    <circle cx="114" cy="103" r=".8" stroke-width=".4"/>
+    <circle cx="113" cy="101.9" r=".3" fill="#000" stroke="none"/>
+    <circle cx="115" cy="101.9" r=".3" fill="#000" stroke="none"/>
+    <path d="M110.7,101.6 Q112,95.5 116.6,93.4 Q115.8,97.8 117.3,101.6 Q114,100.2 110.7,101.6 Z"/>
+  </g>
+  <!-- the map in the tourist's hand -->
+  <g stroke-width=".5" fill="#fff">
+    <path d="M137,87 L142,89 L147,87 L152,89 V100.5 L147,98.5 L142,100.5 L137,98.5 Z"/>
+    <path d="M142,89 V100.5 M147,87 V98.5" fill="none" stroke-width=".35"/>
+    <path d="M138.4,96.4 l2.2,-3 M143.4,92.4 l2.2,3.2 M148.2,95.8 l2.4,-2.6" fill="none" stroke-width=".35"/>
+    <circle cx="140.8" cy="92.6" r=".6" stroke-width=".35"/>
+  </g>
+  <!-- the tourist, seen from behind, with his backpack -->
+  <g stroke-width=".55" fill="#fff">
+    <rect x="156.5" y="95" width="8" height="16.5"/>
+    <rect x="167.5" y="95" width="8" height="16.5"/>
+    <rect x="155.5" y="111.5" width="9.5" height="3" rx="1.5"/>
+    <rect x="167" y="111.5" width="9.5" height="3" rx="1.5"/>
+    <rect x="164" y="66.5" width="4" height="4.2" stroke-width=".45"/>
+    <path d="M155,75 Q155,70.2 160,70.2 H172 Q177,70.2 177,75 V95 H155 Z"/>
+    <path d="M155.3,73.5 L149.2,88 L152.4,89.4 L157,79 Z"/>
+    <circle cx="150.7" cy="89.5" r="1.5"/>
+    <path d="M176.7,73.5 L179.6,91 L176.4,91.6 L175,79 Z"/>
+    <circle cx="178.1" cy="92.5" r="1.5"/>
+    <circle cx="166" cy="62" r="5.5" fill="#000"/>
+    <rect x="158.5" y="71.5" width="15" height="19.5" rx="4.5" stroke-width=".65"/>
+    <path d="M163.5,71.5 Q166,67.8 168.5,71.5 M158.8,77 Q166,80 173.2,77" fill="none"/>
+  </g>
+  <!-- leader lines for the numbered markers -->
+  <g stroke-width=".3">
+    <line x1="21.2" y1="25.8" x2="31.8" y2="31.4"/>
+    <line x1="108.6" y1="40" x2="105.4" y2="40.4"/>
+    <line x1="121.2" y1="105.5" x2="118.8" y2="105.8"/>
+    <line x1="144.5" y1="104.2" x2="144.5" y2="100.9"/>
+  </g>
+</svg>

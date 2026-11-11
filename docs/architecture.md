@@ -103,6 +103,7 @@ The first answer goes into the answer key and the word bank. See
 | `locale.py` | page furniture strings (en, de, fr, es, it, pt) | `t(key, lang, overrides, **fmt)`, `endonym(code)`, `missing_keys` |
 | `plan.py` | lesson arc, glosses, sidebars, word boxes, seeded shuffles | `plan(ws, seed=None) -> Plan`, `PlannedTask`, `SceneBlock`, `strip_article`, `term_pattern` |
 | `validate.py` | semantic checks beyond the schema | `validate(ws, base_dir) -> Report`, `check_file(path) -> Report`, `Issue`, `Report`, `CHECKS` (every check code), `ENVIRONMENT_CODES` |
+| `quality.py` | the design rubric: deterministic rules beyond "does it work" | `assess(ws) -> QualityReport`, `measure(ws)`, `Finding`, `RULES` (every rule), `KIND_DESIGN` (one entry per task kind) |
 | `answers.py` | renderer-neutral answer key | `answer_key(pt, ws) -> list[str]` |
 | `images.py` | load / convert / sanitise / embed pictures, never crash | `prepare_picture(picture, base_dir, monochrome, warnings) -> PreparedPicture \| None`, `sanitize_svg(root)` |
 | `render/` | HTML + CSS, fonts, PDF via WeasyPrint (offline URL fetcher) | `RenderOptions`, `RenderResult`, `render_worksheet(ws, out_pdf, options)`, `build_html(ws, options)`, `is_allowed_url(url)` |
@@ -205,6 +206,33 @@ nouns match with short endings, verbs by stem (plus regular German
 participles), adjectives with agreement endings (accent-tolerant in French,
 Spanish, Italian and Portuguese), phrases and function words exactly; plurals
 and listed irregular forms are matched as written.
+
+## The design rubric (`quality.py`)
+
+The validator asks whether a sheet works; the rubric asks whether it is well made, as far as
+that can be measured. `langwich validate FILE --quality` runs it on a renderable worksheet and
+lists its findings after the report; they are never errors. Three dimensions — the story (beats,
+a protagonist from the first scene to the last, direct speech, sentences that fit the level),
+the lesson (every scene checked, key words pre-taught, recycled and written, grammar practised)
+and the items (both kinds in a true/false task, options of similar length, spare words in a word
+box, room to write). [`quality.md`](quality.md) lists every rule; it is generated from
+`quality.RULES` by `scripts/export_rubric.py`.
+
+* **Deterministic.** A rule is a pure function of the `Worksheet`: no model, no file, no network,
+  no randomness, no clock. Findings come in a fixed order (story, lesson, then the tasks in
+  worksheet order). `tests/test_quality.py` checks the report against a second run, against the
+  same JSON with its keys reordered and across interpreters with different hash seeds.
+* **One source for the numbers.** Level-dependent limits come from `prompt.LEVELS`, the table the
+  brief prints; the rubric's own thresholds are constants at the top of the module. The brief's
+  example (`prompt.MINI_EXAMPLE`) must have no findings.
+* **Shared word search.** A key word "comes up" in a task when the validator's patterns
+  (`plan.term_pattern`) find it; a character is "named" when a word of the name that is not a
+  title (`quality.name_keys`) occurs, by its stem in languages that inflect names.
+* **Task kinds.** `KIND_DESIGN` says for each kind what is counted, the sensible range, and
+  whether the learner checks against one right answer, a model answer or nothing. The tests hold
+  every entry against real tasks and against `answers.answer_key`.
+* **Findings are repair instructions.** `QualityReport.issues()` turns them into validator
+  warnings, so `validate --quality --prompt` puts them into the repair prompt.
 
 ## Rendering (`render/`)
 
