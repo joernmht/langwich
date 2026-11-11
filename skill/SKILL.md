@@ -27,10 +27,21 @@ pip install --quiet /tmp/langwich-engine || pip install --quiet --break-system-p
 langwich kinds
 ```
 
-If the install fails because packages cannot be downloaded, install without them —
-`pip install --quiet --no-deps --break-system-packages /tmp/langwich-engine` — and check that
-`python3 -c "import pydantic, PIL"` works. langwich then still checks worksheets, and writes the
-worksheet as an HTML page instead of a PDF (step 6 says what to tell the person).
+**If the install fails** because packages cannot be downloaded (no internet in this sandbox),
+don't install at all: run the engine straight from its source. This needs no download, only
+pydantic and Pillow, which most sandboxes already have:
+
+```bash
+PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich kinds
+```
+
+If that prints the task kinds, use `PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich`
+wherever this skill says `langwich` (e.g.
+`PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich validate data/<file>.json`). Without
+WeasyPrint, langwich still checks worksheets and writes the worksheet as an HTML page instead of a
+PDF (step 6 says what to tell the person). If it fails with `No module named 'pydantic'`, the
+sandbox cannot run langwich: tell the person in one plain sentence that this chat cannot make the
+PDF, and that the ready-made worksheets on the langwich website can be printed right away.
 
 Work in one folder for the whole conversation, and start every command there:
 

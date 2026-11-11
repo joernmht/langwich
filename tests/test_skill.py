@@ -9,6 +9,7 @@ to do with it.
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
 import subprocess
 import sys
@@ -75,17 +76,50 @@ def test_the_zip_is_reproducible(skill_zip: Path, tmp_path: Path) -> None:
     assert again.read_bytes() == skill_zip.read_bytes()
 
 
-def test_the_bundled_engine_runs(skill_zip: Path, tmp_path: Path) -> None:
+def _unpack(skill_zip: Path, into: Path) -> Path:
     with zipfile.ZipFile(skill_zip) as zf:
-        zf.extractall(tmp_path)
-    src = tmp_path / "langwich" / "engine" / "src"
+        zf.extractall(into)
+    return into / "langwich" / "engine"
+
+
+def test_the_offline_fallback_runs_the_engine_without_installing(
+    skill_zip: Path, tmp_path: Path
+) -> None:
+    """SKILL.md's no-network path: ``PYTHONPATH=<engine>/src python3 -m langwich``."""
+    engine = _unpack(skill_zip, tmp_path)
+    text = (REPO_ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
+    assert "PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich kinds" in text
     result = subprocess.run(
-        [sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
-         "from langwich.cli import main; sys.exit(main(['kinds']))", str(src)],
+        [sys.executable, "-m", "langwich", "kinds"],
         capture_output=True, text=True, check=False, cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(engine / "src")},
     )
     assert result.returncode == 0, result.stderr
     assert "match" in result.stdout
+
+
+def test_the_bundled_engine_installs_with_pip(skill_zip: Path, tmp_path: Path) -> None:
+    """The online path: ``pip install`` of the unpacked engine builds and runs.
+
+    Without build isolation, so no download is needed: this checks the zip's
+    pyproject.toml (readme, licence files, package data), not the network.
+    """
+    pytest.importorskip("setuptools", minversion="77")
+    engine = _unpack(skill_zip, tmp_path / "unpacked")
+    target = tmp_path / "site"
+    pip = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--quiet", "--no-deps", "--no-build-isolation",
+         "--no-index", "--target", str(target), str(engine)],
+        capture_output=True, text=True, check=False, cwd=tmp_path,
+    )
+    assert pip.returncode == 0, pip.stderr
+    assert (target / "langwich" / "fonts").is_dir() and (target / "langwich" / "schema").is_dir()
+    result = subprocess.run(
+        [sys.executable, "-m", "langwich", "kinds"],
+        capture_output=True, text=True, check=False, cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(target)},
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_skill_md_names_the_engine_folder_it_ships_with() -> None:
