@@ -8,6 +8,7 @@ to do with it.
 
 from __future__ import annotations
 
+import importlib.metadata
 import importlib.util
 import os
 import re
@@ -180,8 +181,16 @@ def test_the_bundled_engine_installs_with_pip(skill_zip: Path, tmp_path: Path) -
     Without build isolation, so no download is needed: this checks the zip's
     pyproject.toml (readme, licence files, package data), not the network.
     """
-    pytest.importorskip("pip")
-    pytest.importorskip("setuptools", minversion="77")
+    # Look them up without importing them: importing pip and then setuptools into this
+    # process trips setuptools' distutils shim on Python 3.11. pip runs in a subprocess.
+    if importlib.util.find_spec("pip") is None:
+        pytest.skip("this Python has no pip")
+    try:
+        setuptools_major = int(importlib.metadata.version("setuptools").split(".")[0])
+    except importlib.metadata.PackageNotFoundError:
+        setuptools_major = 0
+    if setuptools_major < 77:
+        pytest.skip("needs setuptools 77 or newer (the dev extra)")
     engine = _unpack(skill_zip, tmp_path / "unpacked")
     target = tmp_path / "site"
     pip = subprocess.run(
