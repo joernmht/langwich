@@ -595,7 +595,7 @@ def test_letters_never_run_out():
     html = build_html(ws)
     assert '<td class="l">AF</td>' in html
     match = next(pt for pt in plan(ws).tasks if pt.task.id == "t1")
-    assert len(answer_key(match, ws)) == 8
+    assert len(answer_key(match, ws)) == len(data["tasks"][0]["pairs"])
 
 
 def test_cloze_items_join_several_gaps():

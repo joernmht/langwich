@@ -509,7 +509,7 @@
       "kind": "match",
       "stage": "warm_up",
       "title": "Words from Vienna — and new ones for Trieste",
-      "instruction": "Four words are new, four you know from Café Lindner. Match each German word to its English meaning. Write the letter in the box.",
+      "instruction": "Six words are new, four you know from Café Lindner. Match each German word to its English meaning. Write the letter in the box.",
       "pairs": [
         {
           "left": "der Hafen",
@@ -526,6 +526,14 @@
         {
           "left": "verwechseln",
           "right": "to mix up"
+        },
+        {
+          "left": "das Segelboot",
+          "right": "sailing boat"
+        },
+        {
+          "left": "stolz",
+          "right": "proud"
         },
         {
           "left": "die Bohne",
@@ -599,7 +607,7 @@
           "correction": "Seine Espressobar ist in Triest, am Hafen."
         },
         {
-          "statement": "Onkel Marco hatte einen Unfall und braucht Hilfe.",
+          "statement": "Onkel Marco ist gestürzt, und Lena soll in seiner Bar aushelfen.",
           "answer": true
         },
         {
@@ -828,6 +836,7 @@
         "stürzen",
         "aushelfen",
         "verwechseln",
+        "die Bestellung",
         "die Tafel",
         "der Stammgast",
         "stolz"

@@ -1,0 +1,1017 @@
+{
+  "schema": "langwich/3",
+  "title": "Otte klodser for lidt",
+  "standfirst": "Jonas, Tischler aus Flensburg, hat der Enkelin seines Chefs versprochen: Bis Samstag um zehn steht ihre Brücke aus Bausteinen. Doch am Freitagabend fehlen acht Steine, und die Läden sind zu. Finde heraus, was „leg godt“ bedeutet – und was ein Patent von 1958 mit Almas Brücke zu tun hat.",
+  "source_lang": "de",
+  "target_lang": "da",
+  "cefr_level": "B1",
+  "topic": "LEGO in Billund",
+  "frame": "episode",
+  "story": {
+    "logline": "Jonas, ein Tischler aus Flensburg in seinem ersten Monat in Billund, will bis Samstagmorgen mit der Enkelin seines Chefs eine Brücke aus Bausteinen bauen – doch am Abend vorher fehlen acht Steine.",
+    "setting": "Eine Tischlerwerkstatt in Billund (Jütland, Dänemark), ein Freitag von vier Uhr nachmittags bis Mitternacht",
+    "characters": [
+      {
+        "id": "jonas",
+        "name": "Jonas",
+        "role": "29, Tischler aus Flensburg, seit einem Monat in Billund"
+      },
+      {
+        "id": "alma",
+        "name": "Alma",
+        "role": "10, Eriks Enkelin, will den Bauwettbewerb gewinnen"
+      },
+      {
+        "id": "erik",
+        "name": "Erik",
+        "role": "Tischlermeister, Jonas' Chef und Almas Großvater"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Fredag eftermiddag: et løfte",
+        "beat": "setup",
+        "text": "Fredag eftermiddag lugter Eriks værksted i Billund af frisk træ og lim. Jonas høvler et bræt. Han er snedker, kommer fra Flensborg og har kun arbejdet her i en måned.\n\nPludselig går døren op. Alma, Eriks barnebarn på ti år, stiller en kasse med klodser på høvlebænken. Hun fortæller, at der er byggekonkurrence på skolen i morgen klokken ti. Den længste bro vinder, hvis den kan bære en liter mælk.\n\n»Morfar er dommer, så han siger, at han ikke må hjælpe mig«, siger hun. »Men du er jo snedker! Hjælper du mig?«\n\nSnedkeren fra Flensborg har aldrig bygget en bro. Alligevel hører han sig selv sige: »Det lover jeg. I morgen står din bro.«",
+        "translation": "Am Freitagnachmittag riecht Eriks Werkstatt in Billund nach frischem Holz und Leim. Jonas hobelt ein Brett. Er ist Tischler, kommt aus Flensburg und arbeitet erst seit einem Monat hier.\n\nPlötzlich geht die Tür auf. Alma, Eriks zehnjährige Enkelin, stellt eine Kiste mit Bausteinen auf die Hobelbank. Sie erzählt, dass morgen um zehn Uhr in der Schule ein Bauwettbewerb stattfindet. Die längste Brücke gewinnt, wenn sie einen Liter Milch tragen kann.\n\n„Opa ist Preisrichter, deshalb sagt er, dass er mir nicht helfen darf“, sagt sie. „Aber du bist doch Tischler! Hilfst du mir?“\n\nDer Tischler aus Flensburg hat noch nie eine Brücke gebaut. Trotzdem hört er sich sagen: „Das verspreche ich. Morgen steht deine Brücke.“"
+      },
+      {
+        "id": "s2",
+        "heading": "Klokken seks: leg godt",
+        "beat": "development",
+        "text": "Klokken seks står der to tårne af klodser på høvlebænken. Erik kommer ind med kaffe. Han ser på, men han bygger ikke med.\n\n»Ved du egentlig, hvordan LEGO begyndte?« spørger han Jonas. »I et værksted som det her. Ole Kirk Kristiansen var snedker ligesom os. I 1932 begyndte han at lave legetøj her i Billund.«\n\n»Af plastik?«\n\n»Nej, i begyndelsen blev alt lavet af træ. De første klodser af plastik kom først i 1949. Men navnet er ældre. Det blev dannet af to danske ord: leg godt.«\n\n»Spiel gut«, siger Jonas på tysk. »Det vidste jeg ikke.«\n\n»Jeg vil ikke lege godt«, siger Alma. »Jeg vil vinde.«",
+        "translation": "Um sechs Uhr stehen zwei Türme aus Bausteinen auf der Hobelbank. Erik kommt mit Kaffee herein. Er schaut zu, aber er baut nicht mit.\n\n„Weißt du eigentlich, wie LEGO angefangen hat?“, fragt er Jonas. „In einer Werkstatt wie dieser. Ole Kirk Kristiansen war Tischler wie wir. 1932 begann er, hier in Billund Spielzeug herzustellen.“\n\n„Aus Plastik?“\n\n„Nein, am Anfang wurde alles aus Holz gemacht. Die ersten Bausteine aus Plastik kamen erst 1949. Aber der Name ist älter. Er wurde aus zwei dänischen Wörtern gebildet: leg godt.“\n\n„Spiel gut“, sagt Jonas auf Deutsch. „Das wusste ich nicht.“\n\n„Ich will nicht gut spielen“, sagt Alma. „Ich will gewinnen.“"
+      },
+      {
+        "id": "s3",
+        "heading": "Klokken otte: otte klodser for lidt",
+        "beat": "complication",
+        "text": "Klokken otte er broen over en meter lang. Men i midten er der et hul: Der mangler otte klodser. Jonas ved, at de ikke kan købe nye nu, for butikkerne har lukket.\n\nAlma vil ikke vente. Hun tager klodser fra det ene tårn, og broen falder sammen med et brag.\n\n»Nu vinder vi aldrig«, siger hun stille.\n\n»Jeg har en kasse klodser oppe på loftet«, siger Erik. »Fra dengang jeg var dreng.«\n\n»De er jo over halvtreds år gamle!« siger Jonas. »Min gamle oplader passer ikke engang til min nye telefon.«\n\n»Jeg hjælper ikke«, siger Erik og henter stigen. »Jeg rydder bare op på loftet.«",
+        "translation": "Um acht Uhr ist die Brücke über einen Meter lang. Aber in der Mitte ist ein Loch: Es fehlen acht Bausteine. Jonas weiß, dass sie jetzt keine neuen kaufen können, denn die Läden haben geschlossen.\n\nAlma will nicht warten. Sie nimmt Steine von dem einen Turm, und die Brücke stürzt mit einem Krach ein.\n\n„Jetzt gewinnen wir nie“, sagt sie leise.\n\n„Ich habe oben auf dem Dachboden eine Kiste Bausteine“, sagt Erik. „Aus der Zeit, als ich ein Junge war.“\n\n„Die sind ja über fünfzig Jahre alt!“, sagt Jonas. „Mein altes Ladegerät passt nicht einmal zu meinem neuen Handy.“\n\n„Ich helfe nicht“, sagt Erik und holt die Leiter. „Ich räume nur auf dem Dachboden auf.“"
+      },
+      {
+        "id": "s4",
+        "heading": "Midnat: klik",
+        "beat": "resolution",
+        "text": "Lidt senere kommer Erik ned ad stigen med en støvet kasse. Klodserne i den er ridsede. Jonas trykker en gammel klods ned på en ny. Klik. Den sidder fast.\n\n»Selvfølgelig«, siger Erik. »Klodsen med knopper foroven og rør indeni blev opfundet i 1958. Den 28. januar samme år søgte LEGO patent på den. Siden da har alle klodser passet sammen, selvom de ikke er lige gamle.«\n\nVed midnat står broen igen på høvlebænken, længere end før. Jonas stiller forsigtigt en mælkekarton på den. Broen holder.\n\n»Leg godt i morgen«, siger Erik til Alma. Brættet fra i eftermiddags står stadig op ad væggen. Det må vente til mandag.",
+        "translation": "Wenig später kommt Erik mit einer staubigen Kiste die Leiter herunter. Die Steine darin sind zerkratzt. Jonas drückt einen alten Stein auf einen neuen. Klick. Er sitzt fest.\n\n„Natürlich“, sagt Erik. „Der Stein mit Noppen oben und Röhren innen wurde 1958 erfunden. Am 28. Januar desselben Jahres meldete LEGO ihn zum Patent an. Seitdem passen alle Steine zusammen, auch wenn sie nicht gleich alt sind.“\n\nUm Mitternacht steht die Brücke wieder auf der Hobelbank, länger als vorher. Jonas stellt vorsichtig einen Milchkarton darauf. Die Brücke hält.\n\n„Spiel gut morgen“, sagt Erik zu Alma. Das Brett von heute Nachmittag lehnt immer noch an der Wand. Es muss bis Montag warten.",
+        "picture": {
+          "svg": "<svg viewBox=\"0 0 200 112\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <!-- floor -->\n  <line x1=\"0\" y1=\"106\" x2=\"200\" y2=\"106\" stroke-width=\".5\"/>\n\n  <!-- attic hatch and ladder -->\n  <rect x=\"160\" y=\"0\" width=\"34\" height=\"6\" fill=\"#000\" stroke-width=\".4\"/>\n  <g stroke-width=\"1.1\">\n    <line x1=\"158\" y1=\"106\" x2=\"168\" y2=\"5\"/>\n    <line x1=\"176\" y1=\"106\" x2=\"186\" y2=\"5\"/>\n  </g>\n  <path d=\"M159,96 H177 M160.2,84 H178.2 M161.4,72 H179.4 M162.6,60 H180.6 M163.7,48 H181.7 M164.9,36 H182.9 M166.1,24 H184.1 M167.3,12 H185.3\" stroke-width=\".8\"/>\n\n  <!-- board leaning against the wall -->\n  <path d=\"M8,106 L12,20 L20,20 L16,106 Z\" fill=\"#fff\" stroke-width=\".7\"/>\n  <path d=\"M11.2,100 L14.6,26 M13.6,90 L16.6,40\" stroke-width=\".25\"/>\n\n  <!-- wall clock: midnight -->\n  <circle cx=\"42\" cy=\"22\" r=\"10\" fill=\"#fff\" stroke-width=\".8\"/>\n  <path d=\"M42,13.5 V15.5 M42,28.5 V30.5 M33.5,22 H35.5 M48.5,22 H50.5\" stroke-width=\".5\"/>\n  <line x1=\"42\" y1=\"22\" x2=\"42\" y2=\"15.6\" stroke-width=\".5\"/>\n  <line x1=\"42\" y1=\"22\" x2=\"42\" y2=\"17.6\" stroke-width=\"1.2\"/>\n  <circle cx=\"42\" cy=\"22\" r=\".9\" fill=\"#000\" stroke-width=\".3\"/>\n\n  <!-- hand saw on the wall -->\n  <path d=\"M76.5,10 L112,14.5 L112,17.5 L77,22.5 Z\" fill=\"#fff\" stroke-width=\".6\"/>\n  <polyline points=\"77,22.5 78.25,23.6 79.5,22.1 80.75,23.3 82,21.8 83.25,22.9 84.5,21.4 85.75,22.6 87,21.1 88.25,22.2 89.5,20.7 90.75,21.8 92,20.4 93.25,21.5 94.5,20 95.75,21.1 97,19.6 98.25,20.8 99.5,19.3 100.75,20.4 102,18.9 103.25,20.1 104.5,18.6 105.75,19.7 107,18.2 108.25,19.3 109.5,17.9 110.75,19 112,17.5\" stroke-width=\".4\"/>\n  <path d=\"M64,9 L76.5,8 L77.5,24 L68,26 Q63,19 64,9 Z\" fill=\"#fff\" stroke-width=\".7\"/>\n  <ellipse cx=\"70\" cy=\"17\" rx=\"2.6\" ry=\"4.6\" stroke-width=\".5\"/>\n\n  <!-- pendant lamp -->\n  <line x1=\"134\" y1=\"0\" x2=\"134\" y2=\"11\" stroke-width=\".35\"/>\n  <path d=\"M125,21 L143,21 L139,11 L129,11 Z\" fill=\"#000\" stroke-width=\".4\"/>\n  <path d=\"M131.5,21.2 Q134,24.6 136.5,21.2\" stroke-width=\".4\"/>\n\n  <!-- workbench with a vice -->\n  <g fill=\"#fff\" stroke-width=\".7\">\n    <rect x=\"64\" y=\"76\" width=\"7\" height=\"30\"/>\n    <rect x=\"143\" y=\"76\" width=\"7\" height=\"30\"/>\n    <rect x=\"71\" y=\"93\" width=\"72\" height=\"3.5\" stroke-width=\".5\"/>\n    <rect x=\"58\" y=\"70\" width=\"98\" height=\"6\" stroke-width=\".8\"/>\n    <rect x=\"51\" y=\"70.5\" width=\"7\" height=\"10\" stroke-width=\".6\"/>\n  </g>\n  <line x1=\"71\" y1=\"80\" x2=\"143\" y2=\"80\" stroke-width=\".35\"/>\n  <path d=\"M51,75.5 H46.5 M46.5,71 V80\" stroke-width=\".8\"/>\n  <circle cx=\"46.5\" cy=\"71\" r=\".9\" fill=\"#000\" stroke-width=\".3\"/>\n  <circle cx=\"46.5\" cy=\"80\" r=\".9\" fill=\"#000\" stroke-width=\".3\"/>\n\n  <!-- the bridge: two towers and a deck of bricks -->\n  <g fill=\"#fff\" stroke-width=\".6\">\n    <rect x=\"68\" y=\"54\" width=\"13\" height=\"16\"/>\n    <rect x=\"133\" y=\"54\" width=\"13\" height=\"16\"/>\n  </g>\n  <path d=\"M68,58 H81 M68,62 H81 M68,66 H81 M74.5,54 V58 M71.2,58 V62 M77.8,58 V62 M74.5,62 V66 M71.2,66 V70 M77.8,66 V70\" stroke-width=\".35\"/>\n  <path d=\"M133,58 H146 M133,62 H146 M133,66 H146 M139.5,54 V58 M136.2,58 V62 M142.8,58 V62 M139.5,62 V66 M136.2,66 V70 M142.8,66 V70\" stroke-width=\".35\"/>\n  <path d=\"M63.4,48 v-1.4 h2.6 v1.4 M68,48 v-1.4 h2.6 v1.4 M73.4,48 v-1.4 h2.6 v1.4 M78,48 v-1.4 h2.6 v1.4 M83.4,48 v-1.4 h2.6 v1.4 M88,48 v-1.4 h2.6 v1.4 M93.4,48 v-1.4 h2.6 v1.4 M98,48 v-1.4 h2.6 v1.4 M113.4,48 v-1.4 h2.6 v1.4 M118,48 v-1.4 h2.6 v1.4 M123.4,48 v-1.4 h2.6 v1.4 M128,48 v-1.4 h2.6 v1.4 M133.4,48 v-1.4 h2.6 v1.4 M138,48 v-1.4 h2.6 v1.4 M143.4,48 v-1.4 h2.6 v1.4 M148,48 v-1.4 h2.6 v1.4\" stroke-width=\".45\"/>\n  <rect x=\"62\" y=\"48\" width=\"90\" height=\"6\" fill=\"#fff\" stroke-width=\".7\"/>\n  <path d=\"M72,48 V54 M82,48 V54 M92,48 V54 M102,48 V54 M112,48 V54 M122,48 V54 M132,48 V54 M142,48 V54\" stroke-width=\".4\"/>\n\n  <!-- milk carton on the bridge -->\n  <g fill=\"#fff\" stroke-width=\".7\">\n    <rect x=\"101\" y=\"30\" width=\"12\" height=\"18\"/>\n    <path d=\"M101,30 L104,25.5 L110,25.5 L113,30 Z\"/>\n    <path d=\"M104,25.5 V23.6 H110 V25.5\" stroke-width=\".6\"/>\n  </g>\n  <path d=\"M107,34.6 C105.2,37.2 104.8,38.8 107,40 C109.2,38.8 108.8,37.2 107,34.6 Z\" stroke-width=\".45\"/>\n  <line x1=\"101\" y1=\"43.6\" x2=\"113\" y2=\"43.6\" stroke-width=\".35\"/>\n\n  <!-- box of old bricks on the floor -->\n  <g fill=\"#fff\" stroke-width=\".5\">\n    <rect x=\"27\" y=\"85.5\" width=\"8\" height=\"4.5\"/>\n    <rect x=\"36.5\" y=\"86.8\" width=\"7\" height=\"3.2\"/>\n  </g>\n  <path d=\"M28.2,85.5 v-1.2 h2.2 v1.2 M31.8,85.5 v-1.2 h2.2 v1.2 M37.5,86.8 v-1.1 h2 v1.1 M40.6,86.8 v-1.1 h2 v1.1\" stroke-width=\".4\"/>\n  <rect x=\"24\" y=\"90\" width=\"22\" height=\"16\" fill=\"#fff\" stroke-width=\".7\"/>\n  <path d=\"M24,95.3 H46 M24,100.6 H46\" stroke-width=\".35\"/>\n\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"28.8\" y1=\"10.4\" x2=\"34.3\" y2=\"15.3\"/>\n    <line x1=\"88\" y1=\"29.3\" x2=\"88\" y2=\"22.6\"/>\n    <line x1=\"153.4\" y1=\"41.4\" x2=\"163.4\" y2=\"45.3\"/>\n    <line x1=\"118.3\" y1=\"38.3\" x2=\"113.6\" y2=\"38.8\"/>\n    <line x1=\"107\" y1=\"58.3\" x2=\"107\" y2=\"54.6\"/>\n    <line x1=\"120\" y1=\"82.3\" x2=\"120\" y2=\"76.6\"/>\n    <line x1=\"52.3\" y1=\"98\" x2=\"46.8\" y2=\"98\"/>\n    <line x1=\"24.3\" y1=\"56\" x2=\"19\" y2=\"56\"/>\n  </g>\n</svg>",
+          "caption": "Midnat i værkstedet: Broen holder.",
+          "prompt": "Black-and-white line drawing of a small joinery workshop at midnight: in the middle a sturdy workbench with a vice; on it a long bridge built of plain toy bricks resting on two brick towers, with a milk carton standing on the middle of the bridge; a pendant lamp above; on the back wall a round clock showing twelve and a hand saw; on the left a long board leaning against the wall and a wooden box of old bricks on the floor; on the right a ladder leading up to an open attic hatch. Bold clean outlines, no grey shading, no logos or lettering.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "et ur",
+              "x": 0.13,
+              "y": 0.071
+            },
+            {
+              "n": 2,
+              "term": "en sav",
+              "x": 0.44,
+              "y": 0.295
+            },
+            {
+              "n": 3,
+              "term": "en stige",
+              "x": 0.75,
+              "y": 0.357
+            },
+            {
+              "n": 4,
+              "term": "en mælkekarton",
+              "x": 0.61,
+              "y": 0.339
+            },
+            {
+              "n": 5,
+              "term": "en bro",
+              "x": 0.535,
+              "y": 0.554
+            },
+            {
+              "n": 6,
+              "term": "en høvlebænk",
+              "x": 0.6,
+              "y": 0.768
+            },
+            {
+              "n": 7,
+              "term": "en kasse",
+              "x": 0.28,
+              "y": 0.875
+            },
+            {
+              "n": 8,
+              "term": "et bræt",
+              "x": 0.14,
+              "y": 0.5
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s2",
+      "title": "LEGOLAND og LEGO House",
+      "text": "I 1968 åbnede LEGOLAND i Billund. I 2017 kom LEGO House, et oplevelseshus midt i byen."
+    },
+    {
+      "id": "f2",
+      "scene": "s4",
+      "title": "915.103.765",
+      "text": "Seks klodser med otte knopper i samme farve kan sættes sammen på 915.103.765 måder. Det har en matematiker fra Københavns Universitet regnet ud."
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "en klods",
+      "en knop",
+      "et rør",
+      "et værksted",
+      "en snedker",
+      "et loft",
+      "bygge",
+      "passe",
+      "mangle",
+      "love"
+    ],
+    "items": [
+      {
+        "term": "en klods",
+        "translation": "Baustein, Klotz",
+        "pos": "noun",
+        "plural": "klodser",
+        "forms": "klodsen"
+      },
+      {
+        "term": "en knop",
+        "translation": "Noppe",
+        "pos": "noun",
+        "plural": "knopper",
+        "forms": "knoppen"
+      },
+      {
+        "term": "et rør",
+        "translation": "Rohr, Röhre",
+        "pos": "noun",
+        "plural": "rør",
+        "forms": "røret"
+      },
+      {
+        "term": "et værksted",
+        "translation": "Werkstatt",
+        "pos": "noun",
+        "plural": "værksteder",
+        "forms": "værkstedet"
+      },
+      {
+        "term": "en snedker",
+        "translation": "Tischler, Schreiner",
+        "pos": "noun",
+        "plural": "snedkere",
+        "forms": "snedkeren"
+      },
+      {
+        "term": "et loft",
+        "translation": "Dachboden",
+        "pos": "noun",
+        "plural": "lofter",
+        "forms": "loftet"
+      },
+      {
+        "term": "en bro",
+        "translation": "Brücke",
+        "pos": "noun",
+        "plural": "broer",
+        "forms": "broen"
+      },
+      {
+        "term": "legetøj",
+        "translation": "Spielzeug",
+        "pos": "noun",
+        "forms": "legetøjet",
+        "note": "et-Wort, ohne Plural"
+      },
+      {
+        "term": "træ",
+        "translation": "Holz",
+        "pos": "noun",
+        "forms": "træet",
+        "note": "et træ = auch: ein Baum"
+      },
+      {
+        "term": "lim",
+        "translation": "Leim, Klebstoff",
+        "pos": "noun",
+        "forms": "limen",
+        "note": "en-Wort"
+      },
+      {
+        "term": "et bræt",
+        "translation": "Brett",
+        "pos": "noun",
+        "plural": "brædder",
+        "forms": "brættet"
+      },
+      {
+        "term": "en høvlebænk",
+        "translation": "Hobelbank",
+        "pos": "noun",
+        "plural": "høvlebænke",
+        "forms": "høvlebænken"
+      },
+      {
+        "term": "et barnebarn",
+        "translation": "Enkelkind",
+        "pos": "noun",
+        "plural": "børnebørn",
+        "forms": "barnebarnet"
+      },
+      {
+        "term": "en kasse",
+        "translation": "Kiste, Kasten",
+        "pos": "noun",
+        "plural": "kasser",
+        "forms": "kassen"
+      },
+      {
+        "term": "en byggekonkurrence",
+        "translation": "Bauwettbewerb",
+        "pos": "noun",
+        "plural": "byggekonkurrencer",
+        "forms": "byggekonkurrencen"
+      },
+      {
+        "term": "en dommer",
+        "translation": "Preisrichter; Richter",
+        "pos": "noun",
+        "plural": "dommere",
+        "forms": "dommeren"
+      },
+      {
+        "term": "en morfar",
+        "translation": "Großvater (Vater der Mutter), Opa",
+        "pos": "noun",
+        "forms": "morfaren"
+      },
+      {
+        "term": "et tårn",
+        "translation": "Turm",
+        "pos": "noun",
+        "plural": "tårne",
+        "forms": "tårnet"
+      },
+      {
+        "term": "et hul",
+        "translation": "Loch",
+        "pos": "noun",
+        "plural": "huller",
+        "forms": "hullet"
+      },
+      {
+        "term": "et brag",
+        "translation": "Krach, Knall",
+        "pos": "noun",
+        "plural": "brag",
+        "forms": "braget"
+      },
+      {
+        "term": "en oplader",
+        "translation": "Ladegerät",
+        "pos": "noun",
+        "plural": "opladere",
+        "forms": "opladeren"
+      },
+      {
+        "term": "en stige",
+        "translation": "Leiter",
+        "pos": "noun",
+        "plural": "stiger",
+        "forms": "stigen"
+      },
+      {
+        "term": "et patent",
+        "translation": "Patent",
+        "pos": "noun",
+        "plural": "patenter",
+        "forms": "patentet",
+        "note": "søge patent på = zum Patent anmelden"
+      },
+      {
+        "term": "en mælkekarton",
+        "translation": "Milchkarton",
+        "pos": "noun",
+        "plural": "mælkekartoner",
+        "forms": "mælkekartonen"
+      },
+      {
+        "term": "en væg",
+        "translation": "Wand",
+        "pos": "noun",
+        "plural": "vægge",
+        "forms": "væggen"
+      },
+      {
+        "term": "et ur",
+        "translation": "Uhr",
+        "pos": "noun",
+        "plural": "ure",
+        "forms": "uret"
+      },
+      {
+        "term": "en sav",
+        "translation": "Säge",
+        "pos": "noun",
+        "plural": "save",
+        "forms": "saven"
+      },
+      {
+        "term": "et gulv",
+        "translation": "Fußboden",
+        "pos": "noun",
+        "plural": "gulve",
+        "forms": "gulvet"
+      },
+      {
+        "term": "et løfte",
+        "translation": "Versprechen",
+        "pos": "noun",
+        "plural": "løfter",
+        "forms": "løftet"
+      },
+      {
+        "term": "et oplevelseshus",
+        "translation": "Erlebnishaus",
+        "pos": "noun",
+        "plural": "oplevelseshuse",
+        "forms": "oplevelseshuset"
+      },
+      {
+        "term": "en måde",
+        "translation": "Art, Weise",
+        "pos": "noun",
+        "plural": "måder",
+        "forms": "måden"
+      },
+      {
+        "term": "en gymnastiksal",
+        "translation": "Turnhalle",
+        "pos": "noun",
+        "plural": "gymnastiksale",
+        "forms": "gymnastiksalen"
+      },
+      {
+        "term": "en pokal",
+        "translation": "Pokal",
+        "pos": "noun",
+        "plural": "pokaler",
+        "forms": "pokalen"
+      },
+      {
+        "term": "bygge",
+        "translation": "bauen",
+        "pos": "verb",
+        "forms": "bygger, byggede, har bygget"
+      },
+      {
+        "term": "passe",
+        "translation": "passen",
+        "pos": "verb",
+        "forms": "passer, passede, har passet",
+        "note": "passe sammen = zusammenpassen; passe til = passen zu"
+      },
+      {
+        "term": "mangle",
+        "translation": "fehlen",
+        "pos": "verb",
+        "forms": "mangler, manglede, har manglet"
+      },
+      {
+        "term": "love",
+        "translation": "versprechen",
+        "pos": "verb",
+        "forms": "lover, lovede, har lovet",
+        "note": "falscher Freund: loben = rose"
+      },
+      {
+        "term": "lugte",
+        "translation": "riechen",
+        "pos": "verb",
+        "forms": "lugter, lugtede, har lugtet",
+        "note": "lugte af = riechen nach"
+      },
+      {
+        "term": "høvle",
+        "translation": "hobeln",
+        "pos": "verb",
+        "forms": "høvler, høvlede, har høvlet"
+      },
+      {
+        "term": "stille",
+        "translation": "stellen",
+        "pos": "verb",
+        "forms": "stiller, stillede, har stillet"
+      },
+      {
+        "term": "bære",
+        "translation": "tragen",
+        "pos": "verb",
+        "forms": "bærer, bar, har båret"
+      },
+      {
+        "term": "vinde",
+        "translation": "gewinnen",
+        "pos": "verb",
+        "forms": "vinder, vandt, har vundet"
+      },
+      {
+        "term": "lege",
+        "translation": "spielen",
+        "pos": "verb",
+        "forms": "leger, legede, har leget",
+        "note": "Karten, Fußball, Klavier: spille"
+      },
+      {
+        "term": "danne",
+        "translation": "bilden",
+        "pos": "verb",
+        "forms": "danner, dannede, har dannet"
+      },
+      {
+        "term": "falde sammen",
+        "translation": "einstürzen, zusammenfallen",
+        "pos": "verb",
+        "forms": "falder sammen, faldt sammen, er faldet sammen"
+      },
+      {
+        "term": "hente",
+        "translation": "holen",
+        "pos": "verb",
+        "forms": "henter, hentede, har hentet"
+      },
+      {
+        "term": "rydde op",
+        "translation": "aufräumen",
+        "pos": "verb",
+        "forms": "rydder op, ryddede op, har ryddet op"
+      },
+      {
+        "term": "trykke",
+        "translation": "drücken",
+        "pos": "verb",
+        "forms": "trykker, trykkede, har trykket"
+      },
+      {
+        "term": "sidde fast",
+        "translation": "festsitzen",
+        "pos": "verb",
+        "forms": "sidder fast, sad fast, har siddet fast"
+      },
+      {
+        "term": "opfinde",
+        "translation": "erfinden",
+        "pos": "verb",
+        "forms": "opfinder, opfandt, har opfundet"
+      },
+      {
+        "term": "søge",
+        "translation": "suchen; beantragen",
+        "pos": "verb",
+        "forms": "søger, søgte, har søgt"
+      },
+      {
+        "term": "holde",
+        "translation": "halten",
+        "pos": "verb",
+        "forms": "holder, holdt, har holdt"
+      },
+      {
+        "term": "grundlægge",
+        "translation": "gründen",
+        "pos": "verb",
+        "forms": "grundlægger, grundlagde, har grundlagt"
+      },
+      {
+        "term": "vælge",
+        "translation": "wählen, aussuchen",
+        "pos": "verb",
+        "forms": "vælger, valgte, har valgt"
+      },
+      {
+        "term": "støvet",
+        "translation": "staubig",
+        "pos": "adjective"
+      },
+      {
+        "term": "ridset",
+        "translation": "zerkratzt",
+        "pos": "adjective",
+        "forms": "ridsede"
+      },
+      {
+        "term": "pludselig",
+        "translation": "plötzlich",
+        "pos": "adverb"
+      },
+      {
+        "term": "alligevel",
+        "translation": "trotzdem",
+        "pos": "adverb"
+      },
+      {
+        "term": "selvfølgelig",
+        "translation": "natürlich, selbstverständlich",
+        "pos": "adverb"
+      },
+      {
+        "term": "forsigtigt",
+        "translation": "vorsichtig",
+        "pos": "adverb"
+      },
+      {
+        "term": "foroven",
+        "translation": "oben",
+        "pos": "adverb"
+      },
+      {
+        "term": "indeni",
+        "translation": "innen, im Inneren",
+        "pos": "adverb"
+      },
+      {
+        "term": "dengang",
+        "translation": "damals; (damals,) als",
+        "pos": "adverb"
+      },
+      {
+        "term": "ligesom",
+        "translation": "genau wie",
+        "pos": "conjunction"
+      },
+      {
+        "term": "selvom",
+        "translation": "obwohl, auch wenn",
+        "pos": "conjunction"
+      },
+      {
+        "term": "ikke engang",
+        "translation": "nicht einmal",
+        "pos": "phrase"
+      },
+      {
+        "term": "siden da",
+        "translation": "seitdem",
+        "pos": "phrase"
+      },
+      {
+        "term": "i eftermiddags",
+        "translation": "heute Nachmittag (schon vorbei)",
+        "pos": "phrase"
+      },
+      {
+        "term": "i fredags",
+        "translation": "am (vergangenen) Freitag",
+        "pos": "phrase"
+      },
+      {
+        "term": "op ad væggen",
+        "translation": "an der Wand (gelehnt)",
+        "pos": "phrase"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Das Passiv mit blive (Vergangenheit)",
+      "scene": "s2",
+      "explanation": "Wenn wichtig ist, was mit einer Sache geschah, und nicht, wer es getan hat, benutzt das Dänische blive + Partizip – wie das deutsche Passiv mit werden. In der Vergangenheit heißt es blev, für alle Personen gleich.",
+      "rule": "blev + Partizip (-et oder -t)",
+      "table": {
+        "head": [
+          "Infinitiv",
+          "Partizip",
+          "Passiv"
+        ],
+        "rows": [
+          [
+            "lave",
+            "lavet",
+            "blev lavet"
+          ],
+          [
+            "danne",
+            "dannet",
+            "blev dannet"
+          ],
+          [
+            "sælge",
+            "solgt",
+            "blev solgt"
+          ],
+          [
+            "finde",
+            "fundet",
+            "blev fundet"
+          ]
+        ]
+      },
+      "examples": [
+        "I begyndelsen blev alt lavet af træ.",
+        "Det blev dannet af to danske ord: leg godt."
+      ]
+    },
+    {
+      "id": "g2",
+      "name": "ikke im Nebensatz",
+      "scene": "s3",
+      "explanation": "Im Hauptsatz steht ikke hinter dem Verb. Im Nebensatz (nach at, fordi, hvis, selvom …) steht ikke vor dem Verb. Anders als im Deutschen wandert das Verb dabei nicht ans Satzende.",
+      "rule": "at / fordi / hvis / selvom + Subjekt + ikke + Verb",
+      "table": {
+        "head": [
+          "Hauptsatz",
+          "Nebensatz"
+        ],
+        "rows": [
+          [
+            "Han må ikke hjælpe.",
+            "…, at han ikke må hjælpe."
+          ],
+          [
+            "De kan ikke købe nye.",
+            "…, at de ikke kan købe nye."
+          ],
+          [
+            "De er ikke lige gamle.",
+            "…, selvom de ikke er lige gamle."
+          ]
+        ]
+      },
+      "examples": [
+        "Morfar siger, at han ikke må hjælpe mig.",
+        "Jonas ved, at de ikke kan købe nye nu."
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Zehn Wörter für die Werkstatt",
+      "instruction": "Ordne jedem dänischen Wort seine deutsche Bedeutung zu und schreibe den Buchstaben in das Kästchen. Zwei Bedeutungen bleiben übrig – Vorsicht, falsche Freunde!",
+      "pairs": [
+        {
+          "left": "en klods",
+          "right": "Baustein"
+        },
+        {
+          "left": "en knop",
+          "right": "Noppe"
+        },
+        {
+          "left": "et rør",
+          "right": "Rohr"
+        },
+        {
+          "left": "et værksted",
+          "right": "Werkstatt"
+        },
+        {
+          "left": "en snedker",
+          "right": "Tischler"
+        },
+        {
+          "left": "et loft",
+          "right": "Dachboden"
+        },
+        {
+          "left": "bygge",
+          "right": "bauen"
+        },
+        {
+          "left": "passe",
+          "right": "passen"
+        },
+        {
+          "left": "mangle",
+          "right": "fehlen"
+        },
+        {
+          "left": "love",
+          "right": "versprechen"
+        }
+      ],
+      "extra": [
+        "loben",
+        "Knopf"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "questions",
+      "stage": "warm_up",
+      "title": "Was kann da schiefgehen?",
+      "instruction": "Jonas verspricht einem Kind, bis morgen früh eine Brücke aus Bausteinen zu bauen. Was könnte schiefgehen? Schreibe eine Idee auf – auf Deutsch oder auf Dänisch. Am Ende prüfst du, ob du recht hattest.",
+      "items": [
+        {
+          "question": "Min idé:",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Freitagnachmittag: Was stimmt?",
+      "instruction": "Richtig oder falsch? Kreuze an und korrigiere die falschen Sätze.",
+      "items": [
+        {
+          "statement": "Jonas har arbejdet i værkstedet i mange år.",
+          "answer": false,
+          "correction": "Han har kun arbejdet der i en måned."
+        },
+        {
+          "statement": "Erik er Almas morfar.",
+          "answer": true
+        },
+        {
+          "statement": "I konkurrencen vinder den højeste bro.",
+          "answer": false,
+          "correction": "Den længste bro vinder."
+        },
+        {
+          "statement": "Erik bygger ikke med, fordi han er dommer i konkurrencen.",
+          "answer": true
+        },
+        {
+          "statement": "Jonas lover Alma, at broen er færdig næste dag.",
+          "answer": true
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "Sechs Uhr: Eriks kleine Geschichtsstunde",
+      "instruction": "Kreuze die richtige Antwort an.",
+      "items": [
+        {
+          "question": "Hvad begyndte Ole Kirk Kristiansen at lave i 1932?",
+          "options": [
+            "legetøj af træ",
+            "klodser af plastik",
+            "små broer af træ"
+          ],
+          "answer": "legetøj af træ"
+        },
+        {
+          "question": "Hvornår kom de første klodser af plastik?",
+          "options": [
+            "i 1932",
+            "i 1949",
+            "i 1968"
+          ],
+          "answer": "i 1949"
+        },
+        {
+          "question": "Hvad fortæller Erik om navnet LEGO?",
+          "options": [
+            "Det kommer af to danske ord.",
+            "Det er navnet på en snedker fra Billund.",
+            "Det er et gammelt tysk ord for legetøj."
+          ],
+          "answer": "Det kommer af to danske ord."
+        },
+        {
+          "question": "Hvad vil Alma helst?",
+          "options": [
+            "vinde konkurrencen",
+            "bare lege med klodserne",
+            "høre mere om gamle dage"
+          ],
+          "answer": "vinde konkurrencen"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s2",
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Almas Plakat: Von Holz zu Plastik",
+      "instruction": "Für den Wettbewerb malt Alma ein Plakat über die Geschichte der Bausteine. Ergänze das Passiv in der Vergangenheit: blev + Partizip des Verbs in Klammern.",
+      "items": [
+        "Firmaet LEGO {{blev grundlagt::grundlægge}} af snedkeren Ole Kirk Kristiansen.",
+        "Navnet {{blev valgt::vælge}} i 1930'erne.",
+        "Plastikklodser {{blev produceret::producere}} for første gang i 1949.",
+        "LEGOLAND {{blev åbnet::åbne}} i Billund i 1968.",
+        "LEGO House {{blev bygget::bygge}} midt i byen og åbnede i 2017."
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "questions",
+      "stage": "detail",
+      "scene": "s3",
+      "title": "Acht Uhr: Was ist passiert?",
+      "instruction": "Antworte in ganzen Sätzen auf Dänisch.",
+      "items": [
+        {
+          "question": "Hvor mange klodser mangler der i broen?",
+          "answer": "Der mangler otte klodser.",
+          "lines": 1
+        },
+        {
+          "question": "Hvorfor kan Jonas og Alma ikke købe nye klodser?",
+          "answer": "Fordi butikkerne har lukket.",
+          "lines": 1
+        },
+        {
+          "question": "Hvorfor falder broen sammen?",
+          "answer": "Fordi Alma tager klodser fra det ene tårn.",
+          "lines": 2
+        },
+        {
+          "question": "Hvorfor tror Jonas ikke, at Eriks gamle klodser kan bruges?",
+          "answer": "Han mener, at de er for gamle til at passe sammen med de nye.",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "transform",
+      "stage": "form",
+      "scene": "s3",
+      "grammar": "g2",
+      "title": "Freitagabend: lauter Gründe",
+      "instruction": "Verbinde die beiden Sätze mit dem Wort in Klammern zu einem Satz. Achte darauf, wo ikke im Nebensatz steht.",
+      "items": [
+        {
+          "prompt": "Alma er sur. Butikkerne har ikke åbent.",
+          "cue": "fordi",
+          "answer": "Alma er sur, fordi butikkerne ikke har åbent."
+        },
+        {
+          "prompt": "Alma siger: »Jeg går ikke hjem endnu.«",
+          "cue": "at",
+          "answer": "Alma siger, at hun ikke går hjem endnu."
+        },
+        {
+          "prompt": "Alma vil vinde. Broen er ikke færdig.",
+          "cue": "selvom",
+          "answer": "Alma vil vinde, selvom broen ikke er færdig."
+        },
+        {
+          "prompt": "Broen falder sammen igen. Tårnene er ikke stærke nok.",
+          "cue": "hvis",
+          "answer": "Broen falder sammen igen, hvis tårnene ikke er stærke nok."
+        },
+        {
+          "prompt": "Jonas bliver i værkstedet. Han vil ikke bryde sit løfte.",
+          "cue": "fordi",
+          "answer": "Jonas bliver i værkstedet, fordi han ikke vil bryde sit løfte."
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "order_events",
+      "stage": "gist",
+      "scene": [
+        "s1",
+        "s2",
+        "s3",
+        "s4"
+      ],
+      "title": "Von vier Uhr bis Mitternacht",
+      "instruction": "Was passiert wann? Nummeriere die Ereignisse von 1 bis 6.",
+      "events": [
+        "Alma kommer ind i værkstedet med sine klodser.",
+        "Erik forklarer, hvad navnet LEGO betyder.",
+        "Broen går i stykker, fordi Alma ikke vil vente.",
+        "Erik finder sine gamle klodser på loftet.",
+        "En gammel og en ny klods passer sammen.",
+        "Mælken står på broen, og broen holder."
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Mitternacht in der Werkstatt",
+      "instruction": "So sieht die Werkstatt um Mitternacht aus. Schreibe zu jeder Zahl das passende Wort aus dem Kasten. Achte auf en und et: Du brauchst sie gleich in der nächsten Aufgabe.",
+      "bank": true
+    },
+    {
+      "id": "t10",
+      "kind": "questions",
+      "stage": "picture",
+      "scene": "s4",
+      "title": "Den oder det? Wo ist was?",
+      "instruction": "Sieh dir das Bild genau an und antworte in einem Satz: mit Den … bei en-Wörtern, mit Det … bei et-Wörtern.",
+      "items": [
+        {
+          "question": "Hvor står mælkekartonen?",
+          "answer": "Den står på broen.",
+          "lines": 1
+        },
+        {
+          "question": "Hvor hænger uret?",
+          "answer": "Det hænger på væggen ved siden af saven.",
+          "lines": 1
+        },
+        {
+          "question": "Hvor står kassen med de gamle klodser?",
+          "answer": "Den står på gulvet ved siden af høvlebænken.",
+          "lines": 1
+        },
+        {
+          "question": "Hvor står brættet?",
+          "answer": "Det står op ad væggen.",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s4",
+      "hint": "word_bank",
+      "title": "Samstag, zehn Uhr: in der Turnhalle",
+      "instruction": "Am Samstagmorgen stehen alle Brücken in der Turnhalle der Schule. Ergänze den Text mit den Wörtern aus dem Kasten. Drei Wörter bleiben übrig.",
+      "text": "Lørdag klokken ti står der tolv broer i skolens gymnastiksal. Erik og to andre dommere går fra bord til bord. Ved hver bro ser de efter, om der {{mangler}} noget, og så stiller de en liter mælk på midten. To broer falder sammen. Almas bro holder, og den er den længste. »Nogle af dine {{klodser}} ser meget gamle ud«, siger en dommer. »De har ligget på morfars {{loft}} i mange år«, svarer Alma. »Men de {{passer}} stadig, for de har de samme {{knopper}} foroven og de samme {{rør}} indeni som de nye.« Erik siger ingenting, men han smiler. Bagefter står Alma med en pokal i hånden. »Jeg havde hjælp af to {{snedkere}}«, siger hun højt. »Men kun den ene har bygget med.«",
+      "distractors": [
+        "lover",
+        "stige",
+        "brædder"
+      ]
+    },
+    {
+      "id": "t12",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Hausaufgabe für die Sprachschule: Mein Wochenende",
+      "instruction": "Jonas lernt abends Dänisch an der Sprachschule in Billund. Seine Lehrerin Birgit möchte jede Woche einen kurzen Text. Schreibe Jonas' Text über dieses Wochenende – auf Dänisch.",
+      "prompt": "Was hat Jonas versprochen? Was ging am Freitagabend schief, und wie wurde die Brücke doch noch fertig? Was hat er über den Namen LEGO gelernt?",
+      "starter": "Kære Birgit. I fredags kom Alma ind i værkstedet og …",
+      "must_use": [
+        "love",
+        "bygge",
+        "mangle",
+        "et loft",
+        "passe",
+        "en knop",
+        "et rør"
+      ],
+      "min_words": 70,
+      "max_words": 100,
+      "lines": 12,
+      "model_answer": "Kære Birgit. I fredags kom Alma ind i værkstedet og bad mig om hjælp. Jeg lovede, at vi ville bygge en bro til skolens konkurrence. Klokken otte manglede der otte klodser, og bagefter faldt broen også sammen. Heldigvis fandt Erik en kasse med gamle klodser på loftet. Jeg troede ikke, at de ville passe, men de har de samme knopper og de samme rør som de nye. Ved midnat var broen færdig, og lørdag vandt Alma. Nu ved jeg også, hvad LEGO betyder: leg godt. Mange hilsner, Jonas"
+    },
+    {
+      "id": "t13",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Und du?",
+      "instruction": "Antworte auf Dänisch. Schau danach noch einmal auf deine Idee vom Anfang: Hattest du recht?",
+      "items": [
+        {
+          "question": "Hvad legede du mest med, da du var barn? Har du stadig noget af dit gamle legetøj? Skriv 2–3 sætninger.",
+          "lines": 4
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "kind": "media_search",
+      "stage": "epilogue",
+      "title": "Eriks Tipp für den Sonntag",
+      "instruction": "Erik findet: Wer in Billund arbeitet, sollte wissen, wie ein Baustein entsteht. Suche ein kurzes dänisches Video dazu. Es gibt absichtlich keinen Link – das Suchen auf Dänisch gehört zur Aufgabe.",
+      "media": "video",
+      "queries": [
+        "hvordan laves LEGO klodser",
+        "LEGO historien Billund",
+        "LEGO House Billund"
+      ],
+      "questions": [
+        "Skriv tre nye ord ned – med en eller et.",
+        "Erik har ikke fortalt alt. Hvad nyt lærer du i videoen?"
+      ]
+    }
+  ]
+}

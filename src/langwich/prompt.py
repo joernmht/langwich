@@ -1113,7 +1113,8 @@ _VOCABULARY = """\
 
 - "target": the <<tw_low>>–<<tw_high>> key words — right for the level, carried by the story and
   the topic. Each occurs in the story (inflected is fine) and in at least three tasks (the
-  warm-up match, a cloze gap, "must_use", a label …), spelt exactly like its "items" term.
+  warm-up match, then written: a cloze gap, "must_use", a label …), spelt exactly like its
+  "items" term.
 - "items": every key word, plus every word in the story, facts and tasks that <<a_level>> <<level>> learner
   may not know (typically 15–40), with a short S "translation" and "pos". Words that no task
   tests are printed as glosses beside their scene, so be generous.
@@ -1175,7 +1176,8 @@ _ITEMS = """\
   (capitals and endings reveal nothing) and are plausible but wrong in every gap.
 - **New sentences** for form and practice items; comprehension items paraphrase, not quote.
 - true_false: 3–5 statements, both kinds; a false one changes one detail and has a
-  "correction". multiple_choice: 3 similar options, one right, "answer" copied exactly.
+  "correction". multiple_choice: 3 similar options, the right one rarely the longest,
+  "answer" copied exactly.
   questions: need the story (why? how?), with a model "answer". order_events: 4–6 events from
   different scenes, in the correct order. match: every entry unique, "extra" included.
   writing: the model answer keeps to the word range and uses every "must_use" word; the

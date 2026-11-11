@@ -515,6 +515,10 @@
           "right": "to roast"
         },
         {
+          "left": "die Röstung",
+          "right": "roast"
+        },
+        {
           "left": "der Geschmack",
           "right": "taste, flavour"
         },
@@ -622,7 +626,7 @@
       "hint": "word_bank",
       "title": "Wednesday: what went wrong?",
       "instruction": "Frau Berger comes back from the phone. Fill the gaps with words from the box. Three words are left over.",
-      "text": "Als Frau Berger zurückkommt, probiert sie Lenas Kaffee. „Du hast die Hitze höher gedreht, oder?“ Lena nickt. „Wer zu schnell {{röstet}}, verbrennt alles“, sagt die Chefin. „Die {{Bohnen}} brauchen Zeit, sonst schmeckt der Kaffee nur {{bitter}}.“ Aber sie ist nicht böse. „Jeder macht einmal eine schlechte {{Röstung}}. Morgen darfst du es noch einmal versuchen.“ Nach der Schicht übt Lena an der Maschine, perfekten {{Milchschaum}} zu machen: einmal, zweimal, zehnmal. Und im Bett denkt sie nur an eine Frage: Welchen {{Geschmack}} mag Herr Novak eigentlich – fruchtig oder kräftig?",
+      "text": "Als Frau Berger zurückkommt, probiert sie Lenas Kaffee. „Du hast die Hitze höher gedreht, oder?“ Lena nickt. „Wer zu schnell {{röstet}}, verbrennt alles“, sagt die Chefin. „Die {{Bohnen}} brauchen Zeit, sonst schmeckt der Kaffee nur {{bitter}}.“ Aber sie ist nicht böse. „Jeder macht einmal eine schlechte {{Röstung}}. Morgen darfst du es noch einmal versuchen.“ Nach der Schicht übt Lena an der Maschine, perfekten {{Milchschaum}} zu machen: einmal, zweimal, zehnmal. Und im Bett denkt sie nur an eine Frage: Welchen {{Geschmack}} mag Herr Novak, der strenge Stammgast, eigentlich – fruchtig oder kräftig?",
       "distractors": [
         "trocknet",
         "Zucker",
@@ -757,8 +761,8 @@
       ],
       "title": "Lena's week in order",
       "events": [
-        "Frau Berger gibt Lena eine Schürze.",
-        "Lena riecht an den grünen Bohnen.",
+        "Lena bekommt von ihrer Chefin eine Schürze.",
+        "Die grünen Bohnen riechen für Lena wie Heu.",
         "Lena hat keine Geduld und dreht die Hitze höher.",
         "Lena versteht, warum Herr Novak so viel Zucker nimmt.",
         "Herr Novak probiert Lenas Melange.",
@@ -774,7 +778,7 @@
       "prompt": "What happened on Monday, Tuesday and Wednesday? What did Lena understand on Thursday? How did the test go on Friday?",
       "starter": "Lieber Onkel Marco, was für eine Woche! Am Montag …",
       "must_use": [
-        "die Bohne",
+        "wachsen",
         "ernten",
         "die Röstung",
         "bitter",
@@ -785,7 +789,7 @@
       "min_words": 60,
       "max_words": 90,
       "lines": 10,
-      "model_answer": "Lieber Onkel Marco, was für eine Woche! Am Montag war ich nervös, denn Herr Novak, unser strengster Stammgast, saß schon am Fenster. Am Dienstag habe ich gelernt, wie man Kaffee erntet. Am Mittwoch hatte ich keine Geduld, und meine Röstung war viel zu dunkel. Am Donnerstag habe ich verstanden, warum Herr Novak immer so viel Zucker nimmt: Unser Kaffee ist ihm zu bitter! Also habe ich neue Bohnen geröstet, mit einem milderen Geschmack. Heute war der Milchschaum perfekt, und Herr Novak hat keinen Zucker genommen. Liebe Grüße, Lena"
+      "model_answer": "Lieber Onkel Marco, was für eine Woche! Am Montag war ich nervös, denn Herr Novak, unser strengster Stammgast, saß schon am Fenster. Am Dienstag habe ich gelernt, wo Kaffee wächst und wie man ihn erntet. Am Mittwoch hatte ich keine Geduld, und meine Röstung war viel zu dunkel. Am Donnerstag habe ich verstanden, warum er so viel Zucker nimmt: Unser Kaffee ist ihm zu bitter! Also habe ich neue Bohnen geröstet, mit einem milderen Geschmack. Heute war der Milchschaum perfekt, und Herr Novak hat keinen Zucker genommen. Liebe Grüße, Lena"
     },
     {
       "id": "t13",

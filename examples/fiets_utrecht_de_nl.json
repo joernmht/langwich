@@ -1,0 +1,963 @@
+{
+  "schema": "langwich/3",
+  "title": "Zwart, met een bel",
+  "standfirst": "Mara hat sich das Fahrrad ihrer Mitbewohnerin geliehen, und um sechs Uhr muss es zurück sein. Aber wie findet man ein schwarzes Rad im größten Fahrradparkhaus der Welt wieder?",
+  "source_lang": "de",
+  "target_lang": "nl",
+  "cefr_level": "A2",
+  "topic": "Fahrradparkhaus in Utrecht",
+  "frame": "mystery",
+  "story": {
+    "logline": "Mara leiht sich das Fahrrad ihrer Mitbewohnerin Sanne und muss es bis sechs Uhr zurückbringen – aber abends findet sie es im riesigen Fahrradparkhaus am Bahnhof nicht wieder.",
+    "setting": "Utrecht, Niederlande: ein Dienstag, morgens und abends im Fahrradparkhaus unter dem Stationsplein am Bahnhof Utrecht Centraal",
+    "characters": [
+      {
+        "id": "mara",
+        "name": "Mara",
+        "role": "28, aus Münster; wohnt seit einem Monat in Utrecht und arbeitet in Amsterdam"
+      },
+      {
+        "id": "sanne",
+        "name": "Sanne",
+        "role": "Maras Mitbewohnerin; ihr gehört das schwarze Fahrrad"
+      },
+      {
+        "id": "henk",
+        "name": "Henk",
+        "role": "Mitarbeiter im Fahrradparkhaus"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "s1",
+        "heading": "Tien over acht: de fiets van Sanne",
+        "beat": "setup",
+        "text": "Dinsdagochtend, tien over acht. Mara moet naar Amsterdam, maar haar fiets heeft een lekke band. “Neem mijn fiets maar”, zegt haar huisgenoot Sanne. “Maar om zes uur heb ik hem nodig. Dan moet ik zelf werken.”\n\nBij Utrecht Centraal rijdt Mara de fietsenstalling in. Hier mag je binnen fietsen! Overal hoort ze fietsbellen. Ze checkt in met haar OV-chipkaart. Een bord laat zien: in deze rij zijn nog veertien plekken vrij. Mara zet de fiets in een rek en doet hem op slot. Snel maakt ze een foto voor haar zus in Münster. Dan rent ze naar de trein.",
+        "translation": "Dienstagmorgen, zehn nach acht. Mara muss nach Amsterdam, aber ihr Fahrrad hat einen Platten. „Nimm ruhig mein Fahrrad“, sagt ihre Mitbewohnerin Sanne. „Aber um sechs Uhr brauche ich es. Dann muss ich selbst arbeiten.“\n\nAm Bahnhof Utrecht Centraal fährt Mara ins Fahrradparkhaus. Hier darf man drinnen Rad fahren! Überall hört sie Fahrradklingeln. Sie checkt mit ihrer OV-Chipkarte ein. Ein Schild zeigt an: In dieser Reihe sind noch vierzehn Plätze frei. Mara stellt das Fahrrad in einen Ständer und schließt es ab. Schnell macht sie ein Foto für ihre Schwester in Münster. Dann rennt sie zum Zug.",
+        "picture": {
+          "svg": "<svg viewBox=\"0 0 200 120\" xmlns=\"http://www.w3.org/2000/svg\" stroke=\"#000\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <!-- floor -->\n  <line x1=\"3\" y1=\"92\" x2=\"197\" y2=\"92\" stroke-width=\".6\"/>\n  <!-- two-tier rack: posts, beam, the empty upper tray with its wheel hoop and handle -->\n  <g stroke-width=\".7\" fill=\"#fff\">\n    <path d=\"M108,16 A9,9 0 0 1 126,16\" fill=\"none\" stroke-width=\".9\"/>\n    <path d=\"M28,18 H23.5 V12.5\" fill=\"none\" stroke-width=\".9\"/>\n    <rect x=\"28\" y=\"16\" width=\"98\" height=\"4\" rx=\"1\"/>\n    <rect x=\"20\" y=\"20\" width=\"3\" height=\"72\"/>\n    <rect x=\"131\" y=\"20\" width=\"3\" height=\"72\"/>\n    <rect x=\"16\" y=\"20\" width=\"122\" height=\"3\"/>\n    <rect x=\"17\" y=\"90.4\" width=\"9\" height=\"1.6\"/>\n    <rect x=\"128\" y=\"90.4\" width=\"9\" height=\"1.6\"/>\n  </g>\n  <!-- the bicycle -->\n  <g fill=\"#fff\">\n    <circle cx=\"56\" cy=\"77\" r=\"15\" stroke-width=\"1.5\"/>\n    <circle cx=\"56\" cy=\"77\" r=\"13\" stroke-width=\".35\"/>\n    <path d=\"M56,77 L68.8,79.0 M56,77 L65.2,86.2 M56,77 L58.0,89.8 M56,77 L50.1,88.6 M56,77 L44.4,82.9 M56,77 L43.2,75.0 M56,77 L46.8,67.8 M56,77 L54.0,64.2 M56,77 L61.9,65.4 M56,77 L67.6,71.1\" stroke-width=\".25\" fill=\"none\"/>\n    <circle cx=\"56\" cy=\"77\" r=\"1.5\" fill=\"#000\" stroke=\"none\"/>\n    <circle cx=\"112\" cy=\"77\" r=\"15\" stroke-width=\"1.5\"/>\n    <circle cx=\"112\" cy=\"77\" r=\"13\" stroke-width=\".35\"/>\n    <path d=\"M112,77 L124.8,79.0 M112,77 L121.2,86.2 M112,77 L114.0,89.8 M112,77 L106.1,88.6 M112,77 L100.4,82.9 M112,77 L99.2,75.0 M112,77 L102.8,67.8 M112,77 L110.0,64.2 M112,77 L117.9,65.4 M112,77 L123.6,71.1\" stroke-width=\".25\" fill=\"none\"/>\n    <circle cx=\"112\" cy=\"77\" r=\"1.5\" fill=\"#000\" stroke=\"none\"/>\n  </g>\n  <g stroke-width=\".9\">\n    <path d=\"M39.2,79 A17,17 0 0 1 68.5,65.5\"/>\n    <path d=\"M99.5,65.5 A17,17 0 0 1 128.8,79\"/>\n    <path d=\"M75,58 H43 M47,58 L56,77 M70,58 L56,77\" stroke-width=\".8\"/>\n  </g>\n  <g stroke-width=\"1.4\">\n    <path d=\"M80,77 L74.6,52\"/>\n    <path d=\"M102.2,50 Q92,74 80,77\"/>\n    <path d=\"M101.2,46 Q88,62 77,63\"/>\n    <path d=\"M112,77 Q108,66 103.4,54 L100.5,43\"/>\n    <path d=\"M100.5,43 L99.8,38.2 Q95,35.6 89.6,38.6\"/>\n    <path d=\"M89.6,38.6 L85,40.2\" stroke-width=\"2.6\"/>\n  </g>\n  <!-- chain guard, crank and pedal -->\n  <path d=\"M56,72.4 L80,71.4 Q86.6,77 80,82.6 L56,81.6 Q51.2,77 56,72.4 Z\" fill=\"#fff\" stroke-width=\".8\"/>\n  <path d=\"M80,77 L84.4,85\" stroke-width=\"1.2\"/>\n  <path d=\"M81.4,86 H88.2\" stroke-width=\"2\"/>\n  <!-- saddle -->\n  <path d=\"M64.6,49.4 Q70,46.2 80.4,47.4 Q83.4,48 82.8,50.2 Q76,51.6 65.6,52.8 Q63.4,51.4 64.6,49.4 Z\" fill=\"#000\" stroke-width=\".6\"/>\n  <!-- front lamp -->\n  <path d=\"M103.8,46.4 H106 A2.7,2.7 0 0 1 106,51.8 H104.6 Z\" fill=\"#fff\" stroke-width=\".7\"/>\n  <path d=\"M110.4,47 L112.6,46.2 M110.8,49.2 H113.2 M110.4,51.4 L112.6,52.2\" stroke-width=\".45\"/>\n  <!-- bell on the handlebar, ringing -->\n  <g stroke-width=\".8\">\n    <circle cx=\"95\" cy=\"33.6\" r=\"3.2\" fill=\"#fff\"/>\n    <circle cx=\"95\" cy=\"33.6\" r=\".7\" fill=\"#000\" stroke=\"none\"/>\n    <path d=\"M97.8,32 L100,30.6\"/>\n    <path d=\"M90.4,29.6 Q89,27.8 89.8,25.8 M93.2,28 Q92.6,26.2 93.6,24.8 M96.4,28 Q96.8,26.4 98.2,25.6\" stroke-width=\".5\"/>\n  </g>\n  <!-- chain lock from the rear wheel to the rack post -->\n  <path d=\"M46.4,86.6 Q40,78.6 33.5,79.4 Q27,80 21.5,76.4\" stroke-width=\"1.7\" stroke-dasharray=\"2.4 1.3\" stroke-linecap=\"butt\"/>\n  <path d=\"M30.9,83.6 V81.6 A2.6,2.6 0 0 1 36.1,81.6 V83.6\" stroke-width=\"1.3\"/>\n  <rect x=\"28.8\" y=\"83.4\" width=\"9.4\" height=\"7.4\" rx=\"1\" fill=\"#000\" stroke-width=\".5\"/>\n  <circle cx=\"33.5\" cy=\"86.4\" r=\"1.1\" fill=\"#fff\" stroke=\"none\"/>\n  <path d=\"M33.5,86.6 V89\" stroke=\"#fff\" stroke-width=\".8\"/>\n  <!-- wheel clamp of the lower rack -->\n  <path d=\"M131,64 H121 M131,70 H121\" stroke-width=\"1.1\"/>\n  <!-- digital sign: a bicycle and the number of free places (14) -->\n  <path d=\"M154,2 V9 M186,2 V9\" stroke-width=\".6\"/>\n  <rect x=\"146\" y=\"9\" width=\"48\" height=\"23\" rx=\"1.5\" fill=\"#fff\" stroke-width=\"1.1\"/>\n  <g stroke-width=\".7\">\n    <circle cx=\"155\" cy=\"23.6\" r=\"3.4\"/>\n    <circle cx=\"166\" cy=\"23.6\" r=\"3.4\"/>\n    <path d=\"M155,23.6 L159.4,17.4 L164.8,17.4 L166,23.6 M159.4,17.4 L161.4,23.6 L155,23.6 M158.2,15.8 H160.6 M164.8,17.4 L164.2,15.2 H166.2\"/>\n  </g>\n  <path d=\"M176,14 V20 M176,21.6 V27.6 M181,14 V20.6 H188 M188,14 V20 M188,21.6 V27.6\" stroke-width=\"1.6\" stroke-linecap=\"square\"/>\n  <!-- the number painted on the floor: 27 -->\n  <g transform=\"translate(124 98) skewX(-18)\" stroke-width=\"2.8\">\n    <path d=\"M1,3.6 Q1,0 6,0 Q11,0 11,3.8 Q11,7 1,14 H11.6\"/>\n    <path d=\"M17,0 H27.6 L20.6,14\"/>\n  </g>\n  <!-- leader lines for the numbered markers -->\n  <g stroke-width=\".3\">\n    <line x1=\"60\" y1=\"36\" x2=\"68.4\" y2=\"46.6\"/>\n    <line x1=\"82\" y1=\"30\" x2=\"91.8\" y2=\"33\"/>\n    <line x1=\"170\" y1=\"42\" x2=\"170\" y2=\"32.6\"/>\n    <line x1=\"144\" y1=\"58\" x2=\"134.4\" y2=\"58\"/>\n    <line x1=\"164\" y1=\"105\" x2=\"150.4\" y2=\"105\"/>\n    <line x1=\"33.5\" y1=\"103\" x2=\"33.5\" y2=\"91.2\"/>\n  </g>\n</svg>",
+          "caption": "De foto voor Mara’s zus: de fiets van Sanne in het rek",
+          "prompt": "Black-and-white line drawing, side view: a Dutch city bike with a bell, a black saddle, a chain guard and a rear carrier stands in a two-tier bicycle rack; a chain with a padlock ties the rear wheel to the rack post; a digital sign with a bicycle symbol and the number 14 hangs from the ceiling; a big number 27 is painted on the floor in front of the rack. Bold clean outlines, no grey shading, no lettering.",
+          "labels": [
+            {
+              "n": 1,
+              "term": "het zadel",
+              "x": 0.3,
+              "y": 0.3
+            },
+            {
+              "n": 2,
+              "term": "de bel",
+              "x": 0.41,
+              "y": 0.25
+            },
+            {
+              "n": 3,
+              "term": "het bord",
+              "x": 0.85,
+              "y": 0.35
+            },
+            {
+              "n": 4,
+              "term": "het rek",
+              "x": 0.72,
+              "y": 0.483
+            },
+            {
+              "n": 5,
+              "term": "het nummer",
+              "x": 0.82,
+              "y": 0.875
+            },
+            {
+              "n": 6,
+              "term": "het slot",
+              "x": 0.1675,
+              "y": 0.858
+            }
+          ]
+        }
+      },
+      {
+        "id": "s2",
+        "heading": "Half zes: waar staat hij?",
+        "beat": "complication",
+        "text": "Om half zes is Mara terug. Ze heeft nog een half uur. Maar waar staat de fiets? Ze loopt langs de rekken: links fietsen, rechts fietsen, overal fietsen. En de stalling heeft drie verdiepingen!\n\n“Kan ik je helpen?” vraagt een medewerker. Op zijn jas staat: Henk.\n“Ik kan de fiets niet vinden. Ik heb hem vanochtend hier neergezet.”\n“Hoe ziet hij eruit?”\n“Hij is zwart, met een zwart zadel. En hij heeft een bel.”\nHenk lacht. “Zwart, met een bel? Zo zien hier duizenden fietsen eruit. Weet je het nummer nog?”\n“Welk nummer?” vraagt Mara.",
+        "translation": "Um halb sechs ist Mara zurück. Sie hat noch eine halbe Stunde. Aber wo steht das Fahrrad? Sie geht an den Ständern entlang: links Fahrräder, rechts Fahrräder, überall Fahrräder. Und das Parkhaus hat drei Stockwerke!\n\n„Kann ich dir helfen?“, fragt ein Mitarbeiter. Auf seiner Jacke steht: Henk.\n„Ich kann das Fahrrad nicht finden. Ich habe es heute Morgen hier abgestellt.“\n„Wie sieht es aus?“\n„Es ist schwarz, mit einem schwarzen Sattel. Und es hat eine Klingel.“\nHenk lacht. „Schwarz, mit einer Klingel? So sehen hier Tausende Fahrräder aus. Weißt du die Nummer noch?“\n„Welche Nummer?“, fragt Mara."
+      },
+      {
+        "id": "s3",
+        "heading": "Kwart voor zes: het nummer op de vloer",
+        "beat": "resolution",
+        "text": "Henk wijst naar de vloer. “Bij de rekken staan grote nummers op de vloer. Zo kun je je fiets terugvinden.”\n“Die heb ik niet gezien”, zegt Mara. Dan pakt ze haar telefoon: de foto van vanochtend! Daar is de fiets, en op de vloer staat een groot nummer: 27.\n“Zevenentwintig!” roept Henk. “Kom maar mee.”\nTwee minuten later staan ze voor het rek. Daar staat hij: zwart, met een bel.\n\nOm twee voor zes is Mara thuis. “Precies op tijd!” zegt Sanne. “Wil je hem morgen weer lenen?”\n“Graag”, zegt Mara. “Maar dan maak ik eerst een foto van het nummer.”\n“Welk nummer?” vraagt Sanne.",
+        "translation": "Henk zeigt auf den Boden. „Bei den Ständern stehen große Nummern auf dem Boden. So kannst du dein Fahrrad wiederfinden.“\n„Die habe ich nicht gesehen“, sagt Mara. Dann nimmt sie ihr Handy: das Foto von heute Morgen! Da ist das Fahrrad, und auf dem Boden steht eine große Nummer: 27.\n„Siebenundzwanzig!“, ruft Henk. „Komm mit.“\nZwei Minuten später stehen sie vor dem Ständer. Da steht es: schwarz, mit einer Klingel.\n\nUm zwei vor sechs ist Mara zu Hause. „Genau pünktlich!“, sagt Sanne. „Willst du es morgen wieder leihen?“\n„Gern“, sagt Mara. „Aber dann mache ich zuerst ein Foto von der Nummer.“\n„Welche Nummer?“, fragt Sanne."
+      }
+    ]
+  },
+  "facts": [
+    {
+      "id": "f1",
+      "scene": "s1",
+      "title": "De grootste ter wereld",
+      "text": "De fietsenstalling onder het Stationsplein in Utrecht is de grootste ter wereld. Er is plaats voor ongeveer 12.500 fietsen. In augustus 2019 ging het laatste deel open.",
+      "source": "Gemeente Utrecht"
+    },
+    {
+      "id": "f2",
+      "scene": "s2",
+      "title": "Meer fietsen dan mensen",
+      "text": "Nederland heeft ongeveer 18 miljoen inwoners, maar meer dan 23 miljoen fietsen. Er zijn dus meer fietsen dan mensen!",
+      "source": "BOVAG en RAI Vereniging"
+    },
+    {
+      "id": "f3",
+      "scene": "s3",
+      "title": "24 uur gratis",
+      "text": "In de stalling onder het Stationsplein staat je fiets de eerste 24 uur gratis. Je kunt er ook een fiets huren: de OV-fiets.",
+      "source": "Gemeente Utrecht"
+    }
+  ],
+  "vocabulary": {
+    "target": [
+      "de fietsenstalling",
+      "de verdieping",
+      "het rek",
+      "het bord",
+      "de vloer",
+      "het slot",
+      "de bel",
+      "terugvinden"
+    ],
+    "items": [
+      {
+        "term": "tien over acht",
+        "translation": "zehn nach acht",
+        "pos": "phrase",
+        "note": "over = nach, voor = vor"
+      },
+      {
+        "term": "de lekke band",
+        "translation": "Platten, platter Reifen",
+        "pos": "noun",
+        "note": "lek = undicht; de band = Reifen"
+      },
+      {
+        "term": "de huisgenoot",
+        "translation": "Mitbewohner, Mitbewohnerin",
+        "pos": "noun",
+        "plural": "de huisgenoten"
+      },
+      {
+        "term": "nodig hebben",
+        "translation": "brauchen",
+        "pos": "phrase",
+        "forms": "heb nodig, heeft nodig, had nodig, heeft nodig gehad"
+      },
+      {
+        "term": "moeten",
+        "translation": "müssen",
+        "pos": "verb",
+        "forms": "moet, moest, heeft gemoeten"
+      },
+      {
+        "term": "inrijden",
+        "translation": "hineinfahren",
+        "pos": "verb",
+        "forms": "rijdt in, reed in, is ingereden"
+      },
+      {
+        "term": "de fietsenstalling",
+        "translation": "Fahrradparkhaus, Fahrradgarage",
+        "pos": "noun",
+        "plural": "de fietsenstallingen",
+        "note": "kurz: de stalling"
+      },
+      {
+        "term": "mogen",
+        "translation": "dürfen",
+        "pos": "verb",
+        "forms": "mag, mocht, heeft gemogen",
+        "note": "mögen heißt leuk vinden"
+      },
+      {
+        "term": "inchecken",
+        "translation": "einchecken",
+        "pos": "verb",
+        "forms": "checkt in, checkte in, heeft ingecheckt"
+      },
+      {
+        "term": "de OV-chipkaart",
+        "translation": "Chipkarte für Bus und Bahn",
+        "pos": "noun",
+        "note": "OV = openbaar vervoer, öffentlicher Verkehr"
+      },
+      {
+        "term": "het bord",
+        "translation": "Schild, Tafel",
+        "pos": "noun",
+        "plural": "de borden",
+        "note": "auch: Teller"
+      },
+      {
+        "term": "laten zien",
+        "translation": "zeigen",
+        "pos": "phrase",
+        "forms": "laat zien, liet zien, heeft laten zien"
+      },
+      {
+        "term": "de rij",
+        "translation": "Reihe",
+        "pos": "noun",
+        "plural": "de rijen"
+      },
+      {
+        "term": "de plek",
+        "translation": "Platz, Stelle",
+        "pos": "noun",
+        "plural": "de plekken"
+      },
+      {
+        "term": "het rek",
+        "translation": "Ständer, Gestell",
+        "pos": "noun",
+        "plural": "de rekken",
+        "note": "het fietsenrek = Fahrradständer"
+      },
+      {
+        "term": "het slot",
+        "translation": "Schloss",
+        "pos": "noun",
+        "plural": "de sloten"
+      },
+      {
+        "term": "op slot doen",
+        "translation": "abschließen",
+        "pos": "phrase",
+        "forms": "doet op slot, deed op slot, heeft op slot gedaan"
+      },
+      {
+        "term": "de zus",
+        "translation": "Schwester",
+        "pos": "noun",
+        "plural": "de zussen"
+      },
+      {
+        "term": "de stalling",
+        "translation": "Parkhaus, Abstellanlage (für Fahrräder)",
+        "pos": "noun",
+        "plural": "de stallingen"
+      },
+      {
+        "term": "lopen",
+        "translation": "gehen, laufen",
+        "pos": "verb",
+        "forms": "loopt, liep, heeft gelopen"
+      },
+      {
+        "term": "langs",
+        "translation": "an … entlang, an … vorbei",
+        "pos": "preposition"
+      },
+      {
+        "term": "de verdieping",
+        "translation": "Stockwerk, Etage",
+        "pos": "noun",
+        "plural": "de verdiepingen"
+      },
+      {
+        "term": "de medewerker",
+        "translation": "Mitarbeiter",
+        "pos": "noun",
+        "plural": "de medewerkers"
+      },
+      {
+        "term": "de jas",
+        "translation": "Jacke, Mantel",
+        "pos": "noun",
+        "plural": "de jassen"
+      },
+      {
+        "term": "vinden",
+        "translation": "finden",
+        "pos": "verb",
+        "forms": "vindt, vond, heeft gevonden"
+      },
+      {
+        "term": "vanochtend",
+        "translation": "heute Morgen",
+        "pos": "adverb"
+      },
+      {
+        "term": "neerzetten",
+        "translation": "abstellen, hinstellen",
+        "pos": "verb",
+        "forms": "zet neer, zette neer, heeft neergezet"
+      },
+      {
+        "term": "eruitzien",
+        "translation": "aussehen",
+        "pos": "verb",
+        "forms": "ziet eruit, zag eruit, heeft eruitgezien"
+      },
+      {
+        "term": "het zadel",
+        "translation": "Sattel",
+        "pos": "noun",
+        "plural": "de zadels"
+      },
+      {
+        "term": "de bel",
+        "translation": "Klingel",
+        "pos": "noun",
+        "plural": "de bellen"
+      },
+      {
+        "term": "duizenden",
+        "translation": "Tausende",
+        "pos": "other",
+        "note": "duizend = tausend"
+      },
+      {
+        "term": "het nummer",
+        "translation": "Nummer",
+        "pos": "noun",
+        "plural": "de nummers",
+        "note": "Achtung: het, nicht de"
+      },
+      {
+        "term": "wijzen naar",
+        "translation": "zeigen auf",
+        "pos": "phrase",
+        "forms": "wijst, wees, heeft gewezen"
+      },
+      {
+        "term": "de vloer",
+        "translation": "Fußboden, Boden",
+        "pos": "noun",
+        "plural": "de vloeren",
+        "note": "der Flur heißt de gang"
+      },
+      {
+        "term": "terugvinden",
+        "translation": "wiederfinden",
+        "pos": "verb",
+        "forms": "vindt terug, vond terug, heeft teruggevonden"
+      },
+      {
+        "term": "pakken",
+        "translation": "nehmen, greifen",
+        "pos": "verb",
+        "forms": "pakt, pakte, heeft gepakt"
+      },
+      {
+        "term": "de telefoon",
+        "translation": "Handy, Telefon",
+        "pos": "noun",
+        "plural": "de telefoons"
+      },
+      {
+        "term": "roepen",
+        "translation": "rufen",
+        "pos": "verb",
+        "forms": "roept, riep, heeft geroepen"
+      },
+      {
+        "term": "Kom maar mee.",
+        "translation": "Komm (ruhig) mit.",
+        "pos": "phrase",
+        "note": "meekomen = mitkommen"
+      },
+      {
+        "term": "op tijd",
+        "translation": "pünktlich, rechtzeitig",
+        "pos": "phrase"
+      },
+      {
+        "term": "lenen",
+        "translation": "leihen, ausleihen",
+        "pos": "verb"
+      },
+      {
+        "term": "eerst",
+        "translation": "zuerst",
+        "pos": "adverb"
+      },
+      {
+        "term": "ter wereld",
+        "translation": "der Welt, auf der Welt",
+        "pos": "phrase",
+        "scene": "s1"
+      },
+      {
+        "term": "de plaats",
+        "translation": "Platz",
+        "pos": "noun",
+        "plural": "de plaatsen",
+        "scene": "s1"
+      },
+      {
+        "term": "ongeveer",
+        "translation": "ungefähr",
+        "pos": "adverb"
+      },
+      {
+        "term": "het deel",
+        "translation": "Teil",
+        "pos": "noun",
+        "plural": "de delen",
+        "scene": "s1"
+      },
+      {
+        "term": "opengaan",
+        "translation": "öffnen, aufgehen",
+        "pos": "verb",
+        "forms": "gaat open, ging open, is opengegaan",
+        "scene": "s1"
+      },
+      {
+        "term": "de inwoner",
+        "translation": "Einwohner",
+        "pos": "noun",
+        "plural": "de inwoners",
+        "scene": "s2"
+      },
+      {
+        "term": "gratis",
+        "translation": "kostenlos",
+        "pos": "adjective",
+        "scene": "s3"
+      },
+      {
+        "term": "huren",
+        "translation": "mieten",
+        "pos": "verb",
+        "scene": "s3"
+      },
+      {
+        "term": "de OV-fiets",
+        "translation": "Leihfahrrad der niederländischen Bahn (NS)",
+        "pos": "noun",
+        "plural": "de OV-fietsen",
+        "scene": "s3"
+      },
+      {
+        "term": "eigen",
+        "translation": "eigen",
+        "pos": "adjective"
+      },
+      {
+        "term": "hoeveel",
+        "translation": "wie viel, wie viele",
+        "pos": "other"
+      },
+      {
+        "term": "altijd",
+        "translation": "immer",
+        "pos": "adverb"
+      },
+      {
+        "term": "gebruiken",
+        "translation": "benutzen",
+        "pos": "verb"
+      },
+      {
+        "term": "repareren",
+        "translation": "reparieren",
+        "pos": "verb"
+      },
+      {
+        "term": "haast hebben",
+        "translation": "es eilig haben",
+        "pos": "phrase"
+      },
+      {
+        "term": "vertrekken",
+        "translation": "abfahren",
+        "pos": "verb",
+        "forms": "vertrekt, vertrok, is vertrokken"
+      },
+      {
+        "term": "dichtgaan",
+        "translation": "schließen, zugehen",
+        "pos": "verb",
+        "forms": "gaat dicht, ging dicht, is dichtgegaan"
+      },
+      {
+        "term": "zoeken",
+        "translation": "suchen",
+        "pos": "verb",
+        "forms": "zoekt, zocht, heeft gezocht"
+      },
+      {
+        "term": "moeilijk",
+        "translation": "schwierig",
+        "pos": "adjective"
+      },
+      {
+        "term": "donker",
+        "translation": "dunkel",
+        "pos": "adjective"
+      },
+      {
+        "term": "de sleutel",
+        "translation": "Schlüssel",
+        "pos": "noun",
+        "plural": "de sleutels"
+      },
+      {
+        "term": "vertellen",
+        "translation": "erzählen",
+        "pos": "verb",
+        "forms": "vertelt, vertelde, heeft verteld"
+      },
+      {
+        "term": "de mand",
+        "translation": "Korb",
+        "pos": "noun",
+        "plural": "de manden"
+      },
+      {
+        "term": "grappig",
+        "translation": "lustig, komisch",
+        "pos": "adjective"
+      },
+      {
+        "term": "kennen",
+        "translation": "kennen",
+        "pos": "verb"
+      },
+      {
+        "term": "tussen",
+        "translation": "zwischen",
+        "pos": "preposition"
+      },
+      {
+        "term": "vragen",
+        "translation": "fragen",
+        "pos": "verb",
+        "forms": "vraagt, vroeg, heeft gevraagd",
+        "note": "vragen naar = fragen nach; om hulp vragen = um Hilfe bitten"
+      },
+      {
+        "term": "terugbrengen",
+        "translation": "zurückbringen",
+        "pos": "verb",
+        "forms": "brengt terug, bracht terug, heeft teruggebracht"
+      },
+      {
+        "term": "’s avonds",
+        "translation": "abends, am Abend",
+        "pos": "adverb"
+      },
+      {
+        "term": "daarna",
+        "translation": "danach",
+        "pos": "adverb"
+      },
+      {
+        "term": "samen",
+        "translation": "zusammen",
+        "pos": "adverb"
+      },
+      {
+        "term": "de hulp",
+        "translation": "Hilfe",
+        "pos": "noun"
+      },
+      {
+        "term": "halen",
+        "translation": "holen",
+        "pos": "verb"
+      },
+      {
+        "term": "missen",
+        "translation": "verpassen",
+        "pos": "verb",
+        "note": "auch: vermissen"
+      },
+      {
+        "term": "nog een keer",
+        "translation": "noch einmal",
+        "pos": "phrase"
+      },
+      {
+        "term": "druk",
+        "translation": "voll, belebt",
+        "pos": "adjective",
+        "note": "het is druk = es ist viel los"
+      },
+      {
+        "term": "werken",
+        "translation": "arbeiten; funktionieren",
+        "pos": "verb"
+      },
+      {
+        "term": "vol",
+        "translation": "voll",
+        "pos": "adjective"
+      },
+      {
+        "term": "naar beneden",
+        "translation": "nach unten",
+        "pos": "phrase"
+      },
+      {
+        "term": "volgend",
+        "translation": "nächster, nächste, nächstes",
+        "pos": "adjective"
+      },
+      {
+        "term": "de voet",
+        "translation": "Fuß",
+        "pos": "noun",
+        "plural": "de voeten"
+      },
+      {
+        "term": "het cadeau",
+        "translation": "Geschenk",
+        "pos": "noun",
+        "plural": "de cadeaus"
+      },
+      {
+        "term": "zoals",
+        "translation": "wie",
+        "pos": "conjunction"
+      },
+      {
+        "term": "Groetjes",
+        "translation": "Liebe Grüße",
+        "pos": "phrase"
+      },
+      {
+        "term": "weleens",
+        "translation": "schon einmal",
+        "pos": "adverb"
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "id": "g1",
+      "name": "Modalverben: kunnen, willen, moeten, mogen",
+      "scene": "s1",
+      "explanation": "Das Modalverb steht an zweiter Stelle, der Infinitiv am Satzende – wie im Deutschen. Bei ik und hij/zij/het ist die Form gleich: Es kommt kein -t dazu. Achtung: mogen heißt dürfen, nicht mögen.",
+      "rule": "Modalverb (2. Stelle) … Infinitiv (Satzende)",
+      "table": {
+        "head": [
+          "",
+          "kunnen",
+          "willen"
+        ],
+        "rows": [
+          [
+            "ik",
+            "kan",
+            "wil"
+          ],
+          [
+            "jij / je",
+            "kunt / kan",
+            "wilt / wil"
+          ],
+          [
+            "hij / zij / het",
+            "kan",
+            "wil"
+          ],
+          [
+            "wij / jullie / zij",
+            "kunnen",
+            "willen"
+          ]
+        ]
+      },
+      "examples": [
+        "Kan ik je helpen?",
+        "Wil je hem morgen weer lenen?"
+      ]
+    },
+    {
+      "id": "g2",
+      "name": "Das Perfekt: hebben + Partizip",
+      "scene": "s3",
+      "explanation": "Über Vergangenes spricht man meist im Perfekt; das Partizip steht am Satzende. Regelmäßige Verben: ge- + Stamm + -t, wenn im Infinitiv vor -en ein t, k, f, s, ch oder p steht (Merkwort: ’t kofschip), sonst + -d. Bei trennbaren Verben steht ge- in der Mitte (neer-ge-zet); unregelmäßige Partizipien wie gezien muss man lernen.",
+      "rule": "hebben + ge- + Stamm + -t / -d (am Satzende)",
+      "table": {
+        "head": [
+          "Infinitiv",
+          "Stamm",
+          "Partizip"
+        ],
+        "rows": [
+          [
+            "fietsen",
+            "fiets",
+            "gefietst"
+          ],
+          [
+            "pakken",
+            "pak",
+            "gepakt"
+          ],
+          [
+            "wonen",
+            "woon",
+            "gewoond"
+          ],
+          [
+            "horen",
+            "hoor",
+            "gehoord"
+          ],
+          [
+            "inchecken",
+            "check in",
+            "ingecheckt"
+          ]
+        ]
+      },
+      "examples": [
+        "Ik heb hem vanochtend hier neergezet.",
+        "Die heb ik niet gezien."
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "match",
+      "stage": "warm_up",
+      "title": "Wörter fürs Fahrradparkhaus",
+      "instruction": "Diese Wörter kommen in der Geschichte vor. Ordne jedem niederländischen Wort die deutsche Bedeutung zu und schreibe den Buchstaben in das Kästchen. Zwei Bedeutungen bleiben übrig.",
+      "pairs": [
+        {
+          "left": "de fietsenstalling",
+          "right": "das Fahrradparkhaus"
+        },
+        {
+          "left": "de verdieping",
+          "right": "das Stockwerk"
+        },
+        {
+          "left": "het rek",
+          "right": "der Ständer"
+        },
+        {
+          "left": "het bord",
+          "right": "das Schild"
+        },
+        {
+          "left": "de vloer",
+          "right": "der Fußboden"
+        },
+        {
+          "left": "het slot",
+          "right": "das Schloss"
+        },
+        {
+          "left": "de bel",
+          "right": "die Klingel"
+        },
+        {
+          "left": "terugvinden",
+          "right": "wiederfinden"
+        }
+      ],
+      "extra": [
+        "der Flur",
+        "der Schlüssel"
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "true_false",
+      "stage": "gist",
+      "scene": "s1",
+      "title": "Dienstagmorgen: Sannes Fahrrad",
+      "instruction": "Richtig oder falsch? Kreuze an und korrigiere die falschen Sätze.",
+      "items": [
+        {
+          "statement": "Mara fietst op haar eigen fiets naar het station.",
+          "answer": false,
+          "correction": "Ze neemt de fiets van Sanne."
+        },
+        {
+          "statement": "Sanne heeft haar fiets om zes uur weer nodig.",
+          "answer": true
+        },
+        {
+          "statement": "In de fietsenstalling moet je lopen.",
+          "answer": false,
+          "correction": "Je mag in de fietsenstalling fietsen."
+        },
+        {
+          "statement": "Op een bord ziet Mara hoeveel plekken er nog vrij zijn.",
+          "answer": true
+        },
+        {
+          "statement": "Mara maakt een foto voor Sanne.",
+          "answer": false,
+          "correction": "Ze maakt een foto voor haar zus."
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "label",
+      "stage": "picture",
+      "scene": "s1",
+      "title": "Maras Foto",
+      "instruction": "Das ist das Foto, das Mara für ihre Schwester macht. Schreibe zu jeder Nummer das niederländische Wort – mit de oder het.",
+      "bank": true
+    },
+    {
+      "id": "t4",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s1",
+      "grammar": "g1",
+      "hint": "base_form",
+      "title": "Sannes Zettel am Kühlschrank",
+      "instruction": "Sanne hat Regeln für ihr Fahrrad aufgeschrieben. Ergänze die richtige Form des Verbs in Klammern.",
+      "items": [
+        "Je {{mag::mogen}} mijn fiets altijd lenen.",
+        "Maar je {{moet::moeten}} hem op slot doen.",
+        "Om zes uur {{moet::moeten}} de fiets weer thuis zijn.",
+        "Jij en je zus {{mogen::mogen}} hem ook in het weekend gebruiken.",
+        "We {{moeten::moeten}} deze week jouw band nog repareren!"
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "multiple_choice",
+      "stage": "detail",
+      "scene": "s2",
+      "title": "Halb sechs: Wo steht es?",
+      "instruction": "Kreuze die richtige Antwort an.",
+      "items": [
+        {
+          "question": "Waarom heeft Mara haast?",
+          "options": [
+            "Haar trein vertrekt om zes uur.",
+            "Sanne heeft de fiets om zes uur nodig.",
+            "De stalling gaat om zes uur dicht."
+          ],
+          "answer": "Sanne heeft de fiets om zes uur nodig."
+        },
+        {
+          "question": "Waarom is het zoeken zo moeilijk?",
+          "options": [
+            "Er staan overal fietsen, op drie verdiepingen.",
+            "Het is donker en Mara heeft geen licht bij zich.",
+            "Mara heeft de sleutel van het slot niet meer."
+          ],
+          "answer": "Er staan overal fietsen, op drie verdiepingen."
+        },
+        {
+          "question": "Wat vertelt Mara over de fiets?",
+          "options": [
+            "Hij is nieuw en heeft een mand.",
+            "Hij is oud en heeft geen slot.",
+            "Hij is zwart en heeft een bel."
+          ],
+          "answer": "Hij is zwart en heeft een bel."
+        },
+        {
+          "question": "Waarom lacht Henk?",
+          "options": [
+            "Mara spreekt grappig Nederlands.",
+            "Heel veel fietsen daar zijn zwart.",
+            "Hij kent de fiets van Sanne al heel lang."
+          ],
+          "answer": "Heel veel fietsen daar zijn zwart."
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "order_events",
+      "stage": "gist",
+      "scene": [
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "title": "Maras Dienstag der Reihe nach",
+      "instruction": "Bringe die Ereignisse in die Reihenfolge der Geschichte. Schreibe 1–6 in die Kästchen.",
+      "events": [
+        "Sanne leent haar fiets aan Mara.",
+        "Mara maakt in de stalling een foto.",
+        "Mara zoekt de fiets tussen duizenden andere fietsen.",
+        "Henk vraagt naar het nummer.",
+        "Mara ziet het nummer op haar foto.",
+        "Mara brengt de fiets op tijd terug."
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "cloze",
+      "stage": "form",
+      "scene": "s3",
+      "grammar": "g2",
+      "hint": "base_form",
+      "title": "Am Abend: Mara erzählt",
+      "instruction": "Am Abend ruft Mara ihre Schwester an und erzählt von ihrem Tag. Ergänze das Partizip des Verbs in Klammern.",
+      "items": [
+        "Vanochtend heb ik de fiets van Sanne {{geleend::lenen}}.",
+        "In de stalling heb ik een foto voor jou {{gemaakt::maken}}.",
+        "Daarna heb ik de hele dag in Amsterdam {{gewerkt::werken}}.",
+        "’s Avonds heb ik een medewerker om hulp {{gevraagd::vragen}}.",
+        "Samen hebben we de fiets uit het rek {{gehaald::halen}}.",
+        "En mijn trein heb ik vanochtend niet {{gemist::missen}}."
+      ]
+    },
+    {
+      "id": "t8",
+      "kind": "cloze",
+      "stage": "practice",
+      "scene": "s3",
+      "hint": "word_bank",
+      "title": "Mittwoch: noch einmal ins Parkhaus",
+      "instruction": "Am Mittwoch leiht sich Mara das Fahrrad noch einmal. Ergänze die Lücken mit den Wörtern aus dem Kasten. Zwei Wörter bleiben übrig.",
+      "text": "Op woensdag leent Mara de fiets van Sanne nog een keer. In de {{fietsenstalling}} is het druk, maar nu weet ze hoe het werkt. Op het digitale {{bord}} staat een nul: in deze rij is alles vol. Ze rijdt dus naar beneden, naar de volgende {{verdieping}}. Daar is nog plek in een {{rek}}. Ze zet de fiets neer, doet hem op {{slot}} en maakt een foto van het grote nummer onder haar voeten, op de {{vloer}}. ’s Avonds heeft ze de fiets in twee minuten teruggevonden. Thuis wacht Sanne met een cadeau voor haar fiets: een nieuwe, rode {{bel}}. “Ring, ring! Nu is hij niet meer zoals alle andere fietsen”, zegt ze.",
+      "distractors": [
+        "sleutel",
+        "zadel"
+      ]
+    },
+    {
+      "id": "t9",
+      "kind": "writing",
+      "stage": "production",
+      "title": "Dienstagabend: eine Nachricht nach Münster",
+      "instruction": "Am Abend schreibt Mara ihrer Schwester Lea in Münster. Schreibe die Nachricht auf Niederländisch.",
+      "prompt": "Was ist heute passiert? Warum hat Mara das Fahrrad zuerst nicht gefunden, und wie hat sie es wiedergefunden?",
+      "starter": "Hoi Lea, vandaag heb ik de fiets van Sanne geleend …",
+      "must_use": [
+        "de fietsenstalling",
+        "de verdieping",
+        "het rek",
+        "de vloer",
+        "de bel",
+        "terugvinden"
+      ],
+      "min_words": 40,
+      "max_words": 70,
+      "lines": 8,
+      "model_answer": "Hoi Lea, vandaag heb ik de fiets van Sanne geleend en in de fietsenstalling bij het station neergezet. Die heeft drie verdiepingen! ’s Avonds kon ik hem eerst niet terugvinden: hij is zwart en heeft een bel, zoals duizenden andere fietsen. Maar op mijn foto voor jou staat het nummer op de vloer. Zo heb ik het rek snel gevonden. Groetjes, Mara"
+    },
+    {
+      "id": "t10",
+      "kind": "questions",
+      "stage": "production",
+      "title": "Und du: Was hast du schon einmal gesucht?",
+      "instruction": "Antworte in zwei bis drei Sätzen auf Niederländisch.",
+      "items": [
+        {
+          "question": "Heb jij weleens lang iets gezocht – je fiets, je auto of je sleutel? Waar heb je het teruggevonden?",
+          "lines": 4
+        }
+      ]
+    }
+  ]
+}

@@ -37,8 +37,8 @@
         "id": "s1",
         "heading": "Meio-dia na Praça do Giraldo",
         "beat": "setup",
-        "text": "Sábado, meio-dia. Está muito calor na Praça do Giraldo, em Évora. A Hannah, de Bristol, mostra uma fotografia antiga ao empregado do café, o Rui.\n\n— A minha avó tirou esta fotografia aqui, há cinquenta anos. Na terça-feira, faz oitenta anos. Quero encontrar esta rua e tirar a mesma fotografia.\nO Rui olha: uma rua estreita, um arco, um candeeiro.\n— Ruas brancas e estreitas? Em Évora há centenas! — ri-se ele.\n\nE o comboio para Lisboa sai às seis.",
-        "translation": "Saturday, midday. It’s very hot in the Praça do Giraldo in Évora. Hannah, from Bristol, shows an old photo to the waiter at the café, Rui.\n\n“My grandmother took this photo here fifty years ago. On Tuesday she turns eighty. I want to find this street and take the same photo.”\nRui looks: a narrow street, an arch, a street lamp.\n“White, narrow streets? There are hundreds in Évora!” he laughs.\n\nAnd the train to Lisbon leaves at six."
+        "text": "Sábado, meio-dia. Está muito calor na Praça do Giraldo, em Évora. A Hannah, de Bristol, mostra uma fotografia antiga ao empregado do café, o Rui.\n\n— A minha avó Margaret tirou esta fotografia aqui, há cinquenta anos. Na terça-feira, faz oitenta anos. Quero encontrar esta rua e tirar a mesma fotografia.\nO Rui olha: uma rua estreita, um arco, um candeeiro.\n— Ruas brancas e estreitas? Em Évora há centenas! — ri-se ele.\n\nE o comboio para Lisboa sai às seis.",
+        "translation": "Saturday, midday. It’s very hot in the Praça do Giraldo in Évora. Hannah, from Bristol, shows an old photo to the waiter at the café, Rui.\n\n“My grandmother Margaret took this photo here fifty years ago. On Tuesday she turns eighty. I want to find this street and take the same photo.”\nRui looks: a narrow street, an arch, a street lamp.\n“White, narrow streets? There are hundreds in Évora!” he laughs.\n\nAnd the train to Lisbon leaves at six."
       },
       {
         "id": "s2",
@@ -827,11 +827,11 @@
         {
           "question": "Para que serve a cal, segundo a Dona Amélia?",
           "options": [
-            "Mantém a casa fresca no verão.",
-            "Mantém a casa bonita para os turistas.",
-            "Mantém a casa quente no inverno."
+            "A casa fica menos quente no verão.",
+            "A casa fica mais bonita para os turistas.",
+            "A casa fica mais quente no inverno."
           ],
-          "answer": "Mantém a casa fresca no verão."
+          "answer": "A casa fica menos quente no verão."
         },
         {
           "question": "Como é que a Dona Amélia reconhece a rua da fotografia?",
@@ -845,11 +845,11 @@
         {
           "question": "Porque é que a rua ainda está igual, cinquenta anos depois?",
           "options": [
-            "O centro histórico é Património Mundial e as casas estão protegidas.",
+            "O centro é Património Mundial e está protegido.",
             "Ninguém vive naquela rua há muitos anos.",
             "O primo da Dona Amélia não gosta de mudanças."
           ],
-          "answer": "O centro histórico é Património Mundial e as casas estão protegidas."
+          "answer": "O centro é Património Mundial e está protegido."
         }
       ]
     },

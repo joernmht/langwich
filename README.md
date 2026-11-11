@@ -60,9 +60,16 @@ Worksheets that come with the repository include:
 | [`examples/festival_lyon_de_fr.json`](examples/festival_lyon_de_fr.json) | *La bobine disparue* — a mystery at the Festival Lumière in Lyon: a film reel vanishes two hours before a sold-out screening. Episode 1 of the series *Paula à Lyon*. | German → French | B1 |
 | [`examples/mercado_valencia_en_es.json`](examples/mercado_valencia_en_es.json) | *La lista de la abuela Pepa* — Emily shops for her host grandmother's Sunday paella at Valencia's Mercado Central. A one-off story. | English → Spanish | A2 |
 | [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) | *A mesma rua* — Hannah has one afternoon in Évora to find the street in her grandmother's fifty-year-old photo. Built from a real open-licence photo with `langwich prompt --image` (photo: Ken & Nyetta, CC BY 2.0). | English → Portuguese | A2 |
+| [`examples/fiets_utrecht_de_nl.json`](examples/fiets_utrecht_de_nl.json) | *Zwart, met een bel* — Mara has to return her flatmate's bike by six, and cannot find it again in the world's largest bicycle garage, under Utrecht Centraal. A one-off mystery. | German → Dutch | A2 |
+| [`examples/krasnale_wroclaw_de_pl.json`](examples/krasnale_wroclaw_de_pl.json) | *Gdzie jest Papa Krasnal?* — Jonas has one hour in Wrocław to photograph the city's first bronze dwarf for his daughter. A one-off story in the present tense. | German → Polish | A1 |
+| [`examples/pivo_plzen_de_cs.json`](examples/pivo_plzen_de_cs.json) | *Čí je to pivo?* — on her first tour through the brewery cellars of Plzeň, Klára has to answer a visitor from Bavaria: whose beer is Pils? A one-off story about the first Pilsner of 1842. | German → Czech | A2 |
+| [`examples/klodser_billund_de_da.json`](examples/klodser_billund_de_da.json) | *Otte klodser for lidt* — Jonas, a joiner new to Billund, has promised a ten-year-old a bridge of bricks by Saturday morning; on Friday night eight are missing. A one-off story about where LEGO comes from and why old bricks still fit. | German → Danish | B1 |
+| [`examples/gottardo_lugano_de_it.json`](examples/gottardo_lugano_de_it.json) | *Venti minuti sotto la montagna* — on the delayed last train to Lugano, Lea hopes the Gotthard Base Tunnel will spare her a phone call in Italian. A one-off story. | German → Italian | B2 |
 
-Every file in [`examples/`](examples/) validates without a single warning; the PDFs are in
-[`docs/examples/`](docs/examples/).
+Every file in [`examples/`](examples/) validates without a single warning and meets the
+[design rubric](docs/quality.md); the PDFs are in [`docs/examples/`](docs/examples/). On the
+[website](https://joernmht.github.io/langwich/#examples) a map of Europe shows where each story
+is set and which languages have a worksheet, with filters for language and level.
 
 ### PDFs need Pango
 
@@ -151,6 +158,34 @@ or picture task needs it, otherwise warnings. When nothing but such problems is 
 prints no prompt at all and exits with status 1. And when the "JSON" is only the brief's
 `NO PICTURE ATTACHED` reply (`no-picture-attached`), there is nothing to repair: the AI never saw
 the photo, so `--prompt` says so and exits with status 1 — attach the picture and ask again.
+
+**The design rubric.** A file that validates will render. Whether it is a well-made lesson is
+another question, and `langwich validate FILE --quality` asks it: the story has a turn and an
+ending, the protagonist is there from the first scene to the last, every scene is checked, each
+key word comes back in three tasks and is written by the learner at least once, a true/false task
+has both kinds, the right option is not always the longest one, a word box has spare words, there
+is room to write. The rules are deterministic — no AI reads the sheet, and the same file always
+gets the same findings — so they work as a test: for your worksheet, for a change to the brief,
+for a new kind of task. A finding is not an error (the sheet still renders); with `--prompt` the
+findings go into the repair prompt, with `--strict` they set the exit status.
+
+```bash
+langwich validate data/sourdough_bread_en_de.json --quality
+```
+
+```text
+data/sourdough_bread_en_de.json: OK: no problems found.
+
+Design rubric: 2 findings (story 16/16, lesson 13/13, items 19/21 rules pass).
+  /tasks/0/extra  [match-no-spare]
+      the matching task has no spare answer, so the last pair is free. Add one or two plausible but wrong entries to "extra".
+  /tasks/3/items  [mc-longest-is-right]
+      in 3 of 4 questions the right option is the longest one. Rewrite options so that this holds for 2 at most: lengthen a wrong option here, shorten the right one there.
+```
+
+[`docs/quality.md`](docs/quality.md) lists every rule, why it is there and where its numbers come
+from — and says plainly what no rule can see: whether the facts are true, the language natural
+and the story worth reading.
 
 ### With Claude Code
 
@@ -602,8 +637,9 @@ level every time:
 | Option | Meaning |
 |---|---|
 | `--prompt` | print a repair prompt for the AI that wrote the file; problems only you can fix (a missing or unreadable picture file) go to standard error instead |
-| `--json` | print the report as JSON (`ok`, `error_count`, `warning_count`, `issues`) |
-| `--strict` | exit with status 1 on warnings too |
+| `--json` | print the report as JSON (`ok`, `error_count`, `warning_count`, `issues`; with `--quality` also `quality`: the findings, the rules passed per dimension and the measures) |
+| `--strict` | exit with status 1 on warnings too (with `--quality`: on findings too) |
+| `--quality` | also hold a renderable worksheet to the design rubric — deterministic rules for story craft, the lesson arc and item writing ([`docs/quality.md`](docs/quality.md)). The findings are listed after the report; `--prompt` puts them into the repair prompt |
 
 Exit status 0 means the file can be rendered. With `--prompt`, the exit status is 1 whenever no
 usable prompt could be printed: the file is the `NO PICTURE ATTACHED` reply, or only picture-file
@@ -647,6 +683,7 @@ langwich/
 │   ├── model.py        the langwich/3 contract (pydantic): the single source of truth
 │   ├── markup.py       {{gap}} markup
 │   ├── validate.py     checks beyond the schema; issues with locations and fixes
+│   ├── quality.py      the design rubric: deterministic rules for story, lesson and items
 │   ├── plan.py         the lesson arc, glosses, sidebars, seeded shuffles
 │   ├── answers.py      the answer key, independent of the renderer
 │   ├── images.py       load, convert and embed pictures
@@ -666,8 +703,9 @@ langwich/
 ├── examples/           example worksheets; pictures/ holds their pictures
 ├── data/               your worksheets, pictures/ and PDFs (created on first use; not in git)
 ├── tests/              pytest suite; tests/test_docs.py keeps this README honest
-├── scripts/            export_schema.py, update_page_stats.py, build_showcase.py
-├── docs/               the website (index.html), architecture.md, assets/, examples/ (PDFs)
+├── scripts/            export_schema.py, export_rubric.py, update_page_stats.py, build_showcase.py,
+│                       build_europe_map.py and build_page_fonts.py (the website's map and fonts)
+├── docs/               the website (index.html), architecture.md, quality.md, assets/, examples/ (PDFs)
 ├── .github/workflows/  ci.yml (lint, types, schema, tests), pages.yml (the website)
 ├── .claude/commands/langwich.md    the /langwich command for Claude Code
 └── LICENSE             Apache-2.0
@@ -687,6 +725,7 @@ pytest
 ruff check src tests scripts
 mypy
 python scripts/export_schema.py --check
+python scripts/export_rubric.py --check
 python3 scripts/update_page_stats.py --check
 python3 scripts/build_showcase.py --check
 ```
@@ -705,9 +744,25 @@ python3 scripts/build_showcase.py --check
   which compares the parsed JSON, so a pydantic release that only formats numbers differently
   is a note, not a failure. The Pages
   workflow publishes the file at its `$id`.
+- **Design rubric:** [`tests/test_quality.py`](tests/test_quality.py) holds every bundled
+  example to every rule of `src/langwich/quality.py`, breaks the brief's own example once per
+  rule (a rule without a broken example fails the suite) and checks that the report is the same
+  on every run. Findings that are known and tolerated are listed there in `ACCEPTED`, each with a
+  reason; a listed finding that no longer occurs fails the test, so the list only shrinks. A new
+  task kind needs an entry in `KIND_DESIGN`. After changing a rule, run
+  `python scripts/export_rubric.py` to regenerate [`docs/quality.md`](docs/quality.md).
 - **Website numbers:** `python3 scripts/update_page_stats.py` writes the number of task kinds,
   stages, built-in languages and examples into `docs/index.html`. The Pages workflow runs it
   before each deploy.
+- **Website:** [`docs/index.html`](docs/index.html) is one hand-written file. Its examples section
+  lists every bundled example as a card (`data-example`, languages, level, where the story is set)
+  beside a map of Europe; choosing a country filters the cards by the languages spoken there.
+  [`tests/test_site.py`](tests/test_site.py) holds the cards against the examples, the language
+  table against the map, and every local link against the files — so a new example needs a card.
+  The map is drawn from Natural Earth data by `scripts/build_europe_map.py` (the data file is not
+  in the repository; the script says where to get it), and the page's fonts are made from the
+  bundled ones by `python3 scripts/build_page_fonts.py`. Neither needs to run again unless the
+  map's frame or the fonts change.
 - **Previews:** `python3 scripts/build_showcase.py` renders the examples into `docs/examples/`
   (PDFs) and `docs/assets/` (the PNG previews shown here and on the website). Run it after
   changing the renderer, the planner or an example, and commit both folders.
@@ -715,8 +770,10 @@ python3 scripts/build_showcase.py --check
   folder and compares page count and page text with the committed PDFs.
 - **Versions:** the version is `__version__` in `src/langwich/__init__.py`; `pyproject.toml`
   reads it from there.
-- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) installs Pango and HarfBuzz and
-  runs ruff, mypy, the schema check, pytest (with `LANGWICH_REQUIRE_PDF=1`) and the showcase
+- **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) installs Pango and HarfBuzz
+  (a package mirror that cannot be reached is a warning there, as long as Pango is on the runner;
+  every other failure fails the step, and [`tests/test_ci.py`](tests/test_ci.py) runs that step
+  with apt stubbed) and runs ruff, mypy, the schema check, pytest (with `LANGWICH_REQUIRE_PDF=1`) and the showcase
   check on Python 3.11, 3.12 and 3.13; a second job installs the oldest dependency versions
   `pyproject.toml` allows and runs the tests (except the page-break checks tuned to the newest
   WeasyPrint) and a render of every example; [`.github/workflows/pages.yml`](.github/workflows/pages.yml)

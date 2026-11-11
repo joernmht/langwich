@@ -1,0 +1,922 @@
+{
+ "schema": "langwich/3",
+ "title": "Venti minuti sotto la montagna",
+ "standfirst": "Der letzte Abendzug nach Lugano hat über eine Stunde Verspätung, und Lea müsste vor Mitternacht ihre Vermieterin anrufen – auf Italienisch, wovor ihr graut. Da kommt ihr der längste Eisenbahntunnel der Welt als Ausrede gerade recht, bis sie erfährt, was 2300 Meter Fels mit ihrem Handy machen – und was nicht.",
+ "source_lang": "de",
+ "target_lang": "it",
+ "cefr_level": "B2",
+ "topic": "Gotthard-Basistunnel",
+ "frame": "episode",
+ "story": {
+  "logline": "Lea, eine junge Hotelfachfrau aus Leipzig, muss mit dem verspäteten letzten Abendzug nach Lugano und vor Mitternacht ihre Vermieterin anrufen – und hofft, dass ihr der Gotthard-Basistunnel das Telefonat auf Italienisch erspart.",
+  "setting": "Im letzten Abendzug von Zürich nach Lugano, an einem Abend im Sommer",
+  "characters": [
+   {
+    "id": "lea",
+    "name": "Lea Winter",
+    "role": "26, Hotelfachfrau aus Leipzig; fängt morgen an einer Hotelrezeption in Lugano an"
+   },
+   {
+    "id": "renzo",
+    "name": "Renzo",
+    "role": "um die 70, Tessiner, früher Mineur beim Bau des Basistunnels"
+   },
+   {
+    "id": "bernasconi",
+    "name": "Signora Bernasconi",
+    "role": "Leas neue Vermieterin in Lugano; geht um Mitternacht ins Bett"
+   }
+  ],
+  "scenes": [
+   {
+    "id": "s1",
+    "heading": "Zurigo, le nove e mezza di sera",
+    "beat": "setup",
+    "text": "«Fino a mezzanotte, non un minuto di più.» Lea Winter, ventisei anni, di Lipsia, ha riletto la lettera sul binario, a Zurigo, nell'odore di freni e di caffè. L'aveva scritta a mano la signora Bernasconi, la sua nuova padrona di casa a Lugano. «Poi stacco il telefono e vado a letto. Se dovesse tardare, mi faccia una telefonata: la chiave ce l'ho io.»\n\nL'indomani alle sette Lea cominciava a lavorare alla reception di un albergo. Secondo l'orario, l'ultimo treno della sera sarebbe arrivato a Lugano venti minuti prima di mezzanotte; poi, dieci minuti a piedi. Poteva bastare.\n\nTelefonare, invece, era fuori discussione. In italiano Lea se la cavava bene: a lezione, a tavola, perfino con i clienti. Ma al telefono, senza vedere la faccia dell'altro, non capiva più niente.\n\nIn treno ha sistemato la valigia sul portabagagli e si è seduta accanto al finestrino.\n\n«Scusi, è libero?» Un uomo sui settant'anni, con un vecchio zaino, indicava il sedile di fronte.\n\nIl treno è partito puntuale. Ancora due ore, pensava Lea, e avrebbe avuto la chiave in mano.",
+    "translation": "„Bis Mitternacht, keine Minute länger.“ Lea Winter, sechsundzwanzig, aus Leipzig, las den Brief auf dem Bahnsteig in Zürich noch einmal, im Geruch von Bremsen und Kaffee. Von Hand geschrieben hatte ihn Frau Bernasconi, ihre neue Vermieterin in Lugano. „Dann stecke ich das Telefon aus und gehe ins Bett. Sollten Sie sich verspäten, rufen Sie mich an: Den Schlüssel habe ich.“\n\nAm nächsten Morgen um sieben fing Lea an der Rezeption eines Hotels an. Laut Fahrplan würde der letzte Zug des Abends zwanzig Minuten vor Mitternacht in Lugano ankommen; dann noch zehn Minuten zu Fuß. Das konnte reichen.\n\nAnrufen dagegen kam nicht infrage. Auf Italienisch kam Lea gut zurecht: im Unterricht, bei Tisch, sogar mit den Gästen. Aber am Telefon, ohne das Gesicht des anderen zu sehen, verstand sie gar nichts mehr.\n\nIm Zug verstaute sie den Koffer auf der Gepäckablage und setzte sich ans Fenster.\n\n„Entschuldigung, ist hier frei?“ Ein Mann um die siebzig mit einem alten Rucksack zeigte auf den Sitz gegenüber.\n\nDer Zug fuhr pünktlich ab. Noch zwei Stunden, dachte Lea, dann würde sie den Schlüssel in der Hand haben."
+   },
+   {
+    "id": "s2",
+    "heading": "Arth-Goldau, fermi da un'ora",
+    "beat": "development",
+    "text": "Ad Arth-Goldau il treno si è fermato e non è più ripartito. «A causa di un guasto tecnico il nostro treno è in ritardo», ripeteva l'altoparlante, in tedesco e in italiano. Dopo un'ora Lea aveva riempito tre pagine del quaderno: «Buonasera, signora, sono Lea Winter. Purtroppo il mio treno…» Scriveva, cancellava, riscriveva. Il cellulare aspettava sul tavolino. Sperava ancora che il treno recuperasse il ritardo.\n\nL'uomo di fronte ha tirato fuori dallo zaino un thermos. «Un caffè? Io sono Renzo. Scrive un romanzo?»\n\n«Una telefonata», ha ammesso Lea.\n\nFinalmente il treno si è mosso. Fuori dal finestrino la luna illuminava le montagne.\n\n«Tra poco entriamo nella galleria di base del San Gottardo», ha detto Renzo. «Cinquantasette chilometri: è la galleria ferroviaria più lunga del mondo. È stata costruita in circa diciassette anni, e io c'ero: facevo il minatore, nel cantiere di Faido.»\n\nLea ha guardato l'ora: le undici e quaranta. Cinquantasette chilometri sotto la montagna, di sicuro senza campo… All'uscita sarebbe stata mezzanotte passata. Non era colpa sua: era la scusa perfetta.\n\nPer la prima volta quella sera, Lea ha sorriso.",
+    "translation": "In Arth-Goldau hielt der Zug an und fuhr nicht mehr weiter. „Wegen einer technischen Störung hat unser Zug Verspätung“, wiederholte der Lautsprecher, auf Deutsch und auf Italienisch. Nach einer Stunde hatte Lea drei Seiten ihres Hefts gefüllt: „Guten Abend, Signora, hier ist Lea Winter. Leider ist mein Zug …“ Sie schrieb, strich durch, schrieb neu. Das Handy wartete auf dem Tischchen. Sie hoffte immer noch, dass der Zug die Verspätung aufholen würde.\n\nDer Mann gegenüber holte eine Thermoskanne aus dem Rucksack. „Einen Kaffee? Ich bin Renzo. Schreiben Sie einen Roman?“\n\n„Einen Anruf“, gab Lea zu.\n\nEndlich setzte sich der Zug in Bewegung. Vor dem Fenster beleuchtete der Mond die Berge.\n\n„Gleich fahren wir in den Gotthard-Basistunnel“, sagte Renzo. „Siebenundfünfzig Kilometer: Das ist der längste Eisenbahntunnel der Welt. Er ist in rund siebzehn Jahren gebaut worden, und ich war dabei: Ich war Mineur, auf der Baustelle in Faido.“\n\nLea sah auf die Uhr: zwanzig vor zwölf. Siebenundfünfzig Kilometer unter dem Berg, bestimmt ohne Empfang … Am Ausgang würde es schon nach Mitternacht sein. Es war nicht ihre Schuld: Das war die perfekte Ausrede.\n\nZum ersten Mal an diesem Abend lächelte Lea.",
+    "picture": {
+     "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 125' fill='none' stroke='#000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'><path d='M0 119 H200' stroke-width='.8'/><rect x='50' y='27' width='100' height='44' rx='6' fill='#fff'/><rect x='54' y='31' width='92' height='36' rx='3.5' stroke-width='.7'/><path d='M54 60 L70 44 L80 53 L97 38 L113 56 L124 47 L146 62' stroke-width='.9'/><path d='M66.5 47.6 L69 49.2 L71.3 47.4 L73.4 47.2 M92.4 43 L95.2 44.8 L97.4 42.6 L100 45.2 L102.2 43.6 M120.6 50 L123 51.4 L125.4 49.8 L127.6 49.6' stroke-width='.5'/><circle cx='130' cy='40' r='4.5' stroke-width='.9'/><path d='M88 35.2 V37.6 M86.8 36.4 H89.2 M112 35 V37.4 M110.8 36.2 H113.2 M141 47 V49.4 M139.8 48.2 H142.2' stroke-width='.5'/><rect x='24' y='19' width='152' height='4.5' rx='2' fill='#fff'/><path d='M40 19 V23.5 M56 19 V23.5 M72 19 V23.5 M88 19 V23.5 M104 19 V23.5 M120 19 V23.5 M136 19 V23.5 M152 19 V23.5 M168 19 V23.5' stroke-width='.5'/><path d='M31 23.5 V30 L37 23.5 M169 23.5 V30 L163 23.5'/><rect x='58' y='2.5' width='46' height='16.5' rx='2.5' fill='#fff'/><path d='M70 2.5 V19 M92 2.5 V19' stroke-width='.7'/><path d='M104 7.5 H108 V14 H104'/><circle cx='56.4' cy='6' r='1.4'/><circle cx='56.4' cy='15.5' r='1.4'/><path d='M12 99 L9 40 Q9 31 17 31 H20 Q28 31 28 40 L29 90' fill='#fff'/><path d='M10 49 Q18.5 52 27.6 49' stroke-width='.6'/><rect x='12' y='88' width='34' height='11' rx='4' fill='#fff'/><rect x='19' y='99' width='20' height='20'/><path d='M188 99 L191 40 Q191 31 183 31 H180 Q172 31 172 40 L171 90' fill='#fff'/><path d='M190 49 Q181.5 52 172.4 49' stroke-width='.6'/><rect x='154' y='88' width='34' height='11' rx='4' fill='#fff'/><rect x='161' y='99' width='20' height='20'/><path d='M157 88 V70 Q157 59 168.5 59 Q180 59 180 70 V88 Z' fill='#fff'/><path d='M165 59 Q168.5 53 172 59'/><rect x='161' y='73' width='15' height='11' rx='2.5'/><path d='M161 77 H176' stroke-width='.6'/><path d='M62 75 H138 L148 100 H52 Z' fill='#fff'/><path d='M52 100 V103 H148 V100'/><path d='M95 103 V119 M105 103 V119'/><rect x='64' y='60' width='11' height='24' rx='2.5' fill='#fff'/><rect x='66' y='55' width='7' height='5' rx='1.5' fill='#fff'/><path d='M64 66 H75' stroke-width='.6'/><path d='M77 78 H86 V84 Q86 87 83 87 H80 Q77 87 77 84 Z' fill='#fff'/><path d='M86 80 Q90 80 90 82.5 Q90 85 86 85'/><path d='M94 79 H122 L125 95 H91 Z' fill='#fff'/><path d='M108 79 V95' stroke-width='.7'/><path d='M96 83 H105 M95.5 86 H105 M95 89 H105 M94.5 92 H102 M111 83 H120' stroke-width='.5'/><path d='M70 96.5 L86 91.5' stroke-width='1.6'/><path d='M128.5 77.5 H138.5 L144.5 96.5 H131.5 Z' fill='#fff'/><path d='M131.6 86 V84.5 M133.6 86 V83.5 M135.6 86 V82.5 M137.6 86 V81.5' stroke-width='1'/></svg>",
+     "caption": "Poco prima della galleria: il posto di Lea",
+     "prompt": "Black-and-white line drawing of a window seat bay in a modern Swiss train at night, seen from the aisle: two facing seats, a backpack on the right-hand seat, a large window showing mountain peaks, a full moon and a few stars, a luggage rack above the window with a suitcase on it, and a small table under the window with a thermos flask, a cup, an open notebook, a pen and a mobile phone showing full signal bars. Clean bold outlines, no shading, no text.",
+     "labels": [
+      {
+       "n": 1,
+       "term": "la valigia",
+       "x": 0.405,
+       "y": 0.086
+      },
+      {
+       "n": 2,
+       "term": "il portabagagli",
+       "x": 0.7,
+       "y": 0.17
+      },
+      {
+       "n": 3,
+       "term": "il finestrino",
+       "x": 0.37,
+       "y": 0.304
+      },
+      {
+       "n": 4,
+       "term": "il sedile",
+       "x": 0.092,
+       "y": 0.544
+      },
+      {
+       "n": 5,
+       "term": "lo zaino",
+       "x": 0.843,
+       "y": 0.528
+      },
+      {
+       "n": 6,
+       "term": "il tavolino",
+       "x": 0.305,
+       "y": 0.744
+      },
+      {
+       "n": 7,
+       "term": "il quaderno",
+       "x": 0.58,
+       "y": 0.716
+      },
+      {
+       "n": 8,
+       "term": "il cellulare",
+       "x": 0.684,
+       "y": 0.73
+      }
+     ]
+    }
+   },
+   {
+    "id": "s3",
+    "heading": "Nella galleria, mezzanotte meno un quarto",
+    "beat": "complication",
+    "text": "Di colpo il finestrino è diventato nero e il rumore del treno è cambiato: un soffio lungo, regolare.\n\n«Per attraversarla ci vogliono circa venti minuti», ha detto Renzo. «E sopra di noi, in certi punti, ci sono fino a duemilatrecento metri di roccia.»\n\n«Peccato», ha sospirato Lea, sollevata. «Dovevo telefonare alla mia padrona di casa, ma qui sotto…»\n\nRenzo ha riso. «Guardi il Suo natel.»\n\n«Il mio… che cosa?»\n\n«Il telefonino! In Svizzera lo chiamiamo anche così.»\n\nLea ha guardato lo schermo: tutte le tacche.\n\n«In questa galleria la rete è stata installata dall'entrata all'uscita», ha spiegato Renzo. «C'è campo dappertutto.»\n\n«Pensavo che sotto la montagna non ci fosse campo», ha mormorato Lea. Addio, scusa perfetta.\n\n«Io qui sotto ho lavorato per anni, e faceva un gran caldo. E Lei ha paura di una telefonata? Se non capisce, chieda di ripetere. Lo facciamo tutti.»\n\nLea ha aperto il quaderno, ha respirato a fondo e ha composto il numero.",
+    "translation": "Mit einem Schlag wurde das Fenster schwarz, und das Geräusch des Zuges veränderte sich: ein langes, gleichmäßiges Rauschen.\n\n„Für die Durchfahrt braucht man etwa zwanzig Minuten“, sagte Renzo. „Und über uns liegen stellenweise bis zu zweitausenddreihundert Meter Fels.“\n\n„Schade“, seufzte Lea erleichtert. „Ich hätte meine Vermieterin anrufen müssen, aber hier unten …“\n\nRenzo lachte. „Schauen Sie mal auf Ihr Natel.“\n\n„Auf mein … was?“\n\n„Das Handy! In der Schweiz nennen wir es auch so.“\n\nLea sah auf den Bildschirm: alle Balken.\n\n„In diesem Tunnel ist das Netz vom Eingang bis zum Ausgang installiert worden“, erklärte Renzo. „Es gibt überall Empfang.“\n\n„Ich dachte, unter dem Berg gäbe es keinen Empfang“, murmelte Lea. Leb wohl, perfekte Ausrede.\n\n„Ich habe hier unten jahrelang gearbeitet, und es war sehr heiß. Und Sie haben Angst vor einem Anruf? Wenn Sie etwas nicht verstehen, bitten Sie darum, dass man es wiederholt. Das machen wir alle.“\n\nLea schlug das Heft auf, atmete tief durch und wählte die Nummer."
+   },
+   {
+    "id": "s4",
+    "heading": "Mezzanotte meno dieci: «Pronto?»",
+    "beat": "resolution",
+    "text": "«Pronto?» La voce era lontana, coperta dal rumore del treno.\n\n«Buonasera, signora Bernasconi, sono Lea Winter. Purtroppo il mio treno…» Lea ha perso il filo. Allora ha chiuso il quaderno. «Il treno è rimasto fermo più di un'ora. Arrivo verso l'una. Mi dispiace tanto.»\n\nLa signora ha risposto qualcosa, in fretta. Lea non ha capito una parola. «Scusi, può ripetere più lentamente?»\n\n«Ho detto: da dove mi chiama, con questo rumore?»\n\n«Dalla galleria del San Gottardo.»\n\n«Dal Gottardo! E io che pensavo che là sotto i telefoni non funzionassero. Senta: io vado a letto, ma Le lascio la chiave sotto il vaso dei gerani.»\n\nPoco prima dell'una Lea tirava la valigia lungo una via silenziosa di Lugano. Davanti alla casa una luce era rimasta accesa. Sotto il vaso c'erano la chiave e un biglietto: «Benvenuta! Fino a mezzanotte – e, per chi telefona, anche un po' di più.»\n\nLea ha riso piano. Tra sei ore, alla reception, il telefono avrebbe squillato. Avrebbe risposto lei. Senza quaderno.",
+    "translation": "„Pronto?“ Die Stimme war weit weg, überdeckt vom Lärm des Zuges.\n\n„Guten Abend, Signora Bernasconi, hier ist Lea Winter. Leider ist mein Zug …“ Lea verlor den Faden. Da klappte sie das Heft zu. „Der Zug hat mehr als eine Stunde gestanden. Ich komme gegen eins an. Es tut mir sehr leid.“\n\nDie Signora antwortete etwas, hastig. Lea verstand kein Wort. „Entschuldigung, können Sie das langsamer wiederholen?“\n\n„Ich habe gesagt: Von wo rufen Sie mich denn an, bei diesem Lärm?“\n\n„Aus dem Gotthardtunnel.“\n\n„Aus dem Gotthard! Und ich dachte, da unten funktionieren die Telefone nicht. Hören Sie: Ich gehe ins Bett, aber ich lege Ihnen den Schlüssel unter den Geranientopf.“\n\nKurz vor eins zog Lea den Koffer durch eine stille Straße in Lugano. Vor dem Haus brannte noch ein Licht. Unter dem Topf lagen der Schlüssel und ein Zettel: „Willkommen! Bis Mitternacht – und für alle, die anrufen, auch ein bisschen länger.“\n\nLea lachte leise. In sechs Stunden würde an der Rezeption das Telefon klingeln. Sie würde abnehmen. Ohne Heft."
+   }
+  ]
+ },
+ "facts": [
+  {
+   "id": "f1",
+   "scene": "s2",
+   "title": "Da Erstfeld a Bodio",
+   "text": "La galleria di base del San Gottardo passa sotto le Alpi tra Erstfeld, nel Canton Uri, e Bodio, nel Canton Ticino. È stata inaugurata il 1º giugno 2016; dal dicembre dello stesso anno i treni la percorrono regolarmente."
+  },
+  {
+   "id": "f2",
+   "scene": "s3",
+   "title": "La vecchia galleria",
+   "text": "Più in alto esiste ancora la vecchia galleria ferroviaria del San Gottardo: fu aperta nel 1882, è lunga 15 chilometri e collega Göschenen e Airolo. Nell'agosto 2023 un treno merci è deragliato nella galleria di base, che per più di un anno è rimasta utilizzabile solo in parte: molti treni passeggeri sono passati di nuovo dalla linea di montagna. Dal settembre 2024 la galleria di base è tornata a funzionare normalmente."
+  },
+  {
+   "id": "f3",
+   "scene": "s4",
+   "title": "Il Ticino parla italiano",
+   "text": "La Svizzera ha quattro lingue nazionali. Nel Canton Ticino la lingua ufficiale è l'italiano, ma si sentono anche parole che in Italia non si usano. «Natel», per esempio, viene dal tedesco «Nationales Autotelefon», il nome della prima rete svizzera di telefoni per automobili."
+  }
+ ],
+ "vocabulary": {
+  "target": [
+   "la galleria",
+   "la roccia",
+   "il ritardo",
+   "il campo",
+   "la telefonata",
+   "la scusa",
+   "la padrona di casa",
+   "la chiave",
+   "il minatore",
+   "il finestrino",
+   "attraversare"
+  ],
+  "items": [
+   {
+    "term": "la galleria",
+    "translation": "der Tunnel",
+    "pos": "noun",
+    "plural": "le gallerie",
+    "note": "la galleria di base = der Basistunnel"
+   },
+   {
+    "term": "la roccia",
+    "translation": "der Fels, das Gestein",
+    "pos": "noun",
+    "plural": "le rocce"
+   },
+   {
+    "term": "il ritardo",
+    "translation": "die Verspätung",
+    "pos": "noun",
+    "plural": "i ritardi",
+    "note": "essere in ritardo = Verspätung haben"
+   },
+   {
+    "term": "il campo",
+    "translation": "hier: der Handyempfang",
+    "pos": "noun",
+    "plural": "i campi",
+    "note": "c'è campo = es gibt Empfang; sonst: das Feld"
+   },
+   {
+    "term": "la telefonata",
+    "translation": "der Anruf, das Telefongespräch",
+    "pos": "noun",
+    "plural": "le telefonate"
+   },
+   {
+    "term": "la scusa",
+    "translation": "die Ausrede; die Entschuldigung",
+    "pos": "noun",
+    "plural": "le scuse"
+   },
+   {
+    "term": "la padrona di casa",
+    "translation": "die Vermieterin",
+    "pos": "noun",
+    "plural": "le padrone di casa",
+    "note": "m.: il padrone di casa"
+   },
+   {
+    "term": "la chiave",
+    "translation": "der Schlüssel",
+    "pos": "noun",
+    "plural": "le chiavi"
+   },
+   {
+    "term": "il minatore",
+    "translation": "der Mineur, der Bergmann (hier: im Tunnelbau)",
+    "pos": "noun",
+    "plural": "i minatori"
+   },
+   {
+    "term": "il finestrino",
+    "translation": "das Fenster (im Zug, im Auto)",
+    "pos": "noun",
+    "plural": "i finestrini"
+   },
+   {
+    "term": "attraversare",
+    "translation": "durchqueren, durchfahren",
+    "pos": "verb"
+   },
+   {
+    "term": "la valigia",
+    "translation": "der Koffer",
+    "pos": "noun",
+    "plural": "le valigie"
+   },
+   {
+    "term": "il portabagagli",
+    "translation": "die Gepäckablage",
+    "pos": "noun",
+    "plural": "i portabagagli"
+   },
+   {
+    "term": "il sedile",
+    "translation": "der Sitz",
+    "pos": "noun",
+    "plural": "i sedili"
+   },
+   {
+    "term": "lo zaino",
+    "translation": "der Rucksack",
+    "pos": "noun",
+    "plural": "gli zaini"
+   },
+   {
+    "term": "il tavolino",
+    "translation": "das Tischchen",
+    "pos": "noun",
+    "plural": "i tavolini"
+   },
+   {
+    "term": "il quaderno",
+    "translation": "das Heft",
+    "pos": "noun",
+    "plural": "i quaderni"
+   },
+   {
+    "term": "il cellulare",
+    "translation": "das Handy",
+    "pos": "noun",
+    "plural": "i cellulari"
+   },
+   {
+    "term": "staccare",
+    "translation": "ausstecken, abstellen",
+    "pos": "verb",
+    "note": "staccare il telefono"
+   },
+   {
+    "term": "tardare",
+    "translation": "sich verspäten",
+    "pos": "verb"
+   },
+   {
+    "term": "l'indomani",
+    "translation": "am nächsten Tag",
+    "pos": "adverb"
+   },
+   {
+    "term": "essere fuori discussione",
+    "translation": "nicht infrage kommen",
+    "pos": "phrase"
+   },
+   {
+    "term": "cavarsela",
+    "translation": "zurechtkommen",
+    "pos": "verb",
+    "forms": "me la cavo, me la cavai, me la sono cavata"
+   },
+   {
+    "term": "sistemare",
+    "translation": "verstauen, unterbringen",
+    "pos": "verb"
+   },
+   {
+    "term": "il guasto",
+    "translation": "die Störung, der Defekt",
+    "pos": "noun",
+    "plural": "i guasti"
+   },
+   {
+    "term": "l'altoparlante",
+    "translation": "der Lautsprecher",
+    "pos": "noun",
+    "plural": "gli altoparlanti",
+    "note": "m."
+   },
+   {
+    "term": "riempire",
+    "translation": "füllen",
+    "pos": "verb",
+    "forms": "riempio, riempii, ho riempito"
+   },
+   {
+    "term": "cancellare",
+    "translation": "durchstreichen, löschen",
+    "pos": "verb"
+   },
+   {
+    "term": "recuperare",
+    "translation": "aufholen, wieder einholen",
+    "pos": "verb",
+    "note": "recuperare il ritardo"
+   },
+   {
+    "term": "ammettere",
+    "translation": "zugeben",
+    "pos": "verb",
+    "forms": "ammetto, ammisi, ho ammesso"
+   },
+   {
+    "term": "muoversi",
+    "translation": "sich bewegen, losfahren",
+    "pos": "verb",
+    "forms": "mi muovo, mi mossi, mi sono mosso/a"
+   },
+   {
+    "term": "il cantiere",
+    "translation": "die Baustelle",
+    "pos": "noun",
+    "plural": "i cantieri"
+   },
+   {
+    "term": "di colpo",
+    "translation": "plötzlich, mit einem Schlag",
+    "pos": "phrase"
+   },
+   {
+    "term": "il soffio",
+    "translation": "das Rauschen, der Hauch",
+    "pos": "noun",
+    "plural": "i soffi"
+   },
+   {
+    "term": "volerci",
+    "translation": "nötig sein, brauchen (Zeit)",
+    "pos": "verb",
+    "forms": "ci vuole / ci vogliono, ci volle, ci è voluto",
+    "note": "ci vogliono venti minuti = man braucht zwanzig Minuten"
+   },
+   {
+    "term": "sospirare",
+    "translation": "seufzen",
+    "pos": "verb"
+   },
+   {
+    "term": "sollevato",
+    "translation": "erleichtert",
+    "pos": "adjective"
+   },
+   {
+    "term": "il natel",
+    "translation": "das Handy (in der Schweiz)",
+    "pos": "noun",
+    "plural": "i natel"
+   },
+   {
+    "term": "la tacca",
+    "translation": "der Balken (der Empfangsanzeige); die Kerbe",
+    "pos": "noun",
+    "plural": "le tacche"
+   },
+   {
+    "term": "mormorare",
+    "translation": "murmeln",
+    "pos": "verb"
+   },
+   {
+    "term": "a fondo",
+    "translation": "tief, gründlich",
+    "pos": "phrase",
+    "note": "respirare a fondo = tief durchatmen"
+   },
+   {
+    "term": "comporre",
+    "translation": "wählen (eine Nummer); zusammensetzen",
+    "pos": "verb",
+    "forms": "compongo, composi, ho composto"
+   },
+   {
+    "term": "Pronto?",
+    "translation": "Hallo? (am Telefon)",
+    "pos": "phrase"
+   },
+   {
+    "term": "perdere il filo",
+    "translation": "den Faden verlieren",
+    "pos": "phrase",
+    "forms": "perdo, persi, ho perso"
+   },
+   {
+    "term": "il vaso",
+    "translation": "der Blumentopf; die Vase",
+    "pos": "noun",
+    "plural": "i vasi"
+   },
+   {
+    "term": "il biglietto",
+    "translation": "hier: der Zettel; sonst: die Fahrkarte",
+    "pos": "noun",
+    "plural": "i biglietti"
+   },
+   {
+    "term": "squillare",
+    "translation": "klingeln (Telefon)",
+    "pos": "verb"
+   },
+   {
+    "term": "inaugurare",
+    "translation": "einweihen, eröffnen",
+    "pos": "verb"
+   },
+   {
+    "term": "deragliare",
+    "translation": "entgleisen",
+    "pos": "verb"
+   },
+   {
+    "term": "il treno merci",
+    "translation": "der Güterzug",
+    "pos": "noun",
+    "plural": "i treni merci"
+   },
+   {
+    "term": "il capotreno",
+    "translation": "der Zugchef, die Zugchefin",
+    "pos": "noun",
+    "plural": "i capitreno"
+   },
+   {
+    "term": "scavare",
+    "translation": "graben, ausbrechen (einen Tunnel)",
+    "pos": "verb"
+   },
+   {
+    "term": "il diaframma",
+    "translation": "hier: die letzte Felswand zwischen zwei Tunnelabschnitten",
+    "pos": "noun",
+    "plural": "i diaframmi",
+    "note": "la caduta del diaframma = der Durchschlag"
+   },
+   {
+    "term": "avvisare",
+    "translation": "benachrichtigen, Bescheid sagen",
+    "pos": "verb"
+   },
+   {
+    "term": "l'inquilina",
+    "translation": "die Mieterin",
+    "pos": "noun",
+    "plural": "le inquiline",
+    "note": "f.; m.: l'inquilino"
+   },
+   {
+    "term": "capitare",
+    "translation": "passieren, vorkommen",
+    "pos": "verb",
+    "note": "Ti è mai capitato di …? = Ist es dir schon einmal passiert, dass …?"
+   }
+  ]
+ },
+ "grammar": [
+  {
+   "id": "g1",
+   "name": "Congiuntivo imperfetto nach Verben in der Vergangenheit",
+   "explanation": "Nach Verben des Meinens, Hoffens, Wollens und Fürchtens (pensare, credere, sperare, volere, avere paura …) steht im che-Satz der Congiuntivo. Steht das Verb im Hauptsatz in einer Vergangenheitszeit, folgt der Congiuntivo imperfetto – auch dort, wo das Deutsche einfach den Indikativ nimmt. Er steht außerdem nach se, wenn etwas nur möglich oder irreal ist.",
+   "rule": "Hauptsatz in der Vergangenheit + che + congiuntivo imperfetto (Stamm + -assi, -essi, -issi)",
+   "table": {
+    "head": [
+     "",
+     "parlare",
+     "prendere",
+     "dormire",
+     "essere"
+    ],
+    "rows": [
+     [
+      "io / tu",
+      "parlassi",
+      "prendessi",
+      "dormissi",
+      "fossi"
+     ],
+     [
+      "lui / lei / Lei",
+      "parlasse",
+      "prendesse",
+      "dormisse",
+      "fosse"
+     ],
+     [
+      "noi",
+      "parlassimo",
+      "prendessimo",
+      "dormissimo",
+      "fossimo"
+     ],
+     [
+      "voi",
+      "parlaste",
+      "prendeste",
+      "dormiste",
+      "foste"
+     ],
+     [
+      "loro",
+      "parlassero",
+      "prendessero",
+      "dormissero",
+      "fossero"
+     ]
+    ]
+   },
+   "examples": [
+    "Sperava ancora che il treno recuperasse il ritardo.",
+    "«Pensavo che sotto la montagna non ci fosse campo», ha mormorato Lea.",
+    "«Se dovesse tardare, mi faccia una telefonata.»"
+   ],
+   "scene": "s4"
+  },
+  {
+   "id": "g2",
+   "name": "Das Passiv mit essere und venire",
+   "explanation": "Im Passiv steht im Vordergrund, was mit etwas geschieht – nicht, wer es tut. Man bildet es mit essere + Partizip; das Partizip richtet sich nach dem Subjekt. In den einfachen Zeiten kann statt essere auch venire stehen: Dann ist klar, dass ein Vorgang gemeint ist und kein Zustand. Wer etwas tut, wird mit da angeschlossen.",
+   "rule": "essere / venire + participio passato (+ da …)",
+   "table": {
+    "head": [
+     "Zeit",
+     "Aktiv",
+     "Passiv"
+    ],
+    "rows": [
+     [
+      "presente",
+      "Molti turisti visitano Lugano.",
+      "Lugano è / viene visitata da molti turisti."
+     ],
+     [
+      "imperfetto",
+      "Un controllore vendeva i biglietti.",
+      "I biglietti erano / venivano venduti da un controllore."
+     ],
+     [
+      "passato prossimo",
+      "Hanno chiuso la stazione.",
+      "La stazione è stata chiusa."
+     ],
+     [
+      "futuro",
+      "Apriranno un nuovo albergo.",
+      "Un nuovo albergo sarà / verrà aperto."
+     ]
+    ]
+   },
+   "examples": [
+    "«È stata costruita in circa diciassette anni.»",
+    "«In questa galleria la rete è stata installata dall'entrata all'uscita.»"
+   ],
+   "scene": "s2"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "kind": "match",
+   "stage": "warm_up",
+   "title": "Wörter für die Fahrt unter dem Berg",
+   "instruction": "Ordne jedem italienischen Wort die deutsche Bedeutung zu. Schreib den Buchstaben in das Kästchen. Zwei Bedeutungen bleiben übrig.",
+   "pairs": [
+    {
+     "left": "la galleria",
+     "right": "der Tunnel"
+    },
+    {
+     "left": "la roccia",
+     "right": "der Fels"
+    },
+    {
+     "left": "il ritardo",
+     "right": "die Verspätung"
+    },
+    {
+     "left": "il campo",
+     "right": "der Handyempfang"
+    },
+    {
+     "left": "la telefonata",
+     "right": "der Anruf"
+    },
+    {
+     "left": "la scusa",
+     "right": "die Ausrede"
+    },
+    {
+     "left": "la padrona di casa",
+     "right": "die Vermieterin"
+    },
+    {
+     "left": "la chiave",
+     "right": "der Schlüssel"
+    },
+    {
+     "left": "il minatore",
+     "right": "der Mineur (im Tunnelbau)"
+    },
+    {
+     "left": "il finestrino",
+     "right": "das Zugfenster"
+    },
+    {
+     "left": "attraversare",
+     "right": "durchqueren"
+    }
+   ],
+   "extra": [
+    "der Bahnsteig",
+    "die Fahrkarte"
+   ]
+  },
+  {
+   "id": "t2",
+   "kind": "questions",
+   "stage": "warm_up",
+   "title": "Was könnte schiefgehen?",
+   "instruction": "Lea sitzt im letzten Abendzug nach Lugano. Ihre Vermieterin wartet nur bis Mitternacht auf sie – und vor ihr liegt der längste Eisenbahntunnel der Welt. Was könnte schiefgehen? Schreib eine Vermutung auf, auf Italienisch oder auf Deutsch. Am Ende prüfst du, ob du recht hattest.",
+   "items": [
+    {
+     "question": "Secondo me, …",
+     "lines": 2
+    }
+   ]
+  },
+  {
+   "id": "t3",
+   "kind": "true_false",
+   "stage": "gist",
+   "scene": "s1",
+   "title": "Auf dem Bahnsteig in Zürich",
+   "instruction": "Richtig oder falsch? Kreuze an und verbessere die falschen Sätze.",
+   "items": [
+    {
+     "statement": "La padrona di casa è disposta ad aspettare Lea per tutta la notte.",
+     "answer": false,
+     "correction": "La aspetta solo fino a mezzanotte."
+    },
+    {
+     "statement": "Il giorno dopo Lea inizia un nuovo lavoro in un hotel.",
+     "answer": true
+    },
+    {
+     "statement": "Se il treno è puntuale, Lea arriva dalla signora Bernasconi qualche minuto prima di mezzanotte.",
+     "answer": true
+    },
+    {
+     "statement": "Lea evita le telefonate in italiano perché parla ancora male la lingua.",
+     "answer": false,
+     "correction": "Il suo italiano è buono, ma al telefono non vede la faccia dell'altro e non capisce più niente."
+    },
+    {
+     "statement": "A Zurigo il treno parte già con un forte ritardo.",
+     "answer": false,
+     "correction": "Il treno parte puntuale."
+    }
+   ]
+  },
+  {
+   "id": "t4",
+   "kind": "multiple_choice",
+   "stage": "detail",
+   "scene": "s2",
+   "title": "Stillstand in Arth-Goldau",
+   "instruction": "Kreuze die richtige Antwort an.",
+   "items": [
+    {
+     "question": "Perché il treno resta fermo ad Arth-Goldau?",
+     "options": [
+      "Per la neve.",
+      "Per un guasto tecnico.",
+      "Perché aspetta un altro treno."
+     ],
+     "answer": "Per un guasto tecnico."
+    },
+    {
+     "question": "Che cosa scrive Lea nel suo quaderno?",
+     "options": [
+      "Una lettera per il direttore dell'albergo.",
+      "Un romanzo.",
+      "Le frasi per la telefonata."
+     ],
+     "answer": "Le frasi per la telefonata."
+    },
+    {
+     "question": "Che lavoro faceva Renzo?",
+     "options": [
+      "Faceva il minatore.",
+      "Faceva il capotreno sulla linea del Gottardo.",
+      "Faceva il cuoco."
+     ],
+     "answer": "Faceva il minatore."
+    },
+    {
+     "question": "Che cosa vede Lea dal finestrino quando il treno riparte?",
+     "options": [
+      "Le luci della città di Lugano.",
+      "L'entrata della galleria.",
+      "Le montagne e la luna."
+     ],
+     "answer": "Le montagne e la luna."
+    },
+    {
+     "question": "Perché, alla fine della scena, Lea sorride?",
+     "options": [
+      "Perché il treno ha già recuperato tutto il ritardo.",
+      "Perché crede di avere una scusa.",
+      "Perché Renzo le offre un caffè."
+     ],
+     "answer": "Perché crede di avere una scusa."
+    }
+   ]
+  },
+  {
+   "id": "t5",
+   "kind": "label",
+   "stage": "picture",
+   "scene": "s2",
+   "title": "Leas Platz, kurz vor dem Tunnel",
+   "instruction": "So sieht es an Leas Platz aus, kurz bevor der Zug in den Tunnel fährt. Schreib zu jeder Nummer das italienische Wort – mit il, lo oder la.",
+   "bank": true
+  },
+  {
+   "id": "t6",
+   "kind": "transform",
+   "stage": "form",
+   "scene": "s2",
+   "grammar": "g2",
+   "title": "Renzo erzählt beim Kaffee",
+   "instruction": "Der Zug steht, Renzo schenkt Kaffee ein und erzählt. Setz seine Sätze ins Passiv und behalte die Zeit bei. In Klammern steht, ob du essere oder venire brauchst; wer etwas tut, steht mit da.",
+   "items": [
+    {
+     "prompt": "Nel 2010 i minatori hanno festeggiato la caduta del diaframma principale.",
+     "cue": "essere",
+     "answer": "Nel 2010 la caduta del diaframma principale è stata festeggiata dai minatori."
+    },
+    {
+     "prompt": "Ogni giorno molti treni merci attraversano la galleria.",
+     "cue": "venire",
+     "answer": "Ogni giorno la galleria viene attraversata da molti treni merci."
+    },
+    {
+     "prompt": "Il capotreno ha annunciato il ritardo in due lingue.",
+     "cue": "essere",
+     "answer": "Il ritardo è stato annunciato dal capotreno in due lingue."
+    },
+    {
+     "prompt": "Durante il guasto il personale informava i viaggiatori ogni dieci minuti.",
+     "cue": "venire",
+     "answer": "Durante il guasto i viaggiatori venivano informati dal personale ogni dieci minuti."
+    },
+    {
+     "prompt": "Tra pochi minuti i tecnici ripareranno il guasto.",
+     "cue": "essere",
+     "answer": "Tra pochi minuti il guasto sarà riparato dai tecnici."
+    }
+   ]
+  },
+  {
+   "id": "t7",
+   "kind": "questions",
+   "stage": "detail",
+   "scene": "s3",
+   "title": "Mitten im Berg: alle Balken",
+   "instruction": "Antworte auf Italienisch in ganzen Sätzen.",
+   "items": [
+    {
+     "question": "Perché Lea dice «Peccato», anche se in realtà è sollevata?",
+     "answer": "Perché crede che nella galleria non ci sia campo: così ha una scusa per non telefonare alla padrona di casa.",
+     "lines": 3
+    },
+    {
+     "question": "Come scopre Lea che la sua scusa non funziona?",
+     "answer": "Renzo le dice di guardare il cellulare: sullo schermo ci sono tutte le tacche, perché la rete arriva in tutta la galleria.",
+     "lines": 3
+    },
+    {
+     "question": "Quanto tempo ci vuole per attraversare la galleria, e quanta roccia c'è sopra il treno?",
+     "answer": "Ci vogliono circa venti minuti. In certi punti ci sono fino a 2300 metri di roccia.",
+     "lines": 2
+    },
+    {
+     "question": "Quale consiglio dà Renzo a Lea prima della telefonata?",
+     "answer": "Le consiglia di chiedere di ripetere quando non capisce qualcosa.",
+     "lines": 2
+    }
+   ]
+  },
+  {
+   "id": "t8",
+   "kind": "order_events",
+   "stage": "gist",
+   "scene": "s4",
+   "title": "Von Zürich bis zum Geranientopf",
+   "instruction": "Bring die Ereignisse in die Reihenfolge der Geschichte. Schreib 1, 2, 3 … in die Kästchen.",
+   "events": [
+    "Sul binario Lea legge ancora una volta le parole della padrona di casa.",
+    "Per più di un'ora il treno non si muove da Arth-Goldau.",
+    "Renzo racconta di aver lavorato alla costruzione della galleria.",
+    "Lea scopre che sotto la montagna il suo cellulare ha campo.",
+    "La signora Bernasconi deve ripetere la sua domanda.",
+    "Lea trova la chiave e un messaggio davanti alla casa."
+   ]
+  },
+  {
+   "id": "t9",
+   "kind": "cloze",
+   "stage": "form",
+   "scene": "s4",
+   "grammar": "g1",
+   "hint": "base_form",
+   "title": "Kaffeepause mit Dario",
+   "instruction": "Am nächsten Tag erzählt Lea in der Kaffeepause ihrem neuen Kollegen Dario von der Fahrt. Setz die Verben in Klammern in den Congiuntivo imperfetto.",
+   "items": [
+    "«Ieri sera avevo paura che la signora Bernasconi non {{capisse::capire}} il mio italiano», racconta Lea.",
+    "«Speravo anche che gli altri viaggiatori non {{sentissero::sentire}} le mie frasi sbagliate.»",
+    "«Ma Renzo voleva che io {{telefonassi::telefonare}} subito, senza aspettare l'uscita dalla galleria.»",
+    "«Non sapevo che in Svizzera il cellulare si {{chiamasse::chiamarsi}} anche natel.»",
+    "«E la signora credeva che noi viaggiatori, là sotto, non {{potessimo::potere}} usare il telefono.»",
+    "Dario ride: «E noi pensavamo che tu {{arrivassi::arrivare}} già nel pomeriggio!»"
+   ]
+  },
+  {
+   "id": "t10",
+   "kind": "cloze",
+   "stage": "practice",
+   "scene": "s4",
+   "hint": "word_bank",
+   "title": "Sieben Uhr zwei: Das Telefon klingelt",
+   "instruction": "Leas erster Arbeitstag an der Rezeption. Ergänze die Lücken mit Wörtern aus dem Kasten. Drei Wörter bleiben übrig.",
+   "text": "La mattina dopo, alle sette meno cinque, Lea era già dietro il banco della reception. Aveva dormito poco, ma in tasca aveva la {{chiave}} della sua nuova camera e si sentiva leggera. Alle sette e due il telefono ha squillato: la sua prima {{telefonata}} di lavoro! Era un cliente di Basilea, molto agitato: il suo treno aveva quaranta minuti di {{ritardo}}. «Nessun problema», ha risposto Lea. «Se vuole avvisarci ancora, ci chiami pure dalla {{galleria}} del San Gottardo: là sotto c'è {{campo}} dappertutto.» A mezzogiorno è passata la signora Bernasconi con una fetta di torta. «Per la mia inquilina, che chiama con tutta quella {{roccia}} sopra la testa», ha detto. «La prossima volta, però, il treno non sarà una buona {{scusa}}: mi avvisi subito!»",
+   "distractors": [
+    "valigia",
+    "binario",
+    "orario"
+   ]
+  },
+  {
+   "id": "t11",
+   "kind": "writing",
+   "stage": "production",
+   "title": "Eine Mail an Chiara",
+   "instruction": "Am Abend nach ihrem ersten Arbeitstag schreibt Lea ihrer Italienischlehrerin Chiara in Leipzig, wie die Fahrt verlaufen ist. Schreib ihre Mail auf Italienisch, in der Ich-Form.",
+   "prompt": "Warum hatte der Zug Verspätung? Warum wollte Lea erst nicht anrufen – und wer hat sie umgestimmt? Wie ist das Telefonat ausgegangen?",
+   "starter": "Cara Chiara, non ci crederai: ieri sera ho telefonato in italiano …",
+   "must_use": [
+    "la galleria",
+    "il campo",
+    "la telefonata",
+    "la scusa",
+    "la padrona di casa",
+    "il minatore",
+    "attraversare"
+   ],
+   "min_words": 100,
+   "max_words": 150,
+   "lines": 18,
+   "model_answer": "Cara Chiara, non ci crederai: ieri sera ho telefonato in italiano da sotto una montagna! Il mio treno per Lugano è rimasto fermo più di un'ora per un guasto, e con quel ritardo non potevo arrivare prima di mezzanotte. Dovevo avvisare la mia padrona di casa, ma tu lo sai: per me una telefonata in italiano è peggio di un esame. Per fortuna, pensavo, stavamo per attraversare la galleria di base del San Gottardo: cinquantasette chilometri senza campo, la scusa perfetta! Invece no. Renzo, un signore seduto di fronte a me che ha lavorato lì come minatore, mi ha mostrato che là sotto il telefono funziona benissimo. Così ho chiamato. Ho dovuto chiedere alla signora di ripetere solo una volta, e alla fine mi ha lasciato la chiave sotto un vaso di gerani. Avevi ragione tu: bisogna solo cominciare. Un abbraccio, Lea"
+  },
+  {
+   "id": "t12",
+   "kind": "questions",
+   "stage": "production",
+   "title": "Und du?",
+   "instruction": "Antworte auf Italienisch in zwei bis drei Sätzen. Schau danach noch einmal auf deine Vermutung vom Anfang: Hattest du recht?",
+   "items": [
+    {
+     "question": "Ti è mai capitato di dover telefonare in una lingua straniera? Com'è andata?",
+     "lines": 3
+    },
+    {
+     "question": "In quali situazioni preferisci scrivere un messaggio invece di telefonare? Perché?",
+     "lines": 3
+    }
+   ]
+  },
+  {
+   "id": "t13",
+   "kind": "media_search",
+   "stage": "epilogue",
+   "title": "Renzos Hausaufgabe",
+   "instruction": "„Schauen Sie sich einmal an, wie wir da unten gearbeitet haben“, sagt Renzo, bevor er in Bellinzona aussteigt. Such im Internet ein italienisches Video über den Bau des Tunnels – es gibt absichtlich keinen Link, denn die Suche auf Italienisch gehört zur Aufgabe. Ein Tipp: „la caduta del diaframma“ ist der Durchschlag, also der Moment, in dem die letzte Felswand zwischen zwei Tunnelabschnitten fällt.",
+   "media": "video",
+   "queries": [
+    "galleria di base del San Gottardo costruzione",
+    "caduta del diaframma San Gottardo 2010",
+    "AlpTransit San Gottardo minatori"
+   ],
+   "questions": [
+    "Con quali macchine è stata scavata la galleria?",
+    "Che cosa fanno i minatori quando cade il diaframma?",
+    "Annota tre parole nuove che hai sentito e cerca il loro significato."
+   ]
+  }
+ ]
+}

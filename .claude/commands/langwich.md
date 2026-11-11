@@ -194,8 +194,13 @@ brief into the chat; a short "Writing the story now…" is enough.
    - `wrapped-json` or `normalized` means langwich had to read the file leniently (a code fence
      or text around the object, a kind like `multiple-choice`, a fact as a plain string): rewrite
      the file as the brief asks — exactly one clean JSON object.
-2. Then review the worksheet yourself as a strict native-speaker editor and an experienced
-   teacher, reading it in lesson order as the learner will:
+2. Run `langwich validate data/<file>.json --quality`: the design rubric — deterministic rules
+   for story craft, the lesson arc and item writing (is every scene checked? does each key word
+   come back in three tasks? is the right option always the longest?). Fix its findings the same
+   way; they are not errors, so tell the user in one line if you keep one on purpose.
+3. Then review the worksheet yourself as a strict native-speaker editor and an experienced
+   teacher, reading it in lesson order as the learner will — the rubric cannot judge any of
+   this:
    - **Language:** natural and idiomatic, right for the level; articles, genders, plurals and verb
      forms correct; translations faithful.
    - **Facts:** every one true and checkable in a standard reference; no invented numbers, dates,

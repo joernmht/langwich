@@ -633,7 +633,8 @@
         ]
       },
       "examples": [
-        "¿Me pone cien gramos de jamón, por favor?"
+        "¿Me pone cien gramos de jamón, por favor?",
+        "Compro una botella de aceite y un paquete de galletas."
       ]
     }
   ],
@@ -756,7 +757,7 @@
         },
         {
           "speaker": "Emily",
-          "text": "Hola. ¿Me pone un {{kilo}} de tomates, por favor?"
+          "text": "Hola. ¿Me pone un kilo de {{tomates}}, por favor?"
         },
         {
           "speaker": "Amparo",
@@ -809,7 +810,7 @@
       "title": "Emily’s weekend in order",
       "instruction": "Put the events in the order of the story. Write 1–6 in the boxes.",
       "events": [
-        "La abuela le da a Emily una lista y treinta euros.",
+        "Emily recibe una lista y dinero de la abuela.",
         "Emily espera su turno en el puesto de Amparo.",
         "Amparo le enseña el garrofó.",
         "Emily compra un cuarto de kilo de gambas.",
@@ -843,7 +844,7 @@
           "question": "¿Qué dice la abuela de las gambas?",
           "options": [
             "Que no son para una paella valenciana.",
-            "Que son demasiado caras.",
+            "Que son demasiado caras para una paella.",
             "Que no le gusta el pescado."
           ],
           "answer": "Que no son para una paella valenciana."
@@ -862,7 +863,7 @@
           "options": [
             "Porque sabe qué es el garrofó.",
             "Porque habla tres idiomas.",
-            "Porque cocina mejor que él."
+            "Porque cocina mucho mejor que él."
           ],
           "answer": "Porque sabe qué es el garrofó."
         }
@@ -876,7 +877,7 @@
       "hint": "word_bank",
       "title": "One week later: Emily’s paella",
       "instruction": "Now it’s Emily’s turn to cook. Fill the gaps with words from the box. Two words are left over.",
-      "text": "Una semana después, Emily vuelve al {{mercado}} con su propia lista. Primero va al {{puesto}} de Amparo. «Hoy no compro gambas», dice. «Ya sé que una paella valenciana de verdad no lleva {{marisco}}». Amparo sonríe y le pone judías verdes, garrofó y una bolsa de {{arroz}}. Después, en el puesto de carne, pide un pollo y medio {{conejo}}. Al final compra un sobre de {{azafrán}}: ¡qué {{caro}}! El domingo, toda la familia prueba la paella de Emily. ¿Y la abuela? ¡Quiere más!",
+      "text": "Una semana después, Emily vuelve al {{mercado}} con su propia lista. Primero va al {{puesto}} de Amparo. «Hoy no compro gambas», dice. «Ya sé que una paella valenciana de verdad no lleva {{marisco}}». Amparo sonríe y le pone judías verdes, garrofó y una bolsa de {{arroz}}. Después compra la carne: un pollo y medio {{conejo}}. Al final compra un sobre de {{azafrán}}: ¡qué {{caro}}! El domingo, toda la familia prueba la paella de Emily. ¿Y la abuela? ¡Quiere más!",
       "distractors": [
         "pollo",
         "barato"
@@ -895,6 +896,8 @@
         "medio kilo de",
         "una bolsa de"
       ],
+      "min_words": 20,
+      "max_words": 35,
       "lines": 6,
       "model_answer": "Mi lista de la compra: medio kilo de carne picada, un kilo de patatas, dos cebollas, dos zanahorias, cien gramos de mantequilla y una bolsa de guisantes."
     },
@@ -910,12 +913,13 @@
         "voy a",
         "el mercado",
         "el puesto",
-        "llevar"
+        "llevar",
+        "la gamba"
       ],
       "min_words": 30,
       "max_words": 50,
       "lines": 7,
-      "model_answer": "¡Hola, familia! El sábado voy a hacer un plato inglés: shepherd’s pie. Lleva carne, patatas y zanahorias, ¡pero no lleva marisco, abuela! Voy a comprar las verduras en el puesto de Amparo, en el mercado. Comemos a las dos. Un beso"
+      "model_answer": "¡Hola, familia! El sábado voy a hacer un plato inglés: shepherd’s pie. Lleva carne, patatas y zanahorias, ¡pero no lleva gambas ni otro marisco, abuela! Voy a comprar las verduras en el puesto de Amparo, en el mercado. Comemos a las dos. Un beso"
     },
     {
       "id": "t11",

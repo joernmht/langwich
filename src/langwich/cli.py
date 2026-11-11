@@ -419,15 +419,35 @@ def _report_image_prompts(ws: Worksheet, prompts: list[tuple[str, str]]) -> None
 def _cmd_validate(args: argparse.Namespace) -> int:
     path = Path(args.file)
     report = check_file(path)
+    quality = None
+    if args.quality and report.ok and report.worksheet is not None:
+        # the rubric judges a sheet that works; errors come first
+        from langwich.quality import assess
+
+        quality = assess(report.worksheet)
     if args.json:
-        print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+        data = report.to_dict()
+        if args.quality:
+            data["quality"] = quality.to_dict() if quality is not None else None
+        print(json.dumps(data, ensure_ascii=False, indent=2))
     elif args.prompt:
+        if quality is not None:
+            # one repair prompt for both: the findings read like warnings
+            report = Report(report.issues + quality.issues(), report.worksheet)
         return _print_repair_prompt(path, report, strict=args.strict)
     else:
         print(f"{path}: {report.format_text()}")
+        if quality is not None:
+            print("", quality.summary(), sep="\n")
+            for finding in quality.findings:
+                print(f"  {finding.where}  [{finding.code}]", f"      {finding.message}",
+                      sep="\n")
+        elif args.quality:
+            print("", "Design rubric: not run; fix the errors first.", sep="\n")
     if not report.ok:
         return 1
-    return 1 if args.strict and report.warnings else 0
+    findings = bool(quality is not None and quality.findings)
+    return 1 if args.strict and (report.warnings or findings) else 0
 
 
 def _print_repair_prompt(path: Path, report: Report, strict: bool = False) -> int:
@@ -807,7 +827,13 @@ def build_parser() -> argparse.ArgumentParser:
     fmt.add_argument("--prompt", action="store_true",
                      help="print a repair prompt to give to the LLM that wrote the file "
                           "(problems only you can fix, like a missing photo, go to stderr)")
-    v.add_argument("--strict", action="store_true", help="exit with status 1 on warnings too")
+    v.add_argument("--strict", action="store_true",
+                   help="exit with status 1 on warnings too (with --quality: on findings too)")
+    v.add_argument("--quality", action="store_true",
+                   help="also hold a renderable worksheet to the design rubric: deterministic "
+                        "rules for story craft, the lesson arc and item writing "
+                        "(langwich.quality); findings are listed after the report, and "
+                        "--prompt puts them into the repair prompt")
     v.set_defaults(func=_cmd_validate)
 
     s = sub.add_parser("schema", help="print the langwich/3 JSON Schema",

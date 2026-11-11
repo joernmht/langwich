@@ -67,10 +67,18 @@ a label box shows the terms without articles (the answer key keeps them).
 7. **Rebuild the showcase after changing the renderer, the planner or an example.** Run
    `python3 scripts/build_showcase.py` and commit `docs/examples/` and `docs/assets/`;
    `python3 scripts/build_showcase.py --check` (CI) fails when the committed PDFs no longer match
-   a fresh render.
+   a fresh render. A new example also needs a card in `docs/index.html` (`tests/test_site.py`
+   holds the cards, the map and the language table against the examples) and a row in the
+   README's example table; then run `python3 scripts/update_page_stats.py`.
 8. **The renderer stays offline.** WeasyPrint may fetch only `data:` URIs and the bundled fonts
    (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
    outside resource is a `picture.image` the JSON names, loaded by `images.py`.
+9. **The design rubric stays deterministic.** `quality.py` reads the worksheet and nothing else:
+   no model, no files, no network, no randomness (`tests/test_quality.py` checks its imports
+   and runs it with files and sockets blocked). A
+   new rule needs a broken example in `MUTANTS`, a new task kind an entry in `KIND_DESIGN`; then
+   run `python scripts/export_rubric.py`. Every bundled example must meet the rubric
+   (`langwich validate FILE --quality`) or be listed in `ACCEPTED` with a reason.
 
 ## Module map (`src/langwich/`)
 
@@ -78,6 +86,7 @@ a label box shows the terms without articles (the answer key keeps them).
 |---|---|
 | `model.py` | the contract (pydantic), lenient loading (`load_worksheet`, `parse_worksheet`), `worksheet_from_dict`, `json_schema`, `TASK_KINDS`, `STAGES` |
 | `validate.py` | semantic checks; `check_file(path) -> Report` with JSON-pointer issues and fix hints; `ENVIRONMENT_CODES` |
+| `quality.py` | the design rubric: deterministic rules for story, lesson and items (`RULES`, `KIND_DESIGN`, `assess(ws) -> QualityReport`); no I/O, no randomness |
 | `plan.py` | lesson arc, glosses, grammar and fact sidebars, word boxes, seeded shuffles |
 | `markup.py` | `{{answer\|alternative::hint}}` gap markup |
 | `answers.py` | renderer-neutral answer key |
@@ -97,6 +106,7 @@ langwich prompt --continue data/lena_02_en_de.json -o .langwich/prompt.md   # ne
 langwich prompt --image ~/Pictures/market.jpg -o .langwich/prompt.md        # story around a photo
 langwich prompt --from-text .langwich/source.txt -o .langwich/prompt.md     # story from a text
 langwich validate data/night_trains_en_de.json            # add --prompt, --json or --strict
+langwich validate data/night_trains_en_de.json --quality  # plus the design rubric (docs/quality.md)
 langwich render data/night_trains_en_de.json --page epaper --solutions separate
 ```
 
@@ -120,6 +130,7 @@ not in git.
 .venv/bin/ruff check src tests scripts             # pinned rule set in pyproject.toml
 .venv/bin/mypy
 .venv/bin/python scripts/export_schema.py --check
+.venv/bin/python scripts/export_rubric.py --check
 .venv/bin/python scripts/update_page_stats.py --check
 .venv/bin/python scripts/build_showcase.py --check
 ```

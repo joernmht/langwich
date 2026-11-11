@@ -64,6 +64,7 @@ DOC_FILES: tuple[str, ...] = (
     ".claude/commands/langwich.md",
     "docs/index.html",
     "docs/architecture.md",
+    "docs/quality.md",
 )
 
 EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.json"))
