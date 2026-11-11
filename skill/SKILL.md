@@ -1,6 +1,6 @@
 ---
 name: langwich
-description: Make a printable worksheet for learning a language: a short story with true facts, tasks and answers, checked and typeset as a PDF. Use when someone asks for a language worksheet.
+description: "Make a printable worksheet for learning a language: a short story with true facts, tasks and answers, checked and typeset as a PDF. Use when someone asks for a language worksheet."
 ---
 
 # langwich — a story worksheet, from a chat
@@ -22,7 +22,7 @@ This skill's folder holds the langwich engine in `engine/`. Copy it somewhere wr
 it (the skill folder itself is read-only):
 
 ```bash
-cp -r <skill-folder>/engine /tmp/langwich-engine
+rm -rf /tmp/langwich-engine && cp -r <skill-folder>/engine /tmp/langwich-engine
 pip install --quiet /tmp/langwich-engine || pip install --quiet --break-system-packages /tmp/langwich-engine
 langwich kinds
 ```
@@ -139,8 +139,29 @@ as downloads in whatever way this app allows. Tell them in plain words:
 > Your worksheet is ready: *Die Nachtbäckerei*, 14 pages. Print it double-sided, or copy it to
 > your e-reader. Keep the small .json file too: send it to me next time and I'll write episode 2.
 
-If langwich could only write an HTML file (no PDF tools in this sandbox), hand over the `.html`
-instead and say: "Open it in your browser and choose **Print → Save as PDF**."
+**No PDF tools in this sandbox** (the offline path of step 0): `render` then ends with
+`PDF not created: WeasyPrint could not be loaded` and exit status 1. That is expected, not a
+problem with the worksheet — don't change the JSON or render again. The HTML file it names is the
+worksheet. Its fonts are linked to files in this sandbox, so first embed them, or the person's
+browser prints it in other fonts:
+
+```bash
+python3 - data/<file>.html <<'EOF'
+import base64, re, sys, urllib.parse, urllib.request
+path = sys.argv[1]
+html = open(path, encoding="utf-8").read()
+def embed(match):
+    font = urllib.request.url2pathname(urllib.parse.urlparse(match.group(1)).path)
+    data = base64.b64encode(open(font, "rb").read()).decode("ascii")
+    return f"url(data:font/ttf;base64,{data})"
+html = re.sub(r"url\((file:[^)]+\.ttf)\)", embed, html)
+open(path, "w", encoding="utf-8").write(html)
+print("fonts embedded:", html.count("data:font/ttf"))
+EOF
+```
+
+Then hand over the `.html` (and the `.json`) instead of a PDF and say: "Open it in your browser
+and choose **Print → Save as PDF**."
 
 End with one short line on what could come next: the next episode, the same story a level easier
 or harder, another language, or a new story.

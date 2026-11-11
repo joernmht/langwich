@@ -18,6 +18,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "build_skill.py"
@@ -34,12 +35,11 @@ def skill_zip(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def _frontmatter(text: str) -> dict[str, str]:
+    """The frontmatter as Claude reads it: YAML (an unquoted ': ' would break it)."""
     match = re.match(r"---\n(.*?)\n---\n", text, re.S)
     assert match, "SKILL.md must start with a --- frontmatter block"
-    fields = {}
-    for line in match.group(1).splitlines():
-        key, _, value = line.partition(":")
-        fields[key.strip()] = value.strip()
+    fields = yaml.safe_load(match.group(1))
+    assert isinstance(fields, dict) and all(isinstance(v, str) for v in fields.values())
     return fields
 
 
@@ -91,9 +91,10 @@ def _unpack(skill_zip: Path, into: Path) -> Path:
     return into / "langwich" / "engine"
 
 
-#: Runs langwich's CLI as the offline fallback does, in a Python that cannot import
-#: WeasyPrint or fontTools: SKILL.md promises this path needs only pydantic and Pillow.
-_WITHOUT_PDF_TOOLS = """
+#: Loaded at start-up (sitecustomize) by the Python that runs the offline fallback: it
+#: cannot import WeasyPrint or fontTools, as SKILL.md promises the path needs only pydantic
+#: and Pillow.
+_NO_PDF_TOOLS = """
 import sys
 from importlib.abc import MetaPathFinder
 
@@ -104,30 +105,37 @@ class Blocked(MetaPathFinder):
         return None
 
 sys.meta_path.insert(0, Blocked())
-import langwich
-assert langwich.__file__.startswith(sys.argv[1]), langwich.__file__
-from langwich.cli import main
-sys.exit(main(sys.argv[2:]))
 """
+
+
+def _skill_md() -> str:
+    return (REPO_ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
 
 
 def test_the_offline_fallback_runs_the_engine_without_installing(
     skill_zip: Path, tmp_path: Path
 ) -> None:
-    """SKILL.md's no-network path: ``PYTHONPATH=<engine>/src python3 -m langwich``,
-    with no WeasyPrint and no fontTools: it still checks a worksheet and writes the HTML."""
+    """SKILL.md's no-network path, exactly as written: ``PYTHONPATH=<engine>/src python3 -m
+    langwich``, with no WeasyPrint and no fontTools. It checks a worksheet, and render writes
+    the HTML, says "PDF not created" and exits 1 — which SKILL.md tells Claude to expect."""
     engine = _unpack(skill_zip, tmp_path)
-    text = (REPO_ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
-    assert "PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich kinds" in text
-    src = engine / "src"
-    env = {**os.environ, "PYTHONPATH": str(src)}
+    assert "PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich kinds" in _skill_md()
+    blocker = tmp_path / "blocker"
+    blocker.mkdir()
+    (blocker / "sitecustomize.py").write_text(_NO_PDF_TOOLS, encoding="utf-8")
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(engine / "src"), str(blocker)])}
 
     def run(*args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            [sys.executable, "-c", _WITHOUT_PDF_TOOLS, str(src), *args],
+            [sys.executable, "-m", "langwich", *args],
             capture_output=True, text=True, check=False, cwd=tmp_path, env=env,
         )
 
+    where = subprocess.run(
+        [sys.executable, "-c", "import langwich, weasyprint"],
+        capture_output=True, text=True, check=False, cwd=tmp_path, env=env,
+    )
+    assert "not installed in this sandbox" in where.stderr, "the blocker is not loaded"
     kinds = run("kinds")
     assert kinds.returncode == 0, kinds.stderr
     assert "match" in kinds.stdout
@@ -137,9 +145,33 @@ def test_the_offline_fallback_runs_the_engine_without_installing(
     assert "OK: no problems found." in checked.stdout
     out = tmp_path / "out"
     rendered = run("render", str(example), "-o", f"{out}/")
-    assert (out / "krasnale_wroclaw_de_pl.html").is_file(), rendered.stdout + rendered.stderr
-    assert not (out / "krasnale_wroclaw_de_pl.pdf").exists()
-    assert "print it to PDF" in rendered.stdout + rendered.stderr
+    assert rendered.returncode == 1, rendered.stdout + rendered.stderr
+    assert "PDF not created: WeasyPrint could not be loaded" in rendered.stderr
+    assert "PDF not created: WeasyPrint could not be loaded" in _skill_md()
+    html = out / "krasnale_wroclaw_de_pl.html"
+    assert html.is_file() and not html.with_suffix(".pdf").exists()
+
+
+def test_the_handed_over_html_carries_its_fonts(tmp_path: Path) -> None:
+    """The snippet in SKILL.md turns the sandbox's file:// font links into data: URIs, so the
+    person's browser prints the HTML in langwich's fonts."""
+    match = re.search(r"python3 - data/<file>\.html <<'EOF'\n(.*?)\nEOF\n", _skill_md(), re.S)
+    assert match, "SKILL.md lost the font-embedding snippet"
+    from langwich.cli import main
+
+    example = REPO_ROOT / "examples" / "krasnale_wroclaw_de_pl.json"
+    assert main(["render", str(example), "--html-only", "-o", f"{tmp_path}/"]) == 0
+    html = tmp_path / "krasnale_wroclaw_de_pl.html"
+    fonts = html.read_text(encoding="utf-8").count("file:")
+    assert fonts, "the renderer no longer links fonts by file:// URI; check the snippet"
+    done = subprocess.run(
+        [sys.executable, "-", str(html)], input=match.group(1),
+        capture_output=True, text=True, check=False,
+    )
+    assert done.returncode == 0, done.stderr
+    text = html.read_text(encoding="utf-8")
+    assert not re.search(r"url\(file:", text)
+    assert text.count("data:font/ttf;base64,") >= 9
 
 
 def test_the_bundled_engine_installs_with_pip(skill_zip: Path, tmp_path: Path) -> None:
