@@ -246,9 +246,10 @@ RULES: dict[str, Rule] = {
         "the longest, most careful option is the first thing a test-wise learner ticks",
     ),
     "mc-longest-is-right": Rule(
-        "items", "across a task the right option is the longest in at most half of the "
-                 "questions",
-        "the same cue, as a pattern over the whole task",
+        "items", "across a task of three or more questions the right option is the "
+                 "longest in at most half of them, rounded up (2 of 3, 2 of 4, 3 of 5)",
+        "the same cue, as a pattern over the whole task; one more than chance allows, so "
+        "that a short task is not reported for a coincidence",
     ),
     "match-no-spare": Rule(
         "items", "a matching task has at least one spare answer",
@@ -1112,7 +1113,7 @@ class _Rubric:
                     f"({right} characters; the longest wrong one has {wrong}). Shorten it or "
                     "lengthen the others: all options should look alike.",
                 )
-        allowed = (judged + 1) // 2
+        allowed = (judged + 1) // 2  # half, rounded up: see the rule
         if judged >= 3 and longest > allowed:
             self.find(
                 "mc-longest-is-right", f"{where}/items",
@@ -1231,7 +1232,7 @@ class _Rubric:
             for j, item in enumerate(task.items):
                 words = _word_count(item.answer or "")
                 if item.lines and words > item.lines * WORDS_PER_ANSWER_LINE:
-                    need = -(-words // WORDS_PER_ANSWER_LINE)
+                    need = -(-words // WORDS_PER_ANSWER_LINE)  # the fewest lines that pass
                     self.find(
                         "lines-too-few", f"{where}/items/{j}/lines",
                         f"the model answer to {_q(item.question, 40)} has {words} words, but "
@@ -1241,12 +1242,12 @@ class _Rubric:
                     )
         elif isinstance(task, WritingTask) and task.lines and task.max_words:
             if task.max_words > task.lines * WORDS_PER_TEXT_LINE:
-                need = -(-task.max_words // 8)
+                need = -(-task.max_words // WORDS_PER_TEXT_LINE)
                 self.find(
                     "lines-too-few", f"{where}/lines",
                     f"up to {task.max_words} words on {_plural(task.lines, 'line')}: that "
-                    f"does not fit in handwriting. Set \"lines\": {need} (about one line per "
-                    "8 words).",
+                    f"does not fit in handwriting. Set \"lines\" to {need} or more: at most "
+                    f"{WORDS_PER_TEXT_LINE} words per line (the brief suggests about 8).",
                 )
 
     def check_writing(self, i: int, task: WritingTask) -> None:

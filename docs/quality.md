@@ -99,7 +99,7 @@ The craft of the single task: enough items and not too many, true/false with bot
 | `tf-correction-same` | the correction of a false statement differs from the statement | the answer key must show what is true instead |
 | `mc-few-options` | a multiple-choice question has at least three options | with two options a guess is right half the time |
 | `mc-answer-stands-out` | the right option is not far longer than every wrong one | the longest, most careful option is the first thing a test-wise learner ticks |
-| `mc-longest-is-right` | across a task the right option is the longest in at most half of the questions | the same cue, as a pattern over the whole task |
+| `mc-longest-is-right` | across a task of three or more questions the right option is the longest in at most half of them, rounded up (2 of 3, 2 of 4, 3 of 5) | the same cue, as a pattern over the whole task; one more than chance allows, so that a short task is not reported for a coincidence |
 | `match-no-spare` | a matching task has at least one spare answer | otherwise the last pair is free |
 | `match-trivial-pair` | the two sides of a pair are not the same word | a pair that matches itself teaches nothing |
 | `cloze-too-dense` | a gap text keeps at least five words of context per gap (three in a form drill) | a gap is filled from its context; without context it is a guess |

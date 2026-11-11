@@ -36,14 +36,22 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
         # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
-        # WeasyPrint still works without it. So a package mirror that cannot be reached is a
-        # warning, not a failure, as long as Pango is there. If WeasyPrint cannot load after
-        # all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        # WeasyPrint still works without it. So ONE kind of apt failure is a warning instead
+        # of an error: a package mirror that cannot be reached, as long as Pango is there.
+        # Any other apt failure (a package that no longer exists, a broken install) fails the
+        # step as before. If WeasyPrint cannot load after all, the PDF tests fail
+        # (LANGWICH_REQUIRE_PDF).
         run: |
-          if sudo apt-get update &&
-             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
-          then
-            exit 0
+          set -o pipefail
+          log="$RUNNER_TEMP/apt.log"
+          {
+            sudo apt-get update &&
+            sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+          } 2>&1 | tee "$log" && exit 0
+          unreachable='Temporary failure resolving|Could not resolve|Could not connect|Connection timed out|Network is unreachable'
+          if ! grep -qE "$unreachable" "$log"; then
+            echo "::error::apt-get failed, and not because the package mirror was unreachable."
+            exit 1
           fi
           echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."
           dpkg -s libpango-1.0-0 libpangoft2-1.0-0 > /dev/null
@@ -76,14 +84,22 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install WeasyPrint system libraries
         # The runner image ships Pango; only libharfbuzz-subset0 has to be downloaded, and
-        # WeasyPrint still works without it. So a package mirror that cannot be reached is a
-        # warning, not a failure, as long as Pango is there. If WeasyPrint cannot load after
-        # all, the PDF tests fail (LANGWICH_REQUIRE_PDF).
+        # WeasyPrint still works without it. So ONE kind of apt failure is a warning instead
+        # of an error: a package mirror that cannot be reached, as long as Pango is there.
+        # Any other apt failure (a package that no longer exists, a broken install) fails the
+        # step as before. If WeasyPrint cannot load after all, the PDF tests fail
+        # (LANGWICH_REQUIRE_PDF).
         run: |
-          if sudo apt-get update &&
-             sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
-          then
-            exit 0
+          set -o pipefail
+          log="$RUNNER_TEMP/apt.log"
+          {
+            sudo apt-get update &&
+            sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+          } 2>&1 | tee "$log" && exit 0
+          unreachable='Temporary failure resolving|Could not resolve|Could not connect|Connection timed out|Network is unreachable'
+          if ! grep -qE "$unreachable" "$log"; then
+            echo "::error::apt-get failed, and not because the package mirror was unreachable."
+            exit 1
           fi
           echo "::warning::The package mirror could not be reached: going on with the libraries of the runner image."
           dpkg -s libpango-1.0-0 libpangoft2-1.0-0 > /dev/null

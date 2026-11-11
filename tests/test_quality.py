@@ -32,6 +32,7 @@ import json
 import os
 import subprocess
 import sys
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -62,10 +63,13 @@ EXAMPLES = sorted((REPO_ROOT / "examples").glob("*.json"))
 KINDS_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "kinds_showcase.json"
 
 #: Findings in the bundled examples that are known and tolerated:
-#: example stem -> {(code, JSON pointer): why it is accepted}. Keep it empty
-#: if you can; an entry that no longer occurs must be removed (the test says
-#: so), which is what makes this a ratchet.
-ACCEPTED: dict[str, dict[tuple[str, str], str]] = {}
+#: example stem -> {(code, JSON pointer, message): why it is accepted}. The
+#: message is part of the key because several findings can share a pointer
+#: (two long sentences in one scene): an entry covers exactly one finding, so
+#: a second one at the same place is still reported. Keep it empty if you can;
+#: an entry that no longer occurs must be removed (the test says so), which is
+#: what makes this a ratchet.
+ACCEPTED: dict[str, dict[tuple[str, str, str], str]] = {}
 
 Mutation = Callable[[dict[str, Any]], None]
 
@@ -395,6 +399,45 @@ MUTANTS: dict[str, Mutation] = {
 }
 
 
+def _longest_in(right: int, of: int) -> dict[str, Any]:
+    """The clean example with ``of`` questions; in ``right`` of them the right
+    option is the longest one."""
+    data = _mini()
+    items = []
+    for n in range(of):
+        longest = n < right
+        items.append({
+            "question": f"Frage {n + 1}?",
+            "options": ["eine lange Antwort hier" if longest else "kurz", "mittel lang", "mittellang"],
+            "answer": "eine lange Antwort hier" if longest else "kurz",
+        })
+    _task(data, "t3")["items"] = items
+    return data
+
+
+@pytest.mark.parametrize(("right", "of", "reported"), [
+    (2, 3, False), (3, 3, True),
+    (2, 4, False), (3, 4, True),
+    (3, 5, False), (4, 5, True),
+    (3, 6, False), (4, 6, True),
+    (2, 2, False),  # two questions are no pattern
+])
+def test_the_longest_option_rule_allows_half_rounded_up(right: int, of: int, reported: bool) -> None:
+    codes = _codes(_longest_in(right, of))
+    assert ("mc-longest-is-right" in codes) is reported
+    assert "rounded up" in RULES["mc-longest-is-right"].title
+
+
+def test_the_lines_suggestion_is_the_fewest_lines_that_pass() -> None:
+    data = _mini()
+    _task(data, "t7").update(min_words=60, max_words=100, lines=9)
+    finding = next(f for f in assess(worksheet_from_dict(data)).findings
+                   if f.code == "lines-too-few")
+    assert '"lines" to 10 or more' in finding.message
+    _task(data, "t7").update(lines=10)
+    assert "lines-too-few" not in _codes(data)
+
+
 def test_every_rule_has_a_mutant() -> None:
     assert set(MUTANTS) == set(RULES)
 
@@ -595,23 +638,52 @@ def test_accepted_findings_name_real_examples_and_rules() -> None:
     stems = {p.stem for p in EXAMPLES}
     for stem, accepted in ACCEPTED.items():
         assert stem in stems, f"ACCEPTED lists '{stem}', which is not a bundled example"
-        for (code, where), why in accepted.items():
+        for (code, where, message), why in accepted.items():
             assert code in RULES, code
-            assert where.startswith("/") and len(why) > 20, (code, where)
+            assert where.startswith("/") and message and len(why) > 20, (code, where)
+
+
+def _against_accepted(
+    findings: list[quality.Finding], accepted: dict[tuple[str, str, str], str],
+) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
+    """(findings that are not accepted, accepted entries that no longer occur).
+    Counted, not just looked up: one entry covers one finding."""
+    found = Counter((f.code, f.where, f.message) for f in findings)
+    listed = Counter(list(accepted))  # the keys: a dict's values would be read as counts
+    return sorted((found - listed).elements()), sorted((listed - found).elements())
+
+
+def test_an_accepted_finding_does_not_hide_another_at_the_same_place() -> None:
+    data = _mini()
+    long_one = (" Mia zieht ihre Stiefel an und nimmt ihren Rucksack und geht mit Jan und den "
+                "anderen Gästen langsam über den nassen Sand, weil das Wasser um ein Uhr wieder "
+                "zurückkommt.")
+    _scene(data, 0)["text"] += long_one
+    first = [f for f in assess(worksheet_from_dict(data)).findings if f.code == "sentence-length"]
+    assert len(first) == 1
+    accepted = {(first[0].code, first[0].where, first[0].message): "tolerated for this test only"}
+    assert _against_accepted(first, accepted) == ([], [])
+    # a second over-long sentence in the same scene: same code, same pointer
+    _scene(data, 0)["text"] += long_one.replace("Mia", "Dann").replace("Stiefel", "Schuhe")
+    both = [f for f in assess(worksheet_from_dict(data)).findings if f.code == "sentence-length"]
+    assert len(both) == 2 and both[0].where == both[1].where
+    new, fixed = _against_accepted(both, accepted)
+    assert len(new) == 1 and "Schuhe" in new[0][2] and fixed == []
+    # the same finding twice is two findings
+    assert len(_against_accepted([first[0], first[0]], accepted)[0]) == 1
+    # and an entry whose finding is gone has to go
+    assert _against_accepted([], accepted) == ([], list(accepted))
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.name)
 def test_bundled_examples_meet_the_rubric(path: Path) -> None:
     report = assess(load_worksheet(path))
-    found = {(f.code, f.where): f.message for f in report.findings}
-    accepted = ACCEPTED.get(path.stem, {})
-    new = {key: message for key, message in found.items() if key not in accepted}
+    new, fixed = _against_accepted(report.findings, ACCEPTED.get(path.stem, {}))
     assert not new, (
         f"{path.name} has findings the rubric does not accept "
         f"(see 'langwich validate {path.relative_to(REPO_ROOT)} --quality'):\n"
-        + "\n".join(f"  {where} [{code}] {message}" for (code, where), message in new.items())
+        + "\n".join(f"  {where} [{code}] {message}" for code, where, message in new)
     )
-    fixed = sorted(key for key in accepted if key not in found)
     assert not fixed, (
         f"{path.name} no longer has these findings; remove them from ACCEPTED: {fixed}"
     )
