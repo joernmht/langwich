@@ -1,0 +1,88 @@
+<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg" stroke="#000" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- floor -->
+  <line x1="0" y1="106" x2="200" y2="106" stroke-width=".5"/>
+
+  <!-- attic hatch and ladder -->
+  <rect x="160" y="0" width="34" height="6" fill="#000" stroke-width=".4"/>
+  <g stroke-width="1.1">
+    <line x1="158" y1="106" x2="168" y2="5"/>
+    <line x1="176" y1="106" x2="186" y2="5"/>
+  </g>
+  <path d="M159,96 H177 M160.2,84 H178.2 M161.4,72 H179.4 M162.6,60 H180.6 M163.7,48 H181.7 M164.9,36 H182.9 M166.1,24 H184.1 M167.3,12 H185.3" stroke-width=".8"/>
+
+  <!-- board leaning against the wall -->
+  <path d="M8,106 L12,20 L20,20 L16,106 Z" fill="#fff" stroke-width=".7"/>
+  <path d="M11.2,100 L14.6,26 M13.6,90 L16.6,40" stroke-width=".25"/>
+
+  <!-- wall clock: midnight -->
+  <circle cx="42" cy="22" r="10" fill="#fff" stroke-width=".8"/>
+  <path d="M42,13.5 V15.5 M42,28.5 V30.5 M33.5,22 H35.5 M48.5,22 H50.5" stroke-width=".5"/>
+  <line x1="42" y1="22" x2="42" y2="15.6" stroke-width=".5"/>
+  <line x1="42" y1="22" x2="42" y2="17.6" stroke-width="1.2"/>
+  <circle cx="42" cy="22" r=".9" fill="#000" stroke-width=".3"/>
+
+  <!-- hand saw on the wall -->
+  <path d="M76.5,10 L112,14.5 L112,17.5 L77,22.5 Z" fill="#fff" stroke-width=".6"/>
+  <polyline points="77,22.5 78.25,23.6 79.5,22.1 80.75,23.3 82,21.8 83.25,22.9 84.5,21.4 85.75,22.6 87,21.1 88.25,22.2 89.5,20.7 90.75,21.8 92,20.4 93.25,21.5 94.5,20 95.75,21.1 97,19.6 98.25,20.8 99.5,19.3 100.75,20.4 102,18.9 103.25,20.1 104.5,18.6 105.75,19.7 107,18.2 108.25,19.3 109.5,17.9 110.75,19 112,17.5" stroke-width=".4"/>
+  <path d="M64,9 L76.5,8 L77.5,24 L68,26 Q63,19 64,9 Z" fill="#fff" stroke-width=".7"/>
+  <ellipse cx="70" cy="17" rx="2.6" ry="4.6" stroke-width=".5"/>
+
+  <!-- pendant lamp -->
+  <line x1="134" y1="0" x2="134" y2="11" stroke-width=".35"/>
+  <path d="M125,21 L143,21 L139,11 L129,11 Z" fill="#000" stroke-width=".4"/>
+  <path d="M131.5,21.2 Q134,24.6 136.5,21.2" stroke-width=".4"/>
+
+  <!-- workbench with a vice -->
+  <g fill="#fff" stroke-width=".7">
+    <rect x="64" y="76" width="7" height="30"/>
+    <rect x="143" y="76" width="7" height="30"/>
+    <rect x="71" y="93" width="72" height="3.5" stroke-width=".5"/>
+    <rect x="58" y="70" width="98" height="6" stroke-width=".8"/>
+    <rect x="51" y="70.5" width="7" height="10" stroke-width=".6"/>
+  </g>
+  <line x1="71" y1="80" x2="143" y2="80" stroke-width=".35"/>
+  <path d="M51,75.5 H46.5 M46.5,71 V80" stroke-width=".8"/>
+  <circle cx="46.5" cy="71" r=".9" fill="#000" stroke-width=".3"/>
+  <circle cx="46.5" cy="80" r=".9" fill="#000" stroke-width=".3"/>
+
+  <!-- the bridge: two towers and a deck of bricks -->
+  <g fill="#fff" stroke-width=".6">
+    <rect x="68" y="54" width="13" height="16"/>
+    <rect x="133" y="54" width="13" height="16"/>
+  </g>
+  <path d="M68,58 H81 M68,62 H81 M68,66 H81 M74.5,54 V58 M71.2,58 V62 M77.8,58 V62 M74.5,62 V66 M71.2,66 V70 M77.8,66 V70" stroke-width=".35"/>
+  <path d="M133,58 H146 M133,62 H146 M133,66 H146 M139.5,54 V58 M136.2,58 V62 M142.8,58 V62 M139.5,62 V66 M136.2,66 V70 M142.8,66 V70" stroke-width=".35"/>
+  <path d="M63.4,48 v-1.4 h2.6 v1.4 M68,48 v-1.4 h2.6 v1.4 M73.4,48 v-1.4 h2.6 v1.4 M78,48 v-1.4 h2.6 v1.4 M83.4,48 v-1.4 h2.6 v1.4 M88,48 v-1.4 h2.6 v1.4 M93.4,48 v-1.4 h2.6 v1.4 M98,48 v-1.4 h2.6 v1.4 M113.4,48 v-1.4 h2.6 v1.4 M118,48 v-1.4 h2.6 v1.4 M123.4,48 v-1.4 h2.6 v1.4 M128,48 v-1.4 h2.6 v1.4 M133.4,48 v-1.4 h2.6 v1.4 M138,48 v-1.4 h2.6 v1.4 M143.4,48 v-1.4 h2.6 v1.4 M148,48 v-1.4 h2.6 v1.4" stroke-width=".45"/>
+  <rect x="62" y="48" width="90" height="6" fill="#fff" stroke-width=".7"/>
+  <path d="M72,48 V54 M82,48 V54 M92,48 V54 M102,48 V54 M112,48 V54 M122,48 V54 M132,48 V54 M142,48 V54" stroke-width=".4"/>
+
+  <!-- milk carton on the bridge -->
+  <g fill="#fff" stroke-width=".7">
+    <rect x="101" y="30" width="12" height="18"/>
+    <path d="M101,30 L104,25.5 L110,25.5 L113,30 Z"/>
+    <path d="M104,25.5 V23.6 H110 V25.5" stroke-width=".6"/>
+  </g>
+  <path d="M107,34.6 C105.2,37.2 104.8,38.8 107,40 C109.2,38.8 108.8,37.2 107,34.6 Z" stroke-width=".45"/>
+  <line x1="101" y1="43.6" x2="113" y2="43.6" stroke-width=".35"/>
+
+  <!-- box of old bricks on the floor -->
+  <g fill="#fff" stroke-width=".5">
+    <rect x="27" y="85.5" width="8" height="4.5"/>
+    <rect x="36.5" y="86.8" width="7" height="3.2"/>
+  </g>
+  <path d="M28.2,85.5 v-1.2 h2.2 v1.2 M31.8,85.5 v-1.2 h2.2 v1.2 M37.5,86.8 v-1.1 h2 v1.1 M40.6,86.8 v-1.1 h2 v1.1" stroke-width=".4"/>
+  <rect x="24" y="90" width="22" height="16" fill="#fff" stroke-width=".7"/>
+  <path d="M24,95.3 H46 M24,100.6 H46" stroke-width=".35"/>
+
+  <!-- leader lines for the numbered markers -->
+  <g stroke-width=".3">
+    <line x1="28.8" y1="10.4" x2="34.3" y2="15.3"/>
+    <line x1="88" y1="29.3" x2="88" y2="22.6"/>
+    <line x1="153.4" y1="41.4" x2="163.4" y2="45.3"/>
+    <line x1="118.3" y1="38.3" x2="113.6" y2="38.8"/>
+    <line x1="107" y1="58.3" x2="107" y2="54.6"/>
+    <line x1="120" y1="82.3" x2="120" y2="76.6"/>
+    <line x1="52.3" y1="98" x2="46.8" y2="98"/>
+    <line x1="24.3" y1="56" x2="19" y2="56"/>
+  </g>
+</svg>
