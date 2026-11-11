@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.metadata
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -212,3 +213,21 @@ def test_skill_md_names_the_engine_folder_it_ships_with() -> None:
     text = (REPO_ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
     assert "<skill-folder>/engine" in text
     assert "/mnt/user-data/outputs/" in text, "say where Claude apps pick up files to download"
+
+
+def test_the_label_check_works_without_a_pdf(tmp_path: Path) -> None:
+    """The Pillow snippet in SKILL.md marks every label on the photo, with no PDF and no
+    PyMuPDF: the offline path can still check the numbered markers."""
+    match = re.search(r"python3 - data/<file>\.json <<'EOF'\n(.*?)\nEOF\n", _skill_md(), re.S)
+    assert match, "SKILL.md lost the label-check snippet"
+    example = REPO_ROOT / "examples" / "evora_street_en_pt.json"
+    labelled = [s["id"] for s in json.loads(example.read_text(encoding="utf-8"))["story"]["scenes"]
+                if (s.get("picture") or {}).get("labels") and (s.get("picture") or {}).get("image")]
+    assert labelled, "the example has no labelled photo any more; pick another"
+    done = subprocess.run(
+        [sys.executable, "-", str(example)], input=match.group(1),
+        capture_output=True, text=True, check=False, cwd=tmp_path,
+    )
+    assert done.returncode == 0, done.stderr
+    for scene in labelled:
+        assert (tmp_path / f"labels-{scene}.png").is_file()

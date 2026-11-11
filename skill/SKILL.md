@@ -128,9 +128,39 @@ cd ~/langwich && langwich render data/<file>.json --page a4
 colour; `--solutions separate` if they want the answers in a second file. Warnings printed before
 the `Rendered` line mean something is missing from the sheet: fix the cause and render again.
 
-If the story has a photo or drawing with numbered labels, look at that page (for example with
-`pip install pymupdf` and PyMuPDF's `page.get_pixmap()`): every number must sit on its object.
-Fix `x`/`y` in the JSON and render again if not.
+**Check the numbered labels** whenever a scene picture has `labels`: every number must sit on its
+object. With a PDF and a working `pip install pymupdf`, look at the picture page (PyMuPDF's
+`page.get_pixmap()`). Without them — no internet, or no PDF — check the photo itself: this marks
+each label on a copy of it with Pillow, which langwich already needs, and saves one PNG per
+picture to look at:
+
+```bash
+python3 - data/<file>.json <<'EOF'
+import json, os, sys
+from PIL import Image, ImageDraw
+path = sys.argv[1]
+sheet = json.load(open(path, encoding="utf-8"))
+for scene in sheet["story"]["scenes"]:
+    pic = scene.get("picture") or {}
+    image, labels = pic.get("image"), pic.get("labels") or []
+    if not image or image.startswith(("http:", "https:", "data:")) or not labels:
+        continue
+    img = Image.open(os.path.join(os.path.dirname(path), image)).convert("RGB")
+    draw, r = ImageDraw.Draw(img), max(8, img.width // 60)
+    for label in labels:
+        if label.get("x") is None or label.get("y") is None:
+            continue
+        x, y = label["x"] * img.width, label["y"] * img.height
+        draw.ellipse((x - r, y - r, x + r, y + r), outline="red", width=max(2, r // 4))
+        draw.text((x + r + 2, y - r), f'{label["n"]} {label["term"]}', fill="red")
+    out = f"labels-{scene['id']}.png"
+    img.save(out)
+    print("check:", out)
+EOF
+```
+
+For line art you drew as `svg`, compare each label's `x`/`y` with where you drew the object (as a
+fraction of the `viewBox`). Fix `x`/`y` in the JSON and render again if a number is off.
 
 **Hand over the files.** In Claude apps, copy the PDF (and the solutions PDF, if any) **and the
 `.json` file** to `/mnt/user-data/outputs/` so the person can download them; elsewhere, offer them
