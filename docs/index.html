@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-audience="simple">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,10 +15,11 @@
 <script>
   // The audience switch: "simple" (the default) or "nerd". Applied before the page is drawn, so
   // a returning reader never sees the other version flash by. ?view=nerd or ?view=simple wins.
+  // Without JavaScript no view is set, and the page shows both versions of every section.
   (() => {
     let view = new URLSearchParams(location.search).get('view');
     try { view = view || localStorage.getItem('langwich-view'); } catch { /* no storage */ }
-    if (view === 'nerd' || view === 'simple') document.documentElement.dataset.audience = view;
+    document.documentElement.dataset.audience = view === 'nerd' ? 'nerd' : 'simple';
   })();
 </script>
 <style>
@@ -126,6 +127,8 @@
   /* ---------- the audience switch ---------- */
   html[data-audience="simple"] .only-nerd,
   html[data-audience="nerd"] .only-simple { display: none !important; }
+  /* without JavaScript nothing can switch, so the switches go */
+  html:not([data-audience]) .needs-js { display: none !important; }
   .audience {
     display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 999px; padding: 3px;
     font-size: 14px;
@@ -1144,8 +1147,8 @@
           and choose <b>Print → Save as PDF</b>.</li>
           <li><b>ChatGPT, Gemini and others</b> write good stories too, but they cannot run
           langwich in their chat, so they cannot hand you the finished PDF. Someone technical
-          can set langwich up on your computer in about ten minutes — switch the page to
-          <button type="button" class="linklike" data-view="nerd">IT nerd</button> to see how.</li>
+          can set langwich up on your computer in about ten minutes<span class="needs-js"> — switch the page to
+          <button type="button" class="linklike" data-view="nerd">IT nerd</button> to see how</span>.</li>
           <li><b>Mistakes?</b> langwich catches mistakes in how the worksheet is put together,
           and Claude checks the language and the facts, but an AI can still be wrong now and
           then. If something looks odd, ask Claude in the same chat.</li>
@@ -1355,7 +1358,7 @@ langwich render "data/$day.json"</pre>
           <h3>Set it up on a computer</h3>
           <p>For a model on your own computer, a new worksheet every morning or any other AI:
           langwich as a small program. Ask someone technical, or have a go yourself.</p>
-          <button type="button" class="btn ghost" data-view="nerd">Switch to IT nerd view</button>
+          <button type="button" class="btn ghost needs-js" data-view="nerd">Switch to IT nerd view</button>
         </li>
       </ul>
     </div>

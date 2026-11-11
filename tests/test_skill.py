@@ -60,15 +60,24 @@ def test_the_zip_holds_one_skill_folder_with_an_installable_engine(skill_zip: Pa
     assert "langwich/SKILL.md" in names
     for name in build_skill.ENGINE_FILES:
         assert f"langwich/engine/{name}" in names
-    # everything the wheel would ship: modules, fonts and their licences, the schema
-    package = {
-        p.relative_to(REPO_ROOT).as_posix()
-        for p in (REPO_ROOT / "src" / "langwich").rglob("*")
-        if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
-    }
-    assert {f"langwich/engine/{p}" for p in package} <= set(names)
-    assert not [n for n in names if "__pycache__" in n or n.endswith(".pyc")]
+    package = {f"langwich/engine/{p.relative_to(REPO_ROOT).as_posix()}"
+               for p in build_skill.package_files()}
+    assert {n for n in names if n.startswith("langwich/engine/src/")} == package
+    assert any(n.endswith(".ttf") for n in names) and any(n.endswith(".json") for n in names)
     assert pyproject["project"]["scripts"]["langwich"] == "langwich.cli:main"
+
+
+def test_the_zip_holds_what_git_tracks_and_nothing_else() -> None:
+    """Patterns, not a directory listing: a stray local file never ships."""
+    try:
+        tracked = subprocess.run(
+            ["git", "ls-files", "src/langwich"], cwd=REPO_ROOT,
+            capture_output=True, text=True, check=True,
+        ).stdout.split()
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("not a git checkout")
+    packed = {p.relative_to(REPO_ROOT).as_posix() for p in build_skill.package_files()}
+    assert packed == set(tracked)
 
 
 def test_the_zip_is_reproducible(skill_zip: Path, tmp_path: Path) -> None:
@@ -82,20 +91,55 @@ def _unpack(skill_zip: Path, into: Path) -> Path:
     return into / "langwich" / "engine"
 
 
+#: Runs langwich's CLI as the offline fallback does, in a Python that cannot import
+#: WeasyPrint or fontTools: SKILL.md promises this path needs only pydantic and Pillow.
+_WITHOUT_PDF_TOOLS = """
+import sys
+from importlib.abc import MetaPathFinder
+
+class Blocked(MetaPathFinder):
+    def find_spec(self, name, path=None, target=None):
+        if name.split(".")[0] in ("weasyprint", "fontTools"):
+            raise ImportError(f"{name} is not installed in this sandbox")
+        return None
+
+sys.meta_path.insert(0, Blocked())
+import langwich
+assert langwich.__file__.startswith(sys.argv[1]), langwich.__file__
+from langwich.cli import main
+sys.exit(main(sys.argv[2:]))
+"""
+
+
 def test_the_offline_fallback_runs_the_engine_without_installing(
     skill_zip: Path, tmp_path: Path
 ) -> None:
-    """SKILL.md's no-network path: ``PYTHONPATH=<engine>/src python3 -m langwich``."""
+    """SKILL.md's no-network path: ``PYTHONPATH=<engine>/src python3 -m langwich``,
+    with no WeasyPrint and no fontTools: it still checks a worksheet and writes the HTML."""
     engine = _unpack(skill_zip, tmp_path)
     text = (REPO_ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
     assert "PYTHONPATH=/tmp/langwich-engine/src python3 -m langwich kinds" in text
-    result = subprocess.run(
-        [sys.executable, "-m", "langwich", "kinds"],
-        capture_output=True, text=True, check=False, cwd=tmp_path,
-        env={**os.environ, "PYTHONPATH": str(engine / "src")},
-    )
-    assert result.returncode == 0, result.stderr
-    assert "match" in result.stdout
+    src = engine / "src"
+    env = {**os.environ, "PYTHONPATH": str(src)}
+
+    def run(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, "-c", _WITHOUT_PDF_TOOLS, str(src), *args],
+            capture_output=True, text=True, check=False, cwd=tmp_path, env=env,
+        )
+
+    kinds = run("kinds")
+    assert kinds.returncode == 0, kinds.stderr
+    assert "match" in kinds.stdout
+    example = REPO_ROOT / "examples" / "krasnale_wroclaw_de_pl.json"
+    checked = run("validate", str(example), "--quality")
+    assert checked.returncode == 0, checked.stdout + checked.stderr
+    assert "OK: no problems found." in checked.stdout
+    out = tmp_path / "out"
+    rendered = run("render", str(example), "-o", f"{out}/")
+    assert (out / "krasnale_wroclaw_de_pl.html").is_file(), rendered.stdout + rendered.stderr
+    assert not (out / "krasnale_wroclaw_de_pl.pdf").exists()
+    assert "print it to PDF" in rendered.stdout + rendered.stderr
 
 
 def test_the_bundled_engine_installs_with_pip(skill_zip: Path, tmp_path: Path) -> None:
