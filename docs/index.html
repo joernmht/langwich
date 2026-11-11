@@ -129,6 +129,11 @@
   html[data-audience="nerd"] .only-simple { display: none !important; }
   /* without JavaScript nothing can switch, so the switches go */
   html:not([data-audience]) .needs-js { display: none !important; }
+  /* ... and both versions show: where they sit side by side in one line, keep them apart */
+  html:not([data-audience]) :is(span, b, code).only-simple + :is(span, b, code).only-nerd::before,
+  html:not([data-audience]) :is(span, b, code).only-nerd + :is(span, b, code).only-simple::before {
+    content: " / "; font-family: inherit; color: var(--muted);
+  }
   .audience {
     display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: 999px; padding: 3px;
     font-size: 14px;

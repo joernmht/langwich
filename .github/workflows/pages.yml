@@ -12,6 +12,8 @@ on:
       - "skill/**"
       - "README.md"
       - "pyproject.toml"
+      - "LICENSE"
+      - "NOTICE"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
