@@ -928,10 +928,14 @@ class _Rubric:
 
     def check_target_words(self) -> None:
         ws, words = self.ws, self.words
-        target = [
-            (k, term) for k, term in enumerate(dict.fromkeys(ws.vocabulary.target))
-            if strip_article(term, self.lang) and ws.vocab_item(term) is not None
-        ]
+        seen: set[str] = set()
+        target: list[tuple[int, str]] = []
+        for k, term in enumerate(ws.vocabulary.target):
+            if term.casefold() in seen:
+                continue  # the validator reports the repeat
+            seen.add(term.casefold())
+            if strip_article(term, self.lang) and ws.vocab_item(term) is not None:
+                target.append((k, term))
         if not target:
             return
         shown = [(t, [x for x in words.task_texts(t) if x]) for t in ws.tasks]
