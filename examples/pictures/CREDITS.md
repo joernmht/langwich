@@ -19,6 +19,6 @@ That library's `manifest.json` records the author and licence from the Commons f
 
 ## The `.svg` pictures
 
-`cafe_lindner.svg`, `lena_02_bar_molo.svg`, `lyon_cinema.svg`, `utrecht_fietsenstalling.svg` and
-`valencia_puesto.svg` are line drawings written for these examples. They fall under the project's licence
+`cafe_lindner.svg`, `lena_02_bar_molo.svg`, `lyon_cinema.svg`, `utrecht_fietsenstalling.svg`,
+`valencia_puesto.svg` and `wroclaw_rynek.svg` are line drawings written for these examples. They fall under the project's licence
 ([`LICENSE`](../../LICENSE)).

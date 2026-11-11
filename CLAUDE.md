@@ -67,7 +67,9 @@ a label box shows the terms without articles (the answer key keeps them).
 7. **Rebuild the showcase after changing the renderer, the planner or an example.** Run
    `python3 scripts/build_showcase.py` and commit `docs/examples/` and `docs/assets/`;
    `python3 scripts/build_showcase.py --check` (CI) fails when the committed PDFs no longer match
-   a fresh render.
+   a fresh render. A new example also needs a card in `docs/index.html` (`tests/test_site.py`
+   holds the cards, the map and the language table against the examples) and a row in the
+   README's example table; then run `python3 scripts/update_page_stats.py`.
 8. **The renderer stays offline.** WeasyPrint may fetch only `data:` URIs and the bundled fonts
    (`render/__init__.py`, `is_allowed_url`); SVG is sanitised (`images.sanitize_svg`). The only
    outside resource is a `picture.image` the JSON names, loaded by `images.py`.

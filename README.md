@@ -60,9 +60,13 @@ Worksheets that come with the repository include:
 | [`examples/festival_lyon_de_fr.json`](examples/festival_lyon_de_fr.json) | *La bobine disparue* — a mystery at the Festival Lumière in Lyon: a film reel vanishes two hours before a sold-out screening. Episode 1 of the series *Paula à Lyon*. | German → French | B1 |
 | [`examples/mercado_valencia_en_es.json`](examples/mercado_valencia_en_es.json) | *La lista de la abuela Pepa* — Emily shops for her host grandmother's Sunday paella at Valencia's Mercado Central. A one-off story. | English → Spanish | A2 |
 | [`examples/evora_street_en_pt.json`](examples/evora_street_en_pt.json) | *A mesma rua* — Hannah has one afternoon in Évora to find the street in her grandmother's fifty-year-old photo. Built from a real open-licence photo with `langwich prompt --image` (photo: Ken & Nyetta, CC BY 2.0). | English → Portuguese | A2 |
+| [`examples/fiets_utrecht_de_nl.json`](examples/fiets_utrecht_de_nl.json) | *Zwart, met een bel* — Mara has to return her flatmate's bike by six, and cannot find it again in the world's largest bicycle garage, under Utrecht Centraal. A one-off mystery. | German → Dutch | A2 |
+| [`examples/krasnale_wroclaw_de_pl.json`](examples/krasnale_wroclaw_de_pl.json) | *Gdzie jest Papa Krasnal?* — Jonas has one hour in Wrocław to photograph the city's first bronze dwarf for his daughter. A one-off story in the present tense. | German → Polish | A1 |
 
-Every file in [`examples/`](examples/) validates without a single warning; the PDFs are in
-[`docs/examples/`](docs/examples/).
+Every file in [`examples/`](examples/) validates without a single warning and meets the
+[design rubric](docs/quality.md); the PDFs are in [`docs/examples/`](docs/examples/). On the
+[website](https://joernmht.github.io/langwich/#examples) a map of Europe shows where each story
+is set and which languages have a worksheet, with filters for language and level.
 
 ### PDFs need Pango
 
@@ -696,7 +700,8 @@ langwich/
 ├── examples/           example worksheets; pictures/ holds their pictures
 ├── data/               your worksheets, pictures/ and PDFs (created on first use; not in git)
 ├── tests/              pytest suite; tests/test_docs.py keeps this README honest
-├── scripts/            export_schema.py, export_rubric.py, update_page_stats.py, build_showcase.py
+├── scripts/            export_schema.py, export_rubric.py, update_page_stats.py, build_showcase.py,
+│                       build_europe_map.py and build_page_fonts.py (the website's map and fonts)
 ├── docs/               the website (index.html), architecture.md, quality.md, assets/, examples/ (PDFs)
 ├── .github/workflows/  ci.yml (lint, types, schema, tests), pages.yml (the website)
 ├── .claude/commands/langwich.md    the /langwich command for Claude Code
@@ -746,6 +751,15 @@ python3 scripts/build_showcase.py --check
 - **Website numbers:** `python3 scripts/update_page_stats.py` writes the number of task kinds,
   stages, built-in languages and examples into `docs/index.html`. The Pages workflow runs it
   before each deploy.
+- **Website:** [`docs/index.html`](docs/index.html) is one hand-written file. Its examples section
+  lists every bundled example as a card (`data-example`, languages, level, where the story is set)
+  beside a map of Europe; choosing a country filters the cards by the languages spoken there.
+  [`tests/test_site.py`](tests/test_site.py) holds the cards against the examples, the language
+  table against the map, and every local link against the files — so a new example needs a card.
+  The map is drawn from Natural Earth data by `scripts/build_europe_map.py` (the data file is not
+  in the repository; the script says where to get it), and the page's fonts are made from the
+  bundled ones by `python3 scripts/build_page_fonts.py`. Neither needs to run again unless the
+  map's frame or the fonts change.
 - **Previews:** `python3 scripts/build_showcase.py` renders the examples into `docs/examples/`
   (PDFs) and `docs/assets/` (the PNG previews shown here and on the website). Run it after
   changing the renderer, the planner or an example, and commit both folders.
